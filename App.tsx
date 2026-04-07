@@ -453,10 +453,10 @@ const App: React.FC = () => {
           className={`absolute -left-10 top-1/2 z-50 rounded-l-xl bg-slate-700 p-2 text-white shadow-lg transition-colors hover:bg-slate-600 -translate-y-1/2 ${
             appPhase !== "game" ? "hidden" : ""
           }`}
-          title={isIdeatorCollapsed ? "Open Inspiration Lab" : "Collapse Inspiration Lab"}
+          title={isIdeatorCollapsed ? "Open Workshop" : "Collapse Workshop"}
         >
           <div className="whitespace-nowrap px-1 text-xl font-bold -rotate-90 transform">
-            {isIdeatorCollapsed ? "IDEAS" : "CLOSE"}
+            {isIdeatorCollapsed ? "WORKSHOP" : "CLOSE"}
           </div>
         </button>
         <div className={`h-full overflow-hidden transition-opacity duration-300 ${isIdeatorCollapsed ? "opacity-0" : "opacity-100"}`}>

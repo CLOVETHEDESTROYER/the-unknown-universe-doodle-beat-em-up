@@ -1,6 +1,4 @@
-import React, { useRef, useState } from "react";
-import { generateMonsterIdea, hasGeminiApiKey } from "../services/geminiService";
-import { DoodleIdea } from "../types";
+import React, { useRef } from "react";
 
 interface MonsterIdeatorProps {
   onSpriteUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -8,16 +6,7 @@ interface MonsterIdeatorProps {
 }
 
 const MonsterIdeator: React.FC<MonsterIdeatorProps> = ({ onSpriteUpload, isSpriteLoaded }) => {
-  const [idea, setIdea] = useState<DoodleIdea | null>(null);
-  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleGetIdea = async () => {
-    setLoading(true);
-    const newIdea = await generateMonsterIdea();
-    setIdea(newIdea);
-    setLoading(false);
-  };
 
   const triggerUpload = () => {
     fileInputRef.current?.click();
@@ -25,7 +14,7 @@ const MonsterIdeator: React.FC<MonsterIdeatorProps> = ({ onSpriteUpload, isSprit
 
   return (
     <div className="w-80 h-full overflow-y-auto border-l-4 border-slate-300 bg-slate-50 p-6 font-['Indie_Flower']">
-      <h2 className="mb-4 text-center text-3xl font-bold text-slate-800">Inspiration Lab</h2>
+      <h2 className="mb-4 text-center text-3xl font-bold text-slate-800">Character Workshop</h2>
 
       <div className="mb-8 rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm">
         <h3 className="mb-2 text-xl font-bold text-blue-800">Doodle Scanner</h3>
@@ -53,38 +42,17 @@ const MonsterIdeator: React.FC<MonsterIdeatorProps> = ({ onSpriteUpload, isSprit
         </button>
       </div>
 
-      <p className="mb-4 text-center leading-tight text-slate-600">
-        Need a new Scribble Monster for the game? Ask the idea generator for something weird.
-      </p>
-
-      <p className="mb-3 text-center text-xs leading-tight text-slate-500">
-        {hasGeminiApiKey
-          ? "Gemini is connected for fresh monster prompts."
-          : "No GEMINI_API_KEY found, so this panel will use a local doodle idea deck."}
-      </p>
-
-      <button
-        onClick={handleGetIdea}
-        disabled={loading}
-        className="w-full rounded-full bg-blue-500 px-4 py-3 font-bold text-white shadow-md transition-all active:scale-95 disabled:opacity-50 hover:bg-blue-600"
-      >
-        {loading ? "Thinking of doodles..." : hasGeminiApiKey ? "Get New Doodle Idea" : "Draw From Local Idea Deck"}
-      </button>
-
-      {idea && (
-        <div className="mt-8 rotate-[-1deg] rounded-lg border-2 border-yellow-200 bg-yellow-50 p-4 shadow-sm">
-          <h3 className="mb-2 text-2xl font-bold text-yellow-800">The {idea.name}</h3>
-          <p className="mb-3 text-slate-700">{idea.description}</p>
-          <div className="border-t border-yellow-200 pt-2">
-            <p className="mb-1 font-bold text-yellow-900">How to draw it:</p>
-            <ul className="list-inside list-disc text-sm text-slate-600">
-              {idea.parts.map((part, index) => (
-                <li key={index}>{part}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <div className="rotate-[-1deg] rounded-lg border-2 border-violet-200 bg-violet-50 p-4 shadow-sm">
+        <h3 className="mb-2 text-2xl font-bold text-violet-900">Workshop Notes</h3>
+        <p className="mb-3 text-slate-700">
+          The live AI idea generator is currently offline for the hosted build, so this panel stays deployment-safe on Vercel.
+        </p>
+        <ul className="list-inside list-disc text-sm text-slate-600">
+          <li>Upload custom player art here whenever you want to test a new doodle.</li>
+          <li>Enemy and helper concepting can be reconnected later behind a server-side API route.</li>
+          <li>The game itself now runs without any Gemini dependency in the browser.</li>
+        </ul>
+      </div>
 
       <div className="mt-12 text-center text-xs italic text-slate-400">
         "Every masterpiece starts with a messy scribble."

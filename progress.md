@@ -272,3 +272,10 @@ Original prompt: take a look at this git and lets clone it and start working on 
 - Tuned the attack pose origin/scale after the first smoke run so the new sheet no longer anchors too low into the floor when it teleports in to strike.
 - Re-ran `npm run build` and a focused forced-helper level 3 smoke run to `output/web-game-teleportc-attack/` using `teleportcUnlocked=1&teleportc=1`.
 - Latest verification note: `output/web-game-teleportc-attack/state-0.json` captured Teleportation C in `attacking: true` during live combat with `attackCooldownRemainingMs: 1650`, and the clean reruns emitted no fresh `errors-*.json`. The screenshot set clearly shows the helper following in level 3, though the action pose itself is still easier to judge live than from the current automated capture timing.
+- Removed the live Gemini browser path from the shipped app so Vercel hosting can stay frontend-only without exposing any API key.
+- `components/MonsterIdeator.tsx` is now a local upload/workshop panel only; it no longer imports `services/geminiService.ts` or calls Gemini at runtime.
+- `vite.config.ts` no longer injects `GEMINI_API_KEY` / `API_KEY` into the frontend build, and the old `genai` manual chunk path was removed as part of the cleanup.
+- Updated `README.md`, `.env.example`, and the panel copy to reflect the no-backend / no-key deployment path.
+- Added `.env` and `.env.*` to `.gitignore` (while keeping `.env.example`) so local secrets are less likely to be committed by mistake.
+- Deleted the old `dist/` and rebuilt cleanly. The new `dist/assets/` output no longer contains a `genai` chunk, and a direct text scan of `dist/` found no `GEMINI_API_KEY`, `API_KEY`, or Gemini model strings.
+- Re-ran `npm run build` and a smoke run to `output/web-game-no-gemini/` after the cleanup with no fresh error artifact.
