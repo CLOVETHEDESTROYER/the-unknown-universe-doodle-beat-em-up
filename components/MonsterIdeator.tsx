@@ -1,7 +1,6 @@
-
-import React, { useState, useRef } from 'react';
-import { generateMonsterIdea } from '../services/geminiService';
-import { DoodleIdea } from '../types';
+import React, { useRef, useState } from "react";
+import { generateMonsterIdea, hasGeminiApiKey } from "../services/geminiService";
+import { DoodleIdea } from "../types";
 
 interface MonsterIdeatorProps {
   onSpriteUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -25,64 +24,69 @@ const MonsterIdeator: React.FC<MonsterIdeatorProps> = ({ onSpriteUpload, isSprit
   };
 
   return (
-    <div className="w-80 h-full bg-slate-50 border-l-4 border-slate-300 p-6 overflow-y-auto font-['Indie_Flower']">
-      <h2 className="text-3xl font-bold text-slate-800 mb-4 text-center">Inspiration Lab</h2>
-      
-      {/* Doodle Scanner Section */}
-      <div className="mb-8 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl shadow-sm">
-        <h3 className="text-xl font-bold text-blue-800 mb-2">Doodle Scanner</h3>
-        <p className="text-sm text-blue-600 mb-4 leading-tight italic">
-          Upload your son's "player_walk.png" to bring him to life!
+    <div className="w-80 h-full overflow-y-auto border-l-4 border-slate-300 bg-slate-50 p-6 font-['Indie_Flower']">
+      <h2 className="mb-4 text-center text-3xl font-bold text-slate-800">Inspiration Lab</h2>
+
+      <div className="mb-8 rounded-xl border-2 border-blue-200 bg-blue-50 p-4 shadow-sm">
+        <h3 className="mb-2 text-xl font-bold text-blue-800">Doodle Scanner</h3>
+        <p className="mb-4 text-sm italic leading-tight text-blue-600">
+          Upload your son&apos;s "player_walk.png" to bring him to life!
         </p>
-        
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          accept="image/png" 
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/png"
           onChange={onSpriteUpload}
         />
-        
+
         <button
           onClick={triggerUpload}
-          className={`w-full font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 border-2 border-blue-800 ${
-            isSpriteLoaded 
-            ? 'bg-green-500 hover:bg-green-600 text-white' 
-            : 'bg-white hover:bg-slate-100 text-blue-800'
+          className={`w-full rounded-xl border-2 border-blue-800 px-4 py-3 font-bold shadow-md transition-all active:scale-95 ${
+            isSpriteLoaded
+              ? "bg-green-500 text-white hover:bg-green-600"
+              : "bg-white text-blue-800 hover:bg-slate-100"
           }`}
         >
-          {isSpriteLoaded ? '✅ Character Scanned!' : '📸 Scan Character Doodle'}
+          {isSpriteLoaded ? "Character Scanned" : "Scan Character Doodle"}
         </button>
       </div>
 
-      <p className="text-slate-600 mb-6 text-center leading-tight">
-        Need a new Scribble Monster for the game? Ask the AI for an idea!
+      <p className="mb-4 text-center leading-tight text-slate-600">
+        Need a new Scribble Monster for the game? Ask the idea generator for something weird.
+      </p>
+
+      <p className="mb-3 text-center text-xs leading-tight text-slate-500">
+        {hasGeminiApiKey
+          ? "Gemini is connected for fresh monster prompts."
+          : "No GEMINI_API_KEY found, so this panel will use a local doodle idea deck."}
       </p>
 
       <button
         onClick={handleGetIdea}
         disabled={loading}
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-full shadow-md transition-all active:scale-95 disabled:opacity-50"
+        className="w-full rounded-full bg-blue-500 px-4 py-3 font-bold text-white shadow-md transition-all active:scale-95 disabled:opacity-50 hover:bg-blue-600"
       >
-        {loading ? 'Thinking of doodles...' : 'Get New Doodle Idea! ✏️'}
+        {loading ? "Thinking of doodles..." : hasGeminiApiKey ? "Get New Doodle Idea" : "Draw From Local Idea Deck"}
       </button>
 
       {idea && (
-        <div className="mt-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg transform -rotate-1 shadow-sm">
-          <h3 className="text-2xl font-bold text-yellow-800 mb-2">The {idea.name}</h3>
-          <p className="text-slate-700 mb-3">{idea.description}</p>
+        <div className="mt-8 rotate-[-1deg] rounded-lg border-2 border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+          <h3 className="mb-2 text-2xl font-bold text-yellow-800">The {idea.name}</h3>
+          <p className="mb-3 text-slate-700">{idea.description}</p>
           <div className="border-t border-yellow-200 pt-2">
-            <p className="font-bold text-yellow-900 mb-1">How to draw it:</p>
-            <ul className="list-disc list-inside text-slate-600 text-sm">
-              {idea.parts.map((p, i) => (
-                <li key={i}>{p}</li>
+            <p className="mb-1 font-bold text-yellow-900">How to draw it:</p>
+            <ul className="list-inside list-disc text-sm text-slate-600">
+              {idea.parts.map((part, index) => (
+                <li key={index}>{part}</li>
               ))}
             </ul>
           </div>
         </div>
       )}
 
-      <div className="mt-12 text-center text-slate-400 text-xs italic">
+      <div className="mt-12 text-center text-xs italic text-slate-400">
         "Every masterpiece starts with a messy scribble."
       </div>
     </div>

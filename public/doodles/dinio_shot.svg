@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 96">
+  <defs>
+    <radialGradient id="dinioShotCore" cx="35%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#fff6ff" stop-opacity="1"/>
+      <stop offset="35%" stop-color="#ffb0f1" stop-opacity="0.98"/>
+      <stop offset="70%" stop-color="#ff66dc" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#c026a4" stop-opacity="0.25"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="54" cy="48" rx="28" ry="24" fill="url(#dinioShotCore)"/>
+  <path d="M66 25c25 5 45 18 63 23-18 5-38 18-63 23 8-9 12-15 12-23 0-8-4-14-12-23Z" fill="#ff8fe8" opacity="0.84"/>
+  <ellipse cx="44" cy="45" rx="10" ry="9" fill="#ffffff" opacity="0.7"/>
+</svg>

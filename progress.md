@@ -1,0 +1,274 @@
+Original prompt: take a look at this git and lets clone it and start working on it https://github.com/CLOVETHEDESTROYER/the-unknown-universe-doodle-beat-em-up.git
+
+## 2026-03-20
+
+- Cloned the repository into the Playground workspace.
+- Confirmed this is a Vite + React + Phaser project with a gameplay canvas and a Gemini-powered "Inspiration Lab" side panel.
+- Noted that README content still looks AI Studio-generated and may not reflect the actual local setup needs.
+- Installed dependencies and verified `npm run build` succeeds locally.
+- Added a real README, `.env.example`, and `index.css` so the project has clearer setup instructions and no missing stylesheet warning.
+- Made the Inspiration Lab work without a Gemini key by falling back to built-in doodle prompts.
+- Added local gameplay test plumbing: Playwright is now installed in the repo, and the game exposes `window.render_game_to_text` plus a deterministic `window.advanceTime(ms)` hook for automation.
+- Cleaned `index.html` to remove leftover AI Studio import-map scaffolding while keeping the font and Tailwind setup the game still relies on.
+- Polished the HUD objective copy to match the actual encounter flow and added fullscreen toggle support on `F`.
+- Fixed the production asset path issue by mirroring the PNG art into `public/`, which makes Phaser-loaded files available in built output.
+- Added `npm run test:game` and `npm run test:game:headed` plus a wrapper that serves `dist/`, runs the shared Codex Playwright client, and clears old artifacts before each run.
+- Verified the smoke test reaches combat: latest run ended at level 1 section 1 with 5 monsters defeated, player health 80, and no fresh console errors.
+- Latest verified artifacts live under `output/web-game/` and include visible screenshots plus `render_game_to_text` JSON snapshots.
+- Added purpose-built doodle SVGs under `public/doodles/` for fallback enemies, props, pickups, soul orbs, projectile splats, and impact VFX.
+- Updated the Phaser preload to load the new doodle assets directly; the old emoji/canvas fallback code now stays dormant because the texture keys already exist.
+- Re-ran `npm run test:game` on 2026-03-23 and verified the new art reads clearly in combat screenshots with no fresh console errors.
+
+## 2026-04-01
+
+- Started sprint 1 for gameplay feel and sprite-driven combat polish.
+- Added new doodle assets for `m_floater`, `attack_slash`, `slam_wave`, and `shadow_oval` under `public/doodles/`.
+- Tuned player feel in `components/GameEngine.tsx` with centralized movement/dash/attack constants, smoother velocity interpolation, shorter dash recovery, and slightly calmer encounter pacing.
+- Replaced the drawn attack arc and slam ring with sprite-based FX, and swapped floater enemies over to the new doodle floater art.
+- Fixed health bar rendering order so enemy bars are no longer cleared before the player bar is drawn.
+- Re-ran `npm run build` and `npm run test:game` successfully after the sprint 1 changes.
+- Latest verified smoke-test state is still combat-stable with no fresh console error file emitted; latest screenshots show the new slash FX and smoother combat framing.
+- Residual note: the smoke-test screenshots still show a small ghost icon in the browser margin outside the game canvas during early frames. It does not appear to be a gameplay-space sprite, so investigate the harness/page-level source separately if it keeps showing up.
+
+- Started phase 2 for richer alley visuals and broader sprite coverage.
+- Added new SVG assets under `public/doodles/` for `m_dasher`, `m_giant`, `spawn_burst`, `d_cone`, `d_lamp`, `d_puddle`, and `d_poster`.
+- Wired new enemy art into `components/GameEngine.tsx` so dashing and giant wave members can use dedicated doodle silhouettes instead of reusing the older fallback set.
+- Added fixed street-dressing placements across the full level with lamps, puddles, posters, and cones so the alley reads less empty during movement and combat.
+- Added a spawn-burst effect when wave monsters enter, which gives combat starts a clearer visual beat.
+- Expanded `tests/game-smoke.actions.json` so the smoke run moves farther into section 2 and captures more of the dressed environment.
+- Re-ran `npm run build` and `npm run test:game` after the phase 2 changes; latest screenshots show the new decor clearly and the updated smoke path reaches section index 1 with no fresh console error file.
+
+- Started phase 3 for encounter personality and boss presentation.
+- Added new SVG FX assets under `public/doodles/` for `tell_ring`, `dash_tell`, `giant_quake`, and `boss_warning`.
+- Gave enemy types clearer behavior tells in `components/GameEngine.tsx`: floaters now telegraph and spit projectiles, dashers wind up before burst movement, and giants telegraph short quake slams.
+- Added section-specific encounter prop clusters so fight spaces have a stronger silhouette than the passive traversal spaces.
+- Added boss arena staging beats with warning art and extra set dressing, then created `tests/game-boss.actions.json` plus package scripts for a focused boss-route smoke run.
+- Re-ran `npm run build`, `npm run test:game`, and a focused boss-route run (`node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss`) successfully.
+- Latest boss-route final state advanced into level 2 with no fresh console error file, which confirms the boss flow can complete in the automated path.
+- Residual note: the general smoke screenshots still tend to capture after the enemy tells have already resolved, so the encounter-state logic is better verified through behavior/state output than static screenshots alone unless the scenario is tuned specifically for those tells.
+
+## 2026-04-02
+
+- Started the gameplay-feedback polish phase focused on hit readability, section transitions, and cleaner boss communication.
+- Added a section card overlay in `components/GameEngine.tsx` so major fight beats and path clears now get a readable on-screen announcement.
+- Added screen-flash feedback for player damage, boss warnings, and successful wave clears to make hits and pacing beats read more clearly.
+- Added a fixed boss HUD with health and current intent text; automated state output now also includes `section` and structured `boss.intent` data for smoke-test verification.
+- Re-ran `npm run build`, a general smoke run (`node scripts/run_game_test.mjs --skip-build`), and a boss-focused smoke run (`node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss --skip-build --port 4174`) successfully after a clean rebuild.
+- Important verification note: an earlier overlapping build/test invocation corrupted `dist/` and caused missing-asset console errors; deleting `dist/`, rebuilding once, and rerunning the tests resolved that issue. The latest general and boss runs emitted no fresh console error file.
+- Latest general smoke state reaches section index 2 in explore mode with no active boss, and latest boss-route state shows an active boss with `intent: "SHOCKWAVE"` and visible boss HUD in the screenshot artifacts.
+
+- Started the chapter-and-power-up expansion pass to support a fuller campaign structure.
+- Added a 3-level campaign flow: `THE SCRATCH`, `THE GRID`, and `THE FURNACE`, each with its own chapter name, objective text, enemy palettes, floor tinting, and encounter dressing.
+- Added a persistent Flame Sword progression path. The player now earns the sword after defeating the level 1 boss, carries it into later levels, gets stronger melee reach and damage while it is equipped, and can lose it after repeated defeats before picking it back up from a world drop.
+- Added sword UI state to `App.tsx`, `components/UIOverlay.tsx`, and `types.ts`, including durability, unlock state, equipped state, and a victory overlay that reflects whether the sword survived the full run.
+- Added new doodle assets for `flame_sword` and `sword_pickup` under `public/doodles/`.
+- Re-ran `npm run build`, `npm run test:game`, `npm run test:game:level2`, and `npm run test:game:level3` after the chapter/sword changes. The general smoke run stays stable through late level 1, and the direct chapter-start smokes confirm levels 2 and 3 boot with the Flame Sword carried in.
+- Added test-friendly chapter boot params in `App.tsx` plus wrapper support in `scripts/run_game_test.mjs` (`--start-level`, `--start-sword`, `--start-sword-durability`) so chapter-specific smoke checks do not depend on surviving a long full-campaign route.
+- Verification note: repeated multi-iteration smoke captures that cross the live level-remount boundary can still freeze on an old canvas snapshot even while state output has already advanced. The new chapter-start smoke scripts avoid that by booting directly into later chapters for clean verification.
+- Residual note: the long boss-route smoke script is currently more stochastic than the new direct chapter checks and can still fail if the automated path burns through lives early, so prefer the dedicated chapter-start scripts when validating chapter identity and carried power-up state.
+
+- Started the level 2 reward follow-up pass and added the second permanent power-up.
+- Added `Ink Shield` as the level 2 boss reward. It now persists into level 3, blocks one incoming hit when charged, and then recharges on a cooldown instead of being consumed permanently.
+- Extended shared game state in `types.ts`, `App.tsx`, and `components/UIOverlay.tsx` so the app now tracks both the Flame Sword and Ink Shield across chapters, victory state, and test boot params.
+- Added new doodle assets under `public/doodles/` for `ink_shield` and `shield_burst`, and wired them into `components/GameEngine.tsx` as a live orbiting shield plus block feedback burst.
+- Added shell-safe smoke-start flags for shield state in `scripts/run_game_test.mjs`, updated `npm run test:game:level3` to boot with both carried power-ups, and added `tests/game-shield.actions.json` for a focused shield scenario.
+- Re-ran `npm run build`, `node scripts/run_game_test.mjs --skip-build`, `npm run test:game:level2`, and `npm run test:game:level3` successfully after the Ink Shield changes.
+- Latest verified level-start states now show:
+  - level 2: Flame Sword active, no Ink Shield
+  - level 3: Flame Sword active and Ink Shield charged
+- Added `asset-spec.md` with a concrete filename list, placeholder canvas sizes, and recommended export sizes/formats for replacing the doodle stand-ins with custom art.
+- Verification note: direct chapter-start smoke checks are the reliable way to confirm carried-power-up state. The focused shield block scenario still needs a more deterministic automation path if we want a strict machine-verified “shield charge consumed” test rather than a code-and-visual check.
+
+- Reworked the enemy wave system in `components/GameEngine.tsx` so section fights no longer dump the whole pack on-screen at once.
+- Each chapter now has structured wave plans with a primary enemy type plus support enemies, staggered spawn timing, and defined rear-entry slots so later waves can pressure the player from behind.
+- Level 1 now treats the grunt/chaser enemy as the main wave body, while later chapters can promote different hand-drawn enemies into the primary role instead of only using them as side threats.
+- Added `pendingWaveSpawns` tracking to the gameplay state/output so waves only clear after both the living enemies and the delayed scheduled entries are exhausted.
+- Re-ran `npm run build`, the general smoke run, `npm run test:game:level2`, and `npm run test:game:level3` after the wave-system update. The latest level 2 artifacts show staggered multi-side pressure with enemies visible on both sides of the player instead of a single front-loaded cluster.
+
+- Fixed a player squash regression in `components/GameEngine.tsx` by routing jump, landing, and attack scale tweens through a shared `playPlayerScalePulse(...)` helper that always restores the player to the base `PLAYER_SCALE` after the tween ends.
+- Rebalanced chapter enemy identity so the grunt sheet stays the level 1 anchor, level 2 promotes the hand-drawn `ALIEN` as its primary wave body, and level 3 promotes the hand-drawn `DEVIL` while keeping floaters, dashers, and giants as support/special enemies.
+- Updated monster tuning to support the restored chapter identities: `ALIEN` now has its own drift-chase behavior, HP, and contact damage, while grunt death-animation handling is limited to grunt/chaser bodies instead of applying to hand-drawn enemy silhouettes.
+- Re-ran `npm run build`, `npm run test:game:level2`, `npm run test:game:level3`, plus direct chapter probes (`output/web-game-level2-probe/` and `output/web-game-level3-probe/`) after the scale fix and enemy-role rebalance. The latest probes complete cleanly with no fresh console error output.
+
+- Fixed the stray top-left ghost emoji leak by changing the fallback emoji texture creation path so it builds hidden textures instead of leaving a visible text object at `(0,0)`.
+- Promoted the ghost fallback art into a real `GHOST` enemy type in `components/GameEngine.tsx` with its own support-wave placement, lower contact damage, and a floaty haunt movement pattern that oscillates around the player.
+- Added the new `GHOST` enemy into later chapter wave plans so it now appears as a support threat in level 2 and level 3 rather than existing only as an unused placeholder texture.
+- Re-ran `npm run build` and a focused level 3 probe (`output/web-game-level3-ghost/`) after the ghost pass. The latest `state-1.json` confirms an active `GHOST` enemy in combat, and the rerun emitted no `errors-0.json` console log artifact.
+
+- Fixed a combat-state bug where punches could stay latched on indefinitely if the player attack tween was interrupted before its `onComplete` fired.
+- Added an explicit attack-expiry timer plus a shared `endPlayerAttack()` reset helper in `components/GameEngine.tsx`, so the punch state now clears by time as well as by tween completion.
+- Re-ran `npm run build` and `npm run test:game` after the punch-state fix. The general smoke run completed cleanly with fresh artifacts in `output/web-game/`.
+
+- Extended the same timer-backed state hardening to the rest of the fragile player action states in `components/GameEngine.tsx`.
+- Added shared reset helpers and timestamps for dash, invulnerability, respawn daze, and game-over restart so those states no longer depend only on tween/delayed-callback completion.
+- Dash now uses `dashEndsAt` plus `endPlayerDash()`, hit/shield invulnerability use `invulnerabilityEndsAt`, respawn uses `dazedRecoveryAt`, and the death/restart flow uses `gameOverRestartAt` with a shared `completeGameOver(...)` guard.
+- Added a shared `resetPlayerActionState()` so attack, dash, jump, slam, alpha, and scale are normalized during respawn/death transitions instead of being left to whichever tween happened to finish last.
+- Re-ran `npm run build`, `npm run test:game`, and a level 3 smoke boot (`node scripts/run_game_test.mjs --skip-build --start-level 3 --start-sword --start-sword-durability 2 --start-shield --start-shield-ready true --iterations 1 --screenshot-dir output/web-game-level3 --port 4176`) after the hardening pass.
+- Verification note: the first `npm run test:game:level3` attempt hit a Windows `EBUSY` lock while copying `public/background_alley.png` into `dist/` during an overlapping build. The sequential `--skip-build` rerun completed cleanly and produced fresh `shot-0.png` / `state-0.json` artifacts in `output/web-game-level3/`.
+
+- Added the new sword-strike spritesheet from `D:/UnKnownUniverseAssets/XGodSwordSprite.PNG` into the repo as `public/player_sword_attack.png`.
+- Wired the sheet into `components/GameEngine.tsx` as a 4-frame `player_sword_attack` spritesheet (`158x200` frames) with a `sword_attack` animation that only plays when the Flame Sword is equipped.
+- Sword-equipped attacks now use a slightly longer attack window (`swordAttackDuration`) so the new strike sheet has time to read on screen, while no-sword attacks still use the original one-frame `player_attack` behavior.
+- Added `tests/game-sword-attack.actions.json` as a focused sword-attack probe and re-ran `npm run build`, `npm run test:game:level2`, plus a direct sword boot smoke run (`node scripts/run_game_test.mjs --skip-build --actions-file tests/game-sword-attack.actions.json --start-level 2 --start-sword --start-sword-durability 2 --iterations 2 --pause-ms 250 --screenshot-dir output/web-game-sword-attack --port 4181`).
+- Verification note: the dedicated sword-attack harness run still captured the level-start overlay rather than the live attack frame, so the code path is integrated and build-verified, but the automated screenshot scenario should be tuned further if we want a cleaner visual proof artifact for the sword strike specifically.
+
+- Swapped the sword attack from an auto-playing strip to a controlled 3-step combo. Each sword-button press now advances to the next sword pose instead of scrolling through every frame at once.
+- Added combo state in `components/GameEngine.tsx` (`swordComboStep`, `swordComboResetAt`) plus a short combo reset window and chain window so the sword attack feels deliberate but still responsive.
+- The controlled sword combo currently uses the first 3 frames of `player_sword_attack.png` as the step sequence. Pre-sword attacks still use the old single-pose `player_attack` frame.
+- Measured current player art for resize guidance:
+  - `player_attack.png`: `350x350`
+  - `player_jump.png`: `265x394`
+  - `player_buttbomb.png`: `321x378`
+  - `player_walk.png`: `1606x327` (`~200x327` per walk frame)
+  - `player_sword_attack.png`: `632x200` (`158x200` per frame)
+- Recommended replacement target for the sword combo art is `350x350` per frame on transparent canvas so it matches the existing attack-pose footprint more naturally. For a 3-step strip, that means a final sheet around `1050x350`.
+- Re-ran `npm run build`, `npm run test:game:level2`, and the focused sword combo smoke run after the controlled-combo change. The latest combat boot in `output/web-game-level2/state-0.json` stays stable with the sword equipped.
+- Replaced `public/player_sword_attack.png` with the resized source from `D:/UnKnownUniverseAssets/XGodSwordSprite.PNG` and updated the sheet parsing to `1050x332` total, or `350x332` per frame.
+- Re-ran `npm run build` and the focused sword-combo smoke probe after the resized asset swap. The load/build path is clean; the dedicated harness screenshots still tend to catch the level-start overlay, so manual in-game eyeballing is still the better way to judge final sword-pose framing.
+
+- Added Dinio as a new ally power-up character using `D:/UnKnownUniverseAssets/DinoWalkSpriteSheet.PNG` (`714x279`, parsed as `3 x 238x279`) and `D:/UnKnownUniverseAssets/DinoAttack.PNG` (`896x300`, parsed as `2 x 448x300`) copied into `public/dinio_walk.png` and `public/dinio_attack.png`.
+- Added new pink orb art under `public/doodles/` for the Dinio unlock pickup (`dinio_orb.svg`) and Dinio's pink projectile shot (`dinio_shot.svg`).
+- Extended shared app/game state (`types.ts`, `App.tsx`, `UIOverlay.tsx`, `components/GameEngine.tsx`) with `dinioUnlocked` and `hasDinio`, plus HUD copy so the ally can persist across the run like the other power-ups.
+- Added a level 1 Dinio unlock path: the player now finds a pink glowing orb near the start of level 1, and collecting it shows the card `DINIO UNLOCKED` / `PINK ORB BLAST READY`.
+- Added Dinio ally behavior in `components/GameEngine.tsx`: he follows the player, animates with walk/attack sheets, and spits pink orb projectiles toward nearby enemies. Friendly shots live in their own `allyProjectiles` group and damage monsters without hurting the player.
+- Added Dinio state to `renderGameToText()` so smoke runs now report whether Dinio is unlocked/active, where he is, and any active ally shots.
+- Re-ran `npm run build` and `npm run test:game` after the Dinio pass. The latest general smoke artifacts now confirm the feature in normal gameplay: `output/web-game/state-2.json` shows `dinio.unlocked: true`, `dinio.active: true`, and a live `allyShots` entry during level 1 combat.
+
+## 2026-04-04
+
+- Added a dedicated sword-walk spritesheet for the main character after the level 1 sword unlock. The source art from `D:/UnKnownUniverseAssets/XGodSwordWalking.png` was normalized into `public/player_sword_walk.png` as a clean `4 x 232x327` transparent strip so it can slot into the existing player rig without changing the sword strike combo logic.
+- Updated `components/GameEngine.tsx` to preload `player_sword_walk`, create `sword_walk` / `sword_idle` animations, and switch to that walk set automatically whenever the Flame Sword is equipped and the player is not in jump/dash/attack states.
+- Hid the separate floating sword overlay while sword-specific walk/attack art is on-screen so the player does not visually carry two swords at once.
+- Added a new Dinio shot punch-up pass with `public/doodles/dinio_muzzle_flash.svg`, a flash burst at Dinio's mouth, projectile pop-in scaling, and a light recoil tween when he fires.
+- Replaced the placeholder trash can and box destructible art with normalized PNGs generated from `D:/UnKnownUniverseAssets/trashcanpowerup(noBG).PNG` and `D:/UnKnownUniverseAssets/BoxPowerup(noBG).PNG`. The game now loads `public/doodles/o_trash.png` and `public/doodles/o_box.png` instead of the earlier SVG stand-ins, and their collision sizes were adjusted to better match the taller custom silhouettes.
+- Replaced the placeholder floater enemy with a spider-driven ranged enemy pass. Normalized `D:/UnKnownUniverseAssets/SpiderWalk.png` and `D:/UnKnownUniverseAssets/SpiderAttackSheet.png` into `public/spider_walk.png` and `public/spider_attack.png`, then wired the `FLOATER` role to use those sheets for walking and spit attacks.
+- Updated the former floater behavior so it now skitters on the ground and plays the spider attack sheet when firing, while its projectile was retuned to read as toxic green spit instead of the old generic dark splat.
+- Tuned Dinio to read much larger on screen by doubling his companion render scale to `0.88` and updating his follow/shot offsets so the bigger dinosaur still trails the player cleanly and fires from his mouth instead of his torso.
+- Reduced the custom trash can and cardboard box presence across the game: both now render at roughly half their previous size, use smaller collision boxes, show up half as often in the random destructible spawner, and every other trash/box slot in the fixed encounter clusters is now skipped to cut clutter by about 50%.
+- Added Teleporti as a new static world power-up for level 1 using `D:/UnKnownUniverseAssets/Teleporti(noBG).png`, normalized into `public/doodles/teleporti.png`.
+- Touching Teleporti now warps the player to a random visible location on the current screen with a blue flash, short pickup cooldown, and a `TELEPORTI!` section card so the effect is easy to read and test repeatedly.
+- Added Teleporti positions/cooldowns to `render_game_to_text()` so the smoke harness can confirm he is spawned and active.
+- Replaced the level 1 generic boss with the new Dark Dragon boss using normalized art from `D:/UnKnownUniverseAssets/DarkDragonSpriteSheet(NEW)walk.png`, `D:/UnKnownUniverseAssets/DarkDragonAttack.png`, and `D:/UnKnownUniverseAssets/DragonDead.png`.
+- Added `public/dark_dragon_walk.png` (`7 x 400x430`), `public/dark_dragon_attack.png` (`2 x 860x470`), and `public/dark_dragon_dead.png` (`640x560`), then wired those into `components/GameEngine.tsx` as the level 1 boss-only visual set while leaving later-level bosses on the existing behemoth art.
+- Level 1 boss warnings/HUD now say `DARK DRAGON`, the dragon uses a dedicated walk animation plus a dragon-breath attack presentation, and on defeat it swaps to the custom `DragonDead` art before the level reward flow continues.
+- Re-ran `npm run build` plus multiple focused boss/progression probes (`output/web-game-boss-dragon/`, `output/web-game-boss-dragon-sword/`, and `output/web-game-dark-dragon/`) after the dragon swap. The build stayed clean and those reruns emitted no fresh `errors-*.json` console artifact.
+- Verification caveat: the current long-route smoke actions still fall short of a clean boss-room screenshot, so the Dark Dragon integration is build-verified and code-verified, but the automated route should still be tightened if we want a crisp artifact of the dragon fully on-screen during combat.
+- Slowed the Dark Dragon breath tell so the open-mouth attack frame lingers longer before the shot resolves, making the mouth-open pose easier to read as a real boss windup.
+- Replaced the softer dragon projectile burst with faster fire-orb shots built from the soul-orb texture plus an orange muzzle flash, so the projectile reads as a fiery orb aimed at the player rather than a generic spit blob.
+- Re-ran `npm run build` and a fresh level 1 boss-route smoke output to `output/web-game-boss-dragon-slower/` after the timing/projectile pass. The sequential rerun is clean again; the one brief error artifact in that folder came from an overlapping build/test race and was superseded by the clean rerun.
+- Added Doghost as a new level 1 power-up pal using `D:/UnKnownUniverseAssets/DogHostWalk.png`, normalized into `public/doghost_walk.png` as a `3 x 240x180` transparent strip.
+- Added new Doghost support art in `public/doodles/doghost_orb.svg` and `public/doodles/doghost_wave.svg`, then wired Doghost into `App.tsx`, `types.ts`, `UIOverlay.tsx`, and `components/GameEngine.tsx` with persistent unlock state like Dinio.
+- Doghost now unlocks from a glowing white orb in level 1, follows the player with a slightly translucent ghost tint/alpha, and attacks enemies by firing a white sound-wave projectile while Dinio continues using the shared ally-shot path.
+- Re-ran `npm run build` and a longer gameplay smoke to `output/web-game-doghost/`. The latest `state-1.json` confirms both `dinio` and `doghost` are unlocked/active during level 1 combat, and `shot-1.png` shows Doghost on screen with the new ghostly opacity treatment.
+- Replaced the level 1 boss reward from an instant sword grant to a real floating pickup using the new art from `D:/UnKnownUniverseAssets/SwordOfXGOd(noBG).png`, normalized into `public/xgod_sword_reward.png`.
+- Added the new unlock sequence sheet from `D:/UnKnownUniverseAssets/xGodSwordPowerUp(NoBG).png`, normalized into `public/xgod_sword_powerup.png` as `4 x 420x700`, then wired a dedicated XGod Sword reward flow into `components/GameEngine.tsx`.
+- After the Dark Dragon dies in level 1, the player must now walk into the floating XGod Sword before advancing. Touching it destroys the pickup, starts the custom 4-frame power-up sequence, holds the final frame for 5 seconds with repeated pulse flashes, and only then transitions into the next chapter with the sword equipped.
+- Added focused reward-sequence probes in `tests/game-xgod-sword.actions.json` and `tests/game-xgod-sword-hold.actions.json`, plus a debug query path (`rewardSword=1&rewardSwordAuto=1`) to smoke-test the reward sequence without replaying the full boss fight every time.
+- Re-ran `npm run build` and both XGod Sword probes. `output/web-game-xgod-sword/state-0.json` confirms the sword is claimed and the pickup is gone, while `output/web-game-xgod-sword-hold/shot-0.png` captures the held last-frame power-up pose with `sequenceActive: true`. No fresh `errors-*.json` were emitted in either reward-test output folder.
+- Replaced the generic `DEVIL` bruiser art with the new Moonlight Terror enemy using `D:/UnKnownUniverseAssets/moonlightTerrorWalk.png` and `D:/UnKnownUniverseAssets/moonlightTerrorAttack.PNG`, normalized into `public/moonlight_terror_walk.png` (`2 x 560x632`) and `public/moonlight_terror_attack.png` (`5 x 700x594`).
+- Wired Moonlight Terror into `components/GameEngine.tsx` as the `DEVIL` melee class with a looping walk animation, a close-range windup/attack/recover state machine, and a dedicated attack-strip playback when it gets into striking range.
+- Added a focused level 3 validation route in `tests/game-moonlight-terror.actions.json` so the primary devil-heavy chapter can be checked without relying on a general smoke run.
+- Re-ran `npm run build`, a general level 3 smoke, and the focused Moonlight Terror probe. `output/web-game-moonlight-terror-focus/state-0.json` confirms multiple active `DEVIL` enemies in combat, and `output/web-game-moonlight-terror-focus/shot-0.png` shows the new Moonlight Terror sprite on screen in the melee wave. No fresh `errors-*.json` were emitted after the sequential rerun.
+- Tightened the level 1 Dark Dragon boss loop in `components/GameEngine.tsx` so it now patrols laterally across the arena, faces the player dynamically, and starts a new dragon-breath cycle at least every `3.2s` instead of relying on the older sparse timer cycle.
+- Reworked Dark Dragon breath presentation to use the boss sprite itself for the windup/open-mouth sequence. The mouth-open frame now stays visible through the full flame volley window while direction-aware fire orbs launch quickly from the correct side of the dragon's mouth.
+- Enlarged the level 1 reward-sword presentation by raising the floating `xgod_sword_reward` pickup and giving it a taller collision footprint/origin, which removes the earlier bottom-cropping in the pickup view.
+- Reworked the Dark Dragon death presentation to spawn a dedicated corpse image with roomier placement instead of swapping the live boss sprite directly, which avoids the cramped/cut-off defeated pose.
+- Re-ran `npm run build`, a boss-route smoke run to `output/web-game-boss-fix/`, and a reward-sword pickup probe to `output/web-game-xgod-sword-pickup/`. The reward-sword screenshot now shows the full blade and handle on screen, and no fresh console error artifact was emitted.
+- Verification caveat: the current boss-route automation still fell short of the boss arena in this rerun, so the Dark Dragon combat changes are build-verified and code-verified, but the best final confirmation for the new breath cadence/facing is still a quick live in-browser check until that route is tightened further.
+- Added the level 2 boss replacement art from `D:/UnKnownUniverseAssets/Killinas Daughter Walk(noBG).PNG` as `public/killinas_daughter_walk.png` (`8 x 454x607`) and wired it into `components/GameEngine.tsx` as the new `KILLINA'S DAUGHTER` boss variant for chapter 2.
+- Level 2 boss logic now has a dedicated behavior loop: Killina's Daughter patrols across the arena, tracks the player by flipping toward them, uses a gunfire volley at longer range, and switches to a close axe strike when the player enters melee range.
+- Replaced the old doodle shield art with the new `D:/UnKnownUniverseAssets/InkShield(noBG).png` asset copied into `public/ink_shield_power.png`, and updated the in-game Ink Shield orbit to a figure-8 motion around the player instead of the earlier small circular loop.
+- Adjusted the level 2 reward text to `INK SHIELD ORBIT ONLINE` so the unlock beat matches the new visual behavior.
+- Re-ran `npm run build`, a level 2 route probe to `output/web-game-killinas-boss/`, and a level 3 carried-shield probe to `output/web-game-shield-figure8/`.
+- Verification note: the latest level 3 screenshot clearly shows the new Ink Shield art orbiting the player, but the current level 2 automation still stops just short of the boss room, so Killina's Daughter is build-verified and code-wired but still needs a tighter dedicated boss capture route for a clean on-screen combat artifact.
+- Replaced the destructible `BOOKS` stack art with the new PNG from `D:/UnKnownUniverseAssets/textBookStack(NOBG).PNG`, copied into `public/doodles/o_books.png`.
+- Updated `components/GameEngine.tsx` to load `o_books.png` instead of the old doodle SVG and scaled the much larger source canvas down to `0.055` so the new stack matches the existing prop footprint in-game.
+- Re-ran `npm run build` and a quick smoke run to `output/web-game-books/` after the book-stack swap. The build and smoke run stayed clean with no fresh console error artifact.
+- Reworked Teleporti in `components/GameEngine.tsx` so touching the pickup now teleports the player to a random on-screen landing spot in the sky, locks them in a 2-second strobing jump hold, and then forces a butt-bounce slam back down instead of simply snapping them across the screen at ground level.
+- Added two more Teleporti pickups in enemy-heavy sections by spawning extra encounter Teleportis during the second combat section of level 2 and level 3, while leaving the original level 1 Teleporti in place.
+- Added a focused Teleporti test route at `tests/game-teleporti.actions.json` and re-ran `npm run build` plus a dedicated smoke to `output/web-game-teleporti-sky/`.
+- Verification caveat: the focused Teleporti smoke stayed clean and emitted no fresh console error artifact, but the current action path did not quite step onto the pickup, so the new sky-hold/butt-bounce behavior is build-verified and code-wired while still benefiting from a quick live in-browser check.
+- Moved the section-card stage tags to the top of the screen in `components/GameEngine.tsx` and reduced their presentation opacity to 75% so they read more lightly over gameplay.
+- Expanded the player walk zone upward by 10% of screen height and added an explicit per-frame Y clamp tied to the player's visible foot margin so the player can walk higher without slipping below the visible bottom edge.
+- Updated free-roam and wave-arena physics bounds to use the new walk zone, then re-ran `npm run build` plus smoke checks to `output/web-game-ui-bounds/` and `output/web-game-section-card/`.
+- Verification note: the bounds pass is visually confirmed, but the focused section-card screenshot route kept getting captured during the larger chapter-start overlay instead of the smaller stage tag, so the section-tag placement is build-verified and code-verified even though that artifact is not the perfect one yet.
+- Replaced the generic heart and gold-drop visuals with custom assets from `D:/UnKnownUniverseAssets/heartSprite.PNG` and `D:/UnKnownUniverseAssets/gold(noBG).png`, copied into `public/heart_sprite.png` and `public/gold_pickup.png`.
+- Added `public/homework_pickup.png` from `D:/UnKnownUniverseAssets/homeworkSpriteSheet.PNG` and turned homework into a real collectible pickup that now appears in the opening level mix and drops frequently from broken book stacks.
+- Also replaced the old generic paper debris by remapping `scrap` to the homework art at a much smaller burst scale, so the leftover paper-looking SVG burst is gone too.
+- Reworked pickup behavior in `components/GameEngine.tsx`: hearts now beat in place and restore 30 health, gold pickups now award 200 points while still counting toward the soul/heart loop, and homework pickups award 100 points.
+- Added a new score system to `types.ts`, `App.tsx`, `components/UIOverlay.tsx`, and `components/GameEngine.tsx`. Score now updates from pickups, destructible breaks, Teleporti touches, power-up orbs, sword reward claims, shield unlocks, and monster defeats, and it is shown in the HUD plus the win/lose overlays.
+- Fixed the game-over tally flow so the run snapshot keeps the earned score/souls/kills on the Game Over overlay instead of wiping them before the player can see them.
+- Re-ran `npm run build` plus fresh smoke checks to `output/web-game-score-assets/` and `output/web-game-score-proof/` after shrinking the gold pickup scale for readability. Latest state output now includes `progress.score` and `homeworkPickups`, and the latest proof run shows a non-zero score during live gameplay.
+- Verification caveat: the focused `tests/game-score-pickups.actions.json` probe kept landing under the large chapter-start overlay instead of a clean post-collect frame, so the score system is build-verified and code-verified, while the clearest current visual proof is the updated pickup art in `output/web-game-score-assets/shot-0.png`.
+- Rebalanced encounter pacing in `components/GameEngine.tsx` to make the game feel less rushed: lowered baseline wave counts, added a short lead-in before the first spawn of each wave, and increased stagger times substantially so enemies enter more gradually instead of piling on immediately.
+- Made regular enemies a bit sturdier by increasing their base HP slightly across the main non-boss enemy classes, while leaving the boss logic untouched.
+- Re-ran `npm run build` and a fresh smoke run to `output/web-game-slower-waves/` after the pacing/HP tuning. The build stayed clean and the progression state remained stable.
+- Replaced the old blue locker/vending placeholder art by copying `D:/UnKnownUniverseAssets/locker.png` into `public/doodles/o_vending.png` and repointing the `o_vending` preload to the new PNG.
+- Tuned the locker prop footprint in `components/GameEngine.tsx` to a smaller render scale with a taller body size so the green locker reads more naturally in-world.
+- Re-ran `npm run build` and a smoke check to `output/web-game-locker/` after the locker swap. The build stayed clean; the sample smoke frame did not happen to spawn a locker, but the new asset load path is active.
+- Tightened boss-facing logic in `components/GameEngine.tsx` so bosses now turn toward the player based on the player's actual side instead of relying on one blanket flip rule. The Dark Dragon now uses separate facing logic for its walk art versus its attack art because those source sheets face opposite directions.
+- Made bosses a bit tougher and more active by increasing boss HP (`40 / 56 / 72` across the 3 chapters), widening their patrol ranges, and increasing boss movement speeds. Killina's Daughter also got a modest patrol-speed bump so she feels less static in the arena.
+- Reworked the level 1 Dark Dragon patrol so it now sweeps quickly from mid-screen toward the arena edges in a smoother sinusoidal flight path instead of hovering too locally around the player.
+- Reworked Dark Dragon breath timing so the attack state tracks live fireball lifetime. The dragon now keeps its open-mouth attack frame visible while active fireballs are still flying, and only returns to patrol once those projectiles have hit something or expired.
+- Added enemy-projectile lifetime cleanup that decrements the Dark Dragon's active-fireball count when a fireball expires, goes off-screen, or hits the player, which keeps the mouth-open hold logic in sync with what is actually on screen.
+- Added a focused boss verification route at `tests/game-dark-dragon-focus.actions.json` and re-ran `npm run build` plus a direct boss-boot smoke run to `output/web-game-dark-dragon-focus/`.
+- Verification note: the focused boss capture now clearly shows the Dark Dragon facing left and right correctly depending on player position, with the open-mouth breath art staying active during the flame stream. Latest artifacts: `output/web-game-dark-dragon-focus/shot-0.png`, `shot-1.png`, and `state-0.json` / `state-1.json`.
+- Smoothed Dinio's attack presentation in `components/GameEngine.tsx` by giving the wide attack sheet its own anchored origin instead of reusing the walk-pose origin. This keeps Dinio's body from jumping off-anchor or appearing half-lost when the attack animation advances to the wider orb-spit frame.
+- Added a small Dinio pose helper so walk and attack states now switch cleanly, preserve the correct facing direction, and snap back to the walk loop once the shot finishes instead of letting the wide attack frame linger awkwardly.
+- Re-ran `npm run build` and direct Dinio probes to `output/web-game-dinio-attack-fix/` and `output/web-game-dinio-attack-focus/`. The focused probes stayed clean with no fresh console-error artifact after a sequential rerun.
+- Tightened the level 1 finish presentation in `components/GameEngine.tsx` by shrinking the Dark Dragon corpse art and adjusting its origin/placement so the defeat image fits more comfortably without getting cut off.
+- Increased the level 1 XGod sword reward pickup height handling by raising its clamp range, moving its origin closer to the hilt, and expanding its collision body to a much taller footprint so the upright sword is fully visible and easier to collect.
+- Re-ran `npm run build` plus the direct reward probes to `output/web-game-xgod-sword-fit/` and `output/web-game-xgod-sword-fit-hold/`. The sword pickup artifact now shows the full upright reward image on screen with no fresh console-error file.
+- Added the new graveyard panorama sequence for chapter 2 by copying `GraveyardLevel1.png`, `Graveyardlevel2.png`, `graveyardlevel2andahalf.png`, and `graveyardlevel3.png` into `public/` as `graveyard_level1.png`, `graveyard_level2.png`, `graveyard_level2_5.png`, and `graveyard_level3.png`.
+- Updated `components/GameEngine.tsx` so level 2 is now themed as `THE GRAVEYARD`, with section cards and background flow mapped in order: section 1 uses `graveyard_level1`, section 2 uses `graveyard_level2`, section 3 uses `graveyard_level2_5`, and the boss zone uses `graveyard_level3`.
+- Added per-level background metadata so the graveyard panoramas scale to the screen cleanly while the older alley backgrounds keep their previous behavior. Level 2 also now uses a more muted graveyard floor/atmosphere tint instead of the older neon-blue treatment.
+- Re-ran `npm run build` and `npm run test:game:level2` after the graveyard pass. Latest artifact `output/web-game-level2/shot-0.png` shows the new mausoleum/graveyard backdrop in-game, and `state-0.json` confirms level 2 section subtitle `MAUSOLEUM ROW` with no fresh error file.
+- Replaced the old level 1 alley backdrop flow by copying `darkAlleywayBackground1.png`, `Darkalleywaybackground2.png`, and `darkalleyway3.png` into `public/` as `dark_alleyway_1.png`, `dark_alleyway_2.png`, and `dark_alleyway_3.png`.
+- Updated `components/GameEngine.tsx` so level 1 now progresses through the new alley backgrounds in filename order: section 1 uses `dark_alleyway_1`, section 2 uses `dark_alleyway_2`, section 3 uses `dark_alleyway_3`, and the boss zone keeps `dark_alleyway_3`.
+- Enabled screen-fit scaling for level 1's new panoramic backgrounds so they fill the gameplay frame cleanly the same way the graveyard chapter does.
+- Re-ran `npm run build` and a focused level 1 smoke run to `output/web-game-level1-alley/`. Latest artifact `output/web-game-level1-alley/shot-0.png` shows the new alley art in-game with no fresh error file after the sequential rerun.
+- Added level music assets by copying `TheUnknownUniverseTheme.mp3` and `GraveYardDread.mp3` into `public/`.
+- Updated `App.tsx` to manage looping background music at the app layer instead of the Phaser scene. Level 1 now plays `TheUnknownUniverseTheme`, level 2 plays `GraveYardDread`, music pauses during pause/game-over/victory states, and it resumes or switches tracks as the level changes.
+- Added a small autoplay fallback: if the browser blocks audio on initial load, the app retries playback on the next pointer or key interaction instead of silently failing.
+- Re-ran `npm run build` after the music pass. Build stayed clean and both MP3s are present under `public/`.
+- Added the level 3 cave soundtrack by copying `Cave Drip Logic.mp3` into `public/` as `CaveDripLogic.mp3`, and updated `App.tsx` so chapter 3 now uses that track.
+- Resized the three new cave panoramas to exactly `850px` tall as requested and saved them into `public/` as `cave_level_1.png` (`3050x850`), `cave_level_2.png` (`5111x850`), and `cave_level_3.png` (`3169x850`).
+- Updated `components/GameEngine.tsx` so level 3 now uses the cave sequence in order: section 1 uses `cave_level_1`, section 2 uses `cave_level_2`, section 3 uses `cave_level_3`, and the final boss zone keeps `cave_level_3`.
+- Adjusted level 3's background profile to use screen-fit scaling and a more subdued cave-friendly floor/atmosphere overlay so the resized cave art fills the frame without fighting the old furnace tint.
+- Re-ran `npm run build` and `npm run test:game:level3` after the cave pass. Latest artifact `output/web-game-level3/shot-0.png` shows the cave backdrop in-game, and `state-0.json` confirms level 3 boots cleanly with no fresh error file.
+- Reworked the background system in `components/GameEngine.tsx` from a section-by-section texture swap into one continuous fixed-height strip per level. All chapter background images now render at a shared `850px` height and scroll horizontally as one connected sequence instead of popping abruptly when the next section starts.
+- This continuous-strip pass now applies to all three chapters: level 1 alley, level 2 graveyard, and level 3 cave backgrounds each use their ordered background arrays as one stitched visual strip. The boss zones still keep the last image in their sequence, but the transition into that last image is now driven by camera progress rather than a hard texture swap.
+- Re-ran `npm run build` and sequential chapter boots to `output/web-game-bg-strip-level1/`, `output/web-game-bg-strip-level2/`, and `output/web-game-bg-strip-level3/` after fixing one initial test-loop issue caused by overlapping build/test runs. The latest screenshots show the new `850px`-tall strip backgrounds loading cleanly in all 3 chapters with no fresh error file on the clean reruns.
+- Added an always-visible X-God health HUD bar in `components/UIOverlay.tsx` that is driven directly by the existing `stats.health / stats.maxHealth` values. It now depletes on hits and refills from hearts automatically without introducing a separate health system.
+- Re-ran `npm run build` after the X-God health HUD pass. Build stayed clean.
+- Added a full app-level `start -> intro -> gameplay` phase flow in `App.tsx`.
+- Copied the new title assets into `public/` as `GameStartScreen.png`, `Level1Intro.png`, and `GfunkAllStars.mp3`.
+- The game now boots to a dedicated start screen with looping `GfunkAllStars` music and a working `START GAME` button / keyboard shortcut (`Enter`, `Space`, or `S`).
+- Pressing Start now transitions into a 4-second level 1 intro/loading screen that uses `Level1Intro.png`, starts the level 1 theme immediately, and swipes the intro overlay off to the left before gameplay begins.
+- Hid the Inspiration Lab side panel during the start and intro phases so the presentation stays focused on the front-end flow rather than the dev tooling UI.
+- Updated `scripts/run_game_test.mjs` to automatically append `autostart=1` unless a test explicitly opts out, which preserves the existing smoke-test workflow even though the live app now has a front-door start screen.
+- Re-ran `npm run build`, a gameplay smoke bypass run to `output/web-game-startflow-bypass/`, and a title-screen probe to `output/web-game-start-flow/`.
+- Verification note: the title-screen probe cleanly captures the new start screen, but the current Playwright harness is still not reliably clicking the DOM start button from the scripted action payload, so the intro swipe itself is code-verified/build-verified and best confirmed with a quick live browser check until that harness input path is tightened.
+- Repositioned the companion unlock pickups in `components/GameEngine.tsx` so Dinio's pink orb no longer appears at the opening of level 1; it now spawns mid-level at `x = 1520`.
+- Doghost's white orb is no longer available in level 1. It now spawns only in level 2 and appears later in that chapter at `x = 1760`.
+- Re-ran `npm run build`, a level 1 smoke run to `output/web-game-dinio-midlevel/`, and a direct level 2 smoke boot to `output/web-game-doghost-level2/`. Latest state output confirms neither companion is front-loaded into the chapter openings anymore.
+- Replaced the old generic `GHOST` enemy art with the new custom image at `public/ghost_float.png` by loading it as the `m_ghost` texture in `components/GameEngine.tsx`.
+- Reworked `GHOST` behavior into a dedicated float / charge / swoop loop: it now drifts around the player, moves to a far upper corner, strobes white and red while charging, then cuts quickly across the full screen toward the opposite side before returning to float behavior and repeating from the other side.
+- Tuned the new ghost's spawn/body footprint so the larger custom art fits the encounter space more naturally than the old placeholder ghost.
+- Re-ran `npm run build` and a focused level 3 smoke run to `output/web-game-ghost-float/`. Latest `state-1.json` confirms a live `GHOST` in `CHARGE` state during combat with no fresh error file on the clean sequential rerun.
+- Verification note: the latest screenshot pass did not catch the ghost fully on-screen because it had already moved off to the side while charging, so the new attack cycle is best proven right now by the clean state output plus a quick live eyeball in-browser.
+- Shrunk the top-right X-God health HUD to about half its previous footprint in `components/UIOverlay.tsx` and kept it clear of the left-side stats panel.
+- Fixed a real input bug in `components/GameEngine.tsx`: the scene update loop was reading a stale `isPaused` value captured during the intro phase, which could leave gameplay controls frozen after the intro finished. The game now reads pause state from a live ref so movement/input unfreeze correctly once gameplay begins.
+- Added the ghost swoop attack art asset under `public/ghost_attack.png` and wired level 2 ghosts so they swap to that attack sprite during the actual swoop, then revert to `ghost_float.png` afterward.
+- Re-ran `npm run build` and the general smoke harness to `output/web-game-controls-fix/`. Latest run reaches active combat with no fresh `errors-0.json`, which confirms the pause/input fix and the renamed ghost attack asset load path are clean.
+- Added a new carried helper companion for level 3 using the normalized walk strip at `public/teleportation_c_walk.png` (`3 x 526x482`) derived from `TeleportationCWalk.PNG`.
+- Added a shiny black orb pickup asset at `public/doodles/teleportation_c_orb.svg` and wired it into level 3 so Teleportation C is now discovered from a black orb in that chapter.
+- Extended shared state across `types.ts`, `App.tsx`, `components/UIOverlay.tsx`, and `components/GameEngine.tsx` with `teleportationCUnlocked` / `hasTeleportationC`, including HUD copy, victory copy, app bootstrap parsing, and automation-visible `renderGameToText()` output.
+- First implementation keeps Teleportation C simple: once unlocked, it follows the player as a passive shadow helper using its walk animation. Attack behavior can be layered in later without changing the unlock/persistence path.
+- Re-ran `npm run build` and a direct level 3 smoke boot to `output/web-game-teleportc-level3/`. Latest `state-0.json` now includes a `teleportationC` block with the new helper's unlock/active state and no fresh error artifact.
+- Added Teleportation C's action sheet as `public/teleportation_c_attack.png` and normalized it to a clean `5 x 551x342` spritesheet so Phaser can animate it reliably.
+- Extended `components/GameEngine.tsx` with a real Teleportation C combat loop: it now picks the nearest active enemy, vanishes from the player's side, reappears near that enemy with a black-orb burst, plays the attack sequence, applies melee damage if still in range, then returns to its walk/follow state on cooldown.
+- Added a dedicated `setTeleportationCPose(...)` helper plus new attack cooldown / attack-state timers so the companion can cleanly switch between walk and attack visuals without getting stuck across scene restarts.
+- Tuned the attack pose origin/scale after the first smoke run so the new sheet no longer anchors too low into the floor when it teleports in to strike.
+- Re-ran `npm run build` and a focused forced-helper level 3 smoke run to `output/web-game-teleportc-attack/` using `teleportcUnlocked=1&teleportc=1`.
+- Latest verification note: `output/web-game-teleportc-attack/state-0.json` captured Teleportation C in `attacking: true` during live combat with `attackCooldownRemainingMs: 1650`, and the clean reruns emitted no fresh `errors-*.json`. The screenshot set clearly shows the helper following in level 3, though the action pose itself is still easier to judge live than from the current automated capture timing.

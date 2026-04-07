@@ -6,18 +6,29 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:game": "node scripts/run_game_test.mjs",
+    "test:game:headed": "node scripts/run_game_test.mjs --headless false",
+    "test:game:level2": "node scripts/run_game_test.mjs --start-level 2 --start-sword --start-sword-durability 2 --iterations 1 --screenshot-dir output/web-game-level2 --port 4175",
+    "test:game:level3": "node scripts/run_game_test.mjs --start-level 3 --start-sword --start-sword-durability 2 --start-shield --start-shield-ready true --iterations 1 --screenshot-dir output/web-game-level3 --port 4176",
+    "test:game:boss": "node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss",
+    "test:game:boss:headed": "node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss --headless false"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
+    "phaser": "^3.90.0",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "phaser": "^3.90.0"
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "playwright": "^1.58.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "overrides": {
+    "minimatch": "^9.0.7",
+    "rollup": "^4.59.0"
   }
 }

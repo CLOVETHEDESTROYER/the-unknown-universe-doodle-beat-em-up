@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="doghostGlow" cx="50%" cy="46%" r="54%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="55%" stop-color="#f8fafc" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0.2"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="88" fill="url(#doghostGlow)"/>
+  <circle cx="128" cy="128" r="62" fill="none" stroke="#ffffff" stroke-width="8" stroke-opacity="0.85"/>
+  <circle cx="128" cy="128" r="34" fill="none" stroke="#dbeafe" stroke-width="10" stroke-opacity="0.9"/>
+  <circle cx="98" cy="102" r="8" fill="#ffffff" fill-opacity="0.9"/>
+  <circle cx="156" cy="156" r="10" fill="#ffffff" fill-opacity="0.7"/>
+</svg>
