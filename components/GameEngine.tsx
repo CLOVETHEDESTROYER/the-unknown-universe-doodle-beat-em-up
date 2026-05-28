@@ -2806,24 +2806,28 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
-    function equipSword(scene: Phaser.Scene, fullDurability: boolean) {
+    function equipSword(scene: Phaser.Scene, fullDurability: boolean, syncImmediately: boolean = true) {
       swordUnlocked = true;
       hasFlameSword = true;
       characterPowerUnlocked = true;
       swordDurability = fullDurability ? maxSwordDurability : Math.max(1, swordDurability);
       playerSword?.setVisible(true);
       pulseFeedbackFlash(scene, 0xf97316, 0.16, 170);
-      syncPowerupStats();
+      if (syncImmediately) {
+        syncPowerupStats();
+      }
     }
 
-    function equipCharacterPower(scene: Phaser.Scene) {
+    function equipCharacterPower(scene: Phaser.Scene, syncImmediately: boolean = true) {
       characterPowerUnlocked = true;
       if (isXGod) {
-        equipSword(scene, true);
+        equipSword(scene, true, syncImmediately);
         return;
       }
       pulseFeedbackFlash(scene, selectedCharacterId === 'teleportation_c' ? 0x8b5cf6 : selectedCharacterId === 'ezra' ? 0xf97316 : selectedCharacterId === 'nico' ? 0x84cc16 : 0xf59e0b, 0.2, 220);
-      syncPowerupStats();
+      if (syncImmediately) {
+        syncPowerupStats();
+      }
     }
 
     function spawnSwordPickup(scene: Phaser.Scene, x: number, y: number) {
@@ -2863,7 +2867,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       pickup.destroy();
       addScore(POINT_VALUES.xgodSwordReward);
       player.setVelocity(0, 0);
-      equipCharacterPower(scene);
+      equipCharacterPower(scene, false);
       playerSword?.setVisible(false);
 
       const glow = swordRewardOverlay.getAt(0) as Phaser.GameObjects.Sprite;
