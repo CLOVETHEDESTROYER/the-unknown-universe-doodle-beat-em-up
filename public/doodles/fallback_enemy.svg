@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="220" viewBox="0 0 180 220">
+  <rect width="180" height="220" rx="24" fill="#fee2e2"/>
+  <path d="M50 88c0-38 26-64 61-54 24 7 40 30 40 62 0 46-29 83-66 83-24 0-35-16-35-39V88Z" fill="#7f1d1d" stroke="#111827" stroke-width="8"/>
+  <path d="M32 82l24 28M154 72l-22 34M40 174l30-28M139 176l-31-30" stroke="#111827" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="84" cy="88" r="10" fill="#f97316"/>
+  <circle cx="122" cy="92" r="10" fill="#f97316"/>
+  <path d="M78 126l12 10 12-10 12 10 12-10" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="90" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">ENEMY</text>
+</svg>

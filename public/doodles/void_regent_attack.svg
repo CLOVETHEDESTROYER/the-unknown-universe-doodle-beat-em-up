@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="360" viewBox="0 0 1440 360">
+  <defs>
+    <filter id="attackScratch"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="91"/><feDisplacementMap in="SourceGraphic" scale="1.8"/></filter>
+    <g id="body" filter="url(#attackScratch)" fill="none" stroke="#111827" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M112 83c43-61 122-75 184-31 62 44 78 137 33 212-40 68-123 80-184 34-65-50-75-153-33-215Z" fill="#1a1434" stroke-width="8"/>
+      <path d="M140 129c26-23 58-25 95-5M255 125c30-18 63-15 98 9" stroke-width="7"/>
+      <path d="M141 142c33 18 65 18 96 0M256 142c32 19 64 19 96 0" stroke="#fde68a" stroke-width="5"/>
+      <path d="M160 225c44 28 91 28 140-2" stroke-width="7"/>
+      <path d="M157 241l15 17 15-17 15 17 15-17 15 17 15-17 15 17" stroke-width="6"/>
+      <path d="M101 246c-46 20-82 11-108-27M333 246c49 24 86 14 112-31" stroke-width="11"/>
+      <path d="M131 300c-17 28-36 46-59 54M272 298c20 27 42 45 66 55" stroke-width="12"/>
+      <path d="M130 76 75 14M198 45 198 2M280 65l50-42" stroke-width="7"/>
+    </g>
+  </defs>
+  <rect width="1440" height="360" fill="none"/>
+  <g transform="translate(0 0)">
+    <use href="#body"/>
+    <circle cx="392" cy="161" r="30" fill="#8b5cf6" stroke="#111827" stroke-width="6"/>
+    <path d="M330 162c31-18 57-22 82-11" stroke="#fef3c7" stroke-width="7"/>
+  </g>
+  <g transform="translate(360 0)">
+    <use href="#body"/>
+    <circle cx="402" cy="162" r="48" fill="#c084fc" stroke="#111827" stroke-width="7"/>
+    <path d="M323 162c44-34 86-42 126-24" stroke="#fef3c7" stroke-width="8"/>
+    <path d="M374 132c28 25 45 53 51 84M358 184c43-13 83-13 121 0" stroke="#581c87" stroke-width="5" opacity="0.75"/>
+  </g>
+  <g transform="translate(720 0)">
+    <use href="#body"/>
+    <path d="M345 126c88 1 165 29 232 86-74 26-152 25-234-3 43-22 43-50 2-83Z" fill="#a78bfa" stroke="#111827" stroke-width="7"/>
+    <path d="M386 143c65 22 116 44 153 66M388 191c62-6 113 0 153 17" stroke="#fde68a" stroke-width="5" opacity="0.75"/>
+  </g>
+  <g transform="translate(1080 0)">
+    <use href="#body"/>
+    <path d="M342 123c101-6 180 16 238 65-70 47-153 53-250 18 57-24 61-51 12-83Z" fill="#fb7185" stroke="#111827" stroke-width="7"/>
+    <path d="M389 143c66 19 119 39 160 61M384 196c60 0 114-4 162-14" stroke="#fef3c7" stroke-width="5" opacity="0.8"/>
+  </g>
+</svg>

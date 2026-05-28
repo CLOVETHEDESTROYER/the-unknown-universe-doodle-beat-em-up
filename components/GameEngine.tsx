@@ -1,11 +1,14 @@
 
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { GameStats } from '../types';
+import { CHARACTER_CONFIGS } from '../characters';
+import { CharacterId, DifficultyMode, GameStats } from '../types';
 
 interface GameEngineProps {
   isPaused: boolean;
   currentLevel: number;
+  difficulty: DifficultyMode;
+  selectedCharacterId: CharacterId;
   initialScore: number;
   playerSprite: string | null;
   initialSwordUnlocked: boolean;
@@ -20,16 +23,22 @@ interface GameEngineProps {
   initialHasDoghost: boolean;
   initialTeleportationCUnlocked: boolean;
   initialHasTeleportationC: boolean;
+  initialGravityCoreUnlocked: boolean;
+  initialGravityCoreCharges: number;
+  initialCharacterPowerUnlocked: boolean;
   onStatsUpdate: (stats: Partial<GameStats>) => void;
   onTogglePause: () => void;
 }
 
-type MonsterType = 'CHASER' | 'ALIEN' | 'GHOST' | 'DASHER' | 'FLOATER' | 'GIANT' | 'DEVIL' | 'BOSS';
+type MonsterType = 'CHASER' | 'ALIEN' | 'GHOST' | 'DASHER' | 'FLOATER' | 'GIANT' | 'DEVIL' | 'COSMIC_GRUNT' | 'BOSS';
+type EnemyClass = 'MELEE' | 'LONG_RANGE' | 'JUMPER';
 type DestructibleType = 'TRASH' | 'BOX' | 'BOOKS' | 'VENDING';
 
 const GameEngine: React.FC<GameEngineProps> = ({
   isPaused,
   currentLevel,
+  difficulty,
+  selectedCharacterId,
   initialScore,
   playerSprite,
   initialSwordUnlocked,
@@ -44,6 +53,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
   initialHasDoghost,
   initialTeleportationCUnlocked,
   initialHasTeleportationC,
+  initialGravityCoreUnlocked,
+  initialGravityCoreCharges,
+  initialCharacterPowerUnlocked,
   onStatsUpdate,
   onTogglePause
 }) => {
@@ -56,6 +68,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const debugSpawnSwordReward = debugParams.get('rewardSword') === '1' || debugParams.get('rewardSword') === 'true';
   const debugAutoClaimSwordReward = debugParams.get('rewardSwordAuto') === '1' || debugParams.get('rewardSwordAuto') === 'true';
   const debugSpawnBoss = debugParams.get('boss') === '1' || debugParams.get('boss') === 'true';
+  const MAX_LEVEL = 4;
+  const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
+  const isXGod = selectedCharacterId === 'xgod';
+
+  type LevelNumber = 1 | 2 | 3 | 4;
+  const getLevelKey = (level: number): LevelNumber => Math.min(MAX_LEVEL, Math.max(1, level)) as LevelNumber;
 
   // Perspective Constants
   const SCREEN_WIDTH = 1024;
@@ -64,7 +82,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const FLOOR_BOTTOM = SCREEN_HEIGHT - 20;
   const WALK_ZONE_TOP = HORIZON_Y - (SCREEN_HEIGHT * 0.1);
   const WALK_ZONE_BOTTOM = SCREEN_HEIGHT - 4;
-  const SECTION_CARD_TOP_Y = 74;
+  const SECTION_CARD_TOP_Y = 48;
   const SECTION_CARD_OPACITY = 0.75;
   const HEART_HEAL_PERCENT = 0.3;
   const POINT_VALUES = {
@@ -89,16 +107,59 @@ const GameEngine: React.FC<GameEngineProps> = ({
     floaterKill: 130,
     giantKill: 180,
     devilKill: 125,
+    cosmicGruntKill: 150,
     level1BossKill: 1200,
     level2BossKill: 1500,
-    level3BossKill: 2200
+    level3BossKill: 2200,
+    level4BossKill: 3200,
+    gravityCoreUnlock: 900
   } as const;
+  const DIFFICULTY_TUNING: Record<DifficultyMode, {
+    enemyHpMultiplier: number;
+    bossHpMultiplier: number;
+    enemySpeedMultiplier: number;
+    extraWaveMonsters: number;
+  }> = {
+    EASY: {
+      enemyHpMultiplier: 0.86,
+      bossHpMultiplier: 0.9,
+      enemySpeedMultiplier: 0.92,
+      extraWaveMonsters: -1
+    },
+    HARD: {
+      enemyHpMultiplier: 1.18,
+      bossHpMultiplier: 1.2,
+      enemySpeedMultiplier: 1.08,
+      extraWaveMonsters: 0
+    },
+    "X-GOD": {
+      enemyHpMultiplier: 1.42,
+      bossHpMultiplier: 1.48,
+      enemySpeedMultiplier: 1.16,
+      extraWaveMonsters: 1
+    }
+  };
+  const difficultyTuning = DIFFICULTY_TUNING[difficulty];
 
   // --- TUNING CONSTANTS ---
   const PLAYER_SCALE = 0.5;
   const FRAME_WIDTH = 200; // 1606 / 8 ≈ 200
   const FRAME_HEIGHT = 327;
+  const CHARACTER_WALK_FRAME_WIDTH = 256;
+  const CHARACTER_WALK_FRAME_HEIGHT = 360;
+  const CHARACTER_ATTACK_FRAME_WIDTH = 480;
+  const CHARACTER_ATTACK_FRAME_HEIGHT = 360;
+  const CHARACTER_DASH_FRAME_WIDTH = 256;
+  const CHARACTER_DASH_FRAME_HEIGHT = 360;
+  const CHARACTER_PROJECTILE_FRAME_WIDTH = 192;
+  const CHARACTER_PROJECTILE_FRAME_HEIGHT = 96;
+  const SMALL_ENEMY_FRAME_WIDTH = 280;
+  const SMALL_ENEMY_FRAME_HEIGHT = 280;
+  const GIANT_ENEMY_FRAME_WIDTH = 360;
+  const GIANT_ENEMY_FRAME_HEIGHT = 420;
   const FALLBACK_FRAME_SIZE = 180;
+  const GRUNT_WALK_FRAME_WIDTH = 543;
+  const GRUNT_WALK_FRAME_HEIGHT = 724;
   const SWORD_WALK_FRAME_WIDTH = 232;
   const SWORD_WALK_FRAME_HEIGHT = 327;
   const SWORD_ATTACK_FRAME_WIDTH = 350;
@@ -106,12 +167,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const SWORD_COMBO_FRAMES = [0, 1, 2] as const;
   const SPIDER_FRAME_WIDTH = 560;
   const SPIDER_FRAME_HEIGHT = 578;
-  const DARK_DRAGON_WALK_FRAME_WIDTH = 400;
-  const DARK_DRAGON_WALK_FRAME_HEIGHT = 430;
-  const DARK_DRAGON_ATTACK_FRAME_WIDTH = 860;
-  const DARK_DRAGON_ATTACK_FRAME_HEIGHT = 470;
-  const KILLINAS_DAUGHTER_WALK_FRAME_WIDTH = 454;
-  const KILLINAS_DAUGHTER_WALK_FRAME_HEIGHT = 607;
+  const DARK_DRAGON_WALK_FRAME_WIDTH = 520;
+  const DARK_DRAGON_WALK_FRAME_HEIGHT = 560;
+  const DARK_DRAGON_ATTACK_FRAME_WIDTH = 960;
+  const DARK_DRAGON_ATTACK_FRAME_HEIGHT = 620;
+  const KILLINAS_DAUGHTER_WALK_FRAME_WIDTH = 560;
+  const KILLINAS_DAUGHTER_WALK_FRAME_HEIGHT = 700;
+  const KILLINAS_DAUGHTER_ATTACK_FRAME_WIDTH = 760;
+  const KILLINAS_DAUGHTER_ATTACK_FRAME_HEIGHT = 720;
   const DINIO_WALK_FRAME_WIDTH = 238;
   const DINIO_WALK_FRAME_HEIGHT = 279;
   const DINIO_ATTACK_FRAME_WIDTH = 448;
@@ -126,6 +189,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const MOONLIGHT_TERROR_WALK_FRAME_HEIGHT = 632;
   const MOONLIGHT_TERROR_ATTACK_FRAME_WIDTH = 700;
   const MOONLIGHT_TERROR_ATTACK_FRAME_HEIGHT = 594;
+  const COSMIC_GRUNT_FRAME_WIDTH = 543;
+  const COSMIC_GRUNT_FRAME_HEIGHT = 724;
+  const VOID_REGENT_WALK_FRAME_WIDTH = 720;
+  const VOID_REGENT_WALK_FRAME_HEIGHT = 840;
+  const VOID_REGENT_ATTACK_FRAME_WIDTH = 700;
+  const VOID_REGENT_ATTACK_FRAME_HEIGHT = 840;
+  const INK_BEHEMOTH_FRAME_WIDTH = 620;
+  const INK_BEHEMOTH_FRAME_HEIGHT = 580;
   const XGOD_SWORD_POWERUP_FRAME_WIDTH = 420;
   const XGOD_SWORD_POWERUP_FRAME_HEIGHT = 700;
   const BACKGROUND_STRIP_HEIGHT = 850;
@@ -155,20 +226,22 @@ const GameEngine: React.FC<GameEngineProps> = ({
     gunRecoverMs: 720
   };
   const FEEL = {
-    moveSpeed: 240,
-    moveResponse: 0.22,
-    verticalRatio: 0.72,
+    moveSpeed: 255,
+    moveResponse: 0.26,
+    verticalRatio: 0.78,
     dashMultiplier: 2.35,
     dashDuration: 170,
-    dashCooldown: 620,
-    attackDuration: 140,
-    swordAttackDuration: 170,
+    dashCooldown: 560,
+    attackDuration: 155,
+    swordAttackDuration: 190,
     swordComboResetMs: 650,
     swordComboChainWindowMs: 110,
-    attackReach: 60,
+    attackReach: 66,
     jumpVelocity: 18,
     slamVelocity: -32,
     cameraLerp: 0.14,
+    hitInvulnerabilityMs: 1040,
+    hitKnockback: 235,
   };
   const DINIO = {
     scale: 0.88,
@@ -217,6 +290,87 @@ const GameEngine: React.FC<GameEngineProps> = ({
     attackLeadFrames: 120,
     chargeTimeoutFrames: 58,
     postSwoopRecoverFrames: 72
+  };
+  const GRAVITY_CORE = {
+    unlockX: 1840,
+    damageBonus: 1,
+    maxCharges: 3
+  };
+  const CHARACTER_PLAYSTYLE: Record<CharacterId, {
+    speedMultiplier: number;
+    damageTakenMultiplier: number;
+    attackDamageMultiplier: number;
+    attackDurationMultiplier: number;
+    attackReachBonus: number;
+    dashCooldownMultiplier: number;
+    specialCooldownMs: number;
+  }> = {
+    xgod: {
+      speedMultiplier: 1.04,
+      damageTakenMultiplier: 0.9,
+      attackDamageMultiplier: 1.08,
+      attackDurationMultiplier: 1,
+      attackReachBonus: 0,
+      dashCooldownMultiplier: 0.92,
+      specialCooldownMs: 1100
+    },
+    barrett: {
+      speedMultiplier: 0.93,
+      damageTakenMultiplier: 0.78,
+      attackDamageMultiplier: 1.26,
+      attackDurationMultiplier: 1.18,
+      attackReachBonus: 26,
+      dashCooldownMultiplier: 1.08,
+      specialCooldownMs: 1450
+    },
+    nico: {
+      speedMultiplier: 0.99,
+      damageTakenMultiplier: 0.96,
+      attackDamageMultiplier: 1.08,
+      attackDurationMultiplier: 1.12,
+      attackReachBonus: 12,
+      dashCooldownMultiplier: 1.02,
+      specialCooldownMs: 1350
+    },
+    ezra: {
+      speedMultiplier: 0.96,
+      damageTakenMultiplier: 1.1,
+      attackDamageMultiplier: 1.2,
+      attackDurationMultiplier: 1.08,
+      attackReachBonus: 10,
+      dashCooldownMultiplier: 1.04,
+      specialCooldownMs: 1300
+    },
+    teleportation_c: {
+      speedMultiplier: 1.16,
+      damageTakenMultiplier: 1.08,
+      attackDamageMultiplier: 0.96,
+      attackDurationMultiplier: 0.88,
+      attackReachBonus: 18,
+      dashCooldownMultiplier: 0.82,
+      specialCooldownMs: 960
+    }
+  };
+  const playstyle = CHARACTER_PLAYSTYLE[selectedCharacterId];
+  const VOID_REGENT = {
+    scale: 0.52,
+    attackScale: 0.55,
+    attackIntervalMs: 2250,
+    windupMs: 430,
+    beamMs: 1150,
+    boltSpeed: 650,
+    patrolRadius: 315,
+    burstCount: 7
+  };
+  const INK_BEHEMOTH = {
+    scale: 0.84,
+    attackScale: 0.9,
+    patrolRadius: 260,
+    attackIntervalMs: 2450,
+    windupMs: 420,
+    spitSpeed: 430,
+    spitCount: 4,
+    quakeRadius: 235
   };
   const ENCOUNTERS = {
     waveCounts: [3, 4, 5],
@@ -281,7 +435,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         { title: 'FURNACE 1', subtitle: 'ASH-LIT ENTRY' },
         { title: 'FURNACE 2', subtitle: 'EMBER CUTTHROAT WAY' },
         { title: 'FURNACE 3', subtitle: 'CINDER RAMPART' },
-        { title: 'FINAL BOSS', subtitle: 'THE LAST INK GATE' },
+        { title: 'BOSS ZONE', subtitle: 'THE VOID GATE' },
       ],
       backgrounds: ['cave_level_1', 'cave_level_2', 'cave_level_3', 'cave_level_3'],
       wavePlans: [
@@ -294,6 +448,27 @@ const GameEngine: React.FC<GameEngineProps> = ({
       floorAlpha: 0.16,
       atmosphereColor: 0xfca5a5,
       atmosphereAlpha: 0.04,
+      fitBackgroundToScreen: true
+    },
+    4: {
+      chapter: 'THE DREAD PLANET',
+      sectionCards: [
+        { title: 'ORBIT 1', subtitle: 'CRATER OF TEETH' },
+        { title: 'ORBIT 2', subtitle: 'RIFT-CROWNED VALLEY' },
+        { title: 'ORBIT 3', subtitle: 'THE PLANET THAT HUNTS' },
+        { title: 'FINAL BOSS', subtitle: 'VOID REGENT THRONE' },
+      ],
+      backgrounds: ['space_level_1', 'space_level_2', 'space_level_3_ai', 'space_level_3_ai'],
+      wavePlans: [
+        { primaryEnemy: 'COSMIC_GRUNT', supportEnemies: ['GHOST', 'DASHER'], baseCount: 5, staggerMs: 620, supportSlots: [2, 4], rearSlots: [3] },
+        { primaryEnemy: 'COSMIC_GRUNT', supportEnemies: ['FLOATER', 'DEVIL', 'GHOST'], baseCount: 6, staggerMs: 560, supportSlots: [1, 3, 5], rearSlots: [2, 5] },
+        { primaryEnemy: 'COSMIC_GRUNT', supportEnemies: ['GIANT', 'DASHER', 'DEVIL', 'FLOATER'], baseCount: 7, staggerMs: 500, supportSlots: [1, 3, 5, 7], rearSlots: [2, 4, 7] }
+      ],
+      tint: 0xffffff,
+      floor: 0x1f1138,
+      floorAlpha: 0.1,
+      atmosphereColor: 0xc084fc,
+      atmosphereAlpha: 0.05,
       fitBackgroundToScreen: true
     }
   } as const;
@@ -409,6 +584,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     const testWindow = window as Window & {
       advanceTime?: (ms: number) => Promise<void>;
       render_game_to_text?: () => string;
+      __unknownUniverseTouchControls?: Partial<Record<'left' | 'right' | 'up' | 'down' | 'attack' | 'jump' | 'dash', boolean>>;
     };
 
     const config: Phaser.Types.Core.GameConfig = {
@@ -421,6 +597,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
         antialias: true,
         pixelArt: false,
         preserveDrawingBuffer: true
+      },
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT
       },
       physics: {
         default: 'arcade',
@@ -438,6 +620,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let backgroundGraphics: Phaser.GameObjects.Graphics;
     let backgroundStrip: Phaser.GameObjects.Container;
     let backgroundStripWidth = SCREEN_WIDTH;
+    const failedAssetKeys = new Set<string>();
     let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     let attackKey: Phaser.Input.Keyboard.Key;
     let jumpKey: Phaser.Input.Keyboard.Key;
@@ -445,6 +628,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let dashKey: Phaser.Input.Keyboard.Key;
     let dashAltKey: Phaser.Input.Keyboard.Key;
     let pauseKey: Phaser.Input.Keyboard.Key;
+    let previousTouchAttack = false;
+    let previousTouchJump = false;
+    let previousTouchDash = false;
     let keepMovingPrompt: Phaser.GameObjects.Container;
     let transitionOverlay: Phaser.GameObjects.Container;
     let swordRewardOverlay: Phaser.GameObjects.Container;
@@ -469,6 +655,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let doghostPickups: Phaser.Physics.Arcade.Group;
     let teleportationCPickups: Phaser.Physics.Arcade.Group;
     let teleportiPickups: Phaser.Physics.Arcade.Group;
+    let gravityCorePickups: Phaser.Physics.Arcade.Group;
     let healthGraphics: Phaser.GameObjects.Graphics;
     let playerSword: Phaser.GameObjects.Image;
     let playerShield: Phaser.GameObjects.Image;
@@ -480,6 +667,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let playerLives = 3;
     let swordUnlocked = initialSwordUnlocked;
     let hasFlameSword = initialHasFlameSword;
+    let characterPowerUnlocked = isXGod ? initialHasFlameSword : initialCharacterPowerUnlocked;
+    let nextCharacterSpecialAt = 0;
     let swordDurability = initialSwordDurability;
     let shieldUnlocked = initialShieldUnlocked;
     let inkShieldReady = initialInkShieldReady;
@@ -497,9 +686,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let teleportationCNextStrikeAt = 0;
     let teleportationCAttackEndsAt = 0;
     let teleportationCAttackFacing = 1;
+    let gravityCoreUnlocked = initialGravityCoreUnlocked;
+    let gravityCoreCharges = initialGravityCoreUnlocked ? Math.max(1, initialGravityCoreCharges) : 0;
     let shieldRechargeAt = 0;
     let isAttacking = false;
     let attackEndsAt = 0;
+    let playerAttackVisualHoldUntil = 0;
+    let playerAttackId = 0;
     let swordComboStep = 0;
     let swordComboResetAt = 0;
     let isSlamming = false;
@@ -526,10 +719,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let currentSectionIndex = 0;
     let isFightingWave = false;
     let pendingWaveSpawns = 0;
-    let lastMovementTime = 0;
-    let teleportiCooldownUntil = 0;
-    let teleportHangUntil = 0;
-    let teleportHoldJumpZ = 0;
+      let lastMovementTime = 0;
+      let teleportiCooldownUntil = 0;
+      let teleportHangUntil = 0;
+      let playableTeleportStrikeDepthUntil = 0;
+      let teleportHoldJumpZ = 0;
     let virtualTime = 0;
     let isManualStepping = false;
     const fightSections = [800, 1600, 2400, 3200];
@@ -549,6 +743,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
         hasDoghost,
         teleportationCUnlocked,
         hasTeleportationC,
+        gravityCoreUnlocked,
+        gravityCoreCharges,
+        selectedCharacterId,
+        characterPowerUnlocked,
         ...extra
       });
     }
@@ -567,7 +765,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const type = monster.getData('type') as MonsterType;
       switch (type) {
         case 'BOSS':
-          return currentLevel === 1 ? POINT_VALUES.level1BossKill : currentLevel === 2 ? POINT_VALUES.level2BossKill : POINT_VALUES.level3BossKill;
+          return currentLevel === 1
+            ? POINT_VALUES.level1BossKill
+            : currentLevel === 2
+              ? POINT_VALUES.level2BossKill
+              : currentLevel === 3
+                ? POINT_VALUES.level3BossKill
+                : POINT_VALUES.level4BossKill;
         case 'ALIEN':
           return POINT_VALUES.alienKill;
         case 'GHOST':
@@ -580,6 +784,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
           return POINT_VALUES.giantKill;
         case 'DEVIL':
           return POINT_VALUES.devilKill;
+        case 'COSMIC_GRUNT':
+          return POINT_VALUES.cosmicGruntKill;
         case 'CHASER':
         default:
           return POINT_VALUES.chaserKill;
@@ -645,10 +851,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     function startPlayerAttack(scene: Phaser.Scene, currentTime: number, duration: number) {
       isAttacking = true;
+      playerAttackId++;
+      const attackId = playerAttackId;
       attackEndsAt = currentTime + duration;
+      playerAttackVisualHoldUntil = selectedCharacterId === 'barrett' ? currentTime + 1700 : attackEndsAt;
       scene.tweens.killTweensOf(player);
       if (player && player.active) {
         player.setScale(PLAYER_SCALE);
+        if (selectedCharacterId === 'barrett' && scene.textures.exists('character_attack')) {
+          player.setTexture('character_attack', 3);
+        }
       }
       scene.tweens.add({
         targets: player,
@@ -656,7 +868,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         scaleY: PLAYER_SCALE * 1.18,
         duration,
         yoyo: true,
-        onComplete: endPlayerAttack
+        onComplete: () => {
+          if (attackId === playerAttackId && scene.time.now >= attackEndsAt) {
+            endPlayerAttack();
+          }
+        }
       });
     }
 
@@ -667,7 +883,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         swordComboStep = (swordComboStep + 1) % SWORD_COMBO_FRAMES.length;
       }
       swordComboResetAt = currentTime + FEEL.swordComboResetMs;
-      startPlayerAttack(scene, currentTime, FEEL.swordAttackDuration);
+      startPlayerAttack(scene, currentTime, FEEL.swordAttackDuration * playstyle.attackDurationMultiplier);
     }
 
     function setPlayerInvulnerableUntil(until: number) {
@@ -750,7 +966,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         doghostUnlocked,
         hasDoghost,
         teleportationCUnlocked,
-        hasTeleportationC
+        hasTeleportationC,
+        gravityCoreUnlocked,
+        gravityCoreCharges,
+        selectedCharacterId,
+        characterPowerUnlocked
       };
       currentScore = 0;
       currentSouls = 0;
@@ -766,6 +986,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
       hasDoghost = false;
       teleportationCUnlocked = false;
       hasTeleportationC = false;
+      gravityCoreUnlocked = false;
+      gravityCoreCharges = 0;
+      characterPowerUnlocked = false;
       scene.scene.restart();
       onStatsUpdate({
         ...finalSnapshot,
@@ -775,7 +998,63 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
+    function textureOrFallback(
+      scene: Phaser.Scene,
+      key: string,
+      fallbackKey: 'fallback_player' | 'fallback_enemy' | 'fallback_boss' | 'fallback_object' | 'fallback_powerup' = 'fallback_object'
+    ) {
+      if (!failedAssetKeys.has(key) && scene.textures.exists(key)) {
+        return key;
+      }
+      if (scene.textures.exists(fallbackKey)) {
+        return fallbackKey;
+      }
+      return key;
+    }
+
     function preload(this: Phaser.Scene) {
+      failedAssetKeys.clear();
+      this.load.on('loaderror', (file: { key?: string; src?: string }) => {
+        if (file.key) {
+          failedAssetKeys.add(file.key);
+          console.warn(`[Unknown Universe] Asset failed to load: ${file.key}`, file.src ?? '');
+        }
+      });
+
+      this.load.image('fallback_player', 'doodles/fallback_player.svg');
+      this.load.image('fallback_enemy', 'doodles/fallback_enemy.svg');
+      this.load.image('fallback_boss', 'doodles/fallback_boss.svg');
+      this.load.image('fallback_object', 'doodles/fallback_object.svg');
+      this.load.image('fallback_powerup', 'doodles/fallback_powerup.svg');
+
+      if (!isXGod) {
+        this.load.spritesheet('character_walk', `characters/${selectedCharacterId}/walk.png`, {
+          frameWidth: CHARACTER_WALK_FRAME_WIDTH,
+          frameHeight: CHARACTER_WALK_FRAME_HEIGHT
+        });
+        this.load.spritesheet('character_attack', `characters/${selectedCharacterId}/attack.png`, {
+          frameWidth: CHARACTER_ATTACK_FRAME_WIDTH,
+          frameHeight: CHARACTER_ATTACK_FRAME_HEIGHT
+        });
+        this.load.spritesheet('character_dash', `characters/${selectedCharacterId}/dash.png`, {
+          frameWidth: CHARACTER_DASH_FRAME_WIDTH,
+          frameHeight: CHARACTER_DASH_FRAME_HEIGHT
+        });
+        this.load.image('character_jump', `characters/${selectedCharacterId}/jump.png`);
+        this.load.image('character_dazed', `characters/${selectedCharacterId}/dazed.png`);
+        this.load.image('character_dead', `characters/${selectedCharacterId}/dead.png`);
+        this.load.image('character_reward', `characters/${selectedCharacterId}/reward.png`);
+        this.load.image('character_projectile', `characters/${selectedCharacterId}/projectile.png`);
+        if (selectedCharacterId === 'nico' || selectedCharacterId === 'ezra') {
+          this.load.spritesheet('character_projectile_anim', `characters/${selectedCharacterId}/projectile-sheet.png`, {
+            frameWidth: CHARACTER_PROJECTILE_FRAME_WIDTH,
+            frameHeight: CHARACTER_PROJECTILE_FRAME_HEIGHT
+          });
+        }
+        this.load.image('character_burst', `characters/${selectedCharacterId}/burst.png`);
+        this.load.image('character_special', `characters/${selectedCharacterId}/special.png`);
+      }
+
       if (playerSprite) {
         this.load.spritesheet('player_walk', playerSprite, {
           frameWidth: FALLBACK_FRAME_SIZE,
@@ -806,18 +1085,22 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: SPIDER_FRAME_WIDTH,
         frameHeight: SPIDER_FRAME_HEIGHT
       });
-      this.load.spritesheet('dark_dragon_walk', 'dark_dragon_walk.png', {
+      this.load.spritesheet('dark_dragon_walk', 'dark_dragon_walk_v2.png', {
         frameWidth: DARK_DRAGON_WALK_FRAME_WIDTH,
         frameHeight: DARK_DRAGON_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('dark_dragon_attack', 'dark_dragon_attack.png', {
+      this.load.spritesheet('dark_dragon_attack', 'dark_dragon_attack_v2.png', {
         frameWidth: DARK_DRAGON_ATTACK_FRAME_WIDTH,
         frameHeight: DARK_DRAGON_ATTACK_FRAME_HEIGHT
       });
-      this.load.image('dark_dragon_dead', 'dark_dragon_dead.png');
-      this.load.spritesheet('killinas_daughter_walk', 'killinas_daughter_walk.png', {
+      this.load.image('dark_dragon_dead', 'dark_dragon_dead_v2.png');
+      this.load.spritesheet('killinas_daughter_walk', 'killinas_daughter_walk_v2.png', {
         frameWidth: KILLINAS_DAUGHTER_WALK_FRAME_WIDTH,
         frameHeight: KILLINAS_DAUGHTER_WALK_FRAME_HEIGHT
+      });
+      this.load.spritesheet('killinas_daughter_attack', 'killinas_daughter_attack_v2.png', {
+        frameWidth: KILLINAS_DAUGHTER_ATTACK_FRAME_WIDTH,
+        frameHeight: KILLINAS_DAUGHTER_ATTACK_FRAME_HEIGHT
       });
       this.load.image('player_dazed', 'player_dazed.png');
       this.load.image('player_dead', 'player_dead.png');
@@ -849,7 +1132,31 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: MOONLIGHT_TERROR_ATTACK_FRAME_WIDTH,
         frameHeight: MOONLIGHT_TERROR_ATTACK_FRAME_HEIGHT
       });
-      this.load.image('xgod_sword_reward', 'xgod_sword_reward.png');
+      this.load.spritesheet('cosmic_grunt_walk', 'doodles/cosmic_grunt_walk_ai.png', {
+        frameWidth: COSMIC_GRUNT_FRAME_WIDTH,
+        frameHeight: COSMIC_GRUNT_FRAME_HEIGHT
+      });
+      this.load.spritesheet('void_regent_walk', 'doodles/void_regent_walk_v2.png', {
+        frameWidth: VOID_REGENT_WALK_FRAME_WIDTH,
+        frameHeight: VOID_REGENT_WALK_FRAME_HEIGHT
+      });
+      this.load.spritesheet('void_regent_attack', 'doodles/void_regent_attack_v2.png', {
+        frameWidth: VOID_REGENT_ATTACK_FRAME_WIDTH,
+        frameHeight: VOID_REGENT_ATTACK_FRAME_HEIGHT
+      });
+      this.load.spritesheet('ink_behemoth_walk', 'ink_behemoth_walk.png', {
+        frameWidth: INK_BEHEMOTH_FRAME_WIDTH,
+        frameHeight: INK_BEHEMOTH_FRAME_HEIGHT
+      });
+      this.load.spritesheet('ink_behemoth_attack', 'ink_behemoth_attack.png', {
+        frameWidth: INK_BEHEMOTH_FRAME_WIDTH,
+        frameHeight: INK_BEHEMOTH_FRAME_HEIGHT
+      });
+      this.load.image('boss_fireball', 'doodles/boss_fireball_v2.png');
+      this.load.image('killinas_bullet', 'doodles/killinas_bullet_v2.png');
+      this.load.image('void_bolt', 'doodles/void_bolt_v2.png');
+      this.load.image('ink_boss_spit', 'doodles/ink_boss_spit_v2.png');
+      this.load.image('xgod_sword_reward', 'xgod_sword_reward_fit.png');
       this.load.spritesheet('xgod_sword_powerup', 'xgod_sword_powerup.png', {
         frameWidth: XGOD_SWORD_POWERUP_FRAME_WIDTH,
         frameHeight: XGOD_SWORD_POWERUP_FRAME_HEIGHT
@@ -866,13 +1173,17 @@ const GameEngine: React.FC<GameEngineProps> = ({
       this.load.image('cave_level_1', 'cave_level_1.png');
       this.load.image('cave_level_2', 'cave_level_2.png');
       this.load.image('cave_level_3', 'cave_level_3.png');
+      this.load.image('space_level_1', 'doodles/space_level_1.svg');
+      this.load.image('space_level_2', 'doodles/space_level_2.svg');
+      this.load.image('space_level_3', 'doodles/space_level_3.svg');
+      this.load.image('space_level_3_ai', 'doodles/space_level_3_ai.png');
       this.load.spritesheet('player_dash', 'player_dash.png', {
         frameWidth: 221, // 887 / 4
         frameHeight: 266
       });
-      this.load.spritesheet('grunt_walking', 'grunt_walking.png', {
-        frameWidth: 335,
-        frameHeight: 420
+      this.load.spritesheet('grunt_walking', 'grunt_walking_ai.png', {
+        frameWidth: GRUNT_WALK_FRAME_WIDTH,
+        frameHeight: GRUNT_WALK_FRAME_HEIGHT
       });
       this.load.spritesheet('grunt_dead', 'grunt_dead.png', {
         frameWidth: 335,
@@ -880,11 +1191,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
       this.load.image('grunt_pile', 'grunt_pile.png');
       this.load.image('p_happy', 'doodles/p_happy.svg');
-      this.load.image('m_devil', 'doodles/m_devil.svg');
-      this.load.image('m_alien', 'doodles/m_alien.svg');
+      this.load.image('m_devil', 'doodles/m_devil.png');
+      this.load.spritesheet('m_alien_walk', 'doodles/m_alien_walk_ai.png', {
+        frameWidth: SMALL_ENEMY_FRAME_WIDTH,
+        frameHeight: SMALL_ENEMY_FRAME_HEIGHT
+      });
+      this.load.image('m_alien', 'doodles/m_alien.png');
       this.load.image('m_ghost', 'ghost_float.png');
       this.load.image('m_ghost_attack', 'ghost_attack.png');
-      this.load.image('m_boss', 'doodles/m_boss.svg');
+      this.load.image('m_boss', 'doodles/m_boss.png');
       this.load.image('h_heart', 'heart_sprite.png');
       this.load.image('homework_pickup', 'homework_pickup.png');
       this.load.image('gold_pickup', 'gold_pickup.png');
@@ -896,16 +1211,24 @@ const GameEngine: React.FC<GameEngineProps> = ({
       this.load.image('impact_vfx', 'doodles/impact_vfx.svg');
       this.load.image('scrap', 'homework_pickup.png');
       this.load.image('soulTexture', 'doodles/soul_orb.svg');
-      this.load.image('m_floater', 'doodles/m_floater.svg');
-      this.load.image('m_dasher', 'doodles/m_dasher.svg');
-      this.load.image('m_giant', 'doodles/m_giant.svg');
+      this.load.image('m_floater', 'doodles/m_floater.png');
+      this.load.spritesheet('m_dasher_walk', 'doodles/m_dasher_walk_ai.png', {
+        frameWidth: SMALL_ENEMY_FRAME_WIDTH,
+        frameHeight: SMALL_ENEMY_FRAME_HEIGHT
+      });
+      this.load.image('m_dasher', 'doodles/m_dasher.png');
+      this.load.spritesheet('m_giant_walk', 'doodles/m_giant_walk_ai.png', {
+        frameWidth: GIANT_ENEMY_FRAME_WIDTH,
+        frameHeight: GIANT_ENEMY_FRAME_HEIGHT
+      });
+      this.load.image('m_giant', 'doodles/m_giant.png');
       this.load.image('slam_wave', 'doodles/slam_wave.svg');
-      this.load.image('shadow_oval', 'doodles/shadow_oval.svg');
+      this.load.image('shadow_oval', 'doodles/shadow_oval.png');
       this.load.image('spawn_burst', 'doodles/spawn_burst.svg');
-      this.load.image('d_cone', 'doodles/d_cone.svg');
-      this.load.image('d_lamp', 'doodles/d_lamp.svg');
-      this.load.image('d_puddle', 'doodles/d_puddle.svg');
-      this.load.image('d_poster', 'doodles/d_poster.svg');
+      this.load.image('d_cone', 'doodles/d_cone.png');
+      this.load.image('d_lamp', 'doodles/d_lamp.png');
+      this.load.image('d_puddle', 'doodles/d_puddle.png');
+      this.load.image('d_poster', 'doodles/d_poster.png');
       this.load.image('tell_ring', 'doodles/tell_ring.svg');
       this.load.image('dash_tell', 'doodles/dash_tell.svg');
       this.load.image('giant_quake', 'doodles/giant_quake.svg');
@@ -914,12 +1237,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
       this.load.image('sword_pickup', 'doodles/sword_pickup.svg');
       this.load.image('ink_shield', 'ink_shield_power.png');
       this.load.image('shield_burst', 'doodles/shield_burst.svg');
-      this.load.image('dinio_orb', 'doodles/dinio_orb.svg');
-      this.load.image('dinio_shot', 'doodles/dinio_shot.svg');
-      this.load.image('dinio_muzzle_flash', 'doodles/dinio_muzzle_flash.svg');
+      this.load.image('dinio_orb', 'doodles/dinio_orb.png');
+      this.load.image('dinio_shot', 'doodles/dinio_shot.png');
+      this.load.image('dinio_muzzle_flash', 'doodles/dinio_muzzle_flash.png');
       this.load.image('doghost_orb', 'doodles/doghost_orb.svg');
       this.load.image('doghost_wave', 'doodles/doghost_wave.svg');
-      this.load.image('teleportation_c_orb', 'doodles/teleportation_c_orb.svg');
+      this.load.image('teleportation_c_orb', 'doodles/teleportation_c_orb.png');
+      this.load.image('gravity_core', 'doodles/gravity_core.svg');
       this.load.image('teleporti', 'doodles/teleporti.png');
     }
 
@@ -928,7 +1252,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       teleportationCNextStrikeAt = 0;
       teleportationCAttackEndsAt = 0;
       teleportationCAttackFacing = 1;
-      const levelProfile = LEVEL_PROFILES[Math.min(currentLevel, 3) as 1 | 2 | 3];
+      const levelProfile = LEVEL_PROFILES[getLevelKey(currentLevel)];
 
       const buildBackgroundStrip = () => {
         backgroundStrip = scene.add.container(0, SCREEN_HEIGHT).setScrollFactor(0).setDepth(-20);
@@ -943,13 +1267,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
           const sourceWidth = source?.width ?? SCREEN_WIDTH;
           const sourceHeight = source?.height ?? BACKGROUND_STRIP_HEIGHT;
           const displayWidth = Math.max(SCREEN_WIDTH, Math.round(sourceWidth * (BACKGROUND_STRIP_HEIGHT / sourceHeight)));
-          const segment = scene.add.image(currentX, 0, backgroundKey)
+          const segment = scene.add.image(currentX, 0, textureOrFallback(scene, backgroundKey, 'fallback_object'))
             .setOrigin(0, 1)
             .setDisplaySize(displayWidth, BACKGROUND_STRIP_HEIGHT)
             .setTint(levelProfile.tint);
 
           backgroundStrip.add(segment);
-          currentX += displayWidth;
+          currentX += displayWidth - 56;
         });
 
         backgroundStripWidth = Math.max(SCREEN_WIDTH, currentX);
@@ -965,7 +1289,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       scene.physics.world.setBounds(0, WALK_ZONE_TOP, 4096, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
       scene.cameras.main.setBounds(0, 0, 4096, SCREEN_HEIGHT);
 
-      const animKey = playerSprite ? 'player_walk' : (scene.textures.exists('player_walk_internal') ? 'player_walk_internal' : null);
+      const animKey = !isXGod && scene.textures.exists('character_walk')
+        ? 'character_walk'
+        : playerSprite
+          ? 'player_walk'
+          : (scene.textures.exists('player_walk_internal') ? 'player_walk_internal' : null);
 
       if (animKey) {
         const texture = scene.textures.get(animKey);
@@ -991,11 +1319,71 @@ const GameEngine: React.FC<GameEngineProps> = ({
           });
           scene.anims.create({
             key: 'dash',
-            frames: scene.anims.generateFrameNumbers('player_dash', { start: 0, end: 3 }),
+            frames: scene.anims.generateFrameNumbers(!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash', { start: 0, end: 3 }),
             frameRate: 15,
             repeat: -1
           });
         }
+      }
+
+      if (!isXGod && scene.textures.exists('character_attack')) {
+        const characterAttackFrames = selectedCharacterId === 'barrett'
+          ? [
+            { key: 'character_attack', frame: 3 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 },
+            { key: 'character_attack', frame: 4 }
+          ]
+          : scene.anims.generateFrameNumbers('character_attack', { start: 0, end: 4 });
+        scene.anims.create({
+          key: 'character_attack_anim',
+          frames: characterAttackFrames,
+          frameRate: selectedCharacterId === 'barrett' ? 10 : 16,
+          repeat: 0
+        });
+      }
+
+      if (!isXGod && scene.textures.exists('character_projectile_anim')) {
+        scene.anims.create({
+          key: 'character_projectile_fly',
+          frames: scene.anims.generateFrameNumbers('character_projectile_anim', { start: 0, end: 5 }),
+          frameRate: selectedCharacterId === 'ezra' ? 14 : 18,
+          repeat: -1
+        });
+      }
+
+      if (scene.textures.exists('m_alien_walk')) {
+        scene.anims.create({
+          key: 'm_alien_walk_anim',
+          frames: scene.anims.generateFrameNumbers('m_alien_walk', { start: 0, end: 3 }),
+          frameRate: 8,
+          repeat: -1
+        });
+      }
+      if (scene.textures.exists('m_dasher_walk')) {
+        scene.anims.create({
+          key: 'm_dasher_walk_anim',
+          frames: scene.anims.generateFrameNumbers('m_dasher_walk', { start: 0, end: 3 }),
+          frameRate: 13,
+          repeat: -1
+        });
+      }
+      if (scene.textures.exists('m_giant_walk')) {
+        scene.anims.create({
+          key: 'm_giant_walk_anim',
+          frames: scene.anims.generateFrameNumbers('m_giant_walk', { start: 0, end: 3 }),
+          frameRate: 7,
+          repeat: -1
+        });
       }
 
       if (scene.textures.exists('grunt_walking')) {
@@ -1070,6 +1458,46 @@ const GameEngine: React.FC<GameEngineProps> = ({
           repeat: 0
         });
       }
+      if (scene.textures.exists('cosmic_grunt_walk')) {
+        scene.anims.create({
+          key: 'cosmic_grunt_walk_anim',
+          frames: scene.anims.generateFrameNumbers('cosmic_grunt_walk', { start: 0, end: 3 }),
+          frameRate: 9,
+          repeat: -1
+        });
+      }
+      if (scene.textures.exists('void_regent_walk')) {
+        scene.anims.create({
+          key: 'void_regent_walk_anim',
+          frames: scene.anims.generateFrameNumbers('void_regent_walk', { start: 0, end: 3 }),
+          frameRate: 7,
+          repeat: -1
+        });
+      }
+      if (scene.textures.exists('void_regent_attack')) {
+        scene.anims.create({
+          key: 'void_regent_attack_anim',
+          frames: scene.anims.generateFrameNumbers('void_regent_attack', { start: 0, end: 3 }),
+          frameRate: 8,
+          repeat: 0
+        });
+      }
+      if (scene.textures.exists('ink_behemoth_walk')) {
+        scene.anims.create({
+          key: 'ink_behemoth_walk_anim',
+          frames: scene.anims.generateFrameNumbers('ink_behemoth_walk', { start: 0, end: 5 }),
+          frameRate: 7,
+          repeat: -1
+        });
+      }
+      if (scene.textures.exists('ink_behemoth_attack')) {
+        scene.anims.create({
+          key: 'ink_behemoth_attack_anim',
+          frames: scene.anims.generateFrameNumbers('ink_behemoth_attack', { start: 0, end: 3 }),
+          frameRate: 8,
+          repeat: 0
+        });
+      }
       if (scene.textures.exists('player_sword_walk')) {
         scene.anims.create({
           key: 'sword_walk',
@@ -1107,12 +1535,28 @@ const GameEngine: React.FC<GameEngineProps> = ({
           repeat: -1
         });
       }
+      if (scene.textures.exists('dark_dragon_attack')) {
+        scene.anims.create({
+          key: 'dark_dragon_attack_anim',
+          frames: scene.anims.generateFrameNumbers('dark_dragon_attack', { start: 0, end: 3 }),
+          frameRate: 7,
+          repeat: 0
+        });
+      }
       if (scene.textures.exists('killinas_daughter_walk')) {
         scene.anims.create({
           key: 'killinas_daughter_walk_anim',
           frames: scene.anims.generateFrameNumbers('killinas_daughter_walk', { start: 0, end: 7 }),
           frameRate: 10,
           repeat: -1
+        });
+      }
+      if (scene.textures.exists('killinas_daughter_attack')) {
+        scene.anims.create({
+          key: 'killinas_daughter_attack_anim',
+          frames: scene.anims.generateFrameNumbers('killinas_daughter_attack', { start: 0, end: 3 }),
+          frameRate: 9,
+          repeat: 0
         });
       }
 
@@ -1157,6 +1601,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       doghostPickups = scene.physics.add.group();
       teleportationCPickups = scene.physics.add.group();
       teleportiPickups = scene.physics.add.group();
+      gravityCorePickups = scene.physics.add.group();
       healthGraphics = scene.add.graphics().setDepth(10000);
       const arrowTxt = scene.add.text(0, 0, 'KEEP MOVING! ➡️', {
         fontFamily: 'Gochi Hand', fontSize: '56px', color: '#ff4444', stroke: '#ffffff', strokeThickness: 8
@@ -1170,16 +1615,17 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }).setOrigin(0.5);
       transitionOverlay = scene.add.container(0, 0, [transitionBg, transitionTitle]).setScrollFactor(0).setDepth(20000).setAlpha(0);
 
-      const swordRewardGlow = scene.add.sprite(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 8, 'xgod_sword_powerup', 3)
+      const rewardOverlayTexture = isXGod ? 'xgod_sword_powerup' : textureOrFallback(scene, 'character_reward', 'fallback_powerup');
+      const swordRewardGlow = scene.add.sprite(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 8, rewardOverlayTexture, 0)
         .setScale(0.82)
         .setTint(0xffffff)
         .setAlpha(0)
         .setVisible(false);
-      const swordRewardSprite = scene.add.sprite(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 8, 'xgod_sword_powerup', 0)
-        .setScale(0.82)
+      const swordRewardSprite = scene.add.sprite(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 8, rewardOverlayTexture, 0)
+        .setScale(isXGod ? 0.82 : 1.12)
         .setAlpha(0)
         .setVisible(false);
-      const swordRewardTitle = scene.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 214, 'XGOD SWORD AWAKENED', {
+      const swordRewardTitle = scene.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 214, `${selectedCharacter.rewardName.toUpperCase()} AWAKENED`, {
         fontFamily: 'Gochi Hand', fontSize: '58px', color: '#fff7d1', stroke: '#111111', strokeThickness: 10
       }).setOrigin(0.5).setAlpha(0).setVisible(false);
       const swordRewardSubtitle = scene.add.text(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 220, 'A relic worthy of the Dark Dragon.', {
@@ -1191,14 +1637,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
         .setAlpha(0)
         .setVisible(false);
 
-      const sectionCardBg = scene.add.rectangle(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y, 520, 124, 0xfff7d1, 0.96)
-        .setStrokeStyle(6, 0x111111)
+      const sectionCardBg = scene.add.rectangle(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y, 460, 82, 0xfff7d1, 0.9)
+        .setStrokeStyle(4, 0x111111)
         .setOrigin(0.5);
-      const sectionCardTitle = scene.add.text(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y - 28, 'SECTION 1', {
-        fontFamily: 'Gochi Hand', fontSize: '42px', color: '#0f172a', stroke: '#ffffff', strokeThickness: 8
+      const sectionCardTitle = scene.add.text(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y - 18, 'SECTION 1', {
+        fontFamily: 'Gochi Hand', fontSize: '32px', color: '#0f172a', stroke: '#ffffff', strokeThickness: 6
       }).setOrigin(0.5);
-      const sectionCardSubtitle = scene.add.text(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y + 20, 'LOCKER ALLEY AMBUSH', {
-        fontFamily: 'Indie Flower', fontSize: '24px', color: '#334155'
+      const sectionCardSubtitle = scene.add.text(SCREEN_WIDTH / 2, SECTION_CARD_TOP_Y + 16, 'LOCKER ALLEY AMBUSH', {
+        fontFamily: 'Indie Flower', fontSize: '20px', color: '#334155'
       }).setOrigin(0.5);
       sectionCardOverlay = scene.add.container(0, 0, [sectionCardBg, sectionCardTitle, sectionCardSubtitle])
         .setScrollFactor(0)
@@ -1225,7 +1671,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         .setScrollFactor(0)
         .setDepth(23000);
 
-      const activeTexture = animKey || 'p_happy';
+      const activeTexture = textureOrFallback(scene, animKey || 'p_happy', 'fallback_player');
 
       // CRITICAL FIX: Pass '0' as the 4th argument to specify we want the first slice of the spritesheet
       player = scene.physics.add.sprite(200, (HORIZON_Y + FLOOR_BOTTOM) / 2, activeTexture, 0);
@@ -1235,10 +1681,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
       player.setScale(PLAYER_SCALE);
       player.setSize(80, 120);
       player.setOffset(50, 40);
-      playerShadow = scene.add.image(player.x, player.y + 6, 'shadow_oval').setAlpha(0.28).setDepth(player.y - 2);
-      playerSword = scene.add.image(player.x + 26, player.y - 18, 'flame_sword').setScale(0.34).setVisible(hasFlameSword).setDepth(player.y + 2);
-      playerShield = scene.add.image(player.x, player.y - 18, 'ink_shield')
-        .setScale(0.048)
+      playerShadow = scene.add.image(player.x, player.y + 6, textureOrFallback(scene, 'shadow_oval', 'fallback_object')).setAlpha(0.28).setDepth(player.y - 2);
+      playerSword = scene.add.image(player.x + 26, player.y - 18, textureOrFallback(scene, 'flame_sword', 'fallback_powerup')).setScale(0.34).setVisible(isXGod && hasFlameSword).setDepth(player.y + 2);
+      playerShield = scene.add.image(player.x, player.y - 18, textureOrFallback(scene, 'ink_shield', 'fallback_powerup'))
+        .setScale(0.44)
         .setVisible(shieldUnlocked)
         .setAlpha(inkShieldReady ? 0.92 : 0.22)
         .setDepth(player.y + 1);
@@ -1248,7 +1694,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (hasDoghost) {
         spawnDoghostCompanion(scene);
       }
-      if (hasTeleportationC) {
+      if (isXGod && hasTeleportationC) {
         spawnTeleportationCCompanion(scene);
       }
 
@@ -1274,8 +1720,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (currentLevel === 2 && !doghostUnlocked) {
         spawnDoghostPickup(scene, DOGHOST.unlockOrbX, (HORIZON_Y + FLOOR_BOTTOM) / 2 - 12);
       }
-      if (currentLevel === 3 && !teleportationCUnlocked) {
+      if (isXGod && currentLevel === 3 && !teleportationCUnlocked) {
         spawnTeleportationCPickup(scene, TELEPORTATION_C.unlockOrbX, (HORIZON_Y + FLOOR_BOTTOM) / 2 - 10);
+      }
+      if (currentLevel === 4 && !gravityCoreUnlocked) {
+        spawnGravityCorePickup(scene, GRAVITY_CORE.unlockX, (HORIZON_Y + FLOOR_BOTTOM) / 2 - 18);
       }
       if (currentLevel === 1) {
         spawnTeleportiPickup(scene, 560, FLOOR_BOTTOM - 22);
@@ -1283,7 +1732,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (swordUnlocked && !hasFlameSword) {
         spawnSwordPickup(scene, 315, FLOOR_BOTTOM - 32);
       }
-      if (currentLevel === 1 && !swordUnlocked && debugSpawnSwordReward) {
+      if (currentLevel === 1 && !characterPowerUnlocked && debugSpawnSwordReward) {
         spawnBossRewardSword(scene, 470, FLOOR_BOTTOM - 28);
         if (debugAutoClaimSwordReward) {
           scene.time.delayedCall(1900, () => {
@@ -1308,7 +1757,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           sounds.soul();
           currentSouls++;
           addScore(POINT_VALUES.gold, { souls: currentSouls });
-          if (currentSouls % 5 === 0) {
+          if (currentSouls % 4 === 0) {
             spawnHealth(scene, player.x, player.y - 100);
           }
         }
@@ -1370,11 +1819,34 @@ const GameEngine: React.FC<GameEngineProps> = ({
           triggerTeleporti(scene, pickup as Phaser.Physics.Arcade.Sprite);
         }
       });
-      scene.physics.add.overlap(attackHitbox, monsters, (hb, m) => { if (isAttacking) { const monster = m as Phaser.Physics.Arcade.Sprite; if (monster.getData('iframe')) return; sounds.hit(); takeMonsterDamage(scene, monster, hasFlameSword ? 3 : 1); } });
+      scene.physics.add.overlap(player, gravityCorePickups, (p, pickup) => {
+        if (jumpZ < 40) {
+          (pickup as Phaser.Physics.Arcade.Sprite).destroy();
+          gravityCoreUnlocked = true;
+          gravityCoreCharges = GRAVITY_CORE.maxCharges;
+          addScore(POINT_VALUES.gravityCoreUnlock);
+          syncPowerupStats();
+          pulseFeedbackFlash(scene, 0xa78bfa, 0.24, 240);
+          showSectionCard(scene, 'GRAVITY CORE CLAIMED', 'SPACE HITS LAND HARDER', 1200);
+          sounds.soul();
+        }
+      });
+      scene.physics.add.overlap(attackHitbox, monsters, (hb, m) => {
+        if (isAttacking) {
+          const monster = m as Phaser.Physics.Arcade.Sprite;
+          if (monster.getData('iframe')) return;
+          if (monster.getData('lastPlayerAttackId') === playerAttackId) return;
+          monster.setData('lastPlayerAttackId', playerAttackId);
+          sounds.hit();
+          takeMonsterDamage(scene, monster, getPlayerAttackDamage());
+        }
+      });
       scene.physics.add.overlap(player, projectiles, (p, pr) => {
         if (!playerInvulnerable && jumpZ < 30) {
-          releaseEnemyProjectile(pr as Phaser.Physics.Arcade.Sprite);
-          takePlayerDamage(scene, 15);
+          const projectile = pr as Phaser.Physics.Arcade.Sprite;
+          const damage = projectile.getData('damage') ?? 15;
+          releaseEnemyProjectile(projectile);
+          takePlayerDamage(scene, damage);
         }
       });
       scene.physics.add.overlap(allyProjectiles, monsters, (shot, m) => {
@@ -1388,13 +1860,26 @@ const GameEngine: React.FC<GameEngineProps> = ({
         sounds.hit();
         takeMonsterDamage(scene, monster, projectile.getData('damage') ?? 2);
       });
-      scene.physics.add.overlap(attackHitbox, destructibles, (hb, d) => { if (isAttacking) damageDestructible(scene, d as Phaser.Physics.Arcade.Sprite, 1); });
+      scene.physics.add.overlap(attackHitbox, destructibles, (hb, d) => {
+        if (!isAttacking) return;
+        const item = d as Phaser.Physics.Arcade.Sprite;
+        if (item.getData('lastPlayerAttackId') === playerAttackId) return;
+        item.setData('lastPlayerAttackId', playerAttackId);
+        damageDestructible(scene, item, selectedCharacterId === 'barrett' && characterPowerUnlocked ? 2 : 1);
+      });
       scene.physics.add.overlap(monsters, destructibles, (m, d) => { const monster = m as Phaser.Physics.Arcade.Sprite; const type = monster.getData('type'); if (type === 'GIANT' || type === 'BOSS' || monster.getData('state') === 'DASHING') damageDestructible(scene, d as Phaser.Physics.Arcade.Sprite, 1); });
       scene.physics.add.overlap(player, monsters, (p, m) => {
         if (!playerInvulnerable && !isAttacking && !isSlamming && jumpZ < 30) {
           const monster = m as Phaser.Physics.Arcade.Sprite;
           const type = monster.getData('type') as MonsterType;
-          const damage = type === 'BOSS' ? 15 : type === 'DEVIL' ? 20 : type === 'ALIEN' ? 12 : type === 'GHOST' ? 8 : 10;
+          const enemyClass = (monster.getData('enemyClass') || getMonsterClass(type)) as EnemyClass;
+          if (enemyClass === 'LONG_RANGE') {
+            return;
+          }
+          if (enemyClass === 'JUMPER' && monster.getData('state') !== 'SLAM') {
+            return;
+          }
+          const damage = type === 'BOSS' ? 13 : type === 'DEVIL' ? 14 : type === 'COSMIC_GRUNT' ? 11 : type === 'GIANT' ? 12 : type === 'DASHER' ? 10 : 8;
           takePlayerDamage(scene, damage);
         }
       });
@@ -1425,10 +1910,19 @@ const GameEngine: React.FC<GameEngineProps> = ({
         depthOffset?: number;
       }
     ) {
-      const image = scene.add.image(config.x, config.y, config.texture)
+      const visualScale =
+        config.texture === 'd_cone' ? config.scale * 0.48
+          : config.texture === 'd_lamp' ? config.scale * 0.55
+          : config.texture === 'd_puddle' ? config.scale * 0.42
+          : config.scale;
+      const visualAlpha =
+        config.texture === 'd_puddle' ? Math.min(config.alpha ?? 1, 0.42)
+          : config.texture === 'd_lamp' ? Math.min(config.alpha ?? 1, 0.5)
+          : config.alpha ?? 1;
+      const image = scene.add.image(config.x, config.y, textureOrFallback(scene, config.texture, 'fallback_object'))
         .setOrigin(0.5, config.originY ?? 1)
-        .setScale(config.scale)
-        .setAlpha(config.alpha ?? 1)
+        .setScale(visualScale)
+        .setAlpha(visualAlpha)
         .setDepth(config.y + (config.depthOffset ?? 0));
       if (config.flipX) image.setFlipX(true);
       if (config.angle) image.setAngle(config.angle);
@@ -1481,20 +1975,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
       titleText.setText(title);
       subtitleText.setText(subtitle);
       scene.tweens.killTweensOf(sectionCardOverlay);
-      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-14);
+      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-10);
       scene.tweens.add({
         targets: sectionCardOverlay,
         alpha: SECTION_CARD_OPACITY,
         y: 0,
-        duration: 180,
-        ease: 'Back.Out',
+        duration: 160,
+        ease: 'Cubic.easeOut',
         onComplete: () => {
           scene.time.delayedCall(duration, () => {
             scene.tweens.add({
               targets: sectionCardOverlay,
               alpha: 0,
-              y: -24,
-              duration: 220,
+              y: -18,
+              duration: 190,
               onComplete: () => sectionCardOverlay.setVisible(false).setY(0)
             });
           });
@@ -1580,10 +2074,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
 
       sounds.hurt();
-      playerHealth = Math.max(0, playerHealth - amount);
+      const damageAmount = Math.max(1, Math.round(getDifficultyScaledDamage(amount) * playstyle.damageTakenMultiplier));
+      playerHealth = Math.max(0, playerHealth - damageAmount);
       onStatsUpdate({ health: playerHealth });
       pulseFeedbackFlash(scene, 0xef4444, 0.18, 150);
       flashPlayerHitTint(scene);
+
+      const playerBody = player.body as Phaser.Physics.Arcade.Body;
+      const nearestThreat = monsters
+        ?.getChildren()
+        .map((monster) => monster as Phaser.Physics.Arcade.Sprite)
+        .filter((monster) => monster.active)
+        .sort((a, b) => Phaser.Math.Distance.Between(player.x, player.y, a.x, a.y) - Phaser.Math.Distance.Between(player.x, player.y, b.x, b.y))[0];
+      const knockbackDirection = nearestThreat ? (player.x < nearestThreat.x ? -1 : 1) : (facingDirection === 1 ? -1 : 1);
+      playerBody.setVelocity(
+        knockbackDirection * FEEL.hitKnockback,
+        Phaser.Math.Clamp(playerBody.velocity.y - 42, -120, 120)
+      );
 
       if (playerHealth <= 0) {
         playerLives--;
@@ -1596,7 +2103,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           resetPlayerActionState();
           player.setVelocity(0, 0);
           player.anims.stop();
-          player.setTexture('player_dazed');
+          player.setTexture(!isXGod && scene.textures.exists('character_dazed') ? 'character_dazed' : 'player_dazed');
 
           scene.tweens.add({
             targets: player,
@@ -1616,7 +2123,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           resetPlayerActionState();
           player.setVelocity(0, 0);
           player.anims.stop();
-          player.setTexture('player_dead');
+          player.setTexture(!isXGod && scene.textures.exists('character_dead') ? 'character_dead' : 'player_dead');
 
           scene.tweens.add({
             targets: player,
@@ -1630,7 +2137,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
 
-      setPlayerInvulnerableUntil(scene.time.now + 720);
+      setPlayerInvulnerableUntil(scene.time.now + FEEL.hitInvulnerabilityMs);
       scene.cameras.main.shake(150, 0.01);
       scene.tweens.add({
         targets: player, alpha: 0.3, duration: 80, yoyo: true, repeat: 4,
@@ -1769,7 +2276,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     function handleBossDefeat(scene: Phaser.Scene) {
       sounds.fanfare();
       scene.cameras.main.flash(500, 255, 255, 255);
-      const earnedSword = currentLevel === 1 && !swordUnlocked;
+      const earnedSword = currentLevel === 1 && !characterPowerUnlocked;
       const earnedShield = currentLevel === 2 && !shieldUnlocked;
       if (earnedShield) {
         shieldUnlocked = true;
@@ -1778,11 +2285,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         playerShield?.setVisible(true).setAlpha(0.92);
         addScore(POINT_VALUES.inkShieldUnlock);
       }
-      if (currentLevel >= 3) {
+      if (currentLevel >= MAX_LEVEL) {
         showLevelTransition(scene, 'FINAL BOSS DEFEATED!', 2200, () => {
           syncPowerupStats({
             isVictory: true,
-            level: 3,
+            level: MAX_LEVEL,
             monstersDefeated: currentKills
           });
         });
@@ -1792,7 +2299,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (earnedSword) {
         const rewardX = scene.cameras.main.scrollX + SCREEN_WIDTH * 0.72;
         spawnBossRewardSword(scene, rewardX, FLOOR_BOTTOM - 28);
-        showSectionCard(scene, 'DARK DRAGON DOWN', 'TOUCH THE XGOD SWORD', 1400);
+        showSectionCard(scene, 'DARK DRAGON DOWN', `TOUCH THE ${selectedCharacter.rewardName.toUpperCase()}`, 1400);
         return;
       }
 
@@ -1804,7 +2311,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       showLevelTransition(scene, rewardTitle, 2200, () => {
         inkShieldReady = shieldUnlocked;
         syncPowerupStats({
-          level: Math.min(3, currentLevel + 1),
+          level: Math.min(MAX_LEVEL, currentLevel + 1),
           monstersDefeated: 0,
           isVictory: false
         });
@@ -1816,27 +2323,27 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     function spawnSoul(scene: Phaser.Scene, x: number, y?: number) {
       const dropY = Phaser.Math.Clamp(y ?? Phaser.Math.Between(HORIZON_Y + 20, FLOOR_BOTTOM - 20), HORIZON_Y + 20, FLOOR_BOTTOM - 20);
-      const s = souls.create(x, dropY, 'gold_pickup');
+      const s = souls.create(x, dropY, textureOrFallback(scene, 'gold_pickup', 'fallback_powerup'));
       if (s) {
-        s.setScale(0.04).setDepth(s.y + 2).setSize(360, 280).setOffset(500, 430);
+        s.setScale(0.42).setDepth(s.y + 2).setSize(86, 68);
         scene.tweens.add({ targets: s, y: dropY - 10, duration: 800, yoyo: true, repeat: -1 });
-        scene.tweens.add({ targets: s, scale: 0.044, duration: 460, yoyo: true, repeat: -1 });
+        scene.tweens.add({ targets: s, scale: 0.46, duration: 460, yoyo: true, repeat: -1 });
       }
     }
 
     function spawnHealth(scene: Phaser.Scene, x: number, y: number) {
       const h = healthUpgrades.create(x, Phaser.Math.Clamp(y, HORIZON_Y + 20, FLOOR_BOTTOM - 20), 'h_heart');
       if (h) {
-        h.setScale(0.17).setDepth(h.y + 2).setSize(180, 220).setOffset(124, 138);
-        scene.tweens.add({ targets: h, scale: 0.188, duration: 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        h.setScale(0.48).setDepth(h.y + 2).setSize(64, 86);
+        scene.tweens.add({ targets: h, scale: 0.53, duration: 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
     }
 
     function spawnHomework(scene: Phaser.Scene, x: number, y?: number) {
       const dropY = Phaser.Math.Clamp(y ?? Phaser.Math.Between(HORIZON_Y + 22, FLOOR_BOTTOM - 20), HORIZON_Y + 22, FLOOR_BOTTOM - 20);
-      const pickup = homeworkPickups.create(x, dropY, 'homework_pickup');
+      const pickup = homeworkPickups.create(x, dropY, textureOrFallback(scene, 'homework_pickup', 'fallback_powerup'));
       if (pickup) {
-        pickup.setScale(0.21).setDepth(pickup.y + 2).setSize(170, 150).setOffset(150, 122);
+        pickup.setScale(0.54).setDepth(pickup.y + 2).setSize(84, 72);
         scene.tweens.add({ targets: pickup, y: dropY - 8, duration: 760, yoyo: true, repeat: -1 });
         scene.tweens.add({ targets: pickup, angle: 4, duration: 520, yoyo: true, repeat: -1 });
       }
@@ -2087,6 +2594,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
     }
 
+    function spawnGravityCorePickup(scene: Phaser.Scene, x: number, y: number) {
+      const pickup = gravityCorePickups.create(x, Phaser.Math.Clamp(y, HORIZON_Y + 24, FLOOR_BOTTOM - 24), 'gravity_core');
+      if (pickup) {
+        pickup.setScale(0.52).setDepth(pickup.y + 3).setSize(96, 96);
+        scene.tweens.add({ targets: pickup, y: pickup.y - 24, duration: 820, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        scene.tweens.add({ targets: pickup, angle: 360, duration: 2400, repeat: -1, ease: 'Linear' });
+        scene.tweens.add({ targets: pickup, scale: 0.62, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      }
+    }
+
     function spawnTeleportiPickup(scene: Phaser.Scene, x: number, y: number) {
       const pickup = teleportiPickups.create(x, Phaser.Math.Clamp(y, HORIZON_Y + 26, FLOOR_BOTTOM - 18), 'teleporti');
       if (pickup) {
@@ -2116,7 +2633,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       const pickupX = camX + SCREEN_WIDTH * 0.62;
       const pickupY = FLOOR_BOTTOM - 26;
-      const pickup = teleportiPickups.create(pickupX, pickupY, 'teleporti');
+      const pickup = teleportiPickups.create(pickupX, pickupY, textureOrFallback(scene, 'teleporti', 'fallback_powerup'));
       if (pickup) {
         pickup.setScale(0.56).setDepth(pickup.y + 3).setSize(96, 112).setOffset(48, 40);
         pickup.setData('cooldownUntil', 0);
@@ -2211,7 +2728,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       setDinioPose(scene, 'ATTACK', direction);
       const muzzleX = dinioCompanion.x + (direction * 118);
       const muzzleY = dinioCompanion.y - 210;
-      const shot = allyProjectiles.create(dinioCompanion.x + (direction * 92), dinioCompanion.y - 188, 'dinio_shot');
+      const shot = allyProjectiles.create(dinioCompanion.x + (direction * 92), dinioCompanion.y - 188, textureOrFallback(scene, 'dinio_shot', 'fallback_powerup'));
       if (shot) {
         shot.setScale(direction === 1 ? 0.28 : -0.28, 0.28);
         shot.setAlpha(0.95);
@@ -2258,7 +2775,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
 
       const direction = target.x >= doghostCompanion.x ? 1 : -1;
-      const shot = allyProjectiles.create(doghostCompanion.x + (direction * 56), doghostCompanion.y - 64, 'doghost_wave');
+      const shot = allyProjectiles.create(doghostCompanion.x + (direction * 56), doghostCompanion.y - 64, textureOrFallback(scene, 'doghost_wave', 'fallback_powerup'));
       if (shot) {
         shot.setScale(direction === 1 ? 0.3 : -0.3, 0.3);
         shot.setAlpha(0.88);
@@ -2292,9 +2809,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
     function equipSword(scene: Phaser.Scene, fullDurability: boolean) {
       swordUnlocked = true;
       hasFlameSword = true;
+      characterPowerUnlocked = true;
       swordDurability = fullDurability ? maxSwordDurability : Math.max(1, swordDurability);
       playerSword?.setVisible(true);
       pulseFeedbackFlash(scene, 0xf97316, 0.16, 170);
+      syncPowerupStats();
+    }
+
+    function equipCharacterPower(scene: Phaser.Scene) {
+      characterPowerUnlocked = true;
+      if (isXGod) {
+        equipSword(scene, true);
+        return;
+      }
+      pulseFeedbackFlash(scene, selectedCharacterId === 'teleportation_c' ? 0x8b5cf6 : selectedCharacterId === 'ezra' ? 0xf97316 : selectedCharacterId === 'nico' ? 0x84cc16 : 0xf59e0b, 0.2, 220);
       syncPowerupStats();
     }
 
@@ -2307,19 +2835,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function spawnBossRewardSword(scene: Phaser.Scene, x: number, y: number) {
-      if (pendingSwordRewardPickup || swordUnlocked) {
+      if (pendingSwordRewardPickup || characterPowerUnlocked) {
         return;
       }
       pendingSwordRewardPickup = true;
-      const pickup = swordRewardPickups.create(x, Phaser.Math.Clamp(y, HORIZON_Y + 160, FLOOR_BOTTOM - 92), 'xgod_sword_reward');
+      const pickupTexture = isXGod ? 'xgod_sword_reward' : textureOrFallback(scene, 'character_reward', 'fallback_powerup');
+      const pickup = swordRewardPickups.create(x, Phaser.Math.Clamp(y, HORIZON_Y + 190, FLOOR_BOTTOM - 86), pickupTexture);
       if (pickup) {
         pickup
-          .setOrigin(0.5, 0.96)
-          .setScale(0.28)
+          .setOrigin(0.5, 0.9)
+          .setScale(isXGod ? 0.22 : 0.62)
           .setDepth(pickup.y + 3)
-          .setSize(220, 540)
-          .setOffset(130, 84);
-        scene.tweens.add({ targets: pickup, y: pickup.y - 22, duration: 840, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+          .setSize(isXGod ? 250 : 120, isXGod ? 760 : 120)
+          .setOffset(isXGod ? 155 : 36, isXGod ? 136 : 36);
+        scene.tweens.add({ targets: pickup, y: pickup.y - 16, duration: 840, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         scene.tweens.add({ targets: pickup, alpha: 0.84, duration: 420, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       }
     }
@@ -2334,7 +2863,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       pickup.destroy();
       addScore(POINT_VALUES.xgodSwordReward);
       player.setVelocity(0, 0);
-      equipSword(scene, true);
+      equipCharacterPower(scene);
       playerSword?.setVisible(false);
 
       const glow = swordRewardOverlay.getAt(0) as Phaser.GameObjects.Sprite;
@@ -2343,9 +2872,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const subtitle = swordRewardOverlay.getAt(3) as Phaser.GameObjects.Text;
 
       glow.setFrame(0).setVisible(false).setAlpha(0);
-      rewardSprite.setFrame(0).setVisible(true).setAlpha(1).setScale(0.82);
-      title.setText('XGOD SWORD POWER-UP').setVisible(true).setAlpha(1);
-      subtitle.setText('Claim the blade and let its fire answer you.').setVisible(true).setAlpha(0.96);
+      rewardSprite.setFrame(0).setVisible(true).setAlpha(1).setScale(isXGod ? 0.82 : 1.12);
+      title.setText(`${selectedCharacter.rewardName.toUpperCase()} POWER-UP`).setVisible(true).setAlpha(1);
+      subtitle.setText(selectedCharacter.rewardSubtitle).setVisible(true).setAlpha(0.96);
       swordRewardOverlay.setVisible(true).setAlpha(1);
       pulseFeedbackFlash(scene, 0xffedd5, 0.2, 260);
 
@@ -2353,20 +2882,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
         if (!isSwordRewardSequenceActive) {
           return;
         }
-        rewardSprite.setFrame(1);
+        if (isXGod) rewardSprite.setFrame(1);
       });
       scene.time.delayedCall(560, () => {
         if (!isSwordRewardSequenceActive) {
           return;
         }
-        rewardSprite.setFrame(2);
+        if (isXGod) rewardSprite.setFrame(2);
       });
       scene.time.delayedCall(840, () => {
         if (!isSwordRewardSequenceActive) {
           return;
         }
-        rewardSprite.setFrame(3);
-        glow.setFrame(3).setVisible(true);
+        if (isXGod) {
+          rewardSprite.setFrame(3);
+          glow.setFrame(3);
+        }
+        glow.setVisible(true);
         scene.tweens.add({
           targets: rewardSprite,
           scale: 0.9,
@@ -2405,11 +2937,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         subtitle.setVisible(false).setAlpha(0);
         swordRewardOverlay.setVisible(false).setAlpha(0);
         isSwordRewardSequenceActive = false;
-        playerSword?.setVisible(true);
-        showLevelTransition(scene, 'XGOD SWORD CLAIMED!', 1200, () => {
+        playerSword?.setVisible(isXGod && hasFlameSword);
+        showLevelTransition(scene, `${selectedCharacter.rewardName.toUpperCase()} CLAIMED!`, 1200, () => {
           inkShieldReady = shieldUnlocked;
           syncPowerupStats({
-            level: Math.min(3, currentLevel + 1),
+            level: Math.min(MAX_LEVEL, currentLevel + 1),
             monstersDefeated: 0,
             isVictory: false
           });
@@ -2449,15 +2981,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const spawnY = y ?? Phaser.Math.Between(HORIZON_Y + 40, FLOOR_BOTTOM - 10);
       let texture = 'o_trash'; let hp = 1; let scale = 1;
       if (type === 'BOX') { texture = 'o_box'; scale = 0.52; }
-      else if (type === 'BOOKS') { texture = 'o_books'; scale = 0.055; }
-      else if (type === 'VENDING') { texture = 'o_vending'; hp = 3; scale = 0.56; }
+      else if (type === 'BOOKS') { texture = 'o_books'; scale = 0.52; }
+      else if (type === 'VENDING') { texture = 'o_vending'; hp = 3; scale = 0.66; }
       else { texture = 'o_trash'; hp = 2; scale = 0.52; }
-      const t = destructibles.create(x, spawnY, texture);
+      const t = destructibles.create(x, spawnY, textureOrFallback(scene, texture, 'fallback_object'));
       if (t) {
         t.setData({ type, hp }).setScale(scale);
         t.setImmovable(true).setOrigin(0.5, 0.9);
-        if (type === 'VENDING') t.setSize(110, 210);
-        else if (type === 'BOOKS') t.setSize(40, 30);
+        if (type === 'VENDING') t.setSize(74, 170);
+        else if (type === 'BOOKS') t.setSize(88, 58);
         else if (type === 'BOX') t.setSize(38, 34);
         else t.setSize(30, 44);
       }
@@ -2477,7 +3009,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function playMonsterTell(scene: Phaser.Scene, x: number, y: number, texture: string, scale: number, duration: number, angle: number = 0) {
-      const tell = scene.add.image(x, y, texture).setScale(scale).setAlpha(0.96).setAngle(angle).setDepth(y + 8);
+      const tell = scene.add.image(x, y, textureOrFallback(scene, texture, 'fallback_powerup')).setScale(scale).setAlpha(0.96).setAngle(angle).setDepth(y + 8);
       scene.tweens.add({
         targets: tell,
         alpha: 0,
@@ -2539,9 +3071,26 @@ const GameEngine: React.FC<GameEngineProps> = ({
             { offsetX: 0, type: 'BOOKS' },
             { offsetX: 205, type: 'BOX' },
           ]
+        ],
+        [
+          [
+            { offsetX: -230, type: 'BOOKS' },
+            { offsetX: -20, type: 'VENDING' },
+            { offsetX: 200, type: 'TRASH' },
+          ],
+          [
+            { offsetX: -230, type: 'VENDING' },
+            { offsetX: -10, type: 'BOOKS' },
+            { offsetX: 190, type: 'BOX' },
+          ],
+          [
+            { offsetX: -250, type: 'TRASH' },
+            { offsetX: -30, type: 'VENDING' },
+            { offsetX: 190, type: 'BOOKS' },
+          ]
         ]
       ];
-      const group = presets[Math.min(currentLevel, 3) - 1][Math.min(sectionIndex, 2)];
+      const group = presets[getLevelKey(currentLevel) - 1][Math.min(sectionIndex, 2)];
       group.forEach((preset, index) => {
         const reduceProp = (preset.type === 'TRASH' || preset.type === 'BOX')
           && ((currentLevel + sectionIndex + index) % 2 === 1);
@@ -2563,13 +3112,212 @@ const GameEngine: React.FC<GameEngineProps> = ({
     function fireFloaterShot(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
       if (!monster.active || !player?.active) return;
       const direction = player.x >= monster.x ? 1 : -1;
-      const projectile = projectiles.create(monster.x + (direction * 34), monster.y - 18, 'ink_splat');
+      const projectile = projectiles.create(monster.x + (direction * 34), monster.y - 18, textureOrFallback(scene, 'ink_splat', 'fallback_powerup'));
       if (projectile) {
         projectile.setScale(0.56);
         projectile.setTint(0x8df08f);
         projectile.setAlpha(0.92);
         scene.physics.moveToObject(projectile, player, 215);
       }
+    }
+
+    function fireLongRangeEnemyShot(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
+      if (!monster.active || !player?.active) return;
+      const type = monster.getData('type') as MonsterType;
+      const direction = player.x >= monster.x ? 1 : -1;
+      const texture = type === 'GHOST' ? 'doghost_wave' : 'scrap';
+      const projectile = projectiles.create(monster.x + (direction * 42), monster.y - 28, textureOrFallback(scene, texture, 'fallback_powerup'));
+      if (!projectile) {
+        return;
+      }
+      projectile.setData('damage', type === 'GHOST' ? 6 : 8);
+      projectile.setData('expiresAt', scene.time.now + 2600);
+      projectile
+        .setScale(type === 'GHOST' ? 0.62 : 0.5)
+        .setAlpha(type === 'GHOST' ? 0.84 : 0.96)
+        .setTint(type === 'GHOST' ? 0xdbeafe : 0xf8fafc)
+        .setDepth(monster.y + 6);
+      scene.physics.moveToObject(projectile, player, getDifficultyScaledSpeed(type === 'GHOST' ? 255 : 285));
+      sounds.bossShoot();
+    }
+
+    function moveLongRangeEnemy(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, timer: number, state: string, nextAction: number, stateUntil: number, distanceToPlayer: number) {
+      const type = monster.getData('type') as MonsterType;
+      const preferredDistance = type === 'GHOST' ? 410 : 360;
+      const verticalDrift = Math.sin(scene.time.now * 0.004 + monster.x * 0.013) * (type === 'GHOST' ? 62 : 38);
+      const keepAwayX = player.x + (monster.x < player.x ? -preferredDistance : preferredDistance);
+      const approachX = player.x + (monster.x < player.x ? -preferredDistance * 0.82 : preferredDistance * 0.82);
+      const targetX = distanceToPlayer < preferredDistance - 70 ? keepAwayX : distanceToPlayer > preferredDistance + 120 ? approachX : monster.x;
+      const targetY = Phaser.Math.Clamp(player.y + verticalDrift, HORIZON_Y + 28, FLOOR_BOTTOM - 24);
+
+      if (type === 'GHOST') {
+        setGhostPose(monster, 'FLOAT');
+        monster.setAlpha(0.64 + ((Math.sin(scene.time.now * 0.008 + monster.x * 0.02) + 1) * 0.14));
+      }
+
+      if (state === 'RANGE_WINDUP') {
+        monster.setVelocity(0);
+        monster.setTint(Math.floor(timer / 5) % 2 === 0 ? 0xfef3c7 : 0xffffff);
+        if (timer >= stateUntil) {
+          monster.clearTint();
+          fireLongRangeEnemyShot(scene, monster);
+          monster.setData('state', 'RANGE_RECOVER');
+          monster.setData('stateUntil', timer + 28);
+          monster.setData('nextAction', timer + Phaser.Math.Between(120, 175));
+        }
+        return;
+      }
+
+      if (state === 'RANGE_RECOVER') {
+        monster.setVelocity(0);
+        if (timer >= stateUntil) {
+          monster.setData('state', 'CHASE');
+        }
+        return;
+      }
+
+      monster.clearTint();
+      smoothMoveTo(monster, targetX, targetY, getDifficultyScaledSpeed(type === 'GHOST' ? GHOST_FLOAT.floatSpeed : ENCOUNTERS.monsterSpeed.floater), 0.12, 28);
+      if (timer >= nextAction && distanceToPlayer < 620) {
+        monster.setData('state', 'RANGE_WINDUP');
+        monster.setData('stateUntil', timer + 34);
+        playMonsterTell(scene, monster.x, monster.y - 34, 'tell_ring', 0.18, 260);
+      }
+    }
+
+    function updateSpiderJumper(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, timer: number, state: string, nextAction: number, stateUntil: number, distanceToPlayer: number) {
+      const jumpStartedAt = monster.getData('jumpStartedAt') || 0;
+      const jumpEndsAt = monster.getData('jumpEndsAt') || 0;
+      const jumpStartX = monster.getData('jumpStartX') ?? monster.x;
+      const jumpStartY = monster.getData('jumpStartY') ?? monster.y;
+      const jumpTargetX = monster.getData('jumpTargetX') ?? player.x;
+      const jumpTargetY = monster.getData('jumpTargetY') ?? player.y;
+
+      if (state === 'JUMP_PREP') {
+        monster.setVelocity(0);
+        monster.setTint(Math.floor(timer / 4) % 2 === 0 ? 0x86efac : 0xffffff);
+        if (scene.anims.exists('spider_attack_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'spider_attack_anim')) {
+          monster.play('spider_attack_anim', true);
+        }
+        if (timer >= stateUntil) {
+          monster.clearTint();
+          monster.setData('state', 'JUMPING');
+          monster.setData('jumpStartedAt', scene.time.now);
+          monster.setData('jumpEndsAt', scene.time.now + 820);
+          monster.setData('jumpStartX', monster.x);
+          monster.setData('jumpStartY', monster.y);
+          monster.setData('jumpTargetX', Phaser.Math.Clamp(player.x + Phaser.Math.Between(-34, 34), scene.cameras.main.scrollX + 48, scene.cameras.main.scrollX + SCREEN_WIDTH - 48));
+          monster.setData('jumpTargetY', Phaser.Math.Clamp(player.y + Phaser.Math.Between(-20, 20), HORIZON_Y + 28, FLOOR_BOTTOM - 22));
+          playMonsterTell(scene, monster.x, monster.y - 42, 'dash_tell', 0.24, 210);
+        }
+        return;
+      }
+
+      if (state === 'JUMPING') {
+        const progress = Phaser.Math.Clamp((scene.time.now - jumpStartedAt) / Math.max(1, jumpEndsAt - jumpStartedAt), 0, 1);
+        const lift = Math.sin(progress * Math.PI) * 155;
+        monster.setVelocity(0);
+        monster.setPosition(
+          Phaser.Math.Linear(jumpStartX, jumpTargetX, progress),
+          Phaser.Math.Linear(jumpStartY, jumpTargetY, progress) - lift
+        );
+        monster.setDepth(monster.y + 180);
+        if (progress >= 1) {
+          monster.setPosition(jumpTargetX, jumpTargetY);
+          monster.setData('state', 'SLAM');
+          monster.setData('stateUntil', timer + 18);
+          monster.setData('nextAction', timer + 132);
+          scene.cameras.main.shake(130, 0.004);
+          playMonsterTell(scene, monster.x, monster.y - 16, 'giant_quake', 0.18, 220);
+          if (!playerInvulnerable && jumpZ < 42 && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < 126) {
+            takePlayerDamage(scene, 16);
+          }
+        }
+        return;
+      }
+
+      if (state === 'SLAM') {
+        monster.setVelocity(0);
+        monster.setTint(0xbbf7d0);
+        if (timer >= stateUntil) {
+          monster.clearTint();
+          monster.setData('state', 'RECOVER');
+          monster.setData('stateUntil', timer + 34);
+        }
+        return;
+      }
+
+      if (state === 'RECOVER') {
+        monster.setVelocity(0);
+        if (timer >= stateUntil) {
+          monster.setData('state', 'CHASE');
+          if (scene.anims.exists('spider_walk_anim')) {
+            monster.play('spider_walk_anim', true);
+          }
+        }
+        return;
+      }
+
+      const skitterOffset = Math.sin(scene.time.now * 0.004 + monster.x * 0.012) * 36;
+      const stagingX = player.x + (monster.x < player.x ? -250 : 250);
+      smoothMoveTo(monster, stagingX, player.y + skitterOffset, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.floater * 0.86), 0.13, 32);
+      if ((!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'spider_walk_anim') && scene.anims.exists('spider_walk_anim')) {
+        monster.play('spider_walk_anim', true);
+      }
+      if (timer >= nextAction && distanceToPlayer < 620) {
+        monster.setData('state', 'JUMP_PREP');
+        monster.setData('stateUntil', timer + 32);
+      }
+    }
+
+    function getMonsterBaseFacing(type: MonsterType) {
+      // This is the direction the unflipped art is drawn facing.
+      if (type === 'CHASER' || type === 'COSMIC_GRUNT') return 'left';
+      return 'right';
+    }
+
+    function getMonsterFlipForFacing(monster: Phaser.Physics.Arcade.Sprite, facingRight: boolean) {
+      const baseFacing = (monster.getData('baseFacing') || getMonsterBaseFacing(monster.getData('type') as MonsterType)) as 'left' | 'right';
+      return baseFacing === 'left' ? facingRight : !facingRight;
+    }
+
+    function updateMonsterFacing(monster: Phaser.Physics.Arcade.Sprite) {
+      if (!player?.active || !monster.active) {
+        return false;
+      }
+      const facingRight = player.x > monster.x;
+      monster.setData('facingRight', facingRight);
+      monster.setFlipX(getMonsterFlipForFacing(monster, facingRight));
+      return facingRight;
+    }
+
+    function applyMonsterSeparation(monster: Phaser.Physics.Arcade.Sprite) {
+      if (!monster.active || monster.getData('type') === 'BOSS') {
+        return;
+      }
+
+      monsters.getChildren().forEach((otherChild) => {
+        const other = otherChild as Phaser.Physics.Arcade.Sprite;
+        if (!other || other === monster || !other.active || other.getData('type') === 'BOSS') {
+          return;
+        }
+
+        const dx = monster.x - other.x;
+        const dy = monster.y - other.y;
+        const distance = Math.max(1, Math.hypot(dx, dy));
+        const monsterType = monster.getData('type') as MonsterType;
+        const otherType = other.getData('type') as MonsterType;
+        const minDistance = monsterType === 'GIANT' || otherType === 'GIANT' ? 132 : 74;
+        if (distance >= minDistance) {
+          return;
+        }
+
+        const push = (minDistance - distance) * 0.04;
+        const nx = dx / distance;
+        const ny = dy / distance;
+        monster.x += nx * push;
+        monster.y = Phaser.Math.Clamp(monster.y + ny * push * 0.55, WALK_ZONE_TOP, WALK_ZONE_BOTTOM);
+      });
     }
 
     function getBossFlipForFacing(monster: Phaser.Physics.Arcade.Sprite, facingRight: boolean) {
@@ -2595,23 +3343,22 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function setDarkDragonPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'WINDUP' | 'BREATH' | 'DEAD') {
-      const facingRight = !!monster.getData('facingRight');
       if (pose === 'DEAD') {
         monster.anims.stop();
         monster.setTexture('dark_dragon_dead');
         monster.setScale(DARK_DRAGON.corpseScale);
-        monster.setOrigin(0.5, 0.84);
-        monster.setSize(360, 280);
-        monster.setOffset(140, 150);
+        monster.setOrigin(0.5, 0.82);
+        monster.setSize(430, 255);
+        monster.setOffset(236, 302);
         syncBossFacing(monster);
         return;
       }
 
       if (pose === 'WALK') {
         monster.setScale(DARK_DRAGON.scale);
-        monster.setOrigin(0.5, 0.9);
-        monster.setSize(260, 280);
-        monster.setOffset(70, 130);
+        monster.setOrigin(0.5, 0.86);
+        monster.setSize(305, 300);
+        monster.setOffset(112, 190);
         syncBossFacing(monster);
         if (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'dark_dragon_walk_anim') {
           monster.play('dark_dragon_walk_anim', true);
@@ -2620,22 +3367,25 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
 
       monster.anims.stop();
-      monster.setTexture('dark_dragon_attack', pose === 'BREATH' ? 1 : 0);
+      monster.setTexture('dark_dragon_attack', pose === 'BREATH' ? 2 : 0);
       monster.setScale(DARK_DRAGON.scale);
-      monster.setOrigin(0.5, 0.88);
-      monster.setSize(260, 240);
-      monster.setOffset(300, 165);
+      monster.setOrigin(0.5, 0.82);
+      monster.setSize(330, 270);
+      monster.setOffset(150, 205);
       syncBossFacing(monster);
     }
 
     function setKillinasPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'GUN' | 'AXE') {
       monster.setScale(KILLINAS_DAUGHTER.scale);
       monster.setOrigin(0.5, 0.92);
-      monster.setSize(170, 250);
-      monster.setOffset(145, 270);
+      monster.setSize(178, 270);
+      monster.setOffset(pose === 'WALK' ? 190 : 242, pose === 'WALK' ? 345 : 372);
       syncBossFacing(monster);
 
       if (pose === 'WALK') {
+        if (monster.texture.key !== 'killinas_daughter_walk') {
+          monster.setTexture('killinas_daughter_walk', 0);
+        }
         if (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'killinas_daughter_walk_anim') {
           monster.play('killinas_daughter_walk_anim', true);
         }
@@ -2644,9 +3394,61 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       monster.anims.stop();
       if (pose === 'GUN') {
-        monster.setTexture('killinas_daughter_walk', 7);
+        monster.setTexture('killinas_daughter_attack', 1);
       } else {
-        monster.setTexture('killinas_daughter_walk', 2);
+        monster.setTexture('killinas_daughter_attack', 3);
+      }
+    }
+
+    function setVoidRegentPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'ATTACK') {
+      monster.setOrigin(0.5, 0.9);
+      monster.setSize(330, 480);
+      monster.setOffset(pose === 'ATTACK' ? 185 : 195, pose === 'ATTACK' ? 238 : 250);
+      syncBossFacing(monster);
+
+      if (pose === 'ATTACK') {
+        monster.setScale(VOID_REGENT.attackScale);
+        if (monster.texture.key !== 'void_regent_attack') {
+          monster.setTexture('void_regent_attack', 0);
+        }
+        if (scene.anims.exists('void_regent_attack_anim')) {
+          monster.play('void_regent_attack_anim', true);
+        }
+        return;
+      }
+
+      monster.setScale(VOID_REGENT.scale);
+      if (monster.texture.key !== 'void_regent_walk') {
+        monster.setTexture('void_regent_walk', 0);
+      }
+      if (scene.anims.exists('void_regent_walk_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'void_regent_walk_anim')) {
+        monster.play('void_regent_walk_anim', true);
+      }
+    }
+
+    function setInkBehemothPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'ATTACK') {
+      monster.setOrigin(0.5, 0.88);
+      monster.setSize(320, 300);
+      monster.setOffset(150, 170);
+      syncBossFacing(monster);
+
+      if (pose === 'ATTACK') {
+        monster.setScale(INK_BEHEMOTH.attackScale);
+        if (monster.texture.key !== 'ink_behemoth_attack') {
+          monster.setTexture('ink_behemoth_attack', 0);
+        }
+        if (scene.anims.exists('ink_behemoth_attack_anim')) {
+          monster.play('ink_behemoth_attack_anim', true);
+        }
+        return;
+      }
+
+      monster.setScale(INK_BEHEMOTH.scale);
+      if (monster.texture.key !== 'ink_behemoth_walk') {
+        monster.setTexture('ink_behemoth_walk', 0);
+      }
+      if (scene.anims.exists('ink_behemoth_walk_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'ink_behemoth_walk_anim')) {
+        monster.play('ink_behemoth_walk_anim', true);
       }
     }
 
@@ -2654,9 +3456,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const camX = scene.cameras.main.scrollX;
       const hoverSeed = monster.getData('hoverSeed') || 0;
       const arenaMid = camX + (SCREEN_WIDTH * 0.5);
-      const arenaLeft = camX + 132;
-      const arenaRight = camX + SCREEN_WIDTH - 132;
-      const sweepRadius = Math.min(DARK_DRAGON.patrolRadius, (SCREEN_WIDTH * 0.5) - 150);
+      const arenaLeft = camX + 360;
+      const arenaRight = camX + SCREEN_WIDTH - 360;
+      const sweepRadius = Math.min(DARK_DRAGON.patrolRadius, (SCREEN_WIDTH * 0.5) - 365);
       const targetX = Phaser.Math.Clamp(
         arenaMid + Math.sin((currentTime + hoverSeed) / (phase === 2 ? 230 : 270)) * sweepRadius,
         arenaLeft,
@@ -2667,7 +3469,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         HORIZON_Y + 44,
         FLOOR_BOTTOM - 82
       );
-      scene.physics.moveTo(monster, targetX, targetY, phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 88 : ENCOUNTERS.monsterSpeed.bossChase + 78);
+      scene.physics.moveTo(monster, targetX, targetY, getDifficultyScaledSpeed(phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 88 : ENCOUNTERS.monsterSpeed.bossChase + 78));
       if (Phaser.Math.Distance.Between(monster.x, monster.y, targetX, targetY) < 26) {
         monster.setVelocity(0);
       }
@@ -2701,10 +3503,106 @@ const GameEngine: React.FC<GameEngineProps> = ({
         HORIZON_Y + 56,
         FLOOR_BOTTOM - 64
       );
-      scene.physics.moveTo(monster, targetX, targetY, phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 30 : ENCOUNTERS.monsterSpeed.bossChase + 28);
+      scene.physics.moveTo(monster, targetX, targetY, getDifficultyScaledSpeed(phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 30 : ENCOUNTERS.monsterSpeed.bossChase + 28));
       if (Phaser.Math.Distance.Between(monster.x, monster.y, targetX, targetY) < 18) {
         monster.setVelocity(0);
       }
+    }
+
+    function moveVoidRegentPatrol(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, phase: number, currentTime: number) {
+      const camX = scene.cameras.main.scrollX;
+      const hoverSeed = monster.getData('hoverSeed') || 0;
+      const arenaLeft = camX + 120;
+      const arenaRight = camX + SCREEN_WIDTH - 120;
+      const targetX = Phaser.Math.Clamp(
+        camX + SCREEN_WIDTH * 0.55 + Math.sin((currentTime + hoverSeed) / (phase === 2 ? 230 : 310)) * VOID_REGENT.patrolRadius,
+        arenaLeft,
+        arenaRight
+      );
+      const targetY = Phaser.Math.Clamp(
+        HORIZON_Y + 86 + Math.cos((currentTime + hoverSeed) / 360) * 34,
+        HORIZON_Y + 44,
+        FLOOR_BOTTOM - 78
+      );
+      smoothMoveTo(monster, targetX, targetY, getDifficultyScaledSpeed(phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 124 : ENCOUNTERS.monsterSpeed.bossChase + 96), 0.18, 24);
+    }
+
+    function moveInkBehemothPatrol(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, phase: number, currentTime: number) {
+      const camX = scene.cameras.main.scrollX;
+      const hoverSeed = monster.getData('hoverSeed') || 0;
+      const arenaLeft = camX + 142;
+      const arenaRight = camX + SCREEN_WIDTH - 142;
+      const targetX = Phaser.Math.Clamp(
+        player.x + Math.sin((currentTime + hoverSeed) / (phase === 2 ? 260 : 340)) * INK_BEHEMOTH.patrolRadius,
+        arenaLeft,
+        arenaRight
+      );
+      const targetY = Phaser.Math.Clamp(
+        HORIZON_Y + 110 + Math.cos((currentTime + hoverSeed) / 430) * 28,
+        HORIZON_Y + 62,
+        FLOOR_BOTTOM - 74
+      );
+      smoothMoveTo(monster, targetX, targetY, getDifficultyScaledSpeed(phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage + 58 : ENCOUNTERS.monsterSpeed.bossChase + 44), 0.16, 22);
+    }
+
+    function spawnVoidBolt(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, index: number, total: number) {
+      if (!monster.active || !player?.active) {
+        return;
+      }
+
+      const facingDirection = monster.getData('facingRight') ? 1 : -1;
+      const muzzleX = monster.x + (facingDirection * 124);
+      const muzzleY = monster.y - 96 + ((index % 3) - 1) * 18;
+      const projectile = projectiles.create(muzzleX, muzzleY, textureOrFallback(scene, 'void_bolt', 'fallback_powerup'));
+      if (!projectile) {
+        return;
+      }
+
+      const spread = (index - ((total - 1) / 2)) * 0.075;
+      const angle = Phaser.Math.Angle.Between(muzzleX, muzzleY, player.x, player.y - 12) + spread;
+      const body = projectile.body as Phaser.Physics.Arcade.Body;
+      body.allowGravity = false;
+      body.setVelocity(Math.cos(angle) * VOID_REGENT.boltSpeed, Math.sin(angle) * VOID_REGENT.boltSpeed);
+      projectile.setScale(0.46);
+      projectile.setTint(index % 2 === 0 ? 0xd8b4fe : 0xfb7185);
+      projectile.setAlpha(0.94);
+      projectile.setDepth(monster.y + 8);
+      projectile.setData({ expiresAt: scene.time.now + 1550 });
+      scene.tweens.add({ targets: projectile, scale: 0.58, alpha: 1, duration: 100, yoyo: true, repeat: 1 });
+      sounds.bossShoot();
+    }
+
+    function performVoidRegentBarrage(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
+      if (!monster.active || !player?.active || monster.getData('state') === 'DEAD') {
+        return;
+      }
+
+      const now = scene.time.now;
+      const phase = (monster.getData('hp') || 1) <= ((monster.getData('maxHp') || 1) / 2) ? 2 : 1;
+      const burstCount = phase === 2 ? VOID_REGENT.burstCount + 3 : VOID_REGENT.burstCount;
+      updateBossFacing(monster);
+      monster.setVelocity(0, 0);
+      monster.setData('intent', phase === 2 ? 'VOID STORM' : 'GRAVITY BARRAGE');
+      monster.setData('windupEndsAt', now + VOID_REGENT.windupMs);
+      monster.setData('attackEndsAt', now + VOID_REGENT.windupMs + VOID_REGENT.beamMs);
+      monster.setData('nextAttackAt', now + VOID_REGENT.attackIntervalMs - (phase === 2 ? 280 : 0));
+      setVoidRegentPose(scene, monster, 'ATTACK');
+      playMonsterTell(scene, monster.x, monster.y - 88, 'tell_ring', 0.34, VOID_REGENT.windupMs + 180);
+
+      scene.time.delayedCall(VOID_REGENT.windupMs, () => {
+        if (!monster.active || monster.getData('state') === 'DEAD') {
+          return;
+        }
+        setVoidRegentPose(scene, monster, 'ATTACK');
+        for (let i = 0; i < burstCount; i++) {
+          scene.time.delayedCall(i * 115, () => {
+            if (monster.active && player?.active && monster.getData('state') !== 'DEAD') {
+              updateBossFacing(monster);
+              spawnVoidBolt(scene, monster, i, burstCount);
+            }
+          });
+        }
+      });
     }
 
     function spawnDarkDragonFireOrb(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, speed: number) {
@@ -2728,13 +3626,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
         onComplete: () => muzzleFlash.destroy()
       });
 
-      const projectile = projectiles.create(muzzleX, muzzleY, 'soulTexture');
+      const projectile = projectiles.create(muzzleX, muzzleY, textureOrFallback(scene, 'boss_fireball', 'fallback_powerup'));
       if (!projectile) {
         return;
       }
 
       sounds.bossShoot();
-      projectile.setScale(0.34);
+      projectile.setScale(0.46);
       projectile.setTint(0xff7a18);
       projectile.setAlpha(0.98);
       projectile.setDepth(monster.y + 5);
@@ -2745,7 +3643,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       monster.setData('activeFireballs', (monster.getData('activeFireballs') || 0) + 1);
       scene.tweens.add({
         targets: projectile,
-        scale: 0.5,
+        scale: 0.62,
         duration: 140,
         yoyo: true,
         repeat: 1
@@ -2801,7 +3699,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const direction = facingRight ? 1 : -1;
       const muzzleX = monster.x + (direction * 92);
       const muzzleY = monster.y - 162;
-      const projectile = projectiles.create(muzzleX, muzzleY, 'soulTexture');
+      const projectile = projectiles.create(muzzleX, muzzleY, textureOrFallback(scene, 'killinas_bullet', 'fallback_powerup'));
       if (!projectile) {
         return;
       }
@@ -2827,7 +3725,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         Math.cos(angle) * KILLINAS_DAUGHTER.bulletSpeed,
         Math.sin(angle) * KILLINAS_DAUGHTER.bulletSpeed
       );
-      projectile.setScale(0.22);
+      projectile.setScale(0.36);
       projectile.setTint(0xc4b5fd);
       projectile.setAlpha(0.96);
       projectile.setDepth(monster.y + 4);
@@ -2906,6 +3804,88 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
+    function spawnInkBehemothSpit(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, index: number, total: number) {
+      if (!monster.active || !player?.active) {
+        return;
+      }
+
+      const facingDirection = monster.getData('facingRight') ? 1 : -1;
+      const muzzleX = monster.x + (facingDirection * 112);
+      const muzzleY = monster.y - 94 + ((index % 2) * 16);
+      const projectile = projectiles.create(muzzleX, muzzleY, textureOrFallback(scene, 'ink_boss_spit', 'fallback_powerup'));
+      if (!projectile) {
+        return;
+      }
+
+      const spread = (index - ((total - 1) / 2)) * 0.095;
+      const angle = Phaser.Math.Angle.Between(muzzleX, muzzleY, player.x, player.y - 10) + spread;
+      const body = projectile.body as Phaser.Physics.Arcade.Body;
+      body.allowGravity = false;
+      body.setVelocity(Math.cos(angle) * INK_BEHEMOTH.spitSpeed, Math.sin(angle) * INK_BEHEMOTH.spitSpeed);
+      projectile.setScale(0.46);
+      projectile.setTint(index % 2 === 0 ? 0x111827 : 0xbe185d);
+      projectile.setAlpha(0.98);
+      projectile.setDepth(monster.y + 6);
+      projectile.setData({ expiresAt: scene.time.now + 1750 });
+      scene.tweens.add({ targets: projectile, scale: 0.58, duration: 120, yoyo: true, repeat: 1 });
+      sounds.bossShoot();
+    }
+
+    function performInkBehemothAttack(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
+      if (!monster.active || !player?.active || monster.getData('state') === 'DEAD') {
+        return;
+      }
+
+      const now = scene.time.now;
+      const phase = (monster.getData('hp') || 1) <= ((monster.getData('maxHp') || 1) / 2) ? 2 : 1;
+      const isShockwave = phase === 2 && Phaser.Math.Between(0, 1) === 0;
+      updateBossFacing(monster);
+      monster.setVelocity(0, 0);
+      monster.setData('intent', isShockwave ? 'SHOCKWAVE' : 'INK SPIT');
+      monster.setData('windupEndsAt', now + INK_BEHEMOTH.windupMs);
+      monster.setData('attackEndsAt', now + INK_BEHEMOTH.windupMs + (isShockwave ? 720 : 960));
+      monster.setData('nextAttackAt', now + INK_BEHEMOTH.attackIntervalMs - (phase === 2 ? 300 : 0));
+      setInkBehemothPose(scene, monster, 'ATTACK');
+      sounds.growl();
+      playMonsterTell(scene, monster.x, monster.y - 66, 'tell_ring', 0.26, INK_BEHEMOTH.windupMs + 140);
+
+      scene.time.delayedCall(INK_BEHEMOTH.windupMs, () => {
+        if (!monster.active || monster.getData('state') === 'DEAD' || !player?.active) {
+          return;
+        }
+        updateBossFacing(monster);
+        setInkBehemothPose(scene, monster, 'ATTACK');
+        if (isShockwave) {
+          scene.cameras.main.shake(360, 0.008);
+          const ring = scene.add.graphics().setDepth(monster.y + 3);
+          scene.tweens.add({
+            targets: ring,
+            alpha: 0,
+            duration: 620,
+            onUpdate: (tween) => {
+              const radius = tween.getValue() * INK_BEHEMOTH.quakeRadius;
+              ring.clear().lineStyle(10, 0x111827, 0.6 - tween.getValue()).strokeCircle(monster.x, monster.y, radius);
+              if (player && player.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < radius + 10 && jumpZ === 0 && !playerInvulnerable) {
+                takePlayerDamage(scene, getDifficultyScaledDamage(13));
+              }
+            },
+            onComplete: () => ring.destroy()
+          });
+          return;
+        }
+
+        const spitCount = phase === 2 ? INK_BEHEMOTH.spitCount + 2 : INK_BEHEMOTH.spitCount;
+        for (let i = 0; i < spitCount; i++) {
+          scene.time.delayedCall(i * 135, () => {
+            if (monster.active && player?.active && monster.getData('state') !== 'DEAD') {
+              updateBossFacing(monster);
+              spawnInkBehemothSpit(scene, monster, i, spitCount);
+            }
+          });
+        }
+      });
+    }
+
     function performGiantQuake(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
       scene.cameras.main.shake(220, 0.006);
       const quake = scene.add.image(monster.x, monster.y + 10, 'giant_quake').setScale(0.34).setAlpha(0.94).setDepth(monster.y + 2);
@@ -2927,20 +3907,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
       titleText.setText(title);
       subtitleText.setText(subtitle);
       scene.tweens.killTweensOf(sectionCardOverlay);
-      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-14);
+      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-10);
       scene.tweens.add({
         targets: sectionCardOverlay,
         alpha: SECTION_CARD_OPACITY,
         y: 0,
-        duration: 180,
-        ease: 'Back.Out',
+        duration: 160,
+        ease: 'Cubic.easeOut',
         onComplete: () => {
           scene.time.delayedCall(duration, () => {
             scene.tweens.add({
               targets: sectionCardOverlay,
               alpha: 0,
-              y: -24,
-              duration: 220,
+              y: -18,
+              duration: 190,
               onComplete: () => sectionCardOverlay.setVisible(false).setY(0)
             });
           });
@@ -2959,7 +3939,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function getWavePlan(sectionIndex: number) {
-      const levelProfile = LEVEL_PROFILES[Math.min(currentLevel, 3) as 1 | 2 | 3];
+      const levelProfile = LEVEL_PROFILES[getLevelKey(currentLevel)];
       return levelProfile.wavePlans[Math.min(sectionIndex, levelProfile.wavePlans.length - 1)];
     }
 
@@ -2985,13 +3965,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function getMonsterVisual(type: MonsterType) {
-      if (type === 'ALIEN') return { texture: 'm_alien', useAnim: false, scale: 0.84 };
+      if (type === 'ALIEN') return { texture: 'm_alien_walk', useAnim: true, scale: 0.54, animKey: 'm_alien_walk_anim' };
       if (type === 'GHOST') return { texture: 'm_ghost', useAnim: false, scale: GHOST_FLOAT.scale };
-      if (type === 'DASHER') return { texture: 'm_dasher', useAnim: false, scale: 0.95 };
+      if (type === 'DASHER') return { texture: 'm_dasher_walk', useAnim: true, scale: 0.5, animKey: 'm_dasher_walk_anim' };
       if (type === 'DEVIL') return { texture: 'moonlight_terror_walk', useAnim: true, scale: 0.33, animKey: 'moonlight_terror_walk_anim' };
-      if (type === 'GIANT') return { texture: 'm_giant', useAnim: false, scale: 1.38 };
+      if (type === 'COSMIC_GRUNT') return { texture: 'cosmic_grunt_walk', useAnim: true, scale: 0.26, animKey: 'cosmic_grunt_walk_anim' };
+      if (type === 'GIANT') return { texture: 'm_giant_walk', useAnim: true, scale: 0.54, animKey: 'm_giant_walk_anim' };
       if (type === 'FLOATER') return { texture: 'spider_walk', useAnim: true, scale: 0.31, animKey: 'spider_walk_anim' };
-      return { texture: 'grunt_walking', useAnim: true, scale: 0.4, animKey: 'grunt_walk' };
+      return { texture: 'grunt_walking', useAnim: true, scale: 0.24, animKey: 'grunt_walk' };
+    }
+
+    function getMonsterClass(type: MonsterType): EnemyClass {
+      if (type === 'FLOATER') return 'JUMPER';
+      if (type === 'ALIEN' || type === 'GHOST') return 'LONG_RANGE';
+      return 'MELEE';
     }
 
     function getMonsterBaseHp(type: MonsterType) {
@@ -2999,9 +3986,66 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (type === 'GHOST') return 5;
       if (type === 'GIANT') return 17;
       if (type === 'DEVIL') return 11;
+      if (type === 'COSMIC_GRUNT') return 9;
       if (type === 'DASHER') return 5;
       if (type === 'FLOATER') return 6;
       return 6;
+    }
+
+    function getDifficultyScaledEnemyHp(baseHp: number) {
+      return Math.max(1, Math.round(baseHp * difficultyTuning.enemyHpMultiplier));
+    }
+
+    function getDifficultyScaledBossHp(baseHp: number) {
+      return Math.max(1, Math.round(baseHp * difficultyTuning.bossHpMultiplier));
+    }
+
+    function getDifficultyScaledSpeed(baseSpeed: number) {
+      return baseSpeed * difficultyTuning.enemySpeedMultiplier;
+    }
+
+    function getDifficultyScaledDamage(baseDamage: number) {
+      const multiplier = difficulty === 'EASY' ? 0.82 : difficulty === 'HARD' ? 1 : 1.18;
+      return Math.max(1, Math.round(baseDamage * multiplier));
+    }
+
+    function smoothMoveTo(
+      sprite: Phaser.Physics.Arcade.Sprite,
+      targetX: number,
+      targetY: number,
+      speed: number,
+      response: number = 0.15,
+      arriveRadius: number = 18
+    ) {
+      if (!sprite.active) {
+        return;
+      }
+
+      const body = sprite.body as Phaser.Physics.Arcade.Body;
+      const distance = Phaser.Math.Distance.Between(sprite.x, sprite.y, targetX, targetY);
+      if (distance <= arriveRadius) {
+        body.setVelocity(
+          Phaser.Math.Linear(body.velocity.x, 0, response * 1.4),
+          Phaser.Math.Linear(body.velocity.y, 0, response * 1.4)
+        );
+        return;
+      }
+
+      const angle = Phaser.Math.Angle.Between(sprite.x, sprite.y, targetX, targetY);
+      body.setVelocity(
+        Phaser.Math.Linear(body.velocity.x, Math.cos(angle) * speed, response),
+        Phaser.Math.Linear(body.velocity.y, Math.sin(angle) * speed, response)
+      );
+    }
+
+    function syncMonsterWalkRate(monster: Phaser.Physics.Arcade.Sprite) {
+      if (!monster.anims?.currentAnim) {
+        return;
+      }
+
+      const body = monster.body as Phaser.Physics.Arcade.Body;
+      const speed = Math.hypot(body.velocity.x, body.velocity.y);
+      monster.anims.timeScale = Phaser.Math.Clamp(speed / 130, 0.74, 1.42);
     }
 
     function setGhostPose(monster: Phaser.Physics.Arcade.Sprite, pose: 'FLOAT' | 'ATTACK') {
@@ -3021,7 +4065,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function updateBossHudDisplay(boss?: Phaser.Physics.Arcade.Sprite | null) {
-      if (!boss || !boss.active) {
+      if (!boss || !boss.active || boss.getData('state') === 'DEAD') {
         bossHud.setVisible(false).setAlpha(0);
         return;
       }
@@ -3029,12 +4073,22 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const hp = boss.getData('hp') || 0;
       const maxHp = boss.getData('maxHp') || 1;
       const intent = boss.getData('intent') || 'STALKING';
+      const bossName = boss.getData('bossName') || 'INK BEHEMOTH';
       const pct = Phaser.Math.Clamp(hp / maxHp, 0, 1);
 
       bossHud.setVisible(true).setAlpha(1);
+      bossLabelText.setText(bossName);
       bossBarFill.width = 204 * pct;
       bossIntentText.setText(`Intent: ${intent}`);
-      bossIntentText.setColor(intent === 'SHOCKWAVE' ? '#fde68a' : intent === 'INK SPIT' ? '#fecdd3' : '#ddd6fe');
+      bossIntentText.setColor(
+        intent === 'SHOCKWAVE' ? '#fde68a'
+          : intent === 'DRAGON BREATH' ? '#fdba74'
+          : intent === 'GUNFIRE' ? '#c4b5fd'
+          : intent === 'AXE SWING' || intent === 'AXE RANGE' ? '#fca5a5'
+          : intent === 'GRAVITY BARRAGE' || intent === 'RIFT CHARGE' || intent === 'VOID STORM' ? '#c084fc'
+          : intent === 'INK SPIT' ? '#fecdd3'
+          : '#ddd6fe'
+      );
     }
 
     function showBossWarning(scene: Phaser.Scene, title: string = 'INK BEHEMOTH') {
@@ -3076,20 +4130,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
       pendingWaveSpawns = 0;
       const camX = scene.cameras.main.scrollX;
       scene.physics.world.setBounds(camX, WALK_ZONE_TOP, SCREEN_WIDTH, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
-      const levelCards = LEVEL_PROFILES[Math.min(currentLevel, 3) as 1 | 2 | 3].sectionCards;
+      const levelCards = LEVEL_PROFILES[getLevelKey(currentLevel)].sectionCards;
       const activeCard = levelCards[Math.min(currentSectionIndex, levelCards.length - 1)];
       setSectionBackground(scene, currentSectionIndex);
       showSectionCard(scene, activeCard.title, activeCard.subtitle);
       if (currentSectionIndex === fightSections.length - 1) spawnBoss(scene);
       else {
         spawnSectionEncounterProps(scene, currentSectionIndex, camX);
-        const waveIndex = Math.min(currentSectionIndex, ENCOUNTERS.waveCounts.length - 1);
         const wavePlan = getWavePlan(currentSectionIndex);
+        const chapterPressureBonus = currentLevel >= 3 ? 1 : 0;
         const count = Math.max(
-          ENCOUNTERS.waveCounts[waveIndex] + Math.max(0, currentLevel - 1),
-          wavePlan.baseCount
+          2,
+          wavePlan.baseCount + chapterPressureBonus + difficultyTuning.extraWaveMonsters
         );
-        const waveLeadInMs = 420;
+        const waveLeadInMs = 560;
         for (let i = 0; i < count; i++) {
           pendingWaveSpawns++;
           scene.time.delayedCall(waveLeadInMs + (i * wavePlan.staggerMs), () => {
@@ -3111,10 +4165,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const y = Phaser.Math.Between(HORIZON_Y + 20, FLOOR_BOTTOM - 20);
       const type = getWaveMonsterType(sectionIndex, waveSlot);
       const visual = getMonsterVisual(type);
-      let hp = getMonsterBaseHp(type);
-      if (currentLevel > 1) hp = Math.floor(hp * (1.35 + (currentLevel * 0.1)));
+      let hp = getDifficultyScaledEnemyHp(getMonsterBaseHp(type));
+      if (currentLevel > 1) hp = Math.floor(hp * (1.08 + (currentLevel * 0.08)));
 
-      const m = monsters.create(spawnX, y, visual.texture);
+      const m = monsters.create(spawnX, y, textureOrFallback(scene, visual.texture, 'fallback_enemy'));
       if (m) {
         m.setData({
           type,
@@ -3128,6 +4182,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
           swoopFromLeft: fromRear,
           swoopTargetX: spawnX,
           swoopTargetY: y,
+          enemyClass: getMonsterClass(type),
+          baseFacing: getMonsterBaseFacing(type),
+          facingRight: false,
           isPrimaryWaveEnemy: type === getWavePlan(sectionIndex).primaryEnemy
         }).setCollideWorldBounds(true);
         if (type === 'FLOATER') {
@@ -3144,6 +4201,27 @@ const GameEngine: React.FC<GameEngineProps> = ({
           m.setSize(210, 220);
           m.setOffset(164, 172);
           setGhostPose(m, 'FLOAT');
+        } else if (type === 'ALIEN') {
+          m.setScale(visual.scale).setOrigin(0.5, 0.86);
+          m.setSize(118, 130);
+          m.setOffset(82, 96);
+          if (visual.animKey) {
+            m.play(visual.animKey);
+          }
+        } else if (type === 'DASHER') {
+          m.setScale(visual.scale).setOrigin(0.5, 0.86);
+          m.setSize(132, 122);
+          m.setOffset(74, 112);
+          if (visual.animKey) {
+            m.play(visual.animKey);
+          }
+        } else if (type === 'GIANT') {
+          m.setScale(visual.scale).setOrigin(0.5, 0.92);
+          m.setSize(168, 260);
+          m.setOffset(96, 124);
+          if (visual.animKey) {
+            m.play(visual.animKey);
+          }
         } else if (type === 'DEVIL') {
           m.setScale(visual.scale).setOrigin(0.5, 0.9);
           m.setFlipX(!fromRear);
@@ -3152,14 +4230,28 @@ const GameEngine: React.FC<GameEngineProps> = ({
           if (visual.animKey) {
             m.play(visual.animKey);
           }
-        } else if (visual.useAnim) {
-          m.setScale(visual.scale);
+        } else if (type === 'COSMIC_GRUNT') {
+          m.setScale(visual.scale).setOrigin(0.5, 0.9);
           m.setFlipX(!fromRear);
-          m.play(visual.animKey ?? 'grunt_walk');
+          m.setSize(230, 360);
+          m.setOffset(142, 220);
+          if (visual.animKey) {
+            m.play(visual.animKey);
+          }
+        } else if (visual.useAnim) {
+          m.setScale(visual.scale).setOrigin(0.5, 0.9);
+          m.setFlipX(!fromRear);
+          m.setSize(230, 360);
+          m.setOffset(142, 220);
+          const animToPlay = visual.animKey ?? 'grunt_walk';
+          if (scene.anims.exists(animToPlay)) {
+            m.play(animToPlay);
+          }
         } else {
           m.setScale(visual.scale);
           m.setFlipX(fromRear);
         }
+        updateMonsterFacing(m);
         playSpawnBurst(scene, m.x, m.y);
       }
     }
@@ -3169,17 +4261,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const camX = scene.cameras.main.scrollX;
       const isDarkDragonBoss = currentLevel === 1 && scene.textures.exists('dark_dragon_walk');
       const isKillinasBoss = currentLevel === 2 && scene.textures.exists('killinas_daughter_walk');
+      const isInkBehemothBoss = currentLevel === 3 && scene.textures.exists('ink_behemoth_walk');
+      const isVoidRegentBoss = currentLevel === 4 && scene.textures.exists('void_regent_walk');
       spawnSectionEncounterProps(scene, 2, camX + 140);
       placeStreetDressing(scene, { texture: 'd_lamp', x: camX + 180, y: FLOOR_BOTTOM - 4, scale: 1.06, alpha: 0.9, depthOffset: -18 });
       placeStreetDressing(scene, { texture: 'd_lamp', x: camX + SCREEN_WIDTH - 120, y: FLOOR_BOTTOM - 4, scale: 1.06, alpha: 0.9, depthOffset: -18 });
       placeStreetDressing(scene, { texture: 'd_poster', x: camX + 520, y: HORIZON_Y + 74, scale: 0.9, alpha: 0.95, originY: 0.5, angle: -2, depthOffset: -88 });
-      const bossName = isDarkDragonBoss ? 'DARK DRAGON' : isKillinasBoss ? "KILLINA'S DAUGHTER" : 'INK BEHEMOTH';
-      const bossTexture = isDarkDragonBoss ? 'dark_dragon_walk' : isKillinasBoss ? 'killinas_daughter_walk' : 'm_boss';
+      const bossName = isDarkDragonBoss ? 'DARK DRAGON' : isKillinasBoss ? "KILLINA'S DAUGHTER" : isVoidRegentBoss ? 'VOID REGENT' : 'INK BEHEMOTH';
+      const bossTexture = isDarkDragonBoss ? 'dark_dragon_walk' : isKillinasBoss ? 'killinas_daughter_walk' : isVoidRegentBoss ? 'void_regent_walk' : isInkBehemothBoss ? 'ink_behemoth_walk' : 'm_boss';
       showBossWarning(scene, bossName);
-      const boss = monsters.create(camX + 800, (HORIZON_Y + FLOOR_BOTTOM) / 2, bossTexture);
+      const bossStartX = isDarkDragonBoss ? camX + 620 : camX + 800;
+      const boss = monsters.create(bossStartX, (HORIZON_Y + FLOOR_BOTTOM) / 2, textureOrFallback(scene, bossTexture, 'fallback_boss'));
       if (boss) {
-        const bossHp = currentLevel === 1 ? 40 : currentLevel === 2 ? 56 : 72;
-        const baseScale = isDarkDragonBoss ? DARK_DRAGON.scale : isKillinasBoss ? KILLINAS_DAUGHTER.scale : currentLevel === 3 ? 4.1 : 3.5;
+        const bossHp = getDifficultyScaledBossHp(currentLevel === 1 ? 40 : currentLevel === 2 ? 56 : currentLevel === 3 ? 72 : 104);
+        const baseScale = isDarkDragonBoss ? DARK_DRAGON.scale : isKillinasBoss ? KILLINAS_DAUGHTER.scale : isVoidRegentBoss ? VOID_REGENT.scale : isInkBehemothBoss ? INK_BEHEMOTH.scale : currentLevel === 3 ? 4.1 : 3.5;
         boss.setScale(baseScale).setData({
           type: 'BOSS',
           hp: bossHp,
@@ -3188,7 +4283,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           phase: 1,
           iframe: false,
           state: 'CHASE',
-          bossVariant: isDarkDragonBoss ? 'DARK_DRAGON' : isKillinasBoss ? 'KILLINAS_DAUGHTER' : 'INK_BEHEMOTH',
+          bossVariant: isDarkDragonBoss ? 'DARK_DRAGON' : isKillinasBoss ? 'KILLINAS_DAUGHTER' : isVoidRegentBoss ? 'VOID_REGENT' : 'INK_BEHEMOTH',
           bossName,
           nextAttackAt: scene.time.now + 1600,
           windupEndsAt: 0,
@@ -3208,6 +4303,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
           boss.clearTint();
           updateBossFacing(boss);
           setKillinasPose(scene, boss, 'WALK');
+        } else if (isVoidRegentBoss) {
+          boss.clearTint();
+          updateBossFacing(boss);
+          setVoidRegentPose(scene, boss, 'WALK');
+        } else if (isInkBehemothBoss) {
+          boss.clearTint();
+          updateBossFacing(boss);
+          setInkBehemothPose(scene, boss, 'WALK');
         }
       }
       // Spawn health pickups and souls in the boss arena so the player can recover
@@ -3223,6 +4326,101 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const slamRadius = 150;
       monsters.getChildren().forEach(m => { const monster = m as Phaser.Physics.Arcade.Sprite; if (monster && monster.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < slamRadius) takeMonsterDamage(scene, monster, 3); });
       destructibles.getChildren().forEach(d => { const item = d as Phaser.Physics.Arcade.Sprite; if (item && item.active && Phaser.Math.Distance.Between(player.x, player.y, item.x, item.y) < slamRadius) damageDestructible(scene, item, 2); });
+    }
+
+    function getPlayerAttackDamage() {
+      const gravityBonus = gravityCoreUnlocked ? GRAVITY_CORE.damageBonus : 0;
+      let baseDamage = 1;
+      if (isXGod) baseDamage = hasFlameSword ? 3 : 1;
+      else if (!characterPowerUnlocked) baseDamage = 1;
+      else if (selectedCharacterId === 'barrett') baseDamage = 4;
+      else if (selectedCharacterId === 'nico') baseDamage = 2;
+      else if (selectedCharacterId === 'ezra') baseDamage = 3;
+      else baseDamage = 3;
+      return Math.max(1, Math.round(baseDamage * playstyle.attackDamageMultiplier) + gravityBonus);
+    }
+
+    function firePlayableProjectile(scene: Phaser.Scene, damage: number, speed: number) {
+      if (isXGod || !player?.active) return;
+      const projectileTexture = scene.textures.exists('character_projectile_anim') ? 'character_projectile_anim' : textureOrFallback(scene, 'character_projectile', 'fallback_powerup');
+      const shot = allyProjectiles.create(player.x + facingDirection * 74, player.y - 72 - jumpZ, projectileTexture);
+      if (!shot) return;
+      const projectileScale = scene.textures.exists('character_projectile_anim')
+        ? (selectedCharacterId === 'nico' ? 0.5 : 0.46)
+        : 0.42;
+      shot.setScale(facingDirection === 1 ? projectileScale : -projectileScale, projectileScale);
+      shot.setAlpha(0.96).setDepth(player.y + 12);
+      shot.setData({ spent: false, expiresAt: scene.time.now + 1700, damage: Math.max(1, Math.round(damage * playstyle.attackDamageMultiplier)) });
+      (shot.body as Phaser.Physics.Arcade.Body).allowGravity = false;
+      if (scene.anims.exists('character_projectile_fly')) {
+        shot.anims.play('character_projectile_fly', true);
+      }
+      shot.setVelocityX(facingDirection * speed * (selectedCharacterId === 'teleportation_c' ? 1.08 : 1));
+      shot.setVelocityY(selectedCharacterId === 'ezra' ? -24 : 0);
+      const burst = scene.add.image(player.x + facingDirection * 56, player.y - 72 - jumpZ, textureOrFallback(scene, 'character_burst', 'fallback_powerup'))
+        .setScale(facingDirection === 1 ? 0.28 : -0.28, 0.28)
+        .setAlpha(0.85)
+        .setDepth(player.y + 14);
+      scene.tweens.add({ targets: burst, scaleX: facingDirection === 1 ? 0.72 : -0.72, scaleY: 0.72, alpha: 0, duration: 180, onComplete: () => burst.destroy() });
+    }
+
+    function triggerPlayableTeleportStrike(scene: Phaser.Scene) {
+      const target = getNearestActiveMonster(player.x, player.y);
+      if (!target) return;
+      const side = target.x >= player.x ? -1 : 1;
+        player.setPosition(target.x + side * 118, Phaser.Math.Clamp(target.y - 6, WALK_ZONE_TOP, FLOOR_BOTTOM - 20));
+        facingDirection = side === -1 ? 1 : -1;
+        playableTeleportStrikeDepthUntil = scene.time.now + 520;
+        player.setDepth(player.y + 24);
+      const portal = scene.add.image(target.x, target.y - 60, textureOrFallback(scene, 'character_special', 'fallback_powerup'))
+        .setScale(0.5)
+        .setAlpha(0.88)
+        .setDepth(target.y + 20);
+      scene.tweens.add({ targets: portal, scale: 1.25, alpha: 0, angle: 180, duration: 360, onComplete: () => portal.destroy() });
+      const slash = scene.add.image(player.x + facingDirection * 42, player.y - 74, textureOrFallback(scene, 'character_burst', 'fallback_powerup'))
+        .setScale(facingDirection === 1 ? 0.34 : -0.34, 0.34)
+        .setAlpha(0.9)
+        .setDepth(player.y + 28);
+      scene.tweens.add({ targets: slash, scaleX: facingDirection === 1 ? 0.82 : -0.82, scaleY: 0.82, alpha: 0, duration: 260, onComplete: () => slash.destroy() });
+      takeMonsterDamage(scene, target, getPlayerAttackDamage() + 2);
+      setPlayerInvulnerableUntil(scene.time.now + 520);
+    }
+
+    function triggerCharacterDashSpecial(scene: Phaser.Scene, currentTime: number) {
+      if (isXGod || !characterPowerUnlocked || currentTime < nextCharacterSpecialAt) return false;
+      nextCharacterSpecialAt = currentTime + playstyle.specialCooldownMs;
+      if (selectedCharacterId === 'barrett') {
+        const roar = scene.add.image(player.x, player.y - 60, textureOrFallback(scene, 'character_special', 'fallback_powerup'))
+          .setScale(0.2)
+          .setAlpha(0.72)
+          .setDepth(player.y + 8);
+        scene.tweens.add({ targets: roar, scale: 1.35, alpha: 0, duration: 420, onComplete: () => roar.destroy() });
+        monsters.getChildren().forEach((m) => {
+          const monster = m as Phaser.Physics.Arcade.Sprite;
+          if (monster.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < 190) {
+            monster.setVelocity(0, 0);
+            monster.setData('stateUntil', currentTime + 520);
+            takeMonsterDamage(scene, monster, 1);
+          }
+        });
+      } else if (selectedCharacterId === 'teleportation_c') {
+        triggerPlayableTeleportStrike(scene);
+      } else if (selectedCharacterId === 'nico') {
+        firePlayableProjectile(scene, 4, 520);
+      } else if (selectedCharacterId === 'ezra') {
+        const aura = scene.add.image(player.x, player.y - 60, textureOrFallback(scene, 'character_special', 'fallback_powerup'))
+          .setScale(0.4)
+          .setAlpha(0.68)
+          .setDepth(player.y + 6);
+        scene.tweens.add({ targets: aura, scale: 1.6, alpha: 0, duration: 520, onComplete: () => aura.destroy() });
+        monsters.getChildren().forEach((m) => {
+          const monster = m as Phaser.Physics.Arcade.Sprite;
+          if (monster.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < 175) {
+            takeMonsterDamage(scene, monster, 2);
+          }
+        });
+      }
+      return true;
     }
 
     function update(this: Phaser.Scene) {
@@ -3272,8 +4470,21 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
 
       const playerBody = player.body as Phaser.Physics.Arcade.Body;
-      const mR = cursors.right.isDown; const mL = cursors.left.isDown; const mU = cursors.up.isDown; const mD = cursors.down.isDown;
-      const curSpeed = isDashing ? FEEL.moveSpeed * FEEL.dashMultiplier : FEEL.moveSpeed;
+      const touchControls = testWindow.__unknownUniverseTouchControls ?? {};
+      const touchAttackDown = Boolean(touchControls.attack);
+      const touchJumpDown = Boolean(touchControls.jump);
+      const touchDashDown = Boolean(touchControls.dash);
+      const touchAttackJustDown = touchAttackDown && !previousTouchAttack;
+      const touchJumpJustDown = touchJumpDown && !previousTouchJump;
+      const touchDashJustDown = touchDashDown && !previousTouchDash;
+      previousTouchAttack = touchAttackDown;
+      previousTouchJump = touchJumpDown;
+      previousTouchDash = touchDashDown;
+      const mR = cursors.right.isDown || Boolean(touchControls.right);
+      const mL = cursors.left.isDown || Boolean(touchControls.left);
+      const mU = cursors.up.isDown || Boolean(touchControls.up);
+      const mD = cursors.down.isDown || Boolean(touchControls.down);
+      const curSpeed = (isDashing ? FEEL.moveSpeed * FEEL.dashMultiplier : FEEL.moveSpeed) * playstyle.speedMultiplier;
       let targetVelocityX = 0;
       let targetVelocityY = 0;
       if (!teleportHolding) {
@@ -3285,23 +4496,32 @@ const GameEngine: React.FC<GameEngineProps> = ({
       playerBody.setVelocityY(Phaser.Math.Linear(playerBody.velocity.y, targetVelocityY, FEEL.moveResponse));
       if (!teleportHolding && (mR || mL || mU || mD)) lastMovementTime = currentTime;
 
-      const defaultWalkTexture = playerSprite ? 'player_walk' : 'player_walk_internal';
-      const swordWalkAvailable = hasFlameSword && scene.textures.exists('player_sword_walk') && scene.anims.exists('sword_walk');
+      const defaultWalkTexture = !isXGod && scene.textures.exists('character_walk') ? 'character_walk' : (playerSprite ? 'player_walk' : 'player_walk_internal');
+      const swordWalkAvailable = isXGod && hasFlameSword && scene.textures.exists('player_sword_walk') && scene.anims.exists('sword_walk');
       const hasAnims = scene.anims.exists('walk') || scene.anims.exists('sword_walk');
       if (hasAnims && player.anims) {
         player.setFlipX(facingDirection === -1);
         if (isJumping) {
           if (isSlamming) {
             player.anims.stop();
-            player.setTexture('player_buttbomb');
+            player.setTexture(!isXGod && scene.textures.exists('character_jump') ? 'character_jump' : 'player_buttbomb');
           } else {
-            player.setTexture('player_jump');
+            player.setTexture(!isXGod && scene.textures.exists('character_jump') ? 'character_jump' : 'player_jump');
           }
         } else if (isDashing) {
-          player.setTexture('player_dash');
+          if (!isXGod && scene.textures.exists('character_dash')) player.setTexture('character_dash');
+          else player.setTexture('player_dash');
           player.anims.play('dash', true);
-        } else if (isAttacking) {
-          if (hasFlameSword && scene.textures.exists('player_sword_attack')) {
+        } else if (isAttacking || (selectedCharacterId === 'barrett' && currentTime < playerAttackVisualHoldUntil)) {
+          if (!isXGod && scene.textures.exists('character_attack')) {
+            if (selectedCharacterId === 'barrett') {
+              player.anims.stop();
+              player.setTexture('character_attack', 4);
+            } else {
+              player.setTexture('character_attack');
+              player.anims.play('character_attack_anim', true);
+            }
+          } else if (hasFlameSword && scene.textures.exists('player_sword_attack')) {
             player.anims.stop();
             player.setTexture('player_sword_attack', SWORD_COMBO_FRAMES[swordComboStep]);
           } else {
@@ -3315,7 +4535,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
             player.setTexture(walkTexture);
           }
           player.anims.play(walkAnim, true);
-          player.anims.timeScale = isDashing ? 2.5 : 1.0;
+          const walkSpeed = Math.hypot(playerBody.velocity.x, playerBody.velocity.y);
+          player.anims.timeScale = isDashing ? 2.5 : Phaser.Math.Clamp(walkSpeed / FEEL.moveSpeed, 0.72, 1.18);
         } else {
           const idleTexture = swordWalkAvailable ? 'player_sword_walk' : defaultWalkTexture;
           const idleAnim = swordWalkAvailable ? 'sword_idle' : 'idle';
@@ -3326,11 +4547,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
 
-      if (!teleportHolding && (Phaser.Input.Keyboard.JustDown(jumpKey) || Phaser.Input.Keyboard.JustDown(jumpAltKey)) && !isJumping) {
+      if (!teleportHolding && (Phaser.Input.Keyboard.JustDown(jumpKey) || Phaser.Input.Keyboard.JustDown(jumpAltKey) || touchJumpJustDown) && !isJumping) {
         isJumping = true; jumpVelocity = FEEL.jumpVelocity; sounds.jump();
         playPlayerScalePulse(scene, PLAYER_SCALE * 1.2, PLAYER_SCALE * 0.8, 100);
       }
-      if (!teleportHolding && isJumping && !isSlamming && Phaser.Input.Keyboard.JustDown(attackKey)) {
+      if (!teleportHolding && isJumping && !isSlamming && (Phaser.Input.Keyboard.JustDown(attackKey) || touchAttackJustDown)) {
         isSlamming = true; jumpVelocity = FEEL.slamVelocity;
       }
       if (isJumping) {
@@ -3351,8 +4572,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
 
-      if (!teleportHolding && (Phaser.Input.Keyboard.JustDown(dashKey) || Phaser.Input.Keyboard.JustDown(dashAltKey)) && !isDashing && currentTime > dashCooldown) {
-        isDashing = true; dashEndsAt = currentTime + FEEL.dashDuration; setPlayerInvulnerableUntil(dashEndsAt); sounds.dash(); dashCooldown = currentTime + FEEL.dashCooldown;
+      if (!teleportHolding && (Phaser.Input.Keyboard.JustDown(dashKey) || Phaser.Input.Keyboard.JustDown(dashAltKey) || touchDashJustDown) && !isDashing && currentTime > dashCooldown) {
+        isDashing = true; dashEndsAt = currentTime + FEEL.dashDuration; setPlayerInvulnerableUntil(dashEndsAt); sounds.dash(); dashCooldown = currentTime + (FEEL.dashCooldown * playstyle.dashCooldownMultiplier);
+        triggerCharacterDashSpecial(scene, currentTime);
         for (let i = 1; i <= 3; i++) {
           scene.time.delayedCall(i * 40, () => {
             if (!player || !player.active) return;
@@ -3364,16 +4586,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
 
-      const attackPressed = !teleportHolding && Phaser.Input.Keyboard.JustDown(attackKey);
-      const canChainSwordAttack = hasFlameSword && !isJumping && attackPressed && (!isAttacking || currentTime >= attackEndsAt - FEEL.swordComboChainWindowMs);
-      const canStartBasicAttack = !hasFlameSword && attackPressed && !isAttacking && !isJumping;
+      const attackPressed = !teleportHolding && (Phaser.Input.Keyboard.JustDown(attackKey) || touchAttackJustDown);
+      const canChainSwordAttack = isXGod && hasFlameSword && !isJumping && attackPressed && (!isAttacking || currentTime >= attackEndsAt - FEEL.swordComboChainWindowMs);
+      const canStartBasicAttack = (!isXGod || !hasFlameSword) && attackPressed && !isAttacking && !isJumping;
 
       if (canChainSwordAttack) {
         sounds.attack();
         startSwordComboAttack(scene, currentTime);
       } else if (canStartBasicAttack) {
         sounds.attack();
-        startPlayerAttack(scene, currentTime, FEEL.attackDuration);
+        const baseAttackDuration = (!isXGod && characterPowerUnlocked ? FEEL.swordAttackDuration : FEEL.attackDuration) * playstyle.attackDurationMultiplier;
+        const attackDuration = selectedCharacterId === 'barrett' ? Math.max(baseAttackDuration, 1400) : baseAttackDuration;
+        startPlayerAttack(scene, currentTime, attackDuration);
+        if (!isXGod && characterPowerUnlocked) {
+          if (selectedCharacterId === 'nico') firePlayableProjectile(scene, 4, 520);
+          else if (selectedCharacterId === 'ezra') firePlayableProjectile(scene, 3, 420);
+          else if (selectedCharacterId === 'teleportation_c') triggerPlayableTeleportStrike(scene);
+        }
       }
 
       const usingEmbeddedSwordArt = player.texture.key === 'player_sword_walk' || player.texture.key === 'player_sword_attack';
@@ -3384,7 +4613,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         .setDepth(player.y - 2)
         .setAlpha(0.3 * sScale);
       playerSword
-        .setVisible(hasFlameSword && !usingEmbeddedSwordArt)
+        .setVisible(isXGod && hasFlameSword && !usingEmbeddedSwordArt)
         .setPosition(player.x + (facingDirection * 20), player.y - 24 - jumpZ)
         .setScale(facingDirection === 1 ? 0.34 : -0.34, 0.34)
         .setAngle(facingDirection === 1 ? 12 : -12)
@@ -3396,7 +4625,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           player.x + Math.sin(currentTime * 0.0052) * 30,
           player.y - 26 - jumpZ + Math.sin(currentTime * 0.0104) * 16
         )
-        .setScale(inkShieldReady ? 0.048 : 0.04)
+        .setScale(inkShieldReady ? 0.44 : 0.38)
         .setAlpha(inkShieldReady ? 0.92 : 0.24)
         .setAngle(Math.sin(currentTime * 0.0038) * 18)
         .setDepth(player.y + 1);
@@ -3426,7 +4655,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
           playerBody.setVelocityY(0);
         }
       }
-      player.setDepth(player.y).setY(player.y - jumpZ);
+        const playerDepthBoost = currentTime < playableTeleportStrikeDepthUntil ? 36 : selectedCharacterId === 'teleportation_c' ? 18 : 0;
+        player.setDepth(player.y + playerDepthBoost).setY(player.y - jumpZ);
 
       if (hasDinio && !dinioCompanion?.active) {
         spawnDinioCompanion(scene);
@@ -3480,7 +4710,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           doghostCompanion.play('doghost_walk_anim', true);
         }
       }
-      if (hasTeleportationC && !teleportationCCompanion?.active) {
+      if (isXGod && hasTeleportationC && !teleportationCCompanion?.active) {
         spawnTeleportationCCompanion(scene);
       }
       if (teleportationCCompanion?.active) {
@@ -3549,6 +4779,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
           activeBoss = monster;
           const isDarkDragonBoss = monster.getData('bossVariant') === 'DARK_DRAGON';
           const isKillinasBoss = monster.getData('bossVariant') === 'KILLINAS_DAUGHTER';
+          const isVoidRegentBoss = monster.getData('bossVariant') === 'VOID_REGENT';
+          const isInkBehemothBoss = monster.getData('bossVariant') === 'INK_BEHEMOTH';
           if (isDarkDragonBoss) {
             const phase = hp <= maxHp / 2 ? 2 : 1;
             const windupEndsAt = monster.getData('windupEndsAt') || 0;
@@ -3602,13 +4834,49 @@ const GameEngine: React.FC<GameEngineProps> = ({
               setKillinasPose(scene, monster, 'WALK');
               moveKillinasPatrol(scene, monster, phase, currentTime);
             }
+          } else if (isVoidRegentBoss) {
+            const phase = hp <= maxHp / 2 ? 2 : 1;
+            const windupEndsAt = monster.getData('windupEndsAt') || 0;
+            const attackEndsAt = monster.getData('attackEndsAt') || 0;
+            const nextAttackAt = monster.getData('nextAttackAt') || 0;
+
+            updateBossFacing(monster);
+            if (currentTime < attackEndsAt) {
+              monster.setVelocity(0, 0);
+              monster.setData('intent', currentTime < windupEndsAt ? 'CHARGING RIFT' : phase === 2 ? 'VOID STORM' : 'GRAVITY BARRAGE');
+              setVoidRegentPose(scene, monster, 'ATTACK');
+            } else if (currentTime >= nextAttackAt) {
+              performVoidRegentBarrage(scene, monster);
+            } else {
+              monster.setData('intent', 'HUNTING');
+              setVoidRegentPose(scene, monster, 'WALK');
+              moveVoidRegentPatrol(scene, monster, phase, currentTime);
+            }
+          } else if (isInkBehemothBoss && scene.textures.exists('ink_behemoth_walk')) {
+            const phase = hp <= maxHp / 2 ? 2 : 1;
+            const windupEndsAt = monster.getData('windupEndsAt') || 0;
+            const attackEndsAt = monster.getData('attackEndsAt') || 0;
+            const nextAttackAt = monster.getData('nextAttackAt') || 0;
+
+            updateBossFacing(monster);
+            if (currentTime < attackEndsAt) {
+              monster.setVelocity(0, 0);
+              monster.setData('intent', currentTime < windupEndsAt ? 'INK CHARGE' : monster.getData('intent') || 'INK SPIT');
+              setInkBehemothPose(scene, monster, 'ATTACK');
+            } else if (currentTime >= nextAttackAt) {
+              performInkBehemothAttack(scene, monster);
+            } else {
+              monster.setData('intent', 'STALKING');
+              setInkBehemothPose(scene, monster, 'WALK');
+              moveInkBehemothPatrol(scene, monster, phase, currentTime);
+            }
           } else {
             const phase = hp <= maxHp / 2 ? 2 : 1; const cycle = timer % (phase === 2 ? 280 : 400);
             const bossIntent = cycle < 150 ? 'STALKING' : (phase === 2 ? 'SHOCKWAVE' : 'INK SPIT');
             monster.setData('intent', bossIntent);
-            monster.setFlipX(player.x > monster.x);
+            updateBossFacing(monster);
             if (cycle === 128) playMonsterTell(scene, monster.x, monster.y - 48, 'tell_ring', 0.22, 380);
-            if (cycle < 150) scene.physics.moveToObject(monster, player, phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage : ENCOUNTERS.monsterSpeed.bossChase);
+            if (cycle < 150) scene.physics.moveToObject(monster, player, getDifficultyScaledSpeed(phase === 2 ? ENCOUNTERS.monsterSpeed.bossRage : ENCOUNTERS.monsterSpeed.bossChase));
             else if (cycle === 150) {
               monster.setVelocity(0); sounds.growl();
               if (phase === 2) {
@@ -3633,90 +4901,43 @@ const GameEngine: React.FC<GameEngineProps> = ({
           const state = (monster.getData('state') || 'CHASE') as string;
           const nextAction = monster.getData('nextAction') || 0;
           const stateUntil = monster.getData('stateUntil') || 0;
+          updateMonsterFacing(monster);
 
           if (type === 'FLOATER') {
-            const skitterOffset = Math.sin(scene.time.now * 0.004 + monster.x * 0.012) * 26;
-            if (state === 'SPIT') {
+            updateSpiderJumper(scene, monster, timer, state, nextAction, stateUntil, distanceToPlayer);
+          } else if (type === 'ALIEN') {
+            moveLongRangeEnemy(scene, monster, timer, state, nextAction, stateUntil, distanceToPlayer);
+          } else if (type === 'COSMIC_GRUNT') {
+            const orbitDrift = Math.sin(scene.time.now * 0.006 + monster.x * 0.02) * 58;
+            const lungeReady = distanceToPlayer < 250 && timer >= nextAction;
+            if (state === 'WINDUP') {
               monster.setVelocity(0);
+              monster.setTint(0xc4b5fd);
+              if (timer >= stateUntil) {
+                monster.clearTint();
+                monster.setData('state', 'DASHING');
+                monster.setData('stateUntil', timer + 24);
+                playMonsterTell(scene, monster.x, monster.y - 34, 'dash_tell', 0.26, 180, monster.flipX ? 180 : 0);
+                scene.physics.moveToObject(monster, player, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.dasher * 1.55));
+              }
+            } else if (state === 'DASHING') {
               if (timer >= stateUntil) {
                 monster.setData('state', 'CHASE');
-                if (scene.anims.exists('spider_walk_anim')) {
-                  monster.play('spider_walk_anim', true);
-                }
+                monster.setData('nextAction', timer + 115);
               }
             } else {
-              scene.physics.moveTo(monster, player.x + (monster.x < player.x ? -28 : 28), player.y + skitterOffset, ENCOUNTERS.monsterSpeed.floater * 0.92);
-              if ((!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'spider_walk_anim') && scene.anims.exists('spider_walk_anim')) {
-                monster.play('spider_walk_anim', true);
+              smoothMoveTo(monster, player.x, player.y + orbitDrift, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.chaser * 0.98), 0.13, 24);
+              if (scene.anims.exists('cosmic_grunt_walk_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'cosmic_grunt_walk_anim')) {
+                monster.play('cosmic_grunt_walk_anim', true);
               }
-              if (timer >= nextAction) {
-                playMonsterTell(scene, monster.x, monster.y - 46, 'tell_ring', 0.18, 260);
-                monster.setData('state', 'SPIT');
-                monster.setData('stateUntil', timer + 28);
-                if (scene.anims.exists('spider_attack_anim')) {
-                  monster.play('spider_attack_anim', true);
-                }
-                fireFloaterShot(scene, monster);
-                monster.setData('nextAction', timer + 145);
+              if (lungeReady) {
+                monster.setData('state', 'WINDUP');
+                monster.setData('stateUntil', timer + 22);
+                playMonsterTell(scene, monster.x, monster.y - 26, 'tell_ring', 0.16, 210);
               }
             }
-          } else if (type === 'ALIEN') {
-            const drift = Math.sin(scene.time.now * 0.004 + monster.x * 0.015) * 42;
-            scene.physics.moveTo(monster, player.x, player.y + drift, ENCOUNTERS.monsterSpeed.chaser * 1.08);
           } else if (type === 'GHOST') {
-            const camX = scene.cameras.main.scrollX;
-            const attackFromLeft = !!monster.getData('swoopFromLeft');
-            const cornerX = attackFromLeft ? camX + 92 : camX + SCREEN_WIDTH - 92;
-            const cornerY = HORIZON_Y + 62 + (Math.sin(scene.time.now * 0.004 + monster.x * 0.01) * 18);
-            const floatX = player.x + Math.cos(scene.time.now * 0.003 + monster.y * 0.015) * 72;
-            const floatY = player.y - 76 + Math.sin(scene.time.now * 0.0045 + monster.x * 0.02) * 58;
-
-            if (state === 'CHARGE') {
-              setGhostPose(monster, 'FLOAT');
-              const strobeWhite = Math.floor(timer / 4) % 2 === 0;
-              monster.setTint(strobeWhite ? 0xffffff : 0xff4d4d);
-              monster.setAlpha(strobeWhite ? 0.96 : 0.72);
-              monster.setFlipX(!attackFromLeft);
-              scene.physics.moveTo(monster, cornerX, cornerY, GHOST_FLOAT.chargeSpeed);
-
-              if (Phaser.Math.Distance.Between(monster.x, monster.y, cornerX, cornerY) < 28 || timer >= stateUntil) {
-                monster.setData('state', 'SWOOP');
-                monster.setData('stateUntil', timer + 54);
-                monster.setData('swoopTargetX', attackFromLeft ? camX + SCREEN_WIDTH + 140 : camX - 140);
-                monster.setData('swoopTargetY', Phaser.Math.Clamp(player.y + Phaser.Math.Between(-32, 32), HORIZON_Y + 24, FLOOR_BOTTOM - 28));
-                monster.clearTint();
-                monster.setAlpha(0.92);
-              }
-            } else if (state === 'SWOOP') {
-              setGhostPose(monster, 'ATTACK');
-              const swoopTargetX = (monster.getData('swoopTargetX') as number) ?? (attackFromLeft ? camX + SCREEN_WIDTH + 140 : camX - 140);
-              const swoopTargetY = (monster.getData('swoopTargetY') as number) ?? player.y;
-              monster.clearTint();
-              monster.setAlpha(0.88);
-              monster.setFlipX(!attackFromLeft);
-              scene.physics.moveTo(monster, swoopTargetX, swoopTargetY, GHOST_FLOAT.swoopSpeed);
-
-              if ((attackFromLeft && monster.x >= camX + SCREEN_WIDTH + 42) || (!attackFromLeft && monster.x <= camX - 42) || timer >= stateUntil) {
-                monster.setData('state', 'FLOAT');
-                monster.setData('nextAction', timer + GHOST_FLOAT.postSwoopRecoverFrames);
-                monster.setData('swoopFromLeft', !attackFromLeft);
-                setGhostPose(monster, 'FLOAT');
-                monster.clearTint();
-                monster.setAlpha(0.76);
-              }
-            } else {
-              setGhostPose(monster, 'FLOAT');
-              monster.clearTint();
-              monster.setAlpha(0.62 + ((Math.sin(scene.time.now * 0.008 + monster.x * 0.02) + 1) * 0.14));
-              monster.setFlipX((monster.body as Phaser.Physics.Arcade.Body).velocity.x < 0);
-              scene.physics.moveTo(monster, floatX, floatY, GHOST_FLOAT.floatSpeed);
-
-              if (timer >= nextAction) {
-                playMonsterTell(scene, monster.x, monster.y - 34, 'tell_ring', 0.18, 260);
-                monster.setData('state', 'CHARGE');
-                monster.setData('stateUntil', timer + GHOST_FLOAT.chargeTimeoutFrames);
-              }
-            }
+            moveLongRangeEnemy(scene, monster, timer, state, nextAction, stateUntil, distanceToPlayer);
           } else if (type === 'DEVIL') {
             if (state === 'WINDUP') {
               monster.setVelocity(0);
@@ -3742,7 +4963,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
                 }
               }
             } else {
-              scene.physics.moveToObject(monster, player, ENCOUNTERS.monsterSpeed.chaser * 0.76);
+              smoothMoveTo(monster, player.x, player.y, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.chaser * 0.76), 0.13, 26);
               if (scene.anims.exists('moonlight_terror_walk_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'moonlight_terror_walk_anim')) {
                 monster.play('moonlight_terror_walk_anim', true);
               }
@@ -3764,7 +4985,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
                 monster.setData('state', 'DASHING');
                 monster.setData('stateUntil', timer + 22);
                 playMonsterTell(scene, monster.x + (monster.flipX ? -26 : 26), monster.y - 18, 'dash_tell', 0.32, 220, monster.flipX ? 180 : 0);
-                scene.physics.moveToObject(monster, player, ENCOUNTERS.monsterSpeed.dasher * 2.05);
+                scene.physics.moveToObject(monster, player, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.dasher * 2.05));
               }
             } else if (state === 'DASHING') {
               if (timer >= stateUntil) {
@@ -3772,7 +4993,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
                 monster.setData('nextAction', timer + 88);
               }
             } else {
-              scene.physics.moveToObject(monster, player, ENCOUNTERS.monsterSpeed.dasher * 0.74);
+              smoothMoveTo(monster, player.x, player.y, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.dasher * 0.74), 0.14, 28);
               if (distanceToPlayer < 320 && timer >= nextAction) {
                 monster.setData('state', 'WINDUP');
                 monster.setData('stateUntil', timer + 24);
@@ -3794,7 +5015,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
               monster.setVelocity(0);
               if (timer >= stateUntil) monster.setData('state', 'CHASE');
             } else {
-              scene.physics.moveToObject(monster, player, ENCOUNTERS.monsterSpeed.chaser * 0.68);
+              smoothMoveTo(monster, player.x, player.y, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.chaser * 0.68), 0.12, 30);
               if (distanceToPlayer < 190 && timer >= nextAction) {
                 monster.setData('state', 'WINDUP');
                 monster.setData('stateUntil', timer + 32);
@@ -3802,9 +5023,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
               }
             }
           } else {
-            scene.physics.moveToObject(monster, player, ENCOUNTERS.monsterSpeed.chaser);
+            smoothMoveTo(monster, player.x, player.y, getDifficultyScaledSpeed(ENCOUNTERS.monsterSpeed.chaser), 0.14, 24);
           }
-          monster.setFlipX(player.x < monster.x);
+          updateMonsterFacing(monster);
+          syncMonsterWalkRate(monster);
+          applyMonsterSeparation(monster);
           drawBar(healthGraphics, monster.x - 20, monster.y - 45, 40, hp / maxHp);
         }
         monster.setDepth(monster.y);
@@ -3812,14 +5035,19 @@ const GameEngine: React.FC<GameEngineProps> = ({
       updateBossHudDisplay(activeBoss);
 
       if (isAttacking) {
-        attackHitbox.setSize(hasFlameSword ? 160 : 120, hasFlameSword ? 96 : 80);
-        (attackHitbox.body as Phaser.Physics.Arcade.Body).setSize(hasFlameSword ? 160 : 120, hasFlameSword ? 96 : 80);
-        attackHitbox.setPosition(player.x + (facingDirection * FEEL.attackReach), player.y);
+        const hitboxWidth = isXGod ? (hasFlameSword ? 168 : 124) : selectedCharacterId === 'barrett' && characterPowerUnlocked ? 208 : 138 + playstyle.attackReachBonus;
+        const hitboxHeight = isXGod ? (hasFlameSword ? 102 : 82) : selectedCharacterId === 'barrett' && characterPowerUnlocked ? 116 : 88;
+        const hitboxReach = (isXGod ? FEEL.attackReach : 70) + playstyle.attackReachBonus;
+        attackHitbox.setSize(hitboxWidth, hitboxHeight);
+        (attackHitbox.body as Phaser.Physics.Arcade.Body).setSize(hitboxWidth, hitboxHeight);
+        attackHitbox.setPosition(player.x + (facingDirection * hitboxReach), player.y);
       }
       else { attackHitbox.setPosition(-1000, -1000); }
 
       if (player.x > lastDestructibleSpawnX + 600) { lastDestructibleSpawnX = player.x; spawnDestructible(scene, player.x + 800); }
-      drawBar(healthGraphics, player.x - 20, player.y - (45 * (PLAYER_SCALE / 0.6)), 40, playerHealth / 100);
+      if (playerHealth < 100) {
+        drawBar(healthGraphics, player.x - 20, player.y - (45 * (PLAYER_SCALE / 0.6)), 40, playerHealth / 100);
+      }
 
       destructibles.getChildren().forEach((d) => {
         const item = d as Phaser.Physics.Arcade.Sprite;
@@ -3829,7 +5057,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
       // Continuous background strip scrolling
       if (backgroundStrip) {
         const maxCameraScroll = Math.max(1, 4096 - SCREEN_WIDTH);
-        const scrollProgress = Phaser.Math.Clamp(scene.cameras.main.scrollX / maxCameraScroll, 0, 1);
+        let scrollProgress = Phaser.Math.Clamp(scene.cameras.main.scrollX / maxCameraScroll, 0, 1);
+        if (currentLevel === 4 && currentSectionIndex >= fightSections.length - 1) {
+          scrollProgress = 1;
+        }
         const maxStripShift = Math.max(0, backgroundStripWidth - SCREEN_WIDTH);
         backgroundStrip.x = -Math.round(scrollProgress * maxStripShift);
       }
@@ -3851,6 +5082,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             .filter((monster) => monster.active)
             .map((monster) => ({
               type: monster.getData('type'),
+              enemyClass: monster.getData('enemyClass') || getMonsterClass(monster.getData('type') as MonsterType),
               state: monster.getData('state') || 'CHASE',
               intent: monster.getData('intent') || null,
               facing: monster.getData('facingRight') ? 'right' : 'left',
@@ -3894,6 +5126,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
               cooldownRemainingMs: Math.max(0, Math.round((pickup.getData('cooldownUntil') || 0) - (gameRef.current?.scene.getScenes(true)[0]?.time.now ?? 0)))
             }))
         : [];
+      const activeGravityCores = gravityCorePickups
+        ? gravityCorePickups.getChildren()
+            .map((pickup) => pickup as Phaser.Physics.Arcade.Sprite)
+            .filter((pickup) => pickup.active)
+            .map((pickup) => ({ x: Math.round(pickup.x), y: Math.round(pickup.y) }))
+        : [];
       const activeDestructibles = destructibles
         ? destructibles.getChildren()
             .map((item) => item as Phaser.Physics.Arcade.Sprite)
@@ -3912,7 +5150,15 @@ const GameEngine: React.FC<GameEngineProps> = ({
           coordinateSystem: 'origin=(0,0) top-left; +x moves right; +y moves down; jump height is reported separately as jumpZ',
           mode: isPausedRef.current ? 'paused' : (isLevelTransitioning || isSwordRewardSequenceActive) ? 'transition' : isFightingWave ? 'combat' : 'explore',
           level: currentLevel,
-          section: LEVEL_PROFILES[Math.min(currentLevel, 3) as 1 | 2 | 3].sectionCards[Math.min(currentSectionIndex, 3)]?.subtitle ?? 'FREE ROAM',
+          section: LEVEL_PROFILES[getLevelKey(currentLevel)].sectionCards[Math.min(currentSectionIndex, 3)]?.subtitle ?? 'FREE ROAM',
+          failedAssets: Array.from(failedAssetKeys),
+          selectedCharacter: {
+            id: selectedCharacterId,
+            name: selectedCharacter.name,
+            rewardName: selectedCharacter.rewardName,
+            rewardUnlocked: characterPowerUnlocked
+          },
+          touchControls: testWindow.__unknownUniverseTouchControls ?? {},
           player: player
             ? {
                 x: Math.round(player.x),
@@ -3971,6 +5217,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
             y: teleportationCCompanion?.active ? Math.round(teleportationCCompanion.y) : null,
             attackCooldownRemainingMs: Math.max(0, Math.round(teleportationCNextStrikeAt - (gameRef.current?.scene.getScenes(true)[0]?.time.now ?? 0))),
             attacking: teleportationCAttackEndsAt > (gameRef.current?.scene.getScenes(true)[0]?.time.now ?? 0)
+          },
+          gravityCore: {
+            unlocked: gravityCoreUnlocked,
+            charges: gravityCoreCharges,
+            pickups: activeGravityCores
           },
           swordReward: {
             pendingPickup: pendingSwordRewardPickup,
@@ -4038,11 +5289,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         audioContextRef.current.close().catch(() => { });
       }
     };
-  }, [currentLevel, playerSprite]);
+  }, [currentLevel, playerSprite, difficulty, selectedCharacterId]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-slate-800">
-      <div ref={gameContainerRef} className="rounded-lg overflow-hidden shadow-2xl border-8 border-slate-700" />
+    <div className="unknown-universe-game relative flex h-full w-full items-center justify-center bg-slate-800">
+      <div ref={gameContainerRef} className="h-full w-full overflow-hidden bg-slate-900 shadow-2xl lg:h-auto lg:w-auto lg:rounded-lg lg:border-8 lg:border-slate-700" />
     </div>
   );
 };

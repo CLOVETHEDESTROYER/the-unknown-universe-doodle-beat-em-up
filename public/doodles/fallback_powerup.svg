@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="22" fill="#e0f2fe"/>
+  <circle cx="90" cy="88" r="52" fill="#f0abfc" stroke="#111827" stroke-width="7"/>
+  <path d="M88 42l13 36 38 2-30 23 10 37-31-21-32 21 11-37-30-23 38-2 13-36Z" fill="#fef3c7" stroke="#111827" stroke-width="5" stroke-linejoin="round"/>
+  <text x="90" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">POWER</text>
+</svg>

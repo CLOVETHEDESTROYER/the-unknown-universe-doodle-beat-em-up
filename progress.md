@@ -112,6 +112,17 @@ Original prompt: take a look at this git and lets clone it and start working on 
 - Added `tests/game-sword-attack.actions.json` as a focused sword-attack probe and re-ran `npm run build`, `npm run test:game:level2`, plus a direct sword boot smoke run (`node scripts/run_game_test.mjs --skip-build --actions-file tests/game-sword-attack.actions.json --start-level 2 --start-sword --start-sword-durability 2 --iterations 2 --pause-ms 250 --screenshot-dir output/web-game-sword-attack --port 4181`).
 - Verification note: the dedicated sword-attack harness run still captured the level-start overlay rather than the live attack frame, so the code path is integrated and build-verified, but the automated screenshot scenario should be tuned further if we want a cleaner visual proof artifact for the sword strike specifically.
 
+- Rebuilt playable Teleportation C from the existing hand-drawn level 3 ally spritesheets instead of the vector-looking placeholder pass.
+- Added `scripts/regenerate_teleportation_c_playable_from_ally.py`, which derives `public/characters/teleportation_c/walk.png`, `dash.png`, `attack.png`, `jump.png`, `buttbounce.png`, `dazed.png`, and `dead.png` from `public/teleportation_c_walk.png` / `public/teleportation_c_attack.png`.
+- Updated the Teleportation C orb loader to use `public/doodles/teleportation_c_orb.png` instead of the old SVG path.
+- Re-ran `npm run build` successfully and verified playable Teleportation C in browser captures with no `failedAssets`: `output/web-game-teleportation-c-raster/` and `output/web-game-teleportation-c-raster-focused/`.
+- Regenerated Barrett's playable attack strip as a brawler-style five-frame combo using the real downloaded Barrett source art: guard, wind-up, commit, full claw swipe, and follow-through. Added `scripts/regenerate_barrett_brawler_attack.py` and wrote the new strip to `public/characters/barrett/attack.png`.
+- Re-ran `npm run build` successfully and captured Barrett direct-boot checks under `output/web-game-barrett-brawler-attack/` / `output/web-game-barrett-brawler-attack-sequence/`; state reports `selectedCharacter.id: "barrett"` and `failedAssets: []`.
+- Updated Barrett's in-game attack playback so it starts on the extended-arm brawler frames and repeats/holds frames 3-4 instead of spending the visible attack window on the wind-up frames. Hardened `startPlayerAttack()` so tween completion cannot clear the attack before the intended timer.
+- Re-ran `npm run build` and verified the built app screenshot at `output/web-game-barrett-attack-extension-visible/barrett-start.png` shows Barrett with the arm fully extended during the attack.
+- Slowed Barrett's brawler punch further: his visible attack pose now explicitly holds frame 4 for a padded 1.7s visual window, and his attack duration is at least 1.4s so the extended arm is readable in normal play.
+- Re-ran `npm run build` and verified the built app still shows the extended punch after roughly one second at `output/web-game-barrett-padded-one-second-hold/barrett-one-second.png`.
+
 - Swapped the sword attack from an auto-playing strip to a controlled 3-step combo. Each sword-button press now advances to the next sword pose instead of scrolling through every frame at once.
 - Added combo state in `components/GameEngine.tsx` (`swordComboStep`, `swordComboResetAt`) plus a short combo reset window and chain window so the sword attack feels deliberate but still responsive.
 - The controlled sword combo currently uses the first 3 frames of `player_sword_attack.png` as the step sequence. Pre-sword attacks still use the old single-pose `player_attack` frame.
@@ -218,6 +229,43 @@ Original prompt: take a look at this git and lets clone it and start working on 
 - Re-ran `npm run build` and direct Dinio probes to `output/web-game-dinio-attack-fix/` and `output/web-game-dinio-attack-focus/`. The focused probes stayed clean with no fresh console-error artifact after a sequential rerun.
 - Tightened the level 1 finish presentation in `components/GameEngine.tsx` by shrinking the Dark Dragon corpse art and adjusting its origin/placement so the defeat image fits more comfortably without getting cut off.
 - Increased the level 1 XGod sword reward pickup height handling by raising its clamp range, moving its origin closer to the hilt, and expanding its collision body to a much taller footprint so the upright sword is fully visible and easier to collect.
+
+## 2026-05-26
+
+- Cleaned the X God walking spritesheet (`public/player_walk.png`) by rebuilding the strip from clean frames, removing the pale gray rectangular artifact that appeared around his lower body.
+- Normalized oversized transparent pickup/prop PNG canvases for gold, homework, heart, Ink Shield, books, and locker art so they render as visible game objects instead of blank-looking padded rectangles.
+- Retuned the related Phaser scales and hitboxes in `components/GameEngine.tsx` for normalized pickups/props, including the Ink Shield orbit scale.
+- Re-ran `npm run build` successfully after the asset cleanup.
+- Ran the Codex web-game Playwright client against the local dev server and inspected `output/codex-asset-cleanup-smoke/shot-0.png` / `shot-1.png`; `render_game_to_text()` reported `failedAssets: []`.
+- Captured and inspected post-transition gameplay at `output/codex-asset-cleanup-after/canvas-post-transition.png`, confirming X God no longer has the gray lower-body box and books/locker/homework/gold are visible in-world.
+- Captured a shield-enabled direct boot at `output/codex-asset-cleanup-shield-2/canvas.png`, confirming the normalized Ink Shield no longer disappears after scaling.
+
+- Tightened gameplay feel across the roster and levels:
+  - Character stats now drive movement speed, damage taken, attack damage, attack duration, attack reach, dash cooldown, and special cooldown so Barrett, Nico, Ezra, Teleportation C, and X God feel more distinct in play.
+  - Player attacks now apply one intentional damage event per enemy/destructible per button press, preventing accidental multi-frame overlap damage.
+  - Wave spawning now uses smaller, clearer chapter-scaled counts with a longer lead-in so fights build pressure without instantly piling on.
+  - Later-level enemy HP scaling was lowered to match the one-hit-per-press combat model.
+  - Enemy contact/projectile damage was softened slightly, and health drops now arrive every 4 gold pickups instead of every 5.
+- Replaced several SVG runtime visuals with transparent PNGs to avoid black/blank rectangle artifacts in Phaser:
+  - `shadow_oval.png`, `d_cone.png`, `d_lamp.png`, `d_poster.png`, `d_puddle.png`, `m_alien.png`, `m_dasher.png`, and `m_giant.png`.
+  - Cleaned the dark connected backgrounds from `cosmic_grunt_walk_ai.png` and `void_regent_ai_sheet.png`.
+- Re-ran `npm run build` successfully.
+- Ran Develop Web Game Playwright checks:
+  - `output/codex-tighten-xgod-final/` for X God.
+  - `output/codex-tighten-barrett/`, `output/codex-tighten-nico/`, `output/codex-tighten-ezra/`, and `output/codex-tighten-teleportation-c-final/` for playable roster boot/action smokes.
+  - `output/codex-tighten-level4-final-clean/` for Level 4 combat after the asset cleanup.
+- Latest checked state outputs report `failedAssets: []`; Level 4 screenshot no longer shows the black rectangle behind the dasher/cosmic enemies.
+
+## 2026-05-14
+
+- Ran a fresh gameplay review pass from the correct repo (`the-unknown-universe-doodle-beat-em-up`) using the web-game smoke harness and visually inspected new screenshots.
+- Improved general combat feel in `components/GameEngine.tsx`: regular enemy pursuit now eases into velocity instead of snapping to full chase, enemy walk animation speed follows actual movement speed, and player walk animation timing now tracks movement velocity.
+- Made contact damage fairer and clearer by scaling hit damage by difficulty, adding stronger hit knockback away from the closest threat, and lengthening post-hit invulnerability so short waves feel less punishing.
+- Reduced visual clutter by shrinking/fading the generic cone, lamp, and puddle foreground dressing, hiding the tiny in-world player health bar while X-God is full health, and making the section card a smaller top-of-screen banner.
+- Replaced two generic placeholder SVG enemies (`m_alien.svg` and `m_giant.svg`) with rougher hand-drawn-style doodle silhouettes, then scaled the giant down so it does not crowd Moonlight Terror.
+- Adjusted background strip segment overlap to reduce harsh gaps between scanned background images without cropping the source art.
+- Verification: `npm run build` passes; smoke runs completed for level 1 (`output/codex-gameplay-polish-final`), level 2 (`output/codex-gameplay-clean-level2`), and level 3 (`output/codex-gameplay-sprite-level3`) with no console error artifacts.
+- Follow-up suggestion: the remaining biggest fidelity lift is replacing the lingering generic SVG foreground props/signposts entirely with custom scanned art, especially the cone/lamp/puddle set.
 - Re-ran `npm run build` plus the direct reward probes to `output/web-game-xgod-sword-fit/` and `output/web-game-xgod-sword-fit-hold/`. The sword pickup artifact now shows the full upright reward image on screen with no fresh console-error file.
 - Added the new graveyard panorama sequence for chapter 2 by copying `GraveyardLevel1.png`, `Graveyardlevel2.png`, `graveyardlevel2andahalf.png`, and `graveyardlevel3.png` into `public/` as `graveyard_level1.png`, `graveyard_level2.png`, `graveyard_level2_5.png`, and `graveyard_level3.png`.
 - Updated `components/GameEngine.tsx` so level 2 is now themed as `THE GRAVEYARD`, with section cards and background flow mapped in order: section 1 uses `graveyard_level1`, section 2 uses `graveyard_level2`, section 3 uses `graveyard_level2_5`, and the boss zone uses `graveyard_level3`.
@@ -279,3 +327,106 @@ Original prompt: take a look at this git and lets clone it and start working on 
 - Added `.env` and `.env.*` to `.gitignore` (while keeping `.env.example`) so local secrets are less likely to be committed by mistake.
 - Deleted the old `dist/` and rebuilt cleanly. The new `dist/assets/` output no longer contains a `genai` chunk, and a direct text scan of `dist/` found no `GEMINI_API_KEY`, `API_KEY`, or Gemini model strings.
 - Re-ran `npm run build` and a smoke run to `output/web-game-no-gemini/` after the cleanup with no fresh error artifact.
+- Reworked the title screen in `App.tsx` so the hand-drawn start image now uses `object-contain` inside a centered framed layout instead of being forced to `cover`, which keeps the full artwork visible in-browser without awkward cropping.
+- Added working `Options` and `Credits` buttons to the title screen, using the painted button zones from the art as invisible-but-clickable hit targets so the image stays readable while the controls remain functional.
+- Added a real difficulty selector to the title-screen options modal with `Easy`, `Hard`, and `X-GOD` modes.
+- Threaded the selected difficulty through `App.tsx`, `components/UIOverlay.tsx`, `components/GameEngine.tsx`, and `types.ts`.
+- Difficulty now changes actual gameplay tuning rather than just UI copy: enemy HP, boss HP, enemy movement speed, and wave size are all scaled from the selected mode. `Easy` lightens pressure, `Hard` toughens the campaign, and `X-GOD` adds the heaviest enemy scaling.
+- Added `tests/game-start-screen.actions.json` for a no-input title-screen capture path.
+- Re-ran `npm run build`, a title-screen probe to `output/web-game-start-screen-fit/`, the normal gameplay smoke run to `output/web-game-difficulty-smoke/`, and an explicit `difficulty=X-GOD` probe to `output/web-game-xgod-mode/`.
+- Latest verification notes:
+  - `output/web-game-start-screen-fit/shot-0.png` shows the full start art fitting inside the browser with the painted button labels intact and the difficulty badge visible.
+  - `output/web-game-difficulty-smoke/state-0.json` confirms the normal run still enters combat cleanly with no fresh error artifact.
+  - `output/web-game-xgod-mode/state-0.json` shows level 1 `CHASER` enemies spawning at `9/9` HP in `X-GOD` mode versus `5/5` in the baseline smoke, which confirms the higher-difficulty scaling is active.
+- Added a fourth chapter, `THE DREAD PLANET`, as a new space-world finale with four sections: `CRATER OF TEETH`, `RIFT-CROWNED VALLEY`, `THE PLANET THAT HUNTS`, and `VOID REGENT THRONE`.
+- Created three new editable SVG background strips for level 4 under `public/doodles/space_level_1.svg`, `public/doodles/space_level_2.svg`, and `public/doodles/space_level_3.svg`. They use the same `2048x850` target as the stitched background system and include hostile terrain, alien monuments, wreckage, bones, warning panels, rifts, and foreground texture.
+- Created a new primary level 4 grunt enemy, `COSMIC_GRUNT`, using `public/doodles/cosmic_grunt_walk.svg` as a four-frame walk spritesheet. Level 4 wave plans now use Cosmic Grunts as the main enemy with ghost, dasher, floater, devil, and giant support mixed in as pressure escalates.
+- Added the `Gravity Core` power-up with `public/doodles/gravity_core.svg`. It appears in level 4, grants score, persists through shared stats, and increases X-God's attack damage once unlocked.
+- Added the level 4 boss, `VOID REGENT`, with custom walk and attack SVG spritesheets at `public/doodles/void_regent_walk.svg` and `public/doodles/void_regent_attack.svg`. The boss has high HP, fast movement, a patrol/hunt loop, a named HUD, and three dangerous attack intents: `RIFT CHARGE`, `GRAVITY BARRAGE`, and `VOID STORM`.
+- Extended campaign flow and app state from three levels to four levels across `App.tsx`, `types.ts`, `components/UIOverlay.tsx`, and `components/GameEngine.tsx`, including level selector parsing, victory copy, chapter objectives, background profile selection, score values, and automation-readable game state.
+- Re-ran `npm run build`, a level 4 combat smoke run to `output/codex-level4-combat/`, and a forced level 4 boss run to `output/codex-level4-boss/`.
+- Latest verification notes:
+  - `output/codex-level4-combat/state-0.json` confirms level 4 enters live combat with multiple `COSMIC_GRUNT` enemies plus support enemies and the Gravity Core pickup present in the level.
+  - `output/codex-level4-boss/shot-0.png` shows the `VOID REGENT` boss HUD correctly named and attacking X-God with Gravity Core enabled.
+  - Both focused Level 4 runs completed without fresh `errors-*.json` artifacts.
+- Replaced the Level 4 placeholder SVG sprites/background finale with AI-generated raster assets:
+  - `public/doodles/space_level_3_ai.png` is the new OpenAI-generated final planet/boss-arena background, normalized to the shared `2048x850` stitched-background target.
+  - `public/doodles/cosmic_grunt_walk_ai.png` is a new 4-frame PNG walk spritesheet with alpha for the Level 4 grunt.
+  - `public/doodles/void_regent_ai_sheet.png` is a new 4-frame PNG boss sheet with alpha for the Void Regent walk/attack poses.
+- Updated `components/GameEngine.tsx` so Level 4 now loads the AI PNG spritesheets instead of `cosmic_grunt_walk.svg`, `void_regent_walk.svg`, and `void_regent_attack.svg`. Frame sizes, scale values, hitboxes, and boss animation frame ranges were adjusted for the new raster sheets.
+- Updated the Level 4 final/boss section background flow so the forced boss/debug path shows the final AI arena background instead of starting at the opening crater strip.
+- Ran a transparency scan across smaller `public/` raster assets looking for opaque black corners; no obvious black-corner assets were found after the new alpha conversion pass.
+- Re-ran `npm run build`, Level 4 AI combat smoke to `output/codex-level4-ai-combat/`, and Level 4 AI boss/final-background smoke to `output/codex-level4-ai-boss-finalbg/`.
+- Latest verification notes:
+  - `output/codex-level4-ai-combat/shot-0.png` shows the new PNG Cosmic Grunts rendering in combat without rectangular black boxes.
+  - `output/codex-level4-ai-boss-finalbg/shot-0.png` shows the AI-generated final background and the PNG Void Regent boss rendering together with no fresh `errors-*.json` artifact.
+- Added an in-game developer level-jump tool to the React overlay. During gameplay, a `DEV LEVEL JUMP` panel appears near the lower-right of the game area with buttons for `L1`, `L2`, `L3`, and `L4`.
+- Jumping to a level resets into a clean testing loadout for that chapter: level 2+ starts with the Flame Sword and Dinio, level 3+ adds Ink Shield and Doghost, and level 4 adds Teleportation C while leaving the Gravity Core available to discover in-level.
+- Re-ran `npm run build` after the dev-tool pass.
+- Browser-level verification wrote screenshots to `output/codex-dev-level-jump-dom/`; `after-l4.png` confirms the `L4` button changes the overlay to Level 4 with the Dread Planet objective and expected carried power-ups.
+- Added labeled fallback SVG assets under `public/doodles/` for `fallback_player.svg`, `fallback_enemy.svg`, `fallback_boss.svg`, `fallback_object.svg`, and `fallback_powerup.svg`.
+- Wired the Phaser loader to track runtime `loaderror` events in `components/GameEngine.tsx`, log failed asset keys, and expose `failedAssets` through `window.render_game_to_text()`.
+- Added fallback resolution to the most common black-box paths: background segments, player start texture, carried sword/shield, street dressing, destructibles, spawned enemies, bosses, pickups, helper projectiles, boss projectiles, and attack tells. If a texture fails now, the game should display a labeled fallback instead of a plain black rectangle.
+- Generated and integrated a new raster `grunt_walking_ai.png` sheet for the original early-game grunt/chaser enemy. The new sheet is a `4 x 543x724` PNG with alpha, replacing the older `grunt_walking.png` load path while keeping in-game size roughly consistent via scale/body tuning.
+- Re-ran `npm run build` and focused visual checks for all four chapters:
+  - `output/codex-fallback-level1/shot-0.png` confirms the new raster Level 1 grunts render in combat.
+  - `output/codex-fallback-level2/shot-0.png`, `output/codex-fallback-level3/shot-0.png`, and `output/codex-fallback-level4/shot-0.png` show the other chapter starts without visible black-box replacements.
+  - Latest `state-0.json` outputs report `failedAssets: []` for the checked runs, and no fresh console error artifacts were produced after the fallback scope fix.
+- Fixed the level 1 X-God sword reward fit by rebuilding `public/xgod_sword_reward_fit.png` from the original uncropped `D:\UnKnownUniverseAssets\SwordOfXGOd(noBG).png` source instead of the cropped public copy.
+- Updated `components/GameEngine.tsx` so the level-end reward pickup uses `xgod_sword_reward_fit.png`, renders smaller, and has a taller interaction body with extra visual headroom. This should prevent the upright sword from feeling cut off inside its pickup area.
+- Re-ran `npm run build` and a direct browser reward probe to `output/codex-sword-reward-browser-fit/`; the state reports `failedAssets: []`.
+- Expanded the start-screen Options, Start Game, and Credits hitboxes so the full painted button panels are clickable, not just a small text-sized area.
+- Constrained the title screen art to the source image aspect ratio so the invisible click bands stay aligned with the visible buttons across browser sizes.
+- Re-ran `npm run build` and focused browser checks for the title flow:
+  - `output/codex-start-buttons-hitbox/start.png` confirms the title screen fits at `1280x720` with all painted buttons visible.
+  - `output/codex-start-buttons-hitbox/after-click.png` confirms clicking inside the expanded Start button area begins the Level 1 intro.
+  - Separate hitbox checks confirmed the expanded Options and Credits areas open their panels.
+- Added per-enemy natural-facing metadata and a shared `updateMonsterFacing()` helper so enemies always flip toward X-God instead of assuming every enemy sheet faces the same default direction.
+- Marked the raster Chaser/Grunt and Cosmic Grunt sheets as naturally left-facing, while the other enemy classes use right-facing flip logic. This fixes the obvious "advancing backward" look on the custom grunt-style sheets.
+- Reused the boss-facing helper for the generic boss branch so bosses continue to track X-God by side.
+- Re-ran `npm run build` and browser combat checks for levels 1-4:
+  - `output/codex-enemy-facing-combat/level-1.json` through `level-4.json` confirm every active monster's reported `facing` matches X-God's current left/right position during combat.
+  - Screenshots were captured in `output/codex-enemy-facing-combat/`.
+- Added an enemy class system with `MELEE`, `LONG_RANGE`, and `JUMPER` roles exposed in `render_game_to_text()`.
+- Current class assignments:
+  - `MELEE`: Chaser/Grunt, Dasher, Moonlight Terror/Devil, Giant, Cosmic Grunt, and bosses.
+  - `LONG_RANGE`: Alien and Ghost. These enemies now try to maintain distance and fire projectiles instead of relying on touch damage.
+  - `JUMPER`: Spider/Floater. This is now the first true jumper: it stages at range, flashes, jumps toward X-God, and performs a slam/butt-bomb landing.
+- Tightened damage rules so long-range enemies do not hurt X-God just by body overlap, and jumpers only apply contact damage during their slam window.
+- Enemy projectiles now respect their per-projectile damage values instead of all using the same default hit damage.
+- Re-ran `npm run build` plus browser checks in `output/codex-enemy-classes/`:
+  - `level-1-classes.json` captured melee grunts plus a spider in `JUMPING` state.
+  - `level-2-long-range.json` captured long-range aliens holding the ranged class while melee dashers stayed melee.
+
+## 2026-05-26
+
+- Added a five-character roster layer with `xgod`, `barrett`, `nico`, `ezra`, and `teleportation_c` in `characters.ts`.
+- Added the character select phase between the title screen and the level 1 intro. X God is selectable by default; the other four cards are darkened with the required `Beat the game with X God to pick your player.` copy until `localStorage["unknownUniverse.xGodClear.v1"]` is set or `unlockRoster=1` is present for testing.
+- Copied the provided card art into `public/cards/` and added repo-local v1 transparent sprite/effect assets under `public/characters/<id>/` for Barrett, Nico, Ezra, and Teleportation C.
+- Threaded `selectedCharacterId` and `characterPowerUnlocked` through shared stats, App state, UI overlay, GameEngine props, and `render_game_to_text()`.
+- Added character-aware player loading and pose switching in Phaser. Non-X-God characters use their own walk, attack, dash, jump, dazed, and dead assets; X God keeps the existing player/sword art.
+- Made the level 1 boss reward character-specific: X God still gets the Fire Sword, Barrett gets Bear Claw Gauntlets, Nico gets the Rocket Launcher, Ezra gets the Hellfire Core, and Teleportation C gets the Portal Core.
+- Added first-pass unique power behavior:
+  - Barrett: wider, stronger claw melee plus roar-style dash special.
+  - Nico: rocket projectile attack and dash-triggered rocket blast.
+  - Ezra: lava projectile plus flame-aura dash special.
+  - Teleportation C: vanish/teleport strike.
+- Disabled the separate Teleportation C companion when Teleportation C is the selected playable character to avoid duplicate-character confusion.
+- Re-ran `npm run build` successfully.
+- Ran the Develop Web Game Playwright client for the fresh character select screen at `output/codex-character-select/` and for direct Nico boot/reward checks at `output/codex-character-nico-final/`. The Nico state captured `selectedCharacter.id: "nico"`, `rewardName: "Rocket Launcher"`, `rewardUnlocked: true`, and `failedAssets: []`.
+- TODO: Replace the v1 locally generated sprite sheets with higher-fidelity GPT Image API sheets when ready; keep the same filenames under `public/characters/<id>/`.
+- TODO: Add longer combat-focused browser checks for Barrett, Ezra, and Teleportation C after the final art pass.
+
+2026-05-26 mobile playable pass started: added mobile viewport/safe-area CSS, Phaser FIT scaling, compact mobile HUD, hidden desktop workshop/panels on small screens, and a TouchControls overlay wired through window.__unknownUniverseTouchControls.
+
+2026-05-26 mobile verification: landscape phone viewport shows compact HUD and touch controls; touch right + attack moved X God and updated score/state. Fixed synthetic pointer-capture errors and added portrait-phone rotate hint.
+
+2026-05-26 character sprite pass: imported downloaded non-SVG sheets for Barrett, Ezra, and Nico; removed checker/white backgrounds, generated normalized transparent walk/attack/dash/jump/dazed/dead/reward/projectile/burst/special PNG assets, widened non-X-God attack frames to 480px for full silhouettes, and padded Teleportation C attack strip to match. Verified build plus direct Phaser boots for Barrett/Ezra/Nico with characterPower=1; all report failedAssets: [] and no console errors.
+
+2026-05-26 dev character mode tool: added desktop DEV TEST TOOLS overlay with level jump, player mode buttons for all five characters, and base/powered toggles. Updated the GameEngine remount key so changing powered/base mode reloads Phaser cleanly.
+
+2026-05-27 Teleportation C playable/card pass: generated a new raster Teleportation C trading card for character select using the built-in image generation tool, installed it at `public/cards/teleportation-c-card.png`, and verified the select screen shows the updated non-SVG-looking art. Rebuilt successfully and re-ran Teleportation C browser checks with `failedAssets: []`. Added a short depth-priority window to the playable vanish strike so Teleportation C stays readable when reappearing near enemies.
+
+2026-05-27 Nico/Ezra projectile sprite pass: added `scripts/generate_playable_projectile_sheets.py`, generated transparent 6-frame raster projectile strips at `public/characters/nico/projectile-sheet.png` and `public/characters/ezra/projectile-sheet.png`, and refreshed their single-frame `projectile.png` fallback images. Wired `components/GameEngine.tsx` to load and loop `character_projectile_anim` for Nico and Ezra shots while keeping static projectile fallback behavior for the other characters. `npm run build` passes. Browser checks in `output/codex-projectiles-nico-attackshot/` and `output/codex-projectiles-ezra-attackshot/` show live projectiles on-screen with `failedAssets: []`.
+
+2026-05-27 gameplay/art polish pass: used the built-in image generation path to create new chroma-keyed hand-drawn raster walk sheets for the active placeholder enemies (`m_alien_walk_ai.png`, `m_dasher_walk_ai.png`, and `m_giant_walk_ai.png`), processed them into transparent PNG sprite sheets, and wired Phaser to animate those instead of the old icon-style assets. Added `scripts/generate_gameplay_polish_assets.py` for project-local polish assets and a rougher Teleportation C playable sheet. Replaced remaining loaded enemy fallback SVGs for `m_devil`, `m_floater`, and `m_boss` with PNG assets. Added a small normal-combat depth boost for playable Teleportation C and light monster separation so mobs do not stack into one unreadable/double-damage pile. `npm run build` passes. Verification screenshots/state live under `output/codex-gameplay-polish-verify/`; level 2, level 3, and Teleportation C checks report `failedAssets: []`.

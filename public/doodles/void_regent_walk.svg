@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="340" viewBox="0 0 1440 340">
+  <defs>
+    <filter id="bossScratch"><feTurbulence type="fractalNoise" baseFrequency="0.032" numOctaves="3" seed="55"/><feDisplacementMap in="SourceGraphic" scale="1.6"/></filter>
+    <g id="regent" filter="url(#bossScratch)" fill="none" stroke="#111827" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M98 73c47-57 123-66 182-22 55 41 72 122 40 192-33 74-122 91-185 47-60-42-73-151-37-217Z" fill="#1b1734" stroke-width="8"/>
+      <path d="M112 118c56-38 119-42 189-12M112 192c64 29 129 28 195-2" stroke="#8b5cf6" stroke-width="6" opacity="0.62"/>
+      <path d="M130 130c29-25 62-25 91 1-31 18-61 18-91-1Z" fill="#fef9c3" stroke-width="6"/>
+      <path d="M236 130c29-24 62-24 91 0-30 19-61 19-91 0Z" fill="#fef9c3" stroke-width="6"/>
+      <path d="M171 136h5M275 136h5" stroke-width="9"/>
+      <path d="M160 219c38 18 78 18 118-1M164 233l13 13 13-13 13 13 13-13 13 13 13-13" stroke-width="6"/>
+      <path d="M101 244c-49 31-84 25-107-19M323 241c46 35 83 30 110-15" stroke-width="10"/>
+      <path d="M138 287c-17 30-36 47-58 51M261 287c20 26 40 43 61 51" stroke-width="12"/>
+      <path d="M119 72 74 18M181 44 177 3M257 55l43-41" stroke-width="7"/>
+      <path d="M90 277c84 30 169 30 254-1" stroke="#fb7185" stroke-width="7" opacity="0.62"/>
+      <path d="M199 15c20 38 33 79 40 124M119 45c52 19 103 18 154-4" stroke="#93c5fd" stroke-width="4" opacity="0.45"/>
+    </g>
+  </defs>
+  <rect width="1440" height="340" fill="none"/>
+  <g transform="translate(0 4)"><use href="#regent"/></g>
+  <g transform="translate(360 0) rotate(-1 180 170)"><use href="#regent"/></g>
+  <g transform="translate(720 4)"><use href="#regent"/></g>
+  <g transform="translate(1080 0) rotate(1 180 170)"><use href="#regent"/></g>
+</svg>

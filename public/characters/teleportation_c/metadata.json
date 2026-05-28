@@ -1,0 +1,41 @@
+{
+  "id": "teleportation_c",
+  "name": "Teleportation C",
+  "frame": {
+    "walk": [
+      256,
+      360,
+      4
+    ],
+    "attack": [
+      480,
+      360,
+      5
+    ],
+    "dash": [
+      256,
+      360,
+      4
+    ]
+  },
+  "naturalFacing": "right",
+  "scale": 0.5,
+  "body": {
+    "width": 82,
+    "height": 124,
+    "offsetX": 87,
+    "offsetY": 184
+  },
+  "attack": {
+    "frameWidth": 480,
+    "frameHeight": 360,
+    "frames": 5
+  },
+  "notes": "Playable PNG sprite pass rebuilt from the hand-drawn ally sheet so it no longer uses the vector-looking placeholder style.",
+  "buttbounce": {
+    "width": 256,
+    "height": 360,
+    "frames": 1
+  },
+  "source": "Derived from the hand-drawn level 3 Teleportation C ally spritesheet."
+}

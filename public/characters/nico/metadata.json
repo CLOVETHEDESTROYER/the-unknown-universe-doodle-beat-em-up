@@ -1,0 +1,80 @@
+{
+  "source": "C:\\Users\\analo\\Downloads\\nicoSpriteSheet.png",
+  "generatedAt": "2026-05-26",
+  "detectedPoseBoxes": [
+    [
+      109,
+      88,
+      547,
+      603
+    ],
+    [
+      656,
+      103,
+      1042,
+      607
+    ],
+    [
+      1115,
+      107,
+      1534,
+      602
+    ],
+    [
+      1610,
+      137,
+      2060,
+      602
+    ]
+  ],
+  "walk": {
+    "frameWidth": 256,
+    "frameHeight": 360,
+    "frames": 4
+  },
+  "attack": {
+    "frameWidth": 480,
+    "frameHeight": 360,
+    "frames": 5
+  },
+  "dash": {
+    "frameWidth": 256,
+    "frameHeight": 360,
+    "frames": 4
+  },
+  "naturalFacing": "right",
+  "baselineY": 334,
+  "notes": "Regenerated action pass with stronger left-foot/right-foot walk cycle, unique jump, attack, and butt-bounce assets.",
+  "id": "nico",
+  "name": "Nico",
+  "frame": {
+    "walk": [
+      256,
+      360,
+      4
+    ],
+    "attack": [
+      480,
+      360,
+      5
+    ],
+    "dash": [
+      256,
+      360,
+      4
+    ]
+  },
+  "buttbounce": {
+    "width": 256,
+    "height": 360,
+    "frames": 1
+  },
+  "projectileSheet": {
+    "file": "projectile-sheet.png",
+    "frameWidth": 192,
+    "frameHeight": 96,
+    "frames": 6,
+    "naturalFacing": "right",
+    "notes": "Animated raster projectile strip for the playable character shot."
+  }
+}

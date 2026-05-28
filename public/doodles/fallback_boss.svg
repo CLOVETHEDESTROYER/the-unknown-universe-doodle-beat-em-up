@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+  <rect width="260" height="260" rx="28" fill="#ede9fe"/>
+  <path d="M48 86l35-42 20 43 29-55 31 57 24-43 32 48-30 117H70L48 86Z" fill="#312e81" stroke="#111827" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M82 96c24-17 43-17 57 0M154 96c22-15 41-14 57 3" fill="none" stroke="#c084fc" stroke-width="8" stroke-linecap="round"/>
+  <path d="M96 154l20 18 18-18 18 18 20-18" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="132" cy="132" r="23" fill="#a855f7" stroke="#fef3c7" stroke-width="6"/>
+  <text x="130" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="27" font-weight="700" fill="#111827">BOSS</text>
+</svg>

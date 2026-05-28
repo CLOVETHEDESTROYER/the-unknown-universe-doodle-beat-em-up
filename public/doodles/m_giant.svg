@@ -1,14 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 140">
-  <g fill="none" stroke="#111111" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M24 92c-2-34 11-57 39-67 29-10 49 1 58 34 8 31 0 54-24 67-22 12-43 14-57 3-10-8-15-20-16-37Z" fill="#ffb48c"/>
-    <path d="M49 55c6-7 13-11 22-11 9 0 16 4 22 12"/>
-    <path d="M52 65h2"/>
-    <path d="M86 66h2"/>
-    <path d="M54 90c12 7 24 7 36 0"/>
-    <path d="M29 77 10 90"/>
-    <path d="M103 80 121 94"/>
-    <path d="M48 118 37 137"/>
-    <path d="M81 118 90 138"/>
-    <path d="M30 31c13-17 31-25 52-23"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
+  <filter id="scratch">
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="12"/>
+    <feDisplacementMap in="SourceGraphic" scale="1.7"/>
+  </filter>
+  <g filter="url(#scratch)" fill="none" stroke="#151515" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 85c-1-27 9-46 30-57 20-11 46-4 57 14 13 20 12 49-2 70-14 20-42 27-63 18-15-7-21-22-22-45Z" fill="#d29368" stroke-width="6"/>
+    <path d="M44 45c10-16 25-25 45-25M37 70c11-9 25-14 42-13M42 104c18 8 38 7 59-3" stroke="#7a432d" stroke-width="5" opacity="0.65"/>
+    <path d="M48 68c7-8 17-10 27-6M86 61c9-4 18-2 26 6" stroke-width="5"/>
+    <path d="M60 73h2M98 72h2" stroke-width="7"/>
+    <path d="M58 95c12 8 29 7 42-1" stroke-width="5"/>
+    <path d="M57 101l6 7 7-7 7 7 7-7 7 6" stroke-width="4"/>
+    <path d="M32 87 8 108M116 86l25 20" stroke-width="8"/>
+    <path d="M41 121 28 146M99 124l18 22" stroke-width="9"/>
+    <path d="M40 32 27 14M59 25 55 5M82 22 91 4M102 31l18-13" stroke-width="5"/>
+    <path d="M25 104c12 12 24 18 38 19M119 58c4 17 2 33-8 47" stroke="#ffd2a6" stroke-width="3" opacity="0.75"/>
+    <path d="M22 83c-9 2-15 0-18-5M126 79c8 2 14 0 18-5" stroke-width="5"/>
   </g>
 </svg>

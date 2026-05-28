@@ -1,0 +1,72 @@
+{
+  "source": "C:\\Users\\analo\\Downloads\\barrettSpriteSheet.png",
+  "generatedAt": "2026-05-26",
+  "detectedPoseBoxes": [
+    [
+      83,
+      119,
+      493,
+      607
+    ],
+    [
+      605,
+      126,
+      960,
+      607
+    ],
+    [
+      1064,
+      136,
+      1427,
+      611
+    ],
+    [
+      1536,
+      155,
+      2134,
+      606
+    ]
+  ],
+  "walk": {
+    "frameWidth": 256,
+    "frameHeight": 360,
+    "frames": 4
+  },
+  "attack": {
+    "frameWidth": 480,
+    "frameHeight": 360,
+    "frames": 5
+  },
+  "dash": {
+    "frameWidth": 256,
+    "frameHeight": 360,
+    "frames": 4
+  },
+  "naturalFacing": "right",
+  "baselineY": 334,
+  "notes": "Regenerated action pass with stronger left-foot/right-foot walk cycle, unique jump, attack, and butt-bounce assets.",
+  "id": "barrett",
+  "name": "Barrett",
+  "frame": {
+    "walk": [
+      256,
+      360,
+      4
+    ],
+    "attack": [
+      480,
+      360,
+      5
+    ],
+    "dash": [
+      256,
+      360,
+      4
+    ]
+  },
+  "buttbounce": {
+    "width": 256,
+    "height": 360,
+    "frames": 1
+  }
+}

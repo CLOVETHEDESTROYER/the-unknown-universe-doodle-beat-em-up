@@ -1,0 +1,17 @@
+{
+  "steps": [
+    { "buttons": ["left"], "frames": 80 },
+    { "buttons": [], "frames": 20 },
+    { "buttons": ["space"], "frames": 18 },
+    { "buttons": [], "frames": 28 },
+    { "buttons": ["right"], "frames": 110 },
+    { "buttons": [], "frames": 20 },
+    { "buttons": ["space"], "frames": 18 },
+    { "buttons": [], "frames": 36 },
+    { "buttons": ["down"], "frames": 70 },
+    { "buttons": ["space"], "frames": 18 },
+    { "buttons": [], "frames": 80 },
+    { "buttons": ["up"], "frames": 80 },
+    { "buttons": [], "frames": 80 }
+  ]
+}

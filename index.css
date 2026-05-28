@@ -2,7 +2,12 @@ html,
 body,
 #root {
   height: 100%;
+  min-height: 100%;
   margin: 0;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -16,4 +21,26 @@ body {
 
 canvas {
   display: block;
+}
+
+.mobile-safe-area {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.unknown-universe-game canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.phone-portrait-rotate {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 767px) {
+  .phone-portrait-rotate {
+    display: flex;
+  }
 }

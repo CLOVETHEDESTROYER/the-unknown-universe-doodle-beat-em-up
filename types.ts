@@ -1,4 +1,7 @@
 
+export type DifficultyMode = "EASY" | "HARD" | "X-GOD";
+export type CharacterId = "xgod" | "barrett" | "nico" | "ezra" | "teleportation_c";
+
 export interface GameStats {
   score: number;
   souls: number;
@@ -22,6 +25,10 @@ export interface GameStats {
   hasDoghost: boolean;
   teleportationCUnlocked: boolean;
   hasTeleportationC: boolean;
+  gravityCoreUnlocked: boolean;
+  gravityCoreCharges: number;
+  selectedCharacterId: CharacterId;
+  characterPowerUnlocked: boolean;
 }
 
 export interface DoodleIdea {

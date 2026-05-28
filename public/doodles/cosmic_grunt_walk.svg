@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220">
+  <defs>
+    <filter id="scratch"><feTurbulence type="fractalNoise" baseFrequency="0.055" numOctaves="2" seed="22"/><feDisplacementMap in="SourceGraphic" scale="1.2"/></filter>
+    <g id="grunt" filter="url(#scratch)" fill="none" stroke="#111827" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M67 51c15-19 44-22 64-5 18 15 21 44 6 67-16 24-48 29-70 11-22-18-20-51 0-73Z" fill="#274060" stroke-width="5"/>
+      <path d="M70 70c17-15 38-17 62-5M66 97c25 10 51 9 77-3" stroke="#8be9ff" stroke-width="3" opacity="0.62"/>
+      <path d="M83 76c8-8 19-8 27 0-8 7-17 7-27 0Z" fill="#fefce8" stroke-width="4"/>
+      <path d="M118 75c8-7 18-7 26 0-8 7-17 7-26 0Z" fill="#fefce8" stroke-width="4"/>
+      <path d="M96 78h2M130 78h2" stroke-width="5"/>
+      <path d="M91 107c11 6 23 6 36 0M91 115l5 5 5-5 5 5 5-5 5 5 5-5" stroke-width="3"/>
+      <path d="M63 111c-18 11-34 8-46-8M142 110c18 12 32 9 43-7" stroke-width="6"/>
+      <path class="leg-a" d="M80 132c-4 22-13 39-27 51M118 132c12 18 20 35 24 51" stroke-width="8"/>
+      <path class="leg-b" d="M87 135c11 16 22 28 34 38M109 135c-13 15-24 30-34 46" stroke-width="8"/>
+      <path d="M59 48 42 27M92 35 87 10M125 40l21-22" stroke-width="4"/>
+      <path d="M55 145c31 18 66 18 101 0" stroke="#ff7ab6" stroke-width="4" opacity="0.65"/>
+    </g>
+  </defs>
+  <rect width="720" height="220" fill="none"/>
+  <g transform="translate(0 8)">
+    <use href="#grunt"/>
+  </g>
+  <g transform="translate(180 0) rotate(-1 90 110)">
+    <use href="#grunt"/>
+    <path d="M80 140c-14 15-25 29-35 42M118 136c17 13 31 27 42 42" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="8"/>
+  </g>
+  <g transform="translate(360 8)">
+    <use href="#grunt"/>
+  </g>
+  <g transform="translate(540 0) rotate(1 90 110)">
+    <use href="#grunt"/>
+    <path d="M76 136c16 13 30 28 42 45M119 141c-14 12-25 25-34 40" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="8"/>
+  </g>
+</svg>
