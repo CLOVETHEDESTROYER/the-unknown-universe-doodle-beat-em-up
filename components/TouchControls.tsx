@@ -101,7 +101,7 @@ const TouchControls: React.FC<{ isPaused: boolean }> = ({ isPaused }) => {
   }, [isPaused]);
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="pointer-events-auto grid h-44 w-44 grid-cols-3 grid-rows-3 place-items-center rounded-full border border-white/10 bg-slate-950/16 p-1 backdrop-blur-[2px]">
         <div />
         <TouchButton control="up" label="^" compact />

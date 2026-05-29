@@ -128,6 +128,15 @@ const shouldBypassStartFlow = () => {
   return readBooleanQuery(params.get("autostart"));
 };
 
+const shouldUseLegacyDesktopControls = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return readBooleanQuery(params.get("desktopControls")) || readBooleanQuery(params.get("legacyDesktop"));
+};
+
 const getInitialDifficulty = (): DifficultyMode => {
   if (typeof window === "undefined") {
     return DEFAULT_DIFFICULTY;
@@ -207,6 +216,7 @@ const App: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isIdeatorCollapsed, setIsIdeatorCollapsed] = useState(false);
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
+  const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
 
@@ -549,15 +559,16 @@ const App: React.FC = () => {
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
             isPaused={isPaused}
+            useLegacyDesktopControls={useLegacyDesktopControls}
             onTogglePause={togglePause}
             onJumpToLevel={jumpToLevelForTesting}
             onTestCharacterMode={testCharacterMode}
           />
         )}
-        {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
+        {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
           <TouchControls isPaused={isPaused} />
         )}
-        {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
+        {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
             <div className="max-w-sm rounded-3xl border-4 border-white/70 bg-slate-900/92 p-6 shadow-2xl">
               <p className="text-4xl font-bold">Turn Sideways</p>
@@ -824,7 +835,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        <div className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 lg:block">
+        <div className={`pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 ${useLegacyDesktopControls ? "lg:block" : ""}`}>
           <div className="rounded-full border border-white/10 bg-slate-900/60 px-6 py-2 backdrop-blur">
             <p className="text-sm text-white/60 font-['Indie_Flower']">
               The Unknown Universe - V1.6 (Leaner Build)
@@ -835,13 +846,13 @@ const App: React.FC = () => {
 
       <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
-          isIdeatorCollapsed || appPhase !== "game" ? "w-0" : "hidden w-0 lg:block lg:w-80"
+          isIdeatorCollapsed || appPhase !== "game" || !useLegacyDesktopControls ? "w-0" : "hidden w-0 lg:block lg:w-80"
         }`}
       >
         <button
           onClick={() => setIsIdeatorCollapsed(!isIdeatorCollapsed)}
           className={`absolute -left-10 top-1/2 z-50 rounded-l-xl bg-slate-700 p-2 text-white shadow-lg transition-colors hover:bg-slate-600 -translate-y-1/2 ${
-            appPhase !== "game" ? "hidden" : "hidden lg:block"
+            appPhase !== "game" || !useLegacyDesktopControls ? "hidden" : "hidden lg:block"
           }`}
           title={isIdeatorCollapsed ? "Open Workshop" : "Collapse Workshop"}
         >

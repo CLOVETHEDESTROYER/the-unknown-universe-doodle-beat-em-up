@@ -7,12 +7,13 @@ interface UIOverlayProps {
   difficulty: DifficultyMode;
   selectedCharacterId: CharacterId;
   isPaused: boolean;
+  useLegacyDesktopControls?: boolean;
   onTogglePause: () => void;
   onJumpToLevel: (level: number) => void;
   onTestCharacterMode: (characterId: CharacterId, powered: boolean) => void;
 }
 
-const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharacterId, isPaused, onTogglePause, onJumpToLevel, onTestCharacterMode }) => {
+const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharacterId, isPaused, useLegacyDesktopControls = false, onTogglePause, onJumpToLevel, onTestCharacterMode }) => {
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
   const [isObjectiveCollapsed, setIsObjectiveCollapsed] = useState(false);
   const showDevTools = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("devTools") === "1";
@@ -34,7 +35,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
 
   return (
     <div className="pointer-events-none absolute left-0 top-0 flex h-full w-full items-start justify-between p-6 font-['Gochi_Hand']">
-      <div className="absolute left-0 right-0 top-0 z-30 flex items-center justify-between gap-2 bg-slate-950/58 px-3 py-2 text-white backdrop-blur-sm lg:hidden">
+      <div className={`absolute left-0 right-0 top-0 z-30 flex items-center justify-between gap-2 bg-slate-950/58 px-3 py-2 text-white backdrop-blur-sm ${useLegacyDesktopControls ? "lg:hidden" : ""}`}>
         <div className="min-w-0">
           <p className="truncate text-xl font-bold leading-5">{selectedCharacter.name}</p>
           <p className="text-sm leading-4 text-violet-100">L{stats.level} | {difficulty}</p>
@@ -128,7 +129,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
       )}
 
-      <div className="pointer-events-none absolute right-4 top-4 z-30 hidden w-full max-w-[12rem] px-2 lg:right-6 lg:top-5 lg:block">
+      <div className={`pointer-events-none absolute right-4 top-4 z-30 hidden w-full max-w-[12rem] px-2 lg:right-6 lg:top-5 ${useLegacyDesktopControls ? "lg:block" : ""}`}>
         <div className="rounded-xl border-4 border-slate-900 bg-white/90 px-3 py-2 shadow-xl backdrop-blur-sm">
           <div className="mb-1 flex items-center justify-between text-[10px] font-bold text-slate-700">
             <span className="text-xs text-red-700">{selectedCharacter.name.toUpperCase()} HEALTH</span>
@@ -145,7 +146,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
       </div>
 
-      <div className="relative hidden pointer-events-auto lg:block">
+      <div className={`relative hidden pointer-events-auto ${useLegacyDesktopControls ? "lg:block" : ""}`}>
         <button
           onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}
           className="absolute -right-4 top-12 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-800 text-white shadow-md transition-transform hover:scale-110 active:scale-95"
@@ -276,7 +277,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
       </div>
 
-      <div className="relative hidden pointer-events-auto lg:block">
+      <div className={`relative hidden pointer-events-auto ${useLegacyDesktopControls ? "lg:block" : ""}`}>
         <button
           onClick={() => setIsObjectiveCollapsed(!isObjectiveCollapsed)}
           className="absolute -left-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-800 text-white shadow-md transition-transform hover:scale-110 active:scale-95"
