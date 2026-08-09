@@ -151,6 +151,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const CHARACTER_ATTACK_FRAME_HEIGHT = 360;
   const CHARACTER_DASH_FRAME_WIDTH = 256;
   const CHARACTER_DASH_FRAME_HEIGHT = 360;
+  const XGOD_DASH_FRAME_WIDTH = 320;
+  const XGOD_DASH_FRAME_HEIGHT = 360;
   const CHARACTER_PROJECTILE_FRAME_WIDTH = 192;
   const CHARACTER_PROJECTILE_FRAME_HEIGHT = 96;
   const SMALL_ENEMY_FRAME_WIDTH = 280;
@@ -238,10 +240,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
     gunRecoverMs: 940
   };
   const FEEL = {
-    moveSpeed: 255,
+    moveSpeed: 190,
     moveResponse: 0.26,
     verticalRatio: 0.78,
-    dashMultiplier: 2.35,
+    dashMultiplier: 2.1,
     dashDuration: 170,
     dashCooldown: 560,
     attackDuration: 155,
@@ -251,7 +253,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     attackReach: 66,
     jumpVelocity: 18,
     slamVelocity: -32,
-    cameraLerp: 0.14,
+    cameraLerp: 0.075,
     hitInvulnerabilityMs: 1040,
     hitKnockback: 235,
   };
@@ -451,7 +453,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         { title: 'FURNACE 3', subtitle: 'CINDER RAMPART' },
         { title: 'BOSS ZONE', subtitle: 'THE VOID GATE' },
       ],
-      backgrounds: ['cave_level_1', 'cave_level_2', 'cave_level_3', 'cave_level_3'],
+      backgrounds: ['cave_level_full_v2', 'cave_level_full_v2'],
       wavePlans: [
         { primaryEnemy: 'DEVIL', supportEnemies: ['GIANT', 'GHOST'], baseCount: 4, staggerMs: 720, supportSlots: [1, 3], rearSlots: [3] },
         { primaryEnemy: 'DEVIL', supportEnemies: ['DASHER', 'GIANT', 'ALIEN', 'GHOST'], baseCount: 5, staggerMs: 640, supportSlots: [1, 3, 4, 5], rearSlots: [3, 5] },
@@ -499,9 +501,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       ['graveyard_level3', 'graveyard_level3.png']
     ],
     3: [
-      ['cave_level_1', 'cave_level_1.png'],
-      ['cave_level_2', 'cave_level_2.png'],
-      ['cave_level_3', 'cave_level_3.png']
+      ['cave_level_full_v2', 'cave_level_full_v2.png']
     ],
     4: [
       ['space_level_1', 'doodles/space_level_1.svg'],
@@ -757,14 +757,19 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let currentSectionIndex = 0;
     let isFightingWave = false;
     let pendingWaveSpawns = 0;
-      let lastMovementTime = 0;
+    let lastMovementTime = 0;
+    let lockedArenaCameraX: number | null = null;
+    let sectionAdvanceReadyAt = 0;
+    let sectionReleaseX = 0;
       let teleportiCooldownUntil = 0;
       let teleportHangUntil = 0;
       let playableTeleportStrikeDepthUntil = 0;
       let teleportHoldJumpZ = 0;
     let virtualTime = 0;
     let isManualStepping = false;
-    const fightSections = [800, 1600, 2400, 3200];
+    const fightSections = [840, 1700, 2560, 3360];
+    const SECTION_RELEASE_DELAY_MS = 700;
+    const SECTION_RELEASE_DISTANCE = 320;
 
     function syncPowerupStats(extra: Partial<GameStats> = {}) {
       onStatsUpdate({
@@ -1222,6 +1227,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: 221, // 887 / 4
         frameHeight: 266
       });
+      this.load.spritesheet('player_dash_xgod', 'player_dash_v2.png', {
+        frameWidth: XGOD_DASH_FRAME_WIDTH,
+        frameHeight: XGOD_DASH_FRAME_HEIGHT
+      });
       this.load.spritesheet('grunt_walking', 'grunt_walking_v2.png', {
         frameWidth: GRUNT_WALK_FRAME_WIDTH,
         frameHeight: GRUNT_WALK_FRAME_HEIGHT
@@ -1363,8 +1372,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
           });
           scene.anims.create({
             key: 'dash',
-            frames: scene.anims.generateFrameNumbers(!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash', { start: 0, end: 3 }),
-            frameRate: 15,
+            frames: scene.anims.generateFrameNumbers(
+              isXGod && scene.textures.exists('player_dash_xgod')
+                ? 'player_dash_xgod'
+                : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash'),
+              { start: 0, end: 3 }
+            ),
+            frameRate: 18,
             repeat: -1
           });
         }
@@ -4181,7 +4195,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
     function triggerSectionWave(scene: Phaser.Scene) {
       isFightingWave = true;
       pendingWaveSpawns = 0;
-      const camX = scene.cameras.main.scrollX;
+      const camera = scene.cameras.main;
+      const camX = Phaser.Math.Clamp(camera.scrollX, 0, 4096 - SCREEN_WIDTH);
+      // A section is a proper arena: freeze the viewport while the wave is
+      // active so the player cannot scroll past enemies or skip the fight.
+      lockedArenaCameraX = camX;
+      camera.stopFollow();
+      camera.setScroll(camX, 0);
       scene.physics.world.setBounds(camX, WALK_ZONE_TOP, SCREEN_WIDTH, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
       const levelCards = LEVEL_PROFILES[getLevelKey(currentLevel)].sectionCards;
       const activeCard = levelCards[Math.min(currentSectionIndex, levelCards.length - 1)];
@@ -4591,8 +4611,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
             }
           }
         } else if (isDashing) {
-          if (!isXGod && scene.textures.exists('character_dash')) player.setTexture('character_dash');
-          else player.setTexture('player_dash');
+          const dashTexture = isXGod && scene.textures.exists('player_dash_xgod')
+            ? 'player_dash_xgod'
+            : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash');
+          if (player.texture.key !== dashTexture) {
+            player.setTexture(dashTexture, 0);
+          }
           player.anims.play('dash', true);
         } else if (isAttacking || (selectedCharacterId === 'barrett' && currentTime < playerAttackVisualHoldUntil)) {
           if (!isXGod && scene.textures.exists('character_attack')) {
@@ -4724,14 +4748,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
       } else if (!playerInvulnerable) {
         player.setAlpha(1);
       }
-      if (!isFightingWave && currentSectionIndex < fightSections.length && player.x >= fightSections[currentSectionIndex]) triggerSectionWave(scene);
+      const nextSectionGate = currentSectionIndex < fightSections.length
+        ? Math.max(fightSections[currentSectionIndex], sectionReleaseX)
+        : Number.POSITIVE_INFINITY;
+      if (!isFightingWave && currentTime >= sectionAdvanceReadyAt && player.x >= nextSectionGate) {
+        triggerSectionWave(scene);
+      }
       if (isFightingWave && pendingWaveSpawns === 0 && monsters.countActive() === 0) {
         isFightingWave = false;
         currentSectionIndex++;
+        lockedArenaCameraX = null;
         scene.physics.world.setBounds(0, WALK_ZONE_TOP, 4096, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
+        scene.cameras.main.startFollow(player, true, FEEL.cameraLerp, FEEL.cameraLerp);
+        sectionAdvanceReadyAt = currentTime + SECTION_RELEASE_DELAY_MS;
+        sectionReleaseX = Math.min(4096, player.x + SECTION_RELEASE_DISTANCE);
         lastMovementTime = currentTime;
         pulseFeedbackFlash(scene, 0x22c55e, 0.1, 220);
-        showSectionCard(scene, 'PATH CLEARED', currentSectionIndex >= fightSections.length ? 'THE STREET GOES QUIET' : 'KEEP PUSHING FORWARD', 800);
+        showSectionCard(scene, 'AREA CLEARED', currentSectionIndex >= fightSections.length ? 'THE STREET GOES QUIET' : 'PATH OPEN — ADVANCE', 900);
       }
       keepMovingPrompt.setVisible(!isFightingWave && currentSectionIndex < fightSections.length && currentTime - lastMovementTime > 5000);
 
@@ -5152,6 +5185,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       // Continuous background strip scrolling
       if (backgroundStrip) {
+        if (lockedArenaCameraX !== null) {
+          scene.cameras.main.setScroll(lockedArenaCameraX, 0);
+        }
         const maxCameraScroll = Math.max(1, 4096 - SCREEN_WIDTH);
         let scrollProgress = Phaser.Math.Clamp(scene.cameras.main.scrollX / maxCameraScroll, 0, 1);
         if (currentLevel === 4 && currentSectionIndex >= fightSections.length - 1) {
