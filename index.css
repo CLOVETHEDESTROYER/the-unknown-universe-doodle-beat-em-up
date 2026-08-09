@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 html,
 body,
 #root {
@@ -35,11 +37,63 @@ canvas {
   max-height: 100%;
 }
 
+.touch-controls {
+  --touch-pad-size: 11rem;
+  --touch-compact-size: 3rem;
+  --touch-action-size: 4rem;
+  --touch-word-size: 5rem;
+  --touch-attack-width: 9rem;
+}
+
+.touch-dpad {
+  width: var(--touch-pad-size);
+  height: var(--touch-pad-size);
+}
+
+.touch-control-button.touch-control-compact {
+  width: var(--touch-compact-size);
+  height: var(--touch-compact-size);
+}
+
+.touch-control-button.touch-control-action {
+  width: var(--touch-action-size);
+  height: var(--touch-action-size);
+}
+
+.touch-control-button.touch-control-word {
+  width: var(--touch-word-size);
+}
+
+.touch-control-button.touch-control-attack {
+  width: var(--touch-attack-width);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .touch-controls {
+    --touch-pad-size: 8.5rem;
+    --touch-compact-size: 2.75rem;
+    --touch-action-size: 3.5rem;
+    --touch-word-size: 4.25rem;
+    --touch-attack-width: 8rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .touch-action-cluster {
+    gap: 0.625rem;
+  }
+
+  .touch-control-center {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
 .phone-portrait-rotate {
   display: none;
 }
 
-@media (orientation: portrait) and (max-width: 767px) {
+@media (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (any-pointer: coarse) {
   .phone-portrait-rotate {
     display: flex;
   }

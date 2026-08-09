@@ -13,14 +13,15 @@ Current campaign features:
 ## Local setup
 
 Prerequisites:
-- Node.js 20 or 22 is recommended
+- Node.js 20.19+ or 22.12+ is recommended
 
 Run the project:
 1. Install dependencies with `npm install`
 2. Start the dev server with `npm run dev`
 3. Create a production build with `npm run build`
-4. Run the gameplay smoke test with `npm run test:game`
-5. Run chapter-specific smoke tests with `npm run test:game:level2` or `npm run test:game:level3`
+4. Check TypeScript with `npm run typecheck`
+5. Run the gameplay smoke test with `npm run test:game`
+6. Run chapter-specific smoke tests with `npm run test:game:level2` or `npm run test:game:level3`
 
 ## Controls
 
@@ -32,7 +33,7 @@ Run the project:
 
 ## Notes
 
-- The hosted game is now frontend-only and does not require any API key.
+- The hosted game is frontend-only and does not require an API key.
 - PNG art assets are mirrored under `public/` so Vite builds and smoke tests include the Phaser-loaded sprites.
 - Purpose-built doodle props and enemy stand-ins now live under `public/doodles/` and are loaded directly by Phaser.
 - A production art handoff list now lives in `asset-spec.md` with the current doodle filenames plus recommended export sizes.

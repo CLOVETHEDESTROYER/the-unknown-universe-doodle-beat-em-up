@@ -572,7 +572,7 @@ const App: React.FC = () => {
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
             <div className="max-w-sm rounded-3xl border-4 border-white/70 bg-slate-900/92 p-6 shadow-2xl">
               <p className="text-4xl font-bold">Turn Sideways</p>
-              <p className="mt-3 text-2xl text-violet-100">The Unknown Universe plays best in landscape on phones.</p>
+              <p className="mt-3 text-2xl text-violet-100">Turn your device sideways for the best play experience.</p>
             </div>
           </div>
         )}
