@@ -68,6 +68,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const debugSpawnSwordReward = debugParams.get('rewardSword') === '1' || debugParams.get('rewardSword') === 'true';
   const debugAutoClaimSwordReward = debugParams.get('rewardSwordAuto') === '1' || debugParams.get('rewardSwordAuto') === 'true';
   const debugSpawnBoss = debugParams.get('boss') === '1' || debugParams.get('boss') === 'true';
+  const xGodWalkVariant = debugParams.get('xgodWalk');
+  const useXGodRigWalk = xGodWalkVariant === 'rig';
+  const useXGodBlenderWalk = xGodWalkVariant === 'blender';
+  const useXGodBlenderV3Walk = xGodWalkVariant === 'blender-v3';
+  const useXGodBlenderJump = debugParams.get('xgodJump') === 'blender-v1';
+  const useXGodBlenderDash = debugParams.get('xgodDash') === 'blender-v1';
   const MAX_LEVEL = 4;
   const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
   const isXGod = selectedCharacterId === 'xgod';
@@ -143,8 +149,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   // --- TUNING CONSTANTS ---
   const PLAYER_SCALE = 0.5;
-  const FRAME_WIDTH = 200; // 1606 / 8 ≈ 200
-  const FRAME_HEIGHT = 327;
+  const XGOD_WALK_FRAME_WIDTH = 512;
+  const XGOD_WALK_FRAME_HEIGHT = 512;
   const CHARACTER_WALK_FRAME_WIDTH = 256;
   const CHARACTER_WALK_FRAME_HEIGHT = 360;
   const CHARACTER_ATTACK_FRAME_WIDTH = 480;
@@ -1104,16 +1110,40 @@ const GameEngine: React.FC<GameEngineProps> = ({
           frameHeight: FALLBACK_FRAME_SIZE
         });
       } else {
-        this.load.spritesheet('player_walk_internal', 'player_walk_v3.png', {
-          frameWidth: FRAME_WIDTH,
-          frameHeight: FRAME_HEIGHT
+        this.load.spritesheet('player_walk_internal', 'player_walk_v5.png', {
+          frameWidth: XGOD_WALK_FRAME_WIDTH,
+          frameHeight: XGOD_WALK_FRAME_HEIGHT
         });
+        if (isXGod && useXGodRigWalk) {
+          this.load.spritesheet('player_walk_rig_test', 'player_walk_rig_v1.png', {
+            frameWidth: XGOD_WALK_FRAME_WIDTH,
+            frameHeight: XGOD_WALK_FRAME_HEIGHT
+          });
+        }
+        if (isXGod && useXGodBlenderWalk) {
+          this.load.spritesheet('player_walk_blender_test', 'player_walk_blender_v2.png', {
+            frameWidth: XGOD_WALK_FRAME_WIDTH,
+            frameHeight: XGOD_WALK_FRAME_HEIGHT
+          });
+        }
+        if (isXGod && useXGodBlenderV3Walk) {
+          this.load.spritesheet('player_walk_blender_v3_test', 'player_walk_blender_v3.png', {
+            frameWidth: XGOD_WALK_FRAME_WIDTH,
+            frameHeight: XGOD_WALK_FRAME_HEIGHT
+          });
+        }
       }
       this.load.image('player_jump', 'player_jump.png');
       this.load.spritesheet('player_jump_anim', 'player_jump_v2.png', {
         frameWidth: PLAYER_JUMP_FRAME_WIDTH,
         frameHeight: PLAYER_JUMP_FRAME_HEIGHT
       });
+      if (isXGod && useXGodBlenderJump) {
+        this.load.spritesheet('player_jump_blender_test', 'player_jump_blender_v1.png', {
+          frameWidth: XGOD_WALK_FRAME_WIDTH,
+          frameHeight: XGOD_WALK_FRAME_HEIGHT
+        });
+      }
       this.load.image('player_buttbomb', 'player_buttbomb.png');
       this.load.image('player_attack', 'player_attack.png');
       this.load.spritesheet('player_unarmed_attack', 'player_unarmed_attack_v2.png', {
@@ -1231,6 +1261,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: XGOD_DASH_FRAME_WIDTH,
         frameHeight: XGOD_DASH_FRAME_HEIGHT
       });
+      if (isXGod && useXGodBlenderDash) {
+        this.load.spritesheet('player_dash_blender_test', 'player_dash_blender_v1.png', {
+          frameWidth: XGOD_WALK_FRAME_WIDTH,
+          frameHeight: XGOD_WALK_FRAME_HEIGHT
+        });
+      }
       this.load.spritesheet('grunt_walking', 'grunt_walking_v2.png', {
         frameWidth: GRUNT_WALK_FRAME_WIDTH,
         frameHeight: GRUNT_WALK_FRAME_HEIGHT
@@ -1339,25 +1375,33 @@ const GameEngine: React.FC<GameEngineProps> = ({
       scene.physics.world.setBounds(0, WALK_ZONE_TOP, 4096, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
       scene.cameras.main.setBounds(0, 0, 4096, SCREEN_HEIGHT);
 
+      const internalWalkKey = isXGod && useXGodBlenderV3Walk && scene.textures.exists('player_walk_blender_v3_test')
+        ? 'player_walk_blender_v3_test'
+        : isXGod && useXGodBlenderWalk && scene.textures.exists('player_walk_blender_test')
+        ? 'player_walk_blender_test'
+        : isXGod && useXGodRigWalk && scene.textures.exists('player_walk_rig_test')
+          ? 'player_walk_rig_test'
+          : 'player_walk_internal';
       const animKey = !isXGod && scene.textures.exists('character_walk')
         ? 'character_walk'
         : playerSprite
           ? 'player_walk'
-          : (scene.textures.exists('player_walk_internal') ? 'player_walk_internal' : null);
+          : (scene.textures.exists(internalWalkKey) ? internalWalkKey : null);
 
       if (animKey) {
         const texture = scene.textures.get(animKey);
         const frameCount = texture.frameTotal;
-        // The source art's final unarmed-walk cell is a held landing pose, so
-        // omitting it keeps the loop clean rather than flashing a cropped edge.
-        const walkEndFrame = isXGod ? Math.min(6, frameCount - 2) : frameCount - 2;
+        // Phaser includes the spritesheet's __BASE frame in frameTotal, but that
+        // frame is not a playable animation frame. Keep the walk range inside
+        // the actual numbered frames so an eight-frame sheet loops over 0-7.
+        const walkEndFrame = frameCount - 2;
 
         // Only create animations if we actually have frames to work with
         if (frameCount > 1) {
           scene.anims.create({
             key: 'walk',
             frames: scene.anims.generateFrameNumbers(animKey, { start: 0, end: walkEndFrame }),
-            frameRate: 10,
+            frameRate: isXGod ? ((useXGodBlenderWalk || useXGodBlenderV3Walk) ? 24 : 12) : 10,
             repeat: -1
           });
           scene.anims.create({
@@ -1373,7 +1417,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
           scene.anims.create({
             key: 'dash',
             frames: scene.anims.generateFrameNumbers(
-              isXGod && scene.textures.exists('player_dash_xgod')
+              isXGod && useXGodBlenderDash && scene.textures.exists('player_dash_blender_test')
+                ? 'player_dash_blender_test'
+                : isXGod && scene.textures.exists('player_dash_xgod')
                 ? 'player_dash_xgod'
                 : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash'),
               { start: 0, end: 3 }
@@ -4569,9 +4615,19 @@ const GameEngine: React.FC<GameEngineProps> = ({
       playerBody.setVelocityY(Phaser.Math.Linear(playerBody.velocity.y, targetVelocityY, FEEL.moveResponse));
       if (!teleportHolding && (mR || mL || mU || mD)) lastMovementTime = currentTime;
 
-      const defaultWalkTexture = !isXGod && scene.textures.exists('character_walk') ? 'character_walk' : (playerSprite ? 'player_walk' : 'player_walk_internal');
+      const internalWalkTexture = isXGod && useXGodBlenderV3Walk && scene.textures.exists('player_walk_blender_v3_test')
+        ? 'player_walk_blender_v3_test'
+        : isXGod && useXGodBlenderWalk && scene.textures.exists('player_walk_blender_test')
+        ? 'player_walk_blender_test'
+        : isXGod && useXGodRigWalk && scene.textures.exists('player_walk_rig_test')
+          ? 'player_walk_rig_test'
+          : 'player_walk_internal';
+      const defaultWalkTexture = !isXGod && scene.textures.exists('character_walk') ? 'character_walk' : (playerSprite ? 'player_walk' : internalWalkTexture);
       const swordWalkAvailable = isXGod && hasFlameSword && scene.textures.exists('player_sword_walk') && scene.anims.exists('sword_walk');
-      const xGodJumpAvailable = isXGod && scene.textures.exists('player_jump_anim');
+      const xGodJumpTexture = isXGod && useXGodBlenderJump && scene.textures.exists('player_jump_blender_test')
+        ? 'player_jump_blender_test'
+        : 'player_jump_anim';
+      const xGodJumpAvailable = isXGod && scene.textures.exists(xGodJumpTexture);
       const swordJumpAvailable = isXGod && hasFlameSword && scene.textures.exists('player_sword_jump');
       const hasAnims = scene.anims.exists('walk') || scene.anims.exists('sword_walk');
       if (hasAnims && player.anims) {
@@ -4594,7 +4650,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
                     : jumpVelocity > -6 ? 3
                       : jumpVelocity > -13 ? 4
                         : 5;
-            const jumpTexture = swordJumpAvailable ? 'player_sword_jump' : 'player_jump_anim';
+            const jumpTexture = swordJumpAvailable ? 'player_sword_jump' : xGodJumpTexture;
             if (player.texture.key !== jumpTexture || String(player.frame.name) !== String(jumpFrame)) {
               player.anims.stop();
               player.setTexture(jumpTexture, jumpFrame);
@@ -4611,7 +4667,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
             }
           }
         } else if (isDashing) {
-          const dashTexture = isXGod && scene.textures.exists('player_dash_xgod')
+          const dashTexture = isXGod && useXGodBlenderDash && scene.textures.exists('player_dash_blender_test')
+            ? 'player_dash_blender_test'
+            : isXGod && scene.textures.exists('player_dash_xgod')
             ? 'player_dash_xgod'
             : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash');
           if (player.texture.key !== dashTexture) {

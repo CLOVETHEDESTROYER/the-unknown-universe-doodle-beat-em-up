@@ -13,7 +13,8 @@
     "test:game:level2": "node scripts/run_game_test.mjs --start-level 2 --start-sword --start-sword-durability 2 --iterations 1 --screenshot-dir output/web-game-level2 --port 4175",
     "test:game:level3": "node scripts/run_game_test.mjs --start-level 3 --start-sword --start-sword-durability 2 --start-shield --start-shield-ready true --iterations 1 --screenshot-dir output/web-game-level3 --port 4176",
     "test:game:boss": "node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss",
-    "test:game:boss:headed": "node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss --headless false"
+    "test:game:boss:headed": "node scripts/run_game_test.mjs --actions-file tests/game-boss.actions.json --screenshot-dir output/web-game-boss --headless false",
+    "validate:xgod-assets": "node scripts/validate_xgod_sprite_sheets.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0",

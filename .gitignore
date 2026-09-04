@@ -26,3 +26,8 @@ output
 *.njsproj
 *.sln
 *.sw?
+*.blend1
+__pycache__/
+
+# Regenerable Blender render caches; game-ready sheets live in public/.
+art/xgod-rig-v*/blender/renders/
