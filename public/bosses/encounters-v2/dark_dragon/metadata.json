@@ -1,0 +1,12 @@
+{
+  "frameSize": 640,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sourceScale": 0.55,
+  "sources": {
+    "walk": "dark_dragon_walk_v2.png",
+    "attack": "dark_dragon_attack_v2.png"
+  }
+}

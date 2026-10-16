@@ -1,8 +1,12 @@
 
+import type { PowerupLoadout } from './gameplay/powerups';
 export type DifficultyMode = "EASY" | "HARD" | "X-GOD";
 export type CharacterId = "xgod" | "barrett" | "nico" | "ezra" | "teleportation_c";
 
 export interface GameStats {
+  isDying?: boolean;
+  activeBossId?: string | null;
+  equipment?: PowerupLoadout;
   score: number;
   souls: number;
   monstersDefeated: number;

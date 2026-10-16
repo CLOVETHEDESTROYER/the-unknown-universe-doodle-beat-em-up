@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CHARACTER_CONFIGS, CHARACTER_IDS } from "../characters";
 import { CharacterId, DifficultyMode, GameStats } from "../types";
+import { CAMPAIGN_LEVELS, LEGACY_CAMPAIGN_LEVELS, FLIGHT_LEVEL, FINAL_LEVEL } from "../campaign";
 
 interface UIOverlayProps {
   stats: GameStats;
@@ -8,30 +9,37 @@ interface UIOverlayProps {
   selectedCharacterId: CharacterId;
   isPaused: boolean;
   useLegacyDesktopControls?: boolean;
+  legacyCampaign?: boolean;
   onTogglePause: () => void;
   onJumpToLevel: (level: number) => void;
   onTestCharacterMode: (characterId: CharacterId, powered: boolean) => void;
 }
 
-const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharacterId, isPaused, useLegacyDesktopControls = false, onTogglePause, onJumpToLevel, onTestCharacterMode }) => {
+const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharacterId, isPaused, useLegacyDesktopControls = false, legacyCampaign = false, onTogglePause, onJumpToLevel, onTestCharacterMode }) => {
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
   const [isObjectiveCollapsed, setIsObjectiveCollapsed] = useState(false);
   const showDevTools = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("devTools") === "1";
   const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
   const healthPercent = (stats.health / stats.maxHealth) * 100;
+  const flightMode = !legacyCampaign && stats.level === FLIGHT_LEVEL;
   const chapterName =
     stats.level === 1 ? "THE SCRATCH"
       : stats.level === 2 ? "THE GRAVEYARD"
       : stats.level === 3 ? "THE FURNACE"
+      : stats.level === 4 && !legacyCampaign ? "THE WITCHWOOD"
+      : flightMode ? "STARBREAK RUN"
       : "THE DREAD PLANET";
   const levelObjective =
     stats.level === 1
-      ? "Survive the schoolyard alley, unlock your first pals, and defeat the Ink Behemoth to awaken the first weapon power-up."
+      ? "Run the schoolyard alley, grab the first character power-up, hit the checkpoints, and reach the end gate."
       : stats.level === 2
-        ? "Carry the Flame Sword through the graveyard and defeat Killina's Daughter to unlock the Ink Shield."
+        ? "Carry your new power through the graveyard platforms, dodge the fog pits, and reach the mausoleum gate."
         : stats.level === 3
-          ? "Bring the Flame Sword and Ink Shield into the furnace district and beat the void gate."
-          : "Enter the most dangerous planet in the Unknown Universe, claim the Gravity Core, and defeat the Void Regent.";
+          ? "Climb the furnace district, jump the lava gaps, and keep your power-ups alive through the cinder route."
+          : stats.level === 4 && !legacyCampaign
+            ? "Cross the Witchwood ruins, watch Kilina's spell marks, and counter when her guard drops."
+              : flightMode ? "Arrow keys or WASD steer. Hold Space/C to fire. Leave marked attack lanes and counter armored ships when they glow gold. Defeat the Void Pursuer to reach the Dread Planet."
+            : "Run the Dread Planet route, claim the Gravity Core, and make it to the final gate.";
 
   return (
     <div className="pointer-events-none absolute left-0 top-0 flex h-full w-full items-start justify-between p-6 font-['Gochi_Hand']">
@@ -42,7 +50,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
         <div className="min-w-[8.5rem] flex-1">
           <div className="mb-1 flex justify-between text-xs">
-            <span>HEALTH</span>
+            <span>{flightMode ? "SHIP HULL" : "HEALTH"}</span>
             <span>{Math.ceil(stats.health)}/{stats.maxHealth}</span>
           </div>
           <div className="h-3 overflow-hidden rounded-full border border-white/70 bg-slate-900">
@@ -68,8 +76,8 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
       {showDevTools && (
         <div className="pointer-events-auto absolute bottom-16 right-4 z-40 hidden w-[25rem] rounded-2xl border-4 border-slate-900 bg-white/90 p-3 shadow-xl backdrop-blur-sm xl:right-6 xl:block">
           <p className="mb-2 text-center text-sm font-bold tracking-wide text-slate-700">DEV TEST TOOLS</p>
-          <div className="grid grid-cols-4 gap-2">
-            {[1, 2, 3, 4].map((level) => (
+          <div className={`grid ${legacyCampaign ? "grid-cols-4" : "grid-cols-6"} gap-2`}>
+            {(legacyCampaign ? LEGACY_CAMPAIGN_LEVELS : CAMPAIGN_LEVELS).map((level) => (
             <button
               key={level}
               type="button"
@@ -178,7 +186,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
           <div className="space-y-4">
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm font-bold text-slate-700">
-                <span>HEALTH</span>
+                <span>{flightMode ? "SHIP HULL" : "HEALTH"}</span>
                 <span>{Math.ceil(stats.health)}%</span>
               </div>
               <div className="h-5 w-full overflow-hidden rounded-full border-2 border-slate-800 bg-slate-200 p-[2px] shadow-inner">
@@ -221,13 +229,13 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
                   ? stats.hasFlameSword
                     ? `Flame Sword equipped (${stats.swordDurability}/${stats.maxSwordDurability})`
                     : "Flame Sword unlocked, but dropped. Pick it up again."
-                  : "No sword yet. Beat the level 1 boss to earn it."}
+                  : "No sword yet. Clear level 1 to earn it."}
               </p>
               {selectedCharacterId !== "xgod" && (
                 <p className="mt-2 text-base text-orange-700">
                   {stats.characterPowerUnlocked
                     ? `${selectedCharacter.rewardName} awakened. ${selectedCharacter.name}'s attacks now use their card power.`
-                    : `No ${selectedCharacter.rewardName} yet. Beat the level 1 boss to earn it.`}
+                    : `No ${selectedCharacter.rewardName} yet. Clear level 1 to earn it.`}
                 </p>
               )}
               <p className="mt-2 text-base text-sky-700">
@@ -235,7 +243,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
                   ? stats.inkShieldReady
                     ? "Ink Shield charged and ready to block one hit."
                     : "Ink Shield unlocked and recharging."
-                  : "No shield yet. Beat the level 2 boss to earn it."}
+                  : "No shield yet. Clear level 2 to earn it."}
               </p>
               <p className="mt-2 text-base text-pink-700">
                 {stats.dinioUnlocked
@@ -296,10 +304,11 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
           </div>
           <ul className="space-y-2 text-sm text-slate-700">
             <li className="font-bold text-blue-700">CONTROLS:</li>
-            <li>Arrow keys: Move</li>
-            <li>Space: Attack</li>
-            <li>Z: Jump</li>
-            <li>X: Dash</li>
+            <li>Arrow keys: Run and aim</li>
+            <li>Z or J: Jump</li>
+            <li>Space: Equipped weapon attack</li>
+            <li>{legacyCampaign ? 'C: Shoot (X God)' : 'Space / C: Use equipped power or punch'}</li>
+            <li>X or D: Dash / special</li>
             <li>F: Fullscreen</li>
             <li>5 souls: Heart kit</li>
             <li>Smash props for supplies</li>
@@ -307,7 +316,9 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
             <li>Pink orb unlocks Dinio in level 1</li>
             <li>White orb unlocks Doghost in level 2</li>
             <li>Black orb unlocks Teleportation C in level 3</li>
-            <li>Gravity Core empowers level 4 attacks</li>
+            {!legacyCampaign && <li>Defeat Kilina in the Witchwood in level 4</li>}
+            {!legacyCampaign && <li>Level 5: Arrow keys or WASD steer your ship</li>}
+            <li>Gravity Core empowers level {legacyCampaign ? 4 : FINAL_LEVEL} attacks</li>
             <li>Ink Shield blocks one hit when charged</li>
           </ul>
         </div>

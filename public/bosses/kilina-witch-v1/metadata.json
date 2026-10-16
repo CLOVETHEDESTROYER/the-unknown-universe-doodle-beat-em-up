@@ -1,0 +1,22 @@
+{
+  "character": "Kilina (original witch, not her Daughter)",
+  "frameSize": 640,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sourceScale": 0.72,
+  "displayScale": 0.68,
+  "walk": [
+    "ready",
+    "stride",
+    "passing",
+    "opposite-stride"
+  ],
+  "attack": [
+    "spell-windup",
+    "spell-release",
+    "air-step",
+    "drained-recovery"
+  ]
+}

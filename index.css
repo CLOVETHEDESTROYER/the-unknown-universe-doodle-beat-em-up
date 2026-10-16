@@ -35,6 +35,67 @@ canvas {
   max-height: 100%;
 }
 
+.touch-control {
+  touch-action: none;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .pause-dialog {
+    padding: 0.75rem;
+  }
+
+  .pause-dialog > h2 {
+    margin-bottom: 0.25rem;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .pause-dialog .pause-equipment-hint {
+    display: none;
+  }
+
+  .pause-dialog > section {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+  }
+
+  .touch-controls .touch-dpad-flight {
+    height: 8rem;
+    width: 8rem;
+    padding: 0.1rem;
+  }
+
+  .touch-dpad-flight .touch-control {
+    height: 2.5rem;
+    width: 2.5rem;
+    font-size: 1.25rem;
+  }
+
+  .touch-controls {
+    padding-right: 0.5rem;
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
+    padding-left: 0.5rem;
+  }
+
+  .touch-dpad-platformer {
+    gap: 0.15rem;
+    padding: 0.25rem;
+  }
+
+  .touch-controls .touch-dpad-platformer .touch-control {
+    height: 2.75rem;
+    width: 2.75rem;
+    font-size: 1.35rem;
+  }
+
+  .touch-actions {
+    gap: 0.35rem;
+    margin-bottom: 0;
+    transform: scale(0.82);
+    transform-origin: bottom right;
+  }
+}
+
 .phone-portrait-rotate {
   display: none;
 }

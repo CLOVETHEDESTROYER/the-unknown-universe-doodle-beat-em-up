@@ -1,0 +1,22 @@
+/** Original drawn enemies restored to the ground campaign. Distances are world pixels. */
+export type RestoredEnemyKind = 'spider' | 'ghost' | 'terror' | 'cosmic';
+export const RESTORED_ENEMIES = {
+  spider: { name:'Bramble Spider', move:'pounce', hp:3, scale:0.42, walkFrames:3, attackFrames:3,
+    fps:12, speed:72, notice:300, tellMs:500, attackMs:650, recoverMs:700, cooldownMs:1200 },
+  ghost: { name:'Red Wisp', move:'dive', hp:3, scale:0.38, walkFrames:1, attackFrames:1,
+    fps:1, speed:48, notice:370, tellMs:650, attackMs:700, recoverMs:1100, cooldownMs:1400 },
+  terror: { name:'Moonlight Terror', move:'tongue_lash', hp:6, scale:0.40, walkFrames:2, attackFrames:5,
+    fps:7, speed:52, notice:220, tellMs:750, attackMs:400, recoverMs:1000, cooldownMs:1600 },
+  cosmic: { name:'Cosmic Sentry', move:'locked_volley', hp:4, scale:0.40, walkFrames:4, attackFrames:0,
+    fps:9, speed:60, notice:560, tellMs:650, attackMs:440, recoverMs:950, cooldownMs:1700 },
+} as const;
+export const isRestoredEnemy = (kind:string):kind is RestoredEnemyKind => Object.hasOwn(RESTORED_ENEMIES,kind);
+
+/** Replace existing placements rather than increasing simultaneous enemy density. */
+export const ENEMY_REINTRODUCTIONS: Record<number, Array<[string, number, RestoredEnemyKind]>> = {
+  1:[['walker',1,'spider'],['walker',2,'spider'],['giant',0,'terror']],
+  2:[['walker',0,'ghost'],['walker',1,'spider'],['giant',0,'terror']],
+  3:[['walker',0,'spider'],['walker',1,'ghost'],['alien',0,'cosmic'],['giant',0,'terror']],
+  4:[['walker',0,'spider'],['walker',1,'ghost'],['dasher',0,'terror'],['alien',0,'cosmic']],
+  6:[['walker',0,'cosmic'],['walker',1,'ghost'],['dasher',0,'spider'],['giant',0,'terror']],
+};

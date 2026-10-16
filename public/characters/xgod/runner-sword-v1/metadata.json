@@ -1,0 +1,49 @@
+{
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "scale": 1.02,
+  "naturalFacing": "right",
+  "bodySize": [
+    96,
+    270
+  ],
+  "bodyOffset": [
+    208,
+    210
+  ],
+  "crouchBodySize": [
+    96,
+    160
+  ],
+  "crouchBodyOffset": [
+    208,
+    320
+  ],
+  "displayScale": 0.4,
+  "actions": {
+    "sword-idle": {
+      "frames": 4,
+      "fps": 6
+    },
+    "sword-run": {
+      "frames": 8,
+      "fps": 16
+    },
+    "sword-jump": {
+      "frames": 6,
+      "fps": 18
+    },
+    "sword-attack": {
+      "frames": 8,
+      "fps": 18
+    },
+    "sword-crouch": {
+      "frames": 4,
+      "fps": 18
+    }
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "displayScale": 0.4,
+  "weaponHand": "right",
+  "sourceHandSocket": "hand_left_back",
+  "swordAsset": "characters/xgod/flame-sword-upright-v1.png",
+  "swordSize": [
+    2.8,
+    5.1
+  ],
+  "airborneTransform": [
+    1.02,
+    -5,
+    43
+  ],
+  "poses": [
+    "takeoff",
+    "rise",
+    "tuck",
+    "apex",
+    "unfold",
+    "reach",
+    "land",
+    "settle"
+  ],
+  "actions": {
+    "sword-jump": {
+      "frames": 8,
+      "attachments": [
+        {
+          "grip": [
+            287.04,
+            314.07
+          ]
+        },
+        {
+          "grip": [
+            289.15,
+            313.11
+          ]
+        },
+        {
+          "grip": [
+            287.6,
+            311.42
+          ]
+        },
+        {
+          "grip": [
+            284.5,
+            311.48
+          ]
+        },
+        {
+          "grip": [
+            282.87,
+            310.04
+          ]
+        },
+        {
+          "grip": [
+            282.31,
+            309.58
+          ]
+        },
+        {
+          "grip": [
+            287.04,
+            366.38
+          ]
+        },
+        {
+          "grip": [
+            283.96,
+            329.86
+          ]
+        }
+      ]
+    },
+    "blaster-jump": {
+      "frames": 8,
+      "attachments": [
+        {
+          "grip": [
+            265.55,
+            320.52
+          ],
+          "muzzle": [
+            391.9,
+            292.86
+          ]
+        },
+        {
+          "grip": [
+            266.29,
+            320.86
+          ],
+          "muzzle": [
+            392.64,
+            293.2
+          ]
+        },
+        {
+          "grip": [
+            265.17,
+            320.36
+          ],
+          "muzzle": [
+            391.53,
+            292.7
+          ]
+        },
+        {
+          "grip": [
+            263.65,
+            319.78
+          ],
+          "muzzle": [
+            390.01,
+            292.12
+          ]
+        },
+        {
+          "grip": [
+            262.49,
+            319.41
+          ],
+          "muzzle": [
+            388.84,
+            291.75
+          ]
+        },
+        {
+          "grip": [
+            262.1,
+            319.3
+          ],
+          "muzzle": [
+            388.45,
+            291.65
+          ]
+        },
+        {
+          "grip": [
+            265.55,
+            372.83
+          ],
+          "muzzle": [
+            391.9,
+            345.17
+          ]
+        },
+        {
+          "grip": [
+            263.27,
+            338.52
+          ],
+          "muzzle": [
+            389.62,
+            310.86
+          ]
+        }
+      ]
+    }
+  }
+}

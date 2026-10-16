@@ -191,10 +191,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const MOONLIGHT_TERROR_ATTACK_FRAME_HEIGHT = 594;
   const COSMIC_GRUNT_FRAME_WIDTH = 543;
   const COSMIC_GRUNT_FRAME_HEIGHT = 724;
-  const VOID_REGENT_WALK_FRAME_WIDTH = 720;
-  const VOID_REGENT_WALK_FRAME_HEIGHT = 840;
-  const VOID_REGENT_ATTACK_FRAME_WIDTH = 700;
-  const VOID_REGENT_ATTACK_FRAME_HEIGHT = 840;
+  const VOID_REGENT_WALK_FRAME_WIDTH = 768;
+  const VOID_REGENT_WALK_FRAME_HEIGHT = 512;
+  const VOID_REGENT_ATTACK_FRAME_WIDTH = 768;
+  const VOID_REGENT_ATTACK_FRAME_HEIGHT = 512;
   const INK_BEHEMOTH_FRAME_WIDTH = 620;
   const INK_BEHEMOTH_FRAME_HEIGHT = 580;
   const XGOD_SWORD_POWERUP_FRAME_WIDTH = 420;
@@ -353,8 +353,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
   const playstyle = CHARACTER_PLAYSTYLE[selectedCharacterId];
   const VOID_REGENT = {
-    scale: 0.52,
-    attackScale: 0.55,
+    scale: 0.77,
+    attackScale: 0.77,
     attackIntervalMs: 2250,
     windupMs: 430,
     beamMs: 1150,
@@ -1136,11 +1136,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: COSMIC_GRUNT_FRAME_WIDTH,
         frameHeight: COSMIC_GRUNT_FRAME_HEIGHT
       });
-      this.load.spritesheet('void_regent_walk', 'doodles/void_regent_walk_v2.png', {
+      this.load.spritesheet('void_regent_walk', 'bosses/void_regent_walk_v3.png', {
         frameWidth: VOID_REGENT_WALK_FRAME_WIDTH,
         frameHeight: VOID_REGENT_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('void_regent_attack', 'doodles/void_regent_attack_v2.png', {
+      this.load.spritesheet('void_regent_attack', 'bosses/void_regent_attack_v3.png', {
         frameWidth: VOID_REGENT_ATTACK_FRAME_WIDTH,
         frameHeight: VOID_REGENT_ATTACK_FRAME_HEIGHT
       });
@@ -1478,7 +1478,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         scene.anims.create({
           key: 'void_regent_attack_anim',
           frames: scene.anims.generateFrameNumbers('void_regent_attack', { start: 0, end: 3 }),
-          frameRate: 8,
+          frameRate: 6,
           repeat: 0
         });
       }
@@ -3405,9 +3405,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function setVoidRegentPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'ATTACK') {
-      monster.setOrigin(0.5, 0.9);
-      monster.setSize(330, 480);
-      monster.setOffset(pose === 'ATTACK' ? 185 : 195, pose === 'ATTACK' ? 238 : 250);
+      monster.setOrigin(0.5, 1);
+      monster.setSize(230, 330);
+      monster.setOffset(240, 145);
       syncBossFacing(monster);
 
       if (pose === 'ATTACK') {
@@ -3415,7 +3415,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         if (monster.texture.key !== 'void_regent_attack') {
           monster.setTexture('void_regent_attack', 0);
         }
-        if (scene.anims.exists('void_regent_attack_anim')) {
+        if (scene.anims.exists('void_regent_attack_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'void_regent_attack_anim')) {
           monster.play('void_regent_attack_anim', true);
         }
         return;

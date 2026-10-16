@@ -1,0 +1,86 @@
+"""Pack original drawn enemies with shared scale, consistent feet, and preserved alpha."""
+from pathlib import Path
+from PIL import Image, ImageDraw
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+PUBLIC = ROOT / 'public'
+DEST = PUBLIC / 'enemies/restored-v1'
+REVIEW = ROOT / 'output/enemy-variety-v1'
+DEST.mkdir(parents=True, exist_ok=True)
+REVIEW.mkdir(parents=True, exist_ok=True)
+SOURCES = {
+    'spider': [('walk', 'spider_walk.png', 560, 578), ('attack', 'spider_attack.png', 560, 578)],
+    'ghost': [('walk', 'ghost_float.png', 521, 544), ('attack', 'ghost_float.png', 521, 544)],
+    'terror': [('walk', 'moonlight_terror_walk.png', 560, 632), ('attack', 'moonlight_terror_attack.png', 700, 594)],
+    'cosmic': [('walk', 'doodles/cosmic_grunt_walk_ai.png', 543, 724)],
+}
+HEIGHTS = {'spider': 220, 'ghost': 300, 'terror': 360, 'cosmic': 330}
+metadata = {}
+review = Image.new('RGBA', (1536, 4 * 310), '#b6c2b1')
+draw = ImageDraw.Draw(review)
+
+def main_silhouette(frame):
+    """Ignore disconnected neighboring characters left over in legacy sheet cells."""
+    mask = frame.getchannel('A').point(lambda a: 255 if a > 24 else 0)
+    pix = mask.load()
+    best = (0, None)
+    for y in range(mask.height):
+        for x in range(mask.width):
+            if not pix[x, y]: continue
+            todo = [(x, y)]; pix[x, y] = 0
+            count = 0; left = right = x; top = bottom = y
+            while todo:
+                px, py = todo.pop(); count += 1
+                left = min(left, px); right = max(right, px); top = min(top, py); bottom = max(bottom, py)
+                for nx, ny in ((px-1,py),(px+1,py),(px,py-1),(px,py+1)):
+                    if 0 <= nx < mask.width and 0 <= ny < mask.height and pix[nx,ny]:
+                        pix[nx,ny] = 0; todo.append((nx,ny))
+            if count > best[0]: best = (count, (left,top,right+1,bottom+1))
+    return frame.crop(best[1])
+
+def foot_x(frame):
+    alpha=frame.getchannel('A')
+    box=alpha.crop((0,frame.height-max(12,frame.height//8),frame.width,frame.height)).getbbox()
+    return (box[0]+box[2])/2
+
+for row, (kind, sources) in enumerate(SOURCES.items()):
+    actions = {}
+    for action, filename, width, height in sources:
+        source = Image.open(PUBLIC / filename).convert('RGBA')
+        assert source.width % width == 0 and source.height == height
+        actions[action] = [main_silhouette(source.crop((i * width, 0, (i + 1) * width, height))) for i in range(source.width // width)]
+        # The original second tongue frame has a missing vertical slice. Use the next complete pose.
+        if kind == 'terror' and action == 'attack': actions[action][1] = actions[action][2].copy()
+    bounds = [f.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox() for frames in actions.values() for f in frames]
+    shared_scale = min(HEIGHTS[kind] / max(b[3] - b[1] for b in bounds),
+        242 / max(max(foot_x(f), f.width-foot_x(f)) for frames in actions.values() for f in frames))
+    metadata[kind] = {'scale': shared_scale, 'origin': [0.5, 480 / 512], 'actions': {}}
+    review_index = 0
+    walk_bounds=[]
+    for action, frames in actions.items():
+        sheet = Image.new('RGBA', (len(frames) * 512, 512))
+        for index, frame in enumerate(frames):
+            # One character-wide scale, never stretch an attack to fill its cell.
+            box = frame.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
+            crop = frame.crop(box)
+            crop = crop.resize((round(crop.width * shared_scale), round(crop.height * shared_scale)), Image.Resampling.LANCZOS)
+            cell = Image.new('RGBA', (512, 512))
+            cell.alpha_composite(crop, (round(256-foot_x(frame)*shared_scale), 480 - crop.height))
+            assert cell.getchannel('A').getbbox()[3] == 480
+            if action=='walk':walk_bounds.append(cell.getchannel('A').getbbox())
+            sheet.alpha_composite(cell, (index * 512, 0))
+            if review_index < 6:
+                review.alpha_composite(cell.resize((256, 256), Image.Resampling.LANCZOS), (review_index * 256, row * 310))
+                draw.text((review_index * 256 + 6, row * 310 + 272), f'{kind} / {action} {index}', fill='#15251d')
+                review_index += 1
+        sheet.save(DEST / f'{kind}-{action}.png', optimize=True)
+        metadata[kind]['actions'][action] = {'frames': len(frames), 'source': str(sources[[s[0] for s in sources].index(action)][1])}
+    left=min(b[0] for b in walk_bounds);right=max(b[2] for b in walk_bounds);top=min(b[1] for b in walk_bounds)
+    body_width=(right-left)*(.5 if kind=='ghost' else .7)
+    body_top=top+(480-top)*.15
+    metadata[kind]['body']={'x':(256-body_width/2)/512,'y':body_top/512,'width':body_width/512,'height':(480-body_top)/512,'footAnchor':480/512}
+(DEST / 'metadata.json').write_text(json.dumps(metadata, indent=2))
+(ROOT / 'gameplay/restoredEnemyBodies.ts').write_text('// Generated by scripts/pack_restored_enemies_v1.py.\nexport const RESTORED_ENEMY_BODIES = '+json.dumps({kind:data['body'] for kind,data in metadata.items()},indent=2)+' as const;\n')
+review.convert('RGB').save(REVIEW / 'restored-art-review.jpg', quality=94)
+print('Packed four original enemies, preserving their drawn art and alpha.')
