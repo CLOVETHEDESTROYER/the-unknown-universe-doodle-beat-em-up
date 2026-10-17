@@ -74,6 +74,7 @@ const TouchButton: React.FC<{
     if(control==='dash')window.dispatchEvent(new Event('unknown-universe:special'));
     if(control==='jump')window.dispatchEvent(new Event('unknown-universe:jump'));
     if(control==='down')window.dispatchEvent(new Event('unknown-universe:down'));
+    if(control==='attack'||control==='shoot')window.dispatchEvent(new Event('unknown-universe:attack'));
   };
 
   const release = (event: React.PointerEvent<HTMLButtonElement>) => {

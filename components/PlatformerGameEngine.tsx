@@ -16,6 +16,7 @@ import { playSfx } from '../audio/gameAudio';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
+import { EMBER_DASH, EmberJets } from '../gameplay/emberJets';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
 import { BOSS_DEATH_BASE_FACING, BOSS_DEFEAT_DURATION, bossCounterWindow, bossDeathPose, bossDeathTexture } from '../gameplay/bossPresentation';
 
@@ -983,8 +984,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const failedAssetKeys = new Set<string>();
     let signature: SignatureSpecialRuntime | null = null;
     let mobility: AirborneMoves | null = null;
+    let emberJets: EmberJets | null = null;
     let specialQueuedAt = -9999;
     let jumpQueuedAt = -9999, downQueuedAt = -9999, downWasHeld = false;
+    let emberAttackQueuedAt = -9999;
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
@@ -1113,6 +1116,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let powerHud:Phaser.GameObjects.Text;
     let powerAura:Phaser.GameObjects.Graphics;
     let powerUses=0,powerHits=0,clearedBolts=0,lastPowerAt=-9999,emberUntil=-9999,emberDirection=1;
+    let emberRemaining=0,emberClockAt=-9999;
     const emberTargets=new Set<Phaser.Physics.Arcade.Sprite>();
     const routePowers=powerupRoute(currentLevel,level);
     const powerStations:Array<{kind:EquippedPowerup;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
@@ -1191,6 +1195,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isZGod) {
         this.load.multiatlas('zgod_double_jump', '/characters/z-god-v1/mobility-v1/double-jump.json', '/characters/z-god-v1/mobility-v1/');
         this.load.multiatlas('zgod_ground_punch', '/characters/z-god-v1/mobility-v1/ground-punch.json', '/characters/z-god-v1/mobility-v1/');
+      }
+      if(currentLevel>=3){
+        this.load.multiatlas('ember_jets','/powerups/ember-jets-v1/jets.json','/powerups/ember-jets-v1/');
+        if(useDrawnXGod)this.load.multiatlas('ember_xgod_dash','/powerups/ember-jets-v1/xgod.json','/powerups/ember-jets-v1/');
       }
       this.load.multiatlas('signature_special', `/characters/signature-specials-v1/${selectedCharacterId}.json`, '/characters/signature-specials-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
@@ -1482,6 +1490,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       placePlayerOnPlatform(checkpoint.x, getPlatformStandY(checkpoint.x) ?? checkpoint.y);
       if (isXGod && useSideScrollXGodRun) player.setTexture(playerPosePrefix()+'idle', 0);
       powerAura=scene.add.graphics().setDepth(23);
+      if(currentLevel>=3)emberJets=new EmberJets(scene,player,useDrawnXGod);
       powerHud=scene.add.text(SCREEN_WIDTH-22,72,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'18px',align:'right',color:'#fff4d6',stroke:'#19182e',strokeThickness:4})
         .setOrigin(1,0).setScrollFactor(0).setDepth(82);
       if(selectedCharacterId==='teleportation_c')teleportHud=scene.add.text(SCREEN_WIDTH-22,122,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'17px',color:'#cfb6ff',stroke:'#19182e',strokeThickness:4})
@@ -1643,7 +1652,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         player, enemies, projectiles,
         facing: () => facingDirection,
         grounded: () => isPlayerGrounded(player.body as Phaser.Physics.Arcade.Body),
-        canUse: () => !isRespawning && !isLevelClearing && !isCrouching && !mobility?.busy,
+        canUse: () => !isRespawning && !isLevelClearing && !isCrouching && !mobility?.busy && scene.time.now>=emberUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
         damage: (enemy, amount) => damageEnemy(scene, enemy, amount),
         lockMovement: until => { movementLockedUntil = Math.max(movementLockedUntil, until); },
@@ -1712,9 +1721,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
-      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); bossVulnerabilityCue?.hide(); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); bossVulnerabilityCue?.hide(); return; }
 
       const now = scene.time.now;
+      // Phaser Clock.now follows wall time; Arcade integrates smoothed delta.
+      // Keep thrust/cooldown on simulation time, including after Pause resumes.
+      if(equipment.active==='ember'&&emberClockAt>=0){
+        const gap=now-emberClockAt-delta;
+        lastAttackAt+=gap;lastPowerAt+=gap;emberClockAt=now;
+      }
+      if(emberRemaining>0){
+        const wasUntil=emberUntil;
+        emberRemaining=Math.max(0,emberRemaining-delta);emberUntil=now+emberRemaining;
+        if(movementLockedUntil===wasUntil)movementLockedUntil=emberUntil;
+      }
       updateMovingPlatforms(delta);
       updateGroundObstacles(scene,delta);
       latestSceneTime = now;
@@ -1748,7 +1768,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         attackVisualUntil = shotRecoilUntil = -9999;
         airLaunchKind = isZGod ? 'ground-punch' : 'butt-bomb';
       }
-      const wantsCrouch = !signature?.casting && !mobility?.busy && grounded && downHeld;
+      const wantsCrouch = !signature?.casting && !mobility?.busy && now>=emberUntil && grounded && downHeld;
       setCrouching(wantsCrouch, now);
 
       const moveLeft = !isAutoRun && (cursors.left.isDown || Boolean(touch.left));
@@ -1760,6 +1780,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isAutoRun) facingDirection = autoRunDirection;
       if (moveRight) facingDirection = 1;
       if (moveLeft) facingDirection = -1;
+      if(now<emberUntil)facingDirection=emberDirection;
       const requestedDirection = Math.sign(targetVelocity);
       const currentDirection = Math.sign(body.velocity.x);
       if (!isAutoRun && grounded && requestedDirection !== 0 && currentDirection !== 0
@@ -1837,7 +1858,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
 
       const keyboardAttackPressed = Phaser.Input.Keyboard.JustDown(attackKey);
-      const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot));
+      const queuedEmberAttack=equipment.active==='ember'&&performance.now()-emberAttackQueuedAt<200;
+      emberAttackQueuedAt=-9999;
+      const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot) || queuedEmberAttack);
       if (!signature?.casting && !mobility?.busy && attackPressed && !isCrouching && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
@@ -1869,8 +1892,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (platformSnapped) lastGroundedAt = now;
       updatePlayerVisual(scene, (grounded || platformSnapped) && !jumpedThisFrame, delta);
       signature?.present();
-      mobility?.present(Boolean(signature?.casting || xgodDamagePose?.active || now < attackVisualUntil),
-        Boolean(signature?.casting || xgodDamagePose?.active));
+      mobility?.present(Boolean(signature?.casting || xgodDamagePose?.active || now < attackVisualUntil || now<emberUntil),
+        Boolean(signature?.casting || xgodDamagePose?.active || now<emberUntil));
+      emberJets?.present(equipment.active==='ember'&&now<emberUntil,EMBER_DASH.duration-emberRemaining,emberDirection,
+        Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active),Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active||mobility?.read().texture));
       if (xgodDamagePose?.active) {
         xgodDamagePose.setPosition(player.x, (player.body as Phaser.Physics.Arcade.Body).bottom).setFlipX(facingDirection < 0);
       }
@@ -2306,6 +2331,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function placePlayerOnPlatform(x: number, preferredY?: number, keepHorizontalVelocity = false) {
       mobility?.cancel(true);
+      if(!keepHorizontalVelocity)stopEmber();
       jumpQueuedAt = downQueuedAt = jumpBufferedAt = -9999;
       const body = player.body as Phaser.Physics.Arcade.Body;
       // A raised platform can overlap the ground below it. Explicit stand heights
@@ -2408,6 +2434,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function applyEquipment(scene:Phaser.Scene,id:EquippedPowerup){
       const next=equipPowerup(equipment,id,currentLevel);
       if(next===equipment)return;
+      stopEmber();
       equipment=next;hasFlameSword=id==='sword';swordDurability=hasFlameSword?equipment.hits:0;
       playSfx('powerup',{pitch:id==='frost'?1.15:id==='ember'?.85:id==='storm'?1.05:1});
       if(hasFlameSword)swordUnlocked=true;
@@ -2448,8 +2475,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       lastPowerAt=lastAttackAt=now;powerUses++;
       if(equipment.active==='ember'){
         playSfx('ember');
-        emberUntil=now+260;emberDirection=facingDirection;emberTargets.clear();movementLockedUntil=emberUntil;
-        body.setMaxVelocity(650,900).setVelocityX(emberDirection*620);
+        emberRemaining=EMBER_DASH.duration;emberClockAt=now;emberUntil=now+emberRemaining;emberDirection=facingDirection;emberTargets.clear();movementLockedUntil=emberUntil;
+        body.setMaxVelocity(EMBER_DASH.speed,900).setVelocityX(emberDirection*EMBER_DASH.speed);
         return;
       }
       // A short pulse clears hostile shots; bosses still use their normal guard/opening checks.
@@ -2465,6 +2492,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const bolt=child as Phaser.Physics.Arcade.Sprite;
         if(bolt.active&&bolt.getData('enemyProjectile')&&Phaser.Math.Distance.Between(player.x,body.center.y,bolt.x,bolt.y)<=150){bolt.destroy();clearedBolts++;}
       });
+    }
+
+    function stopEmber(){
+      if(movementLockedUntil===emberUntil)movementLockedUntil=-9999;
+      emberRemaining=0;emberClockAt=-9999;emberUntil=-9999;emberTargets.clear();emberJets?.hide();
+      if(player?.active)(player.body as Phaser.Physics.Arcade.Body).setMaxVelocity(520,900);
     }
 
     function updatePowerupEffects(scene:Phaser.Scene){
@@ -2490,12 +2523,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if(now<emberUntil&&equipment.active==='ember'){
         // Physics handles solid walls and gaps. This is a fast attack, not invulnerability.
+        if(emberDirection>0?body.blocked.right:body.blocked.left){stopEmber();return;}
+        body.setVelocityX(emberDirection*EMBER_DASH.speed);
         const dash=new Phaser.Geom.Rectangle(body.x-12,body.y,body.width+24,body.height);
-        powerAura.lineStyle(9,0xffb565,.65).lineBetween(player.x-emberDirection*20,body.bottom-12,player.x-emberDirection*85,body.bottom-12);
         enemies.getChildren().forEach(child=>{
           const enemy=child as Phaser.Physics.Arcade.Sprite,target=enemy.body as Phaser.Physics.Arcade.Body;
           if(enemy.active&&!emberTargets.has(enemy)&&Phaser.Geom.Intersects.RectangleToRectangle(dash,new Phaser.Geom.Rectangle(target.x,target.y,target.width,target.height))){
-            emberTargets.add(enemy);if(damageEnemy(scene,enemy,3,true))powerHits++;
+            emberTargets.add(enemy);if(damageEnemy(scene,enemy,EMBER_DASH.damage,true))powerHits++;
           }
         });
       }
@@ -4211,8 +4245,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(signature?.invulnerable)return;
       if(mobility?.contact(enemy, canStomp(enemy))) return;
       if(selectedCharacterId==='teleportation_c'&&scene.time.now<teleport.phaseUntil)return;
-      if(scene.time.now<emberUntil&&equipment.active==='ember'&&enemy.active&&enemy.getData('kind')!=='boss'){
-        if(!emberTargets.has(enemy)){emberTargets.add(enemy);if(damageEnemy(scene,enemy,3,true))powerHits++;}
+      if(emberRemaining>0&&equipment.active==='ember'&&enemy.active&&enemy.getData('kind')!=='boss'){
+        if(!emberTargets.has(enemy)){emberTargets.add(enemy);if(damageEnemy(scene,enemy,EMBER_DASH.damage,true))powerHits++;}
         return;
       }
       if (platformSeparatesPlayerAndEnemy(enemy)) return;
@@ -4352,7 +4386,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const previousPower=equipment.active;
       equipment=hitPowerup(equipment,forceRespawn||playerHealth<=0);
       hasFlameSword=equipment.active==='sword';swordDurability=hasFlameSword?equipment.hits:0;
-      emberUntil=-9999;movementLockedUntil=-9999;attackVisualUntil=shotRecoilUntil=-9999;powerAura?.clear();
+      stopEmber();movementLockedUntil=-9999;attackVisualUntil=shotRecoilUntil=-9999;powerAura?.clear();
       if(previousPower!=='hands')showCompanionJoinNotice(scene,equipment.active==='hands'?'POWERUP LOST · FISTS READY':`${POWERUPS[equipment.active].name.toUpperCase()} · ${equipment.hits} HITS LEFT`,equipment.active==='hands'?'#ffe8b6':'#ffc3a5');
       const useXGodSideScrollPoses = isXGod && useSideScrollXGodRun;
       if (useXGodSideScrollPoses) showXGodDamagePose(scene);
@@ -4730,7 +4764,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           final:playerLives<=0,respawning:isRespawning} : null,
         weapon: { primary: equipment.active, shotsFired },
         equipment:{...equipment,name:POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
-          cooldownRemainingMs:Math.max(0,POWERUPS[equipment.active].cooldown-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil},
+          cooldownRemainingMs:Math.max(0,POWERUPS[equipment.active].cooldown-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil,
+          emberRemainingMs:Math.max(0,emberUntil-latestSceneTime),emberSpeed:EMBER_DASH.speed,emberDurationMs:EMBER_DASH.duration,emberJets:emberJets?.read()??null},
         powerStations:powerStations.map(p=>({kind:p.kind,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
         bossDefeated,
         bossAttackVisualVisible: Boolean(bossAttackVisual?.active && bossAttackVisual.visible),
@@ -4819,8 +4854,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const queueDown = () => {
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing) downQueuedAt=performance.now();
     };
+    const queueEmberAttack=()=>{
+      if(equipment.active==='ember'&&!isPausedRef.current&&!isRespawning&&!isLevelClearing)emberAttackQueuedAt=performance.now();
+    };
     window.addEventListener('unknown-universe:jump',queueJump);
     window.addEventListener('unknown-universe:down',queueDown);
+    window.addEventListener('unknown-universe:attack',queueEmberAttack);
     const handlePause=(event:KeyboardEvent)=>{
       if(event.code==='KeyX'&&!event.repeat)queueSpecial();
       if(!event.repeat && (event.code==='KeyZ'||event.code==='ArrowUp')) queueJump();
@@ -4841,6 +4880,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.removeEventListener('unknown-universe:special',queueSpecial);
       window.removeEventListener('unknown-universe:jump',queueJump);
       window.removeEventListener('unknown-universe:down',queueDown);
+      window.removeEventListener('unknown-universe:attack',queueEmberAttack);
       window.render_game_to_text = () => JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
         engine: "platformer",

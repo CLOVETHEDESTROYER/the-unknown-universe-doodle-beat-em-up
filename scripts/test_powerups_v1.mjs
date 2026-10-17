@@ -31,6 +31,7 @@ const wait=async(fn,ms=6000)=>{const end=Date.now()+ms;while(Date.now()<end){ass
 async function boot(level,extra=''){
  for(const k of ['Space','KeyC','ArrowRight','ArrowLeft','ArrowDown'])await page.keyboard.up(k);
  await page.goto(`${process.env.GAME_TEST_URL||'http://127.0.0.1:3000'}/?autostart=1&level=${level}&capture=1${extra}`);
+  await page.waitForFunction(()=>typeof window.render_game_to_text==='function',null,{timeout:60000});
  await wait(s=>s.engine==='platformer'&&s.player?.grounded);assert.deepEqual((await read()).failedAssets,[]);
 }
 const hurt=amount=>page.evaluate(n=>window.__unknownPlatformerDamagePlayer(n),amount);
