@@ -71,6 +71,7 @@ const TouchButton: React.FC<{
       // Synthetic test events do not always have an active pointer to capture.
     }
     setControl(control, true, event.pointerId);
+    if(control==='dash')window.dispatchEvent(new Event('unknown-universe:special'));
   };
 
   const release = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -104,7 +105,7 @@ const TouchButton: React.FC<{
   );
 };
 
-const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatformer?: boolean; autoRun?: boolean; canCrouch?: boolean; canShoot?: boolean; blasterEquipped?: boolean; teleportControls?:boolean; starControls?:boolean }> = ({ isPaused, flightMode = false, isPlatformer = false, autoRun = false, canCrouch = false, canShoot = false, blasterEquipped = false,teleportControls=false,starControls=false }) => {
+const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatformer?: boolean; autoRun?: boolean; canCrouch?: boolean; canShoot?: boolean; blasterEquipped?: boolean; teleportControls?:boolean; starControls?:boolean; specialName?:string }> = ({ isPaused, flightMode = false, isPlatformer = false, autoRun = false, canCrouch = false, canShoot = false, blasterEquipped = false,teleportControls=false,starControls=false,specialName }) => {
   useEffect(() => {
     resetControls();
 
@@ -140,7 +141,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       ) : isPlatformer ? (
         <div className="touch-dpad touch-dpad-platformer pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/16 p-2 backdrop-blur-[2px]">
           <TouchButton control="left" label="<" compact />
-          {starControls ? <TouchButton control="down" label="v" accessibleLabel="Crouch" compact /> : <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />}
+          {starControls || canCrouch ? <TouchButton control="down" label="v" accessibleLabel="Crouch" compact /> : <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />}
           <TouchButton control="right" label=">" compact />
         </div>
       ) : (
@@ -163,14 +164,16 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       {!flightMode && <div className="touch-actions pointer-events-auto relative mb-1 grid grid-cols-2 gap-3">
         {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{blasterEquipped ? "Space / C: shoot" : "Space / C: attack"}</span>}
         <TouchButton control="jump" label="J" className="bg-sky-700/72" />
-        {starControls ? (
+        {isPlatformer && specialName ? (
+          <TouchButton control="dash" label="SP" accessibleLabel={`Special: ${specialName}`} className="bg-violet-700/80 text-xl" />
+        ) : starControls ? (
           <TouchButton control="dash" label="STAR" accessibleLabel="Star Dash" className="bg-pink-700/80 text-sm" />
         ) : isPlatformer && canCrouch ? (
           <TouchButton control="down" label="v" accessibleLabel="Crouch" className="bg-fuchsia-700/72" />
         ) : (
           <TouchButton control="dash" label={teleportControls?'BLINK':'D'} accessibleLabel={teleportControls?'Teleport step':'Dash'} className={`bg-fuchsia-700/72 ${teleportControls?'text-sm':''}`} />
         )}
-        {isPlatformer && canShoot && <TouchButton control="shoot" label="S" accessibleLabel="Hold to shoot equipped weapon" className="bg-lime-700/82" />}
+        {isPlatformer && canShoot && !teleportControls && <TouchButton control="shoot" label="S" accessibleLabel="Hold to shoot equipped weapon" className="bg-lime-700/82" />}
         {teleportControls&&<TouchButton control="recall" label="R" accessibleLabel="Return to teleport anchor" className="bg-violet-700/72" />}
         <TouchButton control="attack" label="A" accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className={`${isPlatformer && (canShoot||teleportControls) ? "" : "col-span-2 w-36"} h-16 bg-amber-600/82 text-4xl`} />
       </div>}

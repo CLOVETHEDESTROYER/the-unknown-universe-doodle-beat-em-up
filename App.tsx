@@ -8,6 +8,7 @@ import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacte
 import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
 import { createLoadout } from './gameplay/powerups';
+import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import SoundControls from './components/SoundControls';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
@@ -703,7 +704,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={gameSuspended} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls isPaused={gameSuspended} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -882,6 +883,7 @@ const App: React.FC = () => {
                       <div className="border-t-4 border-slate-900 bg-white p-2 sm:p-3">
                         <p className="text-xl font-bold text-slate-900 sm:text-2xl">{character.name}</p>
                         <p className="text-base text-slate-600 sm:text-lg">{character.subtitle}</p>
+                        <p className="mt-1 text-sm font-bold text-amber-700">{SIGNATURE_SPECIALS[character.id].name}</p>
                         <p className="mt-1 text-base font-bold text-violet-700">{locked ? "LOCKED" : "SELECT"}</p>
                       </div>
                     </button>
