@@ -68,9 +68,9 @@ try{
         assert(opening&&opening.phase===1);evidence.protectedPhaseChange=true;
       }
       if(e.phase==='dying'){
-        assert.equal(e.visualFrame,2);assert.equal(s.projectiles.filter(p=>p.enemyProjectile).length,0);
+        assert(e.death&&e.death.frame>=0&&e.death.frame<=3);assert.equal(s.projectiles.filter(p=>p.enemyProjectile).length,0);
         assert.equal(s.flight.finaleDefeated,false);await shot('defeat');
-        const score=s.progress.score;await advance(1600);s=await read();
+        const score=s.progress.score;await advance(2400);s=await read();
         assert(s.flight.finaleDefeated);assert(!boss(s));assert.equal(s.progress.score,score);
         evidence.defeatAnimationAndCleanup=true;break;
       }
@@ -78,7 +78,7 @@ try{
     oldPhase=e.phase;await advance(80);
   }
   assert.deepEqual([...seen].sort(),['1:fan','1:sweep','2:fan','2:sweep']);
-  assert.deepEqual([...frames].sort(),[0,1,2]);assert(evidence.fullHalfHealthOpening&&evidence.protectedPhaseChange);
+  assert(frames.has(0)&&frames.has(1));assert(evidence.fullHalfHealthOpening&&evidence.protectedPhaseChange);
   s=await read();assert(s.flight.finaleDefeated);assert.equal(s.combat.kills,1);assert(s.combat.enemyShots>=13);
   evidence.patternsBothPhases=true;
   await advance(8000);s=await read();assert(['landing','disembark'].includes(s.flight.phase));await shot('cleared-approach');

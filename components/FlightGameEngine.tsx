@@ -11,6 +11,7 @@ import { PURSUER_CHECKPOINT } from '../gameplay/flightPursuer';
 import { FLIGHT_WEAPONS, FLIGHT_WEAPON_PICKUPS, weaponPickupY } from '../gameplay/flightWeapons';
 import { FLIGHT_PARALLAX, flightSpeedStreaks } from '../gameplay/flightVisuals';
 import { shipDeathPose } from '../gameplay/flightDeath';
+import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWindow } from '../gameplay/bossPresentation';
 import { playSfx } from '../audio/gameAudio';
 
 interface Props {
@@ -196,7 +197,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       hint.setText(death?.visible?'SHIP LOST'
         :boss?boss.phase==='dying'?'PURSUER DEFEATED — APPROACH CLEAR'
         :boss.phase==='transition'?'SECOND WIND — GUARD UP!'
-        :boss.phase==='recover'?'OPEN — COUNTER ON GOLD!'
+        :boss.phase==='recover'?`ATTACK! — ${Math.max(0,(pursuerCounterWindow(boss.phaseNumber??1)-boss.phaseMs)/1000).toFixed(1)}s`
         :boss.phase==='enter'?'PURSUER BLOCKING THE LANDING CORRIDOR'
         :boss.move==='sweep'?'GUARDED: SWEEP — LEAVE THE MARK!':'GUARDED: PRISM FAN — KEEP MOVING!'
         :flying&&state.clock-state.weaponChangedAt<1900?`${weapon.name.toUpperCase()}  •  ${weapon.description}`
@@ -333,12 +334,16 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           if(e.kind==='gunship')enemyLabels.set(e.id,scene.add.text(0,0,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'15px',color:'#fff1bd',stroke:'#241b39',strokeThickness:3}).setOrigin(.5).setDepth(17));
         }
         const open=(e.kind==='gunship'||e.kind==='pursuer')&&e.phase==='recover';
-        const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/1500*24:e.phase==='charge'?Math.sin(e.phaseMs/(e.phaseNumber===2?1400:1600)*Math.PI*2)*-18:Math.sin(e.age/700)*3
+        const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/BOSS_DEFEAT_DURATION*24:e.phase==='charge'?Math.sin(e.phaseMs/(e.phaseNumber===2?1400:1600)*Math.PI*2)*-18:Math.sin(e.age/700)*3
           :e.kind==='scout'?Math.cos(e.age/420)*7:e.kind==='interceptor'&&e.phase==='charge'
           ?-Phaser.Math.RadToDeg(Math.atan2(e.aimY-e.startY,e.startX-e.aimX+170)):0;
         art.setPosition(e.x,e.y).setAngle(angle).setTint(state.clock<(e.hitUntil??0)?0xffc2a1:open?0xffe2a0:0xffffff);
-        if(e.kind==='pursuer')art.setFrame(e.phase==='dying'?2:['tell','attack','charge'].includes(e.phase)?1:0)
-          .setAlpha(e.phase==='dying'?Phaser.Math.Clamp(1-(e.phaseMs-650)/850,0,1):1);
+        if(e.kind==='pursuer') {
+          const death = bossDeathPose(e.phaseMs);
+          art.setTexture(e.phase==='dying'?bossDeathTexture('pursuer'):'flight_pursuer',
+            e.phase==='dying'?String(death.frame):['tell','attack','charge'].includes(e.phase)?1:0)
+            .setAlpha(e.phase==='dying'?death.alpha:1);
+        }
         const width=e.kind==='gunship'?90:45;
         if(e.kind!=='pursuer'){
           combatArt.fillStyle(0x15172d,.9).fillRoundedRect(e.x-width/2,e.y-58,width,7,3);
@@ -438,6 +443,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         for(const kind of ['scout','interceptor','gunship'])loadGameImage(this.load, `flight_${kind}`,`flight/${kind}-v2.png`);
         loadGameImage(this.load, 'flight_rock','flight/starbreak-asteroid-v1.png');
         loadGameSheet(this.load, 'flight_pursuer','flight/void-pursuer-v3.png',{frameWidth:640,frameHeight:400,endFrame:2});
+        this.load.multiatlas(bossDeathTexture('pursuer'), '/bosses/deaths-v1/pursuer.json', '/bosses/deaths-v1/');
         loadGameImage(this.load, 'flight_witch','platformer/witchwood-panorama-generated.png');
         loadGameImage(this.load, 'flight_ascent','flight/ascent-panorama-v3.png');
         loadGameImage(this.load, 'flight_clouds','flight/cloud-parallax-v3.png');
@@ -518,7 +524,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       combat:{shotsFired:state.combat.shotsFired,hits:state.combat.hits,guardedHits:state.combat.guardedHits,rockBlocks:state.combat.rockBlocks,kills:state.combat.defeated.length,
         asteroidHits:state.combat.rockHits,asteroidsDestroyed:state.combat.rocksDestroyed,visibleDebris:[...debris.values()].reduce((n,shards)=>n+shards.length,0),
         enemyShots:state.combat.enemyShots,repairsCollected:state.combat.repairsCollected,muzzles:shipMuzzles(state),wave:state.combat.waveName},
-      enemies:state.combat.enemies.map(e=>({...e,vulnerable:e.kind!=='pursuer'||e.phase==='recover',visualFrame:e.kind==='pursuer'?e.phase==='dying'?2:['tell','attack','charge'].includes(e.phase)?1:0:0})),
+      enemies:state.combat.enemies.map(e=>({...e,vulnerable:e.kind!=='pursuer'||e.phase==='recover',
+        visualFrame:e.kind==='pursuer'?e.phase==='dying'?bossDeathPose(e.phaseMs).frame:['tell','attack','charge'].includes(e.phase)?1:0:0,
+        recoveryDurationMs:e.kind==='pursuer'?pursuerCounterWindow(e.phaseNumber??1):null,
+        death:e.kind==='pursuer'&&e.phase==='dying'?{...bossDeathPose(e.phaseMs),texture:bossDeathTexture('pursuer'),elapsedMs:e.phaseMs}:null})),
       effects:state.combat.effects.map(fx=>({...fx,progress:Math.min(1,(state.clock-fx.born)/fx.duration)})),
       projectiles:state.combat.bolts.map(b=>({...b,playerShot:b.owner==='player',enemyProjectile:b.owner==='enemy'})),repairs:state.combat.repairs});
     const unwatchViewport=watchGameViewport(game,host.current);

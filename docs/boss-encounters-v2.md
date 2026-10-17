@@ -6,11 +6,11 @@ The campaign now has five bosses with distinct movement and attack patterns, com
 
 | Level | Boss | Attacks | Second phase | HP | Recovery |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Dark Dragon | Aimed sequential fireballs, an arcing lunge, low creeping fire | Four shots instead of three; faster lunge | 32 | 1.35–1.4 s; 1.1–1.15 s in phase two |
-| 2 | Kilina's Daughter | Axe dash, aimed cannon, marked leap slam | Warned return dash, five cannon shots, low slam waves | 44 | 1.1 s; 0.85 s in phase two |
-| 3 | Cinder Colossus | Outward floor quake, bounding slam with landing waves, marked falling embers | Double quake, five ember lanes, faster bound | 48 | 1.5 s; 1.25 s in phase two |
-| 4 | Kilina | Ballistic hexes, marked rune pillars, evasive leap and low wisps | Five bolts, five rune lanes with two pulses, faster leap | 52 | 1.35–1.4 s; 1.1–1.15 s in phase two |
-| 6 | Void Regent | Marked blink then star burst, aimed star fan, shadow dash with fading echoes | Two five-star bursts; dash releases outward low waves | 56 | 1.25–1.3 s; 1–1.05 s in phase two |
+| 1 | Dark Dragon | Aimed sequential fireballs, an arcing lunge, low creeping fire | Four shots instead of three; faster lunge | 32 | 2.6–2.7 s; 2.2–2.3 s in phase two |
+| 2 | Kilina's Daughter | Axe dash, aimed cannon, marked leap slam | Warned return dash, five cannon shots, low slam waves | 44 | 2.6 s; 2.2 s in phase two |
+| 3 | Cinder Colossus | Outward floor quake, bounding slam with landing waves, marked falling embers | Double quake, five ember lanes, faster bound | 48 | 2.8 s; 2.4 s in phase two |
+| 4 | Kilina | Ballistic hexes, marked rune pillars, evasive leap and low wisps | Five bolts, five rune lanes with two pulses, faster leap | 52 | 2.6–2.7 s; 2.2–2.3 s in phase two |
+| 6 | Void Regent | Marked blink then star burst, aimed star fan, shadow dash with fading echoes | Two five-star bursts; dash releases outward low waves | 56 | 2.6–2.7 s; 2.2–2.3 s in phase two |
 
 The Dragon's oversized painted flame cone is excluded from its individual-shot animation. Its mouth and neck recoil while the actual fireballs show where damage is possible. Cinder's heavy poses, root motion, leap arc, and impact shake give the giant weight. The Regent fades out and reappears at a marked destination before firing, and leaves short-lived echoes during its dash.
 
@@ -22,8 +22,8 @@ The Dragon's oversized painted flame cone is excluded from its individual-shot a
 - Aim, rain lanes, and travel destinations lock during the warning. Faster phase-two warnings remain explicit. The second wind waits until the current recovery has fully ended.
 - Dragon lunge and Regent dash advise moving clear of the marked travel path. Low fire, quake waves, and the Regent's phase-two ground waves can be jumped. The movement hints do not promise that a ground jump clears a tall boss's entire body.
 - Cornered movement attacks choose a marked destination across the arena rather than charging in place. Arena bounds stay on solid ground. Animated lean/squash affects the artwork while the collision body stays stable and follows the actual root immediately.
-- The encounter camera holds the whole yard; it resumes player following on retreat or defeat. Retreat clears enemy projectiles for the three revised encounters; defeat clears all warnings and hostile projectiles. Kilina's retreat behavior is preserved.
-- Dragon's existing death image and sword reward remain. Cinder collapses toward the floor; the Regent dissolves into outward echoes. Boss defeat still unlocks the existing level exit.
+- The encounter camera holds the whole yard; it resumes player following on retreat or after the complete defeat sequence. Retreat clears enemy projectiles for the three revised encounters; defeat clears all warnings and hostile projectiles. Kilina's retreat behavior is preserved.
+- All bosses now have dedicated four-pose death art and a 2.35s sequence. The enemy leaves physics immediately; rewards and the existing exit unlock once the final pose/fade finishes. See [boss defeat pass](boss-defeats-v1.md) for timing, assets and current validation.
 
 ## Assets and code
 

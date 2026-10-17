@@ -7,14 +7,14 @@ Kilina's Daughter now uses a separate combat loop with committed attacks, visibl
 ## Encounter
 
 - **Spacing:** she advances when farther than 345 px and backs away inside 225 px. Her feet remain on the arena floor; a compact torso collider excludes her weapon's empty space. The arena camera holds both ends of the fight in view, then resumes following the player on retreat or defeat.
-- **Axe dash:** a 680 ms wind-up marks the committed direction. She dashes through a fixed destination, follows through, and recovers for 1.1 seconds. Jumping, using the ledges, or moving behind her creates a counterattack opportunity.
+- **Axe dash:** a 680 ms wind-up marks the committed direction. She dashes through a fixed destination, follows through, and recovers for 2.6 seconds. Jumping, using the ledges, or moving behind her creates a counterattack opportunity.
 - **Cannon burst:** a sight line shows the locked aim point, then she fires three rounds with recoil and a small backward step. The first-phase spread can be crouched under from a standing-height aim. If crowded inside 215 px she chooses a slam instead of firing backwards through her muzzle.
 - **Leap slam:** an 800 ms warning marks a 224 px landing zone, followed by a 960 ms jump. The marker stays in place when the player moves. Landing damages the ground zone and leaves a long recovery.
-- **Second wind:** below half health, she finishes the entire current recovery window, signals a guarded 950 ms transition, then uses faster attacks. Dashes can gain a return dash with a fresh 420 ms warning; bursts grow to five rounds with wider final shots; slams release two low outward waves. Recovery remains 850 ms.
+- **Second wind:** below half health, she finishes the entire current recovery window, signals a guarded 950 ms transition, then uses faster attacks. Dashes can gain a return dash with a fresh 420 ms warning; bursts grow to five rounds with wider final shots; slams release two low outward waves. Recovery lasts 2.2 seconds.
 
 ## Damage and fairness
 
-Health remains 44. Kilina blocks **all damage from every direction** while repositioning, winding up, attacking, or entering her second phase. Only the recovery after a completed attack is vulnerable: 1.1 seconds in phase one and 850 ms in phase two. A return dash must finish before its recovery opens. Sword hits, gunshots, companion attacks, and stomps all pass through the same damage gate. Blocked hits cannot spend the opening's hit cooldown, cancel an attack, or extend the window.
+Health remains 44. Kilina's Daughter blocks **all damage from every direction** while repositioning, winding up, attacking, or entering her second phase. Only the recovery after a completed attack is vulnerable: 2.6 seconds in phase one and 2.2 seconds in phase two. A return dash must finish before its recovery opens. Sword hits, gunshots, companion attacks, and stomps all pass through the same damage gate. Blocked hits cannot spend the opening's hit cooldown, cancel an attack, or extend the window.
 
 Recovery takes 1.5× damage. Successful hits have a 160 ms damage gate and do not interrupt her moves. A purple outline, blocked-impact ring, purple health bar, and GUARDED label show protection. Gold rings, a shrinking arc, a gold health bar, and an OPEN countdown show the counter opportunity. The phase transition waits until the window expires, even if a counter crosses half health. Blocked stomps still bounce safely but give no points; successful opening stomps retain their 50-point bonus.
 

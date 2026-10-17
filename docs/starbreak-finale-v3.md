@@ -16,16 +16,16 @@ Level 5 is ready in the current game: Witchwood → **Starbreak Run** → Dread 
 
 ## Void Pursuer
 
-An original silver/plum command craft with a red crystal reactor. Three generated sprite poses supply ready, attack, and wreck artwork; movement, banking, recoil, wreck drift, and timed explosions animate those poses in the runtime. This is pose-based animation rather than a full hand-drawn frame-by-frame strip.
+An original silver/plum command craft with a red crystal reactor. Existing ready/attack art now joins a dedicated four-frame hull destruction sequence. Banking, wreck drift and timed explosions support the progressively buckled, broken and blackened hull drawings. Sources and timing: [boss defeat pass](boss-defeats-v1.md).
 
 | Mechanic | Phase one | Phase two |
 | --- | --- | --- |
 | Attack warning | 1.1 seconds, aim fixed when marked | .95 seconds, fixed aim |
 | Prism fan | Three sequential aimed bolts | Five bolts across a wider fan |
 | Sweep | 1.6-second out-and-back curved charge | 1.4-second charge plus two outward wisps |
-| Gold counter opening | 2.1 seconds after each attack | 1.75 seconds |
+| Gold counter opening | 3.0 seconds after each attack | 2.6 seconds |
 
-Purple guard blocks shots throughout entry, warnings, attacks, and phase change. Only the gold recovery window accepts damage. At half health, the current full opening finishes before a protected .95-second phase change. The next attack alternates fan/sweep. Easy/Hard/X-GOD health is 28/36/44 and plasma damage is 10/14/18. Shared hit protection prevents one volley stacking multiple immediate hits. The boss awards 700 points once. Its 1.5-second defeat sequence clears hostile bolts, displays the damaged craft, drifts/falls through timed explosions, then opens the landing corridor.
+Purple guard blocks shots throughout entry, warnings, attacks, and phase change. Only the gold recovery window accepts damage. At half health, the current full opening finishes before a protected .95-second phase change. The next attack alternates fan/sweep. Easy/Hard/X-GOD health is 28/36/44 and plasma damage is 10/14/18. Shared hit protection prevents one volley stacking multiple immediate hits. The boss awards 700 points once. Its 2.35-second defeat sequence clears hostile bolts, plays four damaged/wrecked hull frames, drifts/falls through timed explosions, then opens the landing corridor.
 
 Arrow keys/WASD steer; hold **Space/C** or touch **FIRE** for twin cannons. Pause freezes the simulation. Held touch controls clear before returning to platforming.
 

@@ -1,4 +1,5 @@
 import type { CombatHost, FlightCombat, FlightEnemy, CombatEffect } from './flightCombat';
+import { BOSS_DEFEAT_DURATION, pursuerCounterWindow } from './bossPresentation';
 
 export const PURSUER_START=15400;
 export const PURSUER_CHECKPOINT=15300;
@@ -22,11 +23,11 @@ export function startPursuer(s:CombatHost,c:FlightCombat){
 export function stepPursuer(s:CombatHost,c:FlightCombat,e:FlightEnemy,ms:number,emit:Emit){
   const phaseTwo=e.phaseNumber===2;
   if(e.phase==='dying'){
-    e.x=e.startX+e.phaseMs/1500*65;e.y=e.startY+(e.phaseMs/1500)**2*80;
-    if((e.volley??0)<4&&e.phaseMs>=(e.volley??0)*350){
+    e.x=e.startX+e.phaseMs/BOSS_DEFEAT_DURATION*65;e.y=e.startY+(e.phaseMs/BOSS_DEFEAT_DURATION)**2*80;
+    if((e.volley??0)<4&&e.phaseMs>=(e.volley??0)*500){
       emit('destroy',e.x+Math.sin((e.volley??0)*2)*65,e.y-25+(e.volley??0)*15);e.volley=(e.volley??0)+1;
     }
-    if(e.phaseMs>=1500){c.finaleDefeated=true;c.waveName='APPROACH CLEAR — PREPARE TO LAND';c.waveNoticeUntil=s.clock+2500;}
+    if(e.phaseMs>=BOSS_DEFEAT_DURATION){c.finaleDefeated=true;c.waveName='APPROACH CLEAR — PREPARE TO LAND';c.waveNoticeUntil=s.clock+2500;}
     return;
   }
   if(e.phase==='enter'){
@@ -59,7 +60,7 @@ export function stepPursuer(s:CombatHost,c:FlightCombat,e:FlightEnemy,ms:number,
       c.enemyShots+=2;e.volley=1;
     }
     if(t===1){e.phase='recover';e.phaseMs=0;e.x=835;e.y=300;}
-  }else if(e.phase==='recover'&&e.phaseMs>=(phaseTwo?1750:2100)){
+  }else if(e.phase==='recover'&&e.phaseMs>=pursuerCounterWindow(e.phaseNumber??1)){
     e.attacks=(e.attacks??0)+1;
     if(!phaseTwo&&e.hp<=e.maxHp/2){e.phaseNumber=2;e.phase='transition';e.phaseMs=0;}
     else move(e,s);

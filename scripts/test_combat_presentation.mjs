@@ -120,16 +120,17 @@ try {
   assert.equal(recoil.enemies.some((enemy) => enemy.bossId === "dark_dragon"), false);
   await wait((s) => s.bossDeath.stage === "fallen");
   const fallen = await read();
-  assert.equal(fallen.bossDeath.texture, "boss_dead_dark_dragon");
+  assert.equal(fallen.bossDeath.texture, "boss_death_dark_dragon");
   assert.equal(fallen.bossDeath.visible, true);
-  assert.equal(fallen.bossDefeated, true);
-  assert.equal(fallen.pickups.filter((pickup) => pickup.kind === "power").length, 1);
+  assert.equal(fallen.bossDefeated, false, "The gate stays closed through the death sequence");
   assert.equal(fallen.projectiles.some((shot) => shot.enemyProjectile), false);
   await screenshot("dark-dragon-fallen");
   await wait((s) => s.bossDeath.stage === "finished");
   const faded = await read();
   assert.equal(faded.bossDeath.visible, false);
   assert.equal(faded.bossAttackVisualVisible, false);
+  assert.equal(faded.bossDefeated, true);
+  assert.equal(faded.pickups.filter((pickup) => pickup.kind === "power").length, 1);
   evidence.dragonDefeat = { recoil: recoil.bossDeath, fallen: fallen.bossDeath, faded: faded.bossDeath, reward: true };
 
   await page.evaluate(() => window.__unknownPlatformerCollectPickup("power"));

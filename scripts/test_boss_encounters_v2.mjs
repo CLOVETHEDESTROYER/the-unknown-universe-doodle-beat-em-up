@@ -89,10 +89,9 @@ async function observeMove(level,phase) {
       await shot(`level${level}-phase${phase}-${b.move}-attack`); captured = true;
     }
     if(b.vulnerable) {
-      const baseDuration = b.move==='low_breath'?1400 : ['fire_volley','dragon_lunge'].includes(b.move)?1350
-        : ['furnace_quake','cinder_bound','ember_rain'].includes(b.move)?1500 : ['witch_hex','witch_step'].includes(b.move)?1350
-          : b.move==='rune_bloom'?1400 : b.move==='shadow_dash'?1300:1250;
-      assert.equal(b.recoveryDurationMs,baseDuration-(phase===2?250:0),'The entire configured counter window is granted');
+      const baseDuration = ['furnace_quake','cinder_bound','ember_rain'].includes(b.move)?2800
+        : ['low_breath','rune_bloom','shadow_dash'].includes(b.move)?2700:2600;
+      assert.equal(b.recoveryDurationMs,baseDuration-(phase===2?400:0),'The entire longer counter window is granted');
       assert(b.recoveryRemainingMs>0 && b.recoveryRemainingMs<=b.recoveryDurationMs);
       assert.equal(b.y,b.floorY);
       assert(s.bossCues.statusVisible,'The counter window has a visible cue');
@@ -165,15 +164,17 @@ try {
     await counterUntil((s,b)=>!b);
     const defeated=await read();
     assert.equal(defeated.bossAttackVisualVisible,false);
-    assert.equal(defeated.bossArenaCamera.locked,false);
+    assert.equal(defeated.bossArenaCamera.locked,true,'Keep the defeat sequence in the arena view');
     assert.equal(defeated.projectiles.some(p=>p.enemyProjectile),false);
     if(level===1) {
       s=await wait(s=>s.bossDeath.stage==='fallen');
-      assert.equal(s.bossDeath.texture,'boss_dead_dark_dragon');
-      assert(s.pickups.some(p=>p.kind==='power'));
+      assert.equal(s.bossDeath.texture,'boss_death_dark_dragon');
+      assert.equal(s.bossDefeated,false,'The complete death sequence precedes gate/reward release');
       await shot('level1-dragon-fallen');
     }
     s=await wait(s=>s.bossDefeated);
+    assert.equal(s.bossArenaCamera.locked,false);
+    if(level===1) assert(s.pickups.some(p=>p.kind==='power'));
     await shot(`level${level}-victory`);
     await wait(s=>s.bossDeath.stage==='finished');
     await place(s.progress.levelEndX,level===1?480:520);

@@ -17,6 +17,7 @@ import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
+import { BOSS_DEATH_BASE_FACING, BOSS_DEFEAT_DURATION, bossCounterWindow, bossDeathPose, bossDeathTexture } from '../gameplay/bossPresentation';
 
 interface PlatformerGameEngineProps {
   initialEquipment?: PowerupLoadout;
@@ -294,18 +295,18 @@ const BOSS_DEFINITIONS: Record<BossId, {
 
 // All attacks commit their aim/destination during the warning. Durations are milliseconds.
 const BOSS_MOVES: Record<string, { tell: number; attack: number; recovery: number; hint: string }> = {
-  fire_volley: { tell: 750, attack: 1100, recovery: 1350, hint: "FIRE VOLLEY - MOVE!" },
-  dragon_lunge: { tell: 800, attack: 700, recovery: 1350, hint: "LUNGE - MOVE CLEAR!" },
-  low_breath: { tell: 850, attack: 1050, recovery: 1400, hint: "LOW FIRE - JUMP!" },
-  furnace_quake: { tell: 850, attack: 1550, recovery: 1500, hint: "QUAKE - JUMP!" },
-  cinder_bound: { tell: 950, attack: 1100, recovery: 1500, hint: "BOUND - LEAVE THE RING!" },
-  ember_rain: { tell: 1050, attack: 2100, recovery: 1500, hint: "EMBERS - LEAVE THE LANES!" },
-  blink_burst: { tell: 950, attack: 1500, recovery: 1250, hint: "BLINK - WATCH THE MARK!" },
-  star_fan: { tell: 800, attack: 1250, recovery: 1250, hint: "STAR FAN - MOVE!" },
-  shadow_dash: { tell: 850, attack: 800, recovery: 1300, hint: "SHADOW DASH - MOVE CLEAR!" },
-  witch_hex: { tell: 850, attack: 1500, recovery: 1350, hint: "HEX BOLTS - KEEP MOVING!" },
-  rune_bloom: { tell: 1050, attack: 2000, recovery: 1400, hint: "RUNES - LEAVE THE MARKS!" },
-  witch_step: { tell: 850, attack: 950, recovery: 1350, hint: "WITCH STEP - LEAVE THE RING!" }
+  fire_volley: { tell: 750, attack: 1100, recovery: 2600, hint: "FIRE VOLLEY - MOVE!" },
+  dragon_lunge: { tell: 800, attack: 700, recovery: 2600, hint: "LUNGE - MOVE CLEAR!" },
+  low_breath: { tell: 850, attack: 1050, recovery: 2700, hint: "LOW FIRE - JUMP!" },
+  furnace_quake: { tell: 850, attack: 1550, recovery: 2800, hint: "QUAKE - JUMP!" },
+  cinder_bound: { tell: 950, attack: 1100, recovery: 2800, hint: "BOUND - LEAVE THE RING!" },
+  ember_rain: { tell: 1050, attack: 2100, recovery: 2800, hint: "EMBERS - LEAVE THE LANES!" },
+  blink_burst: { tell: 950, attack: 1500, recovery: 2600, hint: "BLINK - WATCH THE MARK!" },
+  star_fan: { tell: 800, attack: 1250, recovery: 2600, hint: "STAR FAN - MOVE!" },
+  shadow_dash: { tell: 850, attack: 800, recovery: 2700, hint: "SHADOW DASH - MOVE CLEAR!" },
+  witch_hex: { tell: 850, attack: 1500, recovery: 2600, hint: "HEX BOLTS - KEEP MOVING!" },
+  rune_bloom: { tell: 1050, attack: 2000, recovery: 2700, hint: "RUNES - LEAVE THE MARKS!" },
+  witch_step: { tell: 850, attack: 950, recovery: 2600, hint: "WITCH STEP - LEAVE THE RING!" }
 };
 
 const LEVELS: Record<LevelNumber, LevelPlan> = {
@@ -1028,6 +1029,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let bossDeathVisual: Phaser.GameObjects.Sprite | null = null;
     let bossDeathStage: "none" | "recoil" | "collapse" | "fallen" | "finished" = "none";
     let bossDeathId: BossId | null = null;
+    let bossDeathStartedAt = 0;
     let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
     let attackKey: Phaser.Input.Keyboard.Key;
     let shootKey: Phaser.Input.Keyboard.Key;
@@ -1201,7 +1203,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameImage(this.load, "school_rooftop_panorama", "platformer/school-rooftop-panorama.png");
         loadGameImage(this.load, "platform_ink_hazard", "platformer/ink-hazard-generated.png");
         loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
-        loadGameImage(this.load, "boss_dead_dark_dragon", "bosses/dark-dragon-death-v3.png");
       }
       if (currentLevel === 2) {
         loadGameImage(this.load, "platform_graveyard_block", "platformer/graveyard-moss-block.png");
@@ -1296,6 +1297,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       level.enemies.filter(enemy => enemy.bossId).forEach(enemy => {
         const bossId = enemy.bossId as BossId;
         const visual = BOSS_ATTACK_VISUALS[bossId];
+        this.load.multiatlas(bossDeathTexture(bossId), `/bosses/deaths-v1/${bossId}.json`, '/bosses/deaths-v1/');
         loadGameSheet(this.load, `boss_attack_${bossId}`, visual.path, {
           frameWidth: visual.frameWidth,
           frameHeight: visual.frameHeight
@@ -3048,7 +3050,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function recoverStageBoss(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
-      const duration = BOSS_MOVES[boss.getData("move") as string].recovery - (boss.getData("phase") === 2 ? 250 : 0);
+      const duration = bossCounterWindow(Number(boss.getData('phase')), BOSS_MOVES[boss.getData("move") as string].recovery);
       placeBossAt(boss, boss.x, Number(boss.getData("floorY")));
       boss.setData("attackState", "recover").setData("stateStartedAt", scene.time.now)
         .setData("recoveryDuration", duration).setData("recoverUntil", scene.time.now + duration)
@@ -3361,8 +3363,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function recoverKilina(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
+      const duration = bossCounterWindow(Number(boss.getData('phase')));
       boss.setVelocity(0, 0).setData("attackState", "recover").setData("stateStartedAt", scene.time.now)
-        .setData("recoverUntil", scene.time.now + (boss.getData("phase") === 2 ? 850 : 1100))
+        .setData('recoveryDuration', duration).setData("recoverUntil", scene.time.now + duration)
         .setData("attacksCompleted", Number(boss.getData("attacksCompleted")) + 1);
       bossTellMarker?.setVisible(false);
       bossAttackWarning?.clear();
@@ -3381,7 +3384,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const pulse = bossVulnerabilityCue?.reducedMotion ? .8 : 0.65 + Math.sin(scene.time.now / 100) * 0.15;
       if (open) {
         // A shrinking gold arc and foot ring mark the time left to counter.
-        const duration = Number(boss.getData("recoveryDuration") ?? (boss.getData("phase") === 2 ? 850 : 1100));
+        const duration = Number(boss.getData("recoveryDuration") ?? bossCounterWindow(Number(boss.getData('phase'))));
         const fraction = Phaser.Math.Clamp((Number(boss.getData("recoverUntil")) - scene.time.now) / duration, 0, 1);
         bossGuardVisual.lineStyle(4, 0xffdc80, pulse).strokeEllipse(boss.x, boss.y - 7, 155, 29);
         bossGuardVisual.beginPath().arc(boss.x, boss.y - 132, 88, -Math.PI / 2, -Math.PI / 2 + fraction * Math.PI * 2, false).strokePath();
@@ -3662,7 +3665,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const kilinaOpen = isBossVulnerable(boss, scene.time.now);
       const pose = bossAttackVisual?.active && bossAttackVisual.visible ? bossAttackVisual : boss;
       bossVulnerabilityCue?.update(boss, pose, kilinaOpen, Number(boss.getData('recoverUntil')),
-        Number(boss.getData('recoveryDuration') ?? (phase === 2 ? 850 : 1100)), compactHud);
+        Number(boss.getData('recoveryDuration') ?? bossCounterWindow(phase)), compactHud);
       updateBossGuard(scene, boss);
       const openingSeconds = Math.max(0, Math.ceil((Number(boss.getData("recoverUntil")) - scene.time.now) / 100) / 10);
       const kilinaIntent = kilinaOpen ? `OPEN ${openingSeconds.toFixed(1)}s - ATTACK!` : state === "phase" ? "GUARDED - SECOND WIND!"
@@ -4137,16 +4140,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function playBossDefeat(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite) {
       playSfx('bossDeath');
       const bossId = enemy.getData("bossId") as BossId;
-      setBossArenaCamera(scene, null, false);
       const bossX = enemy.x;
-      const floorY = getPlatformStandY(bossX) ?? (enemy.body as Phaser.Physics.Arcade.Body).bottom;
-      const corpseFlipX = enemy.flipX;
-      const pose = bossAttackVisual?.active && bossAttackVisual.visible ? bossAttackVisual : enemy;
-      bossDeathVisual = scene.add.sprite(pose.x, pose.y, pose.texture.key, pose.frame.name)
-        .setOrigin(pose.originX, pose.originY).setScale(pose.scaleX, pose.scaleY)
-        .setFlipX(pose.flipX).setDepth(14);
+      const floorY = Number(enemy.getData('floorY'));
+      const startY = Math.min(enemy.y, floorY);
+      const facing = Number(enemy.getData('facing')) < 0 ? -1 : 1;
+      bossDeathVisual = scene.add.sprite(bossX, startY, bossDeathTexture(bossId), '0')
+        .setOrigin(.5, 600/640).setScale(BOSS_DEFINITIONS[bossId].scale)
+        .setFlipX(BOSS_DEATH_BASE_FACING[bossId] !== facing).setDepth(14);
       const death = bossDeathVisual;
       bossDeathId = bossId;
+      bossDeathStartedAt = scene.time.now;
       bossDeathStage = "recoil";
       // The attack sprite is independent of the physics enemy; both must leave combat.
       bossAttackVisual?.destroy();
@@ -4163,56 +4166,21 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       scene.tweens.killTweensOf(enemy);
       enemy.destroy();
       scene.cameras.main.shake(220, 0.009);
-      scene.tweens.add({
-        targets: death, angle: corpseFlipX ? 9 : -9, y: death.y + 12, alpha: 0.82,
-        duration: 180, ease: "Quad.out",
-        onComplete: () => {
+      // Scene-clock animation freezes with Pause. A removed physics enemy can
+      // neither hit the player nor receive another score/reward during collapse.
+      scene.tweens.addCounter({ from: 0, to: BOSS_DEFEAT_DURATION, duration: BOSS_DEFEAT_DURATION,
+        onUpdate: tween => {
           if (!death.active) return;
-          bossDeathStage = "collapse";
-          if (bossId === "dark_dragon" && scene.textures.exists("boss_dead_dark_dragon")) {
-            const scale = BOSS_DEFINITIONS[bossId].scale * 0.62;
-            death.setTexture("boss_dead_dark_dragon").setOrigin(0.5, 352 / 384).setAngle(0).setFlipX(corpseFlipX)
-              .setPosition(bossX, floorY - 24).setScale(scale * 0.95, scale * 1.05).setAlpha(1);
-            scene.tweens.add({
-              targets: death, y: floorY, angle: 0, scaleX: scale, scaleY: scale,
-              duration: 260, ease: "Bounce.out",
-              onComplete: () => {
-                bossDeathStage = "fallen";
-                finishBossDefeat(scene, bossId, bossX);
-                scene.time.delayedCall(1100, () => {
-                  if (!death.active) return;
-                  scene.tweens.add({ targets: death, alpha: 0, duration: 650, onComplete: () => {
-                    death.destroy();
-                    bossDeathVisual = null;
-                    bossDeathStage = "finished";
-                  } });
-                });
-              }
-            });
-          } else {
-            const cinder = bossId === "ink_behemoth";
-            death.setTexture(`boss_attack_${bossId}`, cinder ? 2 : 3)
-              .setOrigin(0.5, 600 / 640).setPosition(bossX, floorY);
-            if (!cinder) {
-              [-1, 1].forEach(direction => {
-                const echo = scene.add.image(death.x, death.y, death.texture.key, death.frame.name)
-                  .setOrigin(death.originX, death.originY).setScale(death.scaleX, death.scaleY)
-                  .setFlipX(death.flipX).setTint(0xc084fc).setAlpha(0.45).setDepth(13);
-                scene.tweens.add({ targets: echo, x: echo.x + direction * 90, y: echo.y - 50, alpha: 0,
-                  duration: 850, onComplete: () => echo.destroy() });
-              });
-            }
-            scene.tweens.add({ targets: death, y: cinder ? floorY : floorY - 70,
-              angle: cinder ? (corpseFlipX ? -16 : 16) : 0, scaleY: cinder ? death.scaleY * 0.35 : death.scaleY * 1.08,
-              alpha: 0, duration: cinder ? 850 : 1000, ease: cinder ? "Quad.in" : "Sine.in", onComplete: () => {
-              death.destroy();
-              bossDeathVisual = null;
-              bossDeathStage = "finished";
-              finishBossDefeat(scene, bossId, bossX);
-            } });
-          }
-        }
-      });
+          const elapsed = tween.getValue() ?? 0, pose = bossDeathPose(elapsed);
+          bossDeathStage = pose.stage;
+          death.setFrame(String(pose.frame)).setAlpha(pose.alpha)
+            .setY(Phaser.Math.Linear(startY, floorY, Math.min(1, elapsed/540)));
+        },
+        onComplete: () => {
+          death.destroy(); bossDeathVisual = null; bossDeathStage = 'finished';
+          setBossArenaCamera(scene, null, false);
+          finishBossDefeat(scene, bossId, bossX);
+        } });
     }
 
     function finishBossDefeat(scene: Phaser.Scene, bossId: BossId, x: number) {
@@ -4671,7 +4639,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           recoveryRemainingMs: enemy.getData("kind") === "boss" && isBossVulnerable(enemy, latestSceneTime)
             ? Math.max(0, Math.round(Number(enemy.getData("recoverUntil")) - latestSceneTime)) : 0,
           recoveryDurationMs: enemy.getData("kind") === "boss"
-            ? Number(enemy.getData("recoveryDuration") ?? (enemy.getData("phase") === 2 ? 850 : 1100)) : null,
+            ? Number(enemy.getData("recoveryDuration") ?? bossCounterWindow(Number(enemy.getData('phase')))) : null,
           guardedHits: enemy.getData("guardedHits") ?? null,
           openingHits: enemy.getData("openingHits") ?? null,
           attacksCompleted: enemy.getData("attacksCompleted") ?? null,
@@ -4766,7 +4734,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         powerStations:powerStations.map(p=>({kind:p.kind,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
         bossDefeated,
         bossAttackVisualVisible: Boolean(bossAttackVisual?.active && bossAttackVisual.visible),
-        bossDeath: { bossId: bossDeathId, stage: bossDeathStage, visible: Boolean(bossDeathVisual?.active && bossDeathVisual.visible), texture: bossDeathVisual?.active ? bossDeathVisual.texture.key : null },
+        bossDeath: { bossId: bossDeathId, stage: bossDeathStage, visible: Boolean(bossDeathVisual?.active && bossDeathVisual.visible), texture: bossDeathVisual?.active ? bossDeathVisual.texture.key : null,
+          frame: bossDeathVisual?.active ? Number(bossDeathVisual.frame.name) : null, elapsedMs: bossDeathId ? Math.max(0, latestSceneTime-bossDeathStartedAt) : 0 },
       attack: {
           ...attackDebug,
           resolution:attackResolution,
