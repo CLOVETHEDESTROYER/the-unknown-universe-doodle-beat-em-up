@@ -959,3 +959,12 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Required develop-web-game client also passes against production preview with mobile quality; state reports player movement, two shots, no failed assets; screenshot shows rendered scene.
 - Browser plugin skill absent; used project Playwright, existing installed Chromium and WebKit-2272 (explicit executable path). All temporary tests/screenshots/traces are outside repo under C:/Users/analo/.codex/visualizations/2026/10/17/01a147b3-d038-7751-8247-0888464bd24c.
 - Existing local character/art changes were preserved. No commit/push/deployment performed for this follow-up fix. TODO: publish reviewed changes and retest on the actual iPad/iPhones; desktop WebKit/device emulation cannot reproduce iOS memory termination limits.
+
+## 2026-10-16 - Enlarge mobile landscape gameplay
+
+- User confirms iPhone now loads gameplay but the landscape playfield is too small. Interpreted 'white screen mode' as wide-screen mode from context.
+- Found phone CSS reserving 52px above and 88px below gameplay. Removed these landscape gutters so the 16:9 canvas uses the full available height; compact 36px phone HUD and existing touch controls overlay the scene. Portrait tablet spacing and fixed 1024x576 render resolution remain.
+- iPhone 13 profile measured 359x202 before versus 608x342 after (69.3% larger in each dimension). No cropping of the scene.
+- npm run build and git diff --check pass. Browser plugin skill unavailable; used installed Playwright Chromium/WebKit. Checks cover iPhone 13/15, 844x290 browser-bar viewport, iPad portrait/landscape and desktop, including touch right+jump/landing/attack, control bounds, phone rotation, correct page title, visible scene, no app error overlay and no browser errors. WebKit rotation uses the exact swapped emulated viewport dimensions; arbitrary alternate dimensions did not produce the expected rotate overlay in the test harness.
+- Required develop-web-game smoke client passes; screenshots inspected for phone landscape, WebKit and game client. Artifacts: C:/Users/analo/.codex/visualizations/2026/10/17/01a147b3-d038-7751-8247-0888464bd24c/landscape-*.
+- Follow-up uses the user's existing authorization to push the mobile fix. Actual iPhone Safari chrome/safe-area behavior remains a physical-device confirmation step after the update deploys.

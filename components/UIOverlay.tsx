@@ -43,7 +43,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
 
   return (
     <div className="pointer-events-none absolute left-0 top-0 flex h-full w-full items-start justify-between p-6 font-['Gochi_Hand']">
-      <div className={`absolute left-0 right-0 top-0 z-30 flex items-center justify-between gap-2 bg-slate-950/58 px-3 py-2 text-white backdrop-blur-sm ${useLegacyDesktopControls ? "lg:hidden" : ""}`}>
+      <div className={`game-hud absolute left-0 right-0 top-0 z-30 flex items-center justify-between gap-2 bg-slate-950/58 px-3 py-2 text-white backdrop-blur-sm ${useLegacyDesktopControls ? "lg:hidden" : ""}`}>
         <div className="min-w-0">
           <p className="truncate text-xl font-bold leading-5">{selectedCharacter.name}</p>
           <p className="text-sm leading-4 text-violet-100">L{stats.level} | {difficulty}</p>

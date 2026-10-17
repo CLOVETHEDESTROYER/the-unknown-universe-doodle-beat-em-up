@@ -22,9 +22,10 @@ but the actual device crash cause has not been confirmed.
 - Two downloads at a time and direct image-element loading limit simultaneous
   image processing. Rendering stays at the fixed logical game resolution.
 - Restored enemy art loads only for enemy types present in the current stage.
-- The mobile playfield reserves space above for the HUD and below for touch
-  controls. Browser toolbar height changes and orientation changes refresh the
-  fitted viewport. iPhone safe area padding remains enabled.
+- Portrait tablet layouts reserve space above for the HUD and below for touch
+  controls. Landscape layouts use the full available height with overlaid controls
+  and a compact phone HUD. Browser toolbar height changes and orientation changes
+  refresh the fitted viewport. iPhone safe area padding remains enabled.
 - Portrait phones suspend gameplay behind the existing rotate prompt. Returning
   from another tab/app leaves the game paused. Pointer capture loss releases
   touch buttons. A lost WebGL context displays a reload control when the browser
@@ -61,6 +62,17 @@ phone/tablet profiles, plus desktop startup. Screenshots and allocation traces
 are stored outside the repository. The build passes; the full TypeScript check
 still reports pre-existing errors in the legacy engine, platformer and mobile
 configuration. Real iPad/iPhone confirmation remains necessary after publishing.
+
+## Landscape layout follow-up
+
+The landscape follow-up removes the 52px top / 88px bottom phone gutters, which
+previously left just 202px of a 342px-high viewport for gameplay. The same iPhone
+13 browser profile now displays a 608x342 playfield instead of 359x202. The full
+16:9 scene remains visible without cropping, and the canvas stays at 1024x576.
+Chromium and WebKit checks cover iPhone 13/15 landscape, a shorter viewport with
+browser bars, portrait-to-landscape rotation, iPad orientations and desktop.
+Touch movement, jump, landing and attack remain functional; controls stay inside
+the viewport. Actual-device browser chrome behavior still needs user confirmation.
 
 ## Rebuild mobile atlases
 

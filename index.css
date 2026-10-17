@@ -21,13 +21,20 @@ body {
   min-height: 0;
 }
 
-/* Keep the playfield clear of the HUD and thumbs on phones and tablets. */
+/* Portrait tablets keep dedicated space for the HUD and touch controls. */
 .game-app-shell[data-mobile="true"] .unknown-universe-game {
   position: absolute;
   inset: 56px 0 104px;
   width: auto;
   height: auto;
   min-height: 0;
+}
+
+/* Landscape is height-limited: overlay controls instead of shrinking the game. */
+@media (orientation: landscape) {
+  .game-app-shell[data-mobile="true"] .unknown-universe-game {
+    inset: 0;
+  }
 }
 
 .game-app-shell[data-mobile="true"] button {
@@ -42,10 +49,6 @@ body {
 }
 
 @media (max-height: 430px) and (orientation: landscape) {
-  .game-app-shell[data-mobile="true"] .unknown-universe-game {
-    inset: 52px 0 88px;
-  }
-
   .game-app-shell[data-mobile="true"] .touch-actions {
     gap: 0.2rem;
     transform: none;
@@ -99,6 +102,39 @@ canvas {
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
+  .game-app-shell[data-mobile="true"] .game-hud {
+    height: 36px;
+    padding: 2px 8px;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:first-child p:first-child {
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:first-child p:last-child {
+    font-size: 11px;
+    line-height: 12px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(2) > div:first-child {
+    margin-bottom: 2px;
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(2) > div:last-child {
+    height: 8px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > button {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
   .pause-dialog {
     padding: 0.75rem;
   }
