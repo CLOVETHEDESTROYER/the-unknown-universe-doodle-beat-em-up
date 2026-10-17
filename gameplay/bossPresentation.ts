@@ -3,7 +3,7 @@ export const BOSS_COUNTER_BASE_MS = 2600;
 export function bossCounterWindow(phase: number, base = BOSS_COUNTER_BASE_MS) {
   return base - (phase === 2 ? 400 : 0);
 }
-export function pursuerCounterWindow(phase: number) { return phase === 2 ? 2600 : 3000; }
+export function pursuerCounterWindow(phase: number) { return phase >= 2 ? 2600 : 3000; }
 
 export const BOSS_DEFEAT_DURATION = 2350;
 export const BOSS_DEATH_BASE_FACING = {

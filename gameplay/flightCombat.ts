@@ -1,5 +1,6 @@
 import type { DifficultyMode } from '../types';
 import { PURSUER_ID, PURSUER_START, startPursuer, stepPursuer } from './flightPursuer';
+import type { PursuerMove } from './flightPursuer';
 import { FLIGHT_WEAPONS } from './flightWeapons';
 import type { FlightWeaponId } from './flightWeapons';
 
@@ -8,7 +9,8 @@ type EnemyPhase='enter'|'weave'|'tell'|'charge'|'recover'|'exit'|'attack'|'trans
 export interface FlightEnemy {
   id:string;kind:EnemyKind;x:number;y:number;baseY:number;hp:number;maxHp:number;age:number;
   phase:EnemyPhase;phaseMs:number;aimX:number;aimY:number;startX:number;startY:number;
-  move?:'fan'|'sweep';phaseNumber?:number;attacks?:number;volley?:number;
+  move?:PursuerMove;phaseNumber?:number;attacks?:number;volley?:number;
+  attackIndex?:number;launchY?:number;targetY?:number;safeY?:number;tellDurationMs?:number;
   hitUntil?:number;
 }
 export interface FlightBolt {id:number;owner:'player'|'enemy';x:number;y:number;vx:number;vy:number;expires:number;damage:number;

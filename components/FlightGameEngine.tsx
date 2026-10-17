@@ -7,7 +7,7 @@ import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
 import type { CharacterId, DifficultyMode, GameStats } from '../types';
 import { createFlight, damageShip, FLIGHT_BEACONS, FLIGHT_END, rockX, rockY, stepFlight } from '../gameplay/flight';
 import { resetCombat, shipMuzzles } from '../gameplay/flightCombat';
-import { PURSUER_CHECKPOINT } from '../gameplay/flightPursuer';
+import { PURSUER_CHECKPOINT, PURSUER_PHASE_NAMES, pursuerAttackHint, pursuerSweepPoint } from '../gameplay/flightPursuer';
 import { FLIGHT_WEAPONS, FLIGHT_WEAPON_PICKUPS, weaponPickupY } from '../gameplay/flightWeapons';
 import { FLIGHT_PARALLAX, flightSpeedStreaks } from '../gameplay/flightVisuals';
 import { shipDeathPose } from '../gameplay/flightDeath';
@@ -183,7 +183,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         const open=boss.phase==='recover';
         bossBar.fillStyle(0x19182e,.9).fillRoundedRect(312,76,386,22,5);
         bossBar.fillStyle(open?0xffd673:0x9f7acc,1).fillRoundedRect(315,79,380*Math.max(0,boss.hp/boss.maxHp),16,3);
-        bossLabel.setText(`${Math.max(0,Math.ceil(boss.hp))} / ${boss.maxHp}  •  PHASE ${boss.phaseNumber??1}`);
+        bossLabel.setText(`${Math.max(0,Math.ceil(boss.hp))} / ${boss.maxHp}  •  PHASE ${boss.phaseNumber??1} / 3`);
       }
       steeringLabel.setText(`${state.lives} SHIPS  •  SPACE / C: FIRE`);
       const weapon=FLIGHT_WEAPONS[state.combat.weapon];
@@ -196,10 +196,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       else weaponLabel.setFontSize(18).setY(135);
       hint.setText(death?.visible?'SHIP LOST'
         :boss?boss.phase==='dying'?'PURSUER DEFEATED — APPROACH CLEAR'
-        :boss.phase==='transition'?'SECOND WIND — GUARD UP!'
+        :boss.phase==='transition'?`${PURSUER_PHASE_NAMES[(boss.phaseNumber??1)-1]} — GUARD UP!`
         :boss.phase==='recover'?`ATTACK! — ${Math.max(0,(pursuerCounterWindow(boss.phaseNumber??1)-boss.phaseMs)/1000).toFixed(1)}s`
         :boss.phase==='enter'?'PURSUER BLOCKING THE LANDING CORRIDOR'
-        :boss.move==='sweep'?'GUARDED: SWEEP — LEAVE THE MARK!':'GUARDED: PRISM FAN — KEEP MOVING!'
+        :pursuerAttackHint(boss)
         :flying&&state.clock-state.weaponChangedAt<1900?`${weapon.name.toUpperCase()}  •  ${weapon.description}`
         :state.phase==='boarding'?`${hero.name} — boarding for the Dread Planet`
         :state.phase==='launch'?'LIFT OFF!  Arrow keys / WASD: steer'
@@ -334,7 +334,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           if(e.kind==='gunship')enemyLabels.set(e.id,scene.add.text(0,0,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'15px',color:'#fff1bd',stroke:'#241b39',strokeThickness:3}).setOrigin(.5).setDepth(17));
         }
         const open=(e.kind==='gunship'||e.kind==='pursuer')&&e.phase==='recover';
-        const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/BOSS_DEFEAT_DURATION*24:e.phase==='charge'?Math.sin(e.phaseMs/(e.phaseNumber===2?1400:1600)*Math.PI*2)*-18:Math.sin(e.age/700)*3
+        const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/BOSS_DEFEAT_DURATION*24:e.phase==='charge'?Math.sin(e.phaseMs/350)*-14:e.phase==='attack'&&e.move==='strafe'?Math.sin(e.phaseMs/600)*10:Math.sin(e.age/700)*3
           :e.kind==='scout'?Math.cos(e.age/420)*7:e.kind==='interceptor'&&e.phase==='charge'
           ?-Phaser.Math.RadToDeg(Math.atan2(e.aimY-e.startY,e.startX-e.aimX+170)):0;
         art.setPosition(e.x,e.y).setAngle(angle).setTint(state.clock<(e.hitUntil??0)?0xffc2a1:open?0xffe2a0:0xffffff);
@@ -351,9 +351,20 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         }
         enemyLabels.get(e.id)?.setPosition(e.x,e.y+55).setText(open?'RELOADING':'HEAVY GUNSHIP');
         if(open)combatArt.lineStyle(3,0xffd579,.8).strokeEllipse(e.x-(e.kind==='pursuer'?42:0),e.y+(e.kind==='pursuer'?0:26),45,e.kind==='pursuer'?35:18);
+        if(e.kind==='pursuer'&&e.move==='barrage'&&(e.phase==='tell'||e.phase==='attack')){
+          const safeY=e.safeY??300;
+          combatArt.fillStyle(0x73f1bf,.09).fillRect(100,safeY-50,520,100)
+            .lineStyle(3,0x73f1bf,.85).strokeRect(100,safeY-50,520,100);
+          for(const y of [150,210,270,330,390,450])if(Math.abs(y-safeY)>75)
+            combatArt.lineStyle(2,0xf386b2,.38).lineBetween(115,y,745,y);
+        }
         if(e.phase==='tell'){
           const muzzle=e.x-(e.kind==='pursuer'?102:e.kind==='gunship'?78:55);
-          combatArt.lineStyle(3,e.kind==='interceptor'?0xffd478:0xf386b2,.8)
+          if(e.kind==='pursuer'&&e.move==='sweep'){
+            const points=Array.from({length:25},(_,i)=>pursuerSweepPoint(e,i/24));
+            const end=pursuerSweepPoint(e,.5);
+            combatArt.lineStyle(4,0xffd478,.7).strokePoints(points,false).strokeCircle(end.x,end.y,38);
+          }else if(e.move!=='barrage')combatArt.lineStyle(3,e.kind==='interceptor'?0xffd478:0xf386b2,.8)
             .lineBetween(muzzle,e.y,e.aimX,e.aimY).strokeCircle(e.aimX,e.aimY,24);
           combatArt.lineStyle(2,0xffdeb0,.8).strokeCircle(muzzle,e.y,12+Math.sin(state.clock/75)*3);
         }

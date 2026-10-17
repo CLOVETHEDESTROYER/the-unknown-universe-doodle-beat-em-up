@@ -53,7 +53,7 @@ try{
     checkpoints.add(s.flight.checkpoint);
     const beacon=s.beacons.find(b=>b.x>=s.player.x-125);
     const boss=s.enemies.find(e=>e.kind==='pursuer');
-    const target=boss?(boss.phase==='recover'?boss.y-45:['tell','attack','charge'].includes(boss.phase)?boss.aimY<300?445:165:255):beacon?.y??295;
+    const target=boss?(boss.phase==='recover'?boss.y-45:boss.move==='barrage'&&['tell','attack'].includes(boss.phase)?boss.safeY:['tell','attack','charge'].includes(boss.phase)?boss.aimY<300?445:165:255):beacon?.y??295;
     const key=s.player.y>target+9?'ArrowUp':s.player.y<target-9?'ArrowDown':'';
     if(key!==held){if(held)await page.keyboard.up(held);if(key)await page.keyboard.down(key);held=key;}
     await advance(100);

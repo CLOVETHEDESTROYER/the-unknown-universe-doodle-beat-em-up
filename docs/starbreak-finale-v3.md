@@ -1,5 +1,9 @@
 # Starbreak Run — completed flight chapter
 
+Current boss: [Pursuer movement/difficulty pass](pursuer-v4.md) adds three
+health phases, four moving attack patterns, marked barrage corridors and
+72/92/112 health. The longer counter windows and four-pose wreck remain.
+
 Latest: the [weapon pickup and speed pass](starbreak-weapons-v5.md) adds Spread Shot, Plasma Lance, Homing Missiles, checkpoint equipment saves, and faster visual motion.
 
 Update: the [destruction and asteroid-field pass](starbreak-destruction-v4.md) replaces the fixed fifteen rocks with randomized destructible asteroids, expands explosion effects, and makes regular gunships damageable throughout their attacks. The Pursuer encounter below remains current.
@@ -18,14 +22,16 @@ Level 5 is ready in the current game: Witchwood → **Starbreak Run** → Dread 
 
 An original silver/plum command craft with a red crystal reactor. Existing ready/attack art now joins a dedicated four-frame hull destruction sequence. Banking, wreck drift and timed explosions support the progressively buckled, broken and blackened hull drawings. Sources and timing: [boss defeat pass](boss-defeats-v1.md).
 
-| Mechanic | Phase one | Phase two |
-| --- | --- | --- |
-| Attack warning | 1.1 seconds, aim fixed when marked | .95 seconds, fixed aim |
-| Prism fan | Three sequential aimed bolts | Five bolts across a wider fan |
-| Sweep | 1.6-second out-and-back curved charge | 1.4-second charge plus two outward wisps |
-| Gold counter opening | 3.0 seconds after each attack | 2.6 seconds |
+| Mechanic | Phase one | Phase two | Phase three |
+| --- | --- | --- | --- |
+| Base attack warning | 1.1–1.4s, fixed targets | 0.975–1.275s | 0.85–1.15s |
+| Weaving prism fan | One 3-bolt fan | Two 5-bolt fans | Two 7-bolt fans |
+| Curved sweep | 1.75s out-and-back arc | 1.55s plus 2 outward bolts | 1.4s plus 4 bolts |
+| Firing strafe | 3 single shots | 4 paired volleys | 5 triple volleys |
+| Lane barrage | 2 walls, marked safe lane | 3 faster walls | 3 faster walls |
+| Gold counter opening | 3.0s | 2.6s | 2.6s |
 
-Purple guard blocks shots throughout entry, warnings, attacks, and phase change. Only the gold recovery window accepts damage. At half health, the current full opening finishes before a protected .95-second phase change. The next attack alternates fan/sweep. Easy/Hard/X-GOD health is 28/36/44 and plasma damage is 10/14/18. Shared hit protection prevents one volley stacking multiple immediate hits. The boss awards 700 points once. Its 2.35-second defeat sequence clears hostile bolts, plays four damaged/wrecked hull frames, drifts/falls through timed explosions, then opens the landing corridor.
+Purple guard blocks shots throughout entry, warnings, attacks, and phase change. Only the gold recovery window accepts ordinary damage. At 68% and 34% health, the current full opening finishes before a protected one-second phase change. Phase-specific rotations use all four attacks. Easy/Hard/X-GOD health is 72/92/112 and plasma damage is 10/14/18; higher difficulties also shorten warnings and speed up aimed plasma. Shared hit protection prevents one volley stacking multiple immediate hits. The boss awards 700 points once. Its 2.35-second defeat sequence clears hostile bolts, plays four damaged/wrecked hull frames, drifts/falls through timed explosions, then opens the landing corridor.
 
 Arrow keys/WASD steer; hold **Space/C** or touch **FIRE** for twin cannons. Pause freezes the simulation. Held touch controls clear before returning to platforming.
 
@@ -43,10 +49,10 @@ Arrow keys/WASD steer; hold **Space/C** or touch **FIRE** for twin cannons. Paus
 
 - `npm run build` succeeds.
 - `scripts/test_starbreak_flight.mjs` traverses the entire course using real steering and held fire, collects all ten beacons, defeats the Pursuer, and lands with three lives. It also checks all heroes, companion/equipment carryover, held-input cleanup, hull damage/protection, checkpoint recovery, game over, touch cancellation, and six-stage navigation. Final checkpoint repair is asserted separately during traversal.
-- `scripts/test_starbreak_finale_v3.mjs` checks guarded shots, progress lock with continuing scenery travel, pause, fixed aim, fan and sweep in both phases, the full half-health opening, protected phase change, real keyboard counter damage, visible wreck frame, defeat cleanup, landing, final-checkpoint restart, phone controls, and higher-difficulty health/projectile damage. Position hooks isolate individual scenarios; no hook directly kills or damages the boss.
+- `scripts/test_starbreak_finale_v3.mjs` runs the expanded `test_pursuer_v4.mjs` suite: all four attacks in all three phases, guarded shots, route lock/scrolling, pause, fixed marks, real keyboard counter damage and barrage steering, wreck frames, landing, checkpoint retry and difficulty health/plasma damage. Position hooks isolate individual scenarios; no hook directly kills or damages the boss. `test_pursuer_v4_sim.mjs` checks all 36 difficulty/phase/pattern combinations and complete phase-change openings.
 - `scripts/test_starbreak_combat_v2.mjs` repeats nine ordinary combat checks: cannons, scouts, rock cover, charge commitment, actual plasma damage, gunship guard/opening/repair, pause, retry cleanup/reward retention, and simultaneous touch steering/fire.
 - The established production gameplay client captures both the ordinary route and final encounter with the action files under `tests/`. Evidence and inspected desktop/phone images are under `output/starbreak-finale-v3/`, with the full-route and combat results in their existing output folders.
 
-These are browser automation runs with accelerated simulation, not a manual real-time playthrough. Human feedback can still tune difficulty and feel. Repository-wide TypeScript continues to report existing legacy/platformer typing problems; no diagnostics target the flight modules. No deployment or commit is included.
+These are browser automation runs with accelerated simulation, not a manual real-time playthrough. Human feedback can still tune difficulty and feel. Repository-wide TypeScript continues to report existing legacy/platformer typing problems; no diagnostics target the flight modules. Current validation is recorded in [the Pursuer pass](pursuer-v4.md) and progress.md.
 
-Play the complete level at `http://127.0.0.1:3000/?autostart=1&level=5`. The optional `flightFinale=1` review query starts at the final checkpoint; normal campaign entry starts with boarding.
+Play the complete level at `http://localhost:4380/?autostart=1&level=5`. The optional `flightFinale=1` review query starts at the final checkpoint; normal campaign entry starts with boarding.

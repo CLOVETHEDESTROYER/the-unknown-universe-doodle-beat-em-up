@@ -91,20 +91,20 @@ try { for(const level of selected) {
    await place(s.progress.levelEndX,boss(s)?.floorY||(level<=2?480:520));await wait(s=>s.mode==='transition'||s.mode==='victory'||s.level!==level);
    results.push({level,guarded,openings,deathFrames:Object.keys(frames),pause:true,exit:true,requests,errors});
   }else{
-   // Both real attack patterns and phases before the wreck sequence; no debug damage.
+   // All three real combat phases before the wreck sequence; no debug damage.
    await boot();let s=await wait((s,b)=>b?.phase==='tell'),seen=new Set();
-   let openingKey='',openingHp=28;const openings=[];const until=Date.now()+100000;
+   let openingKey='',openingHp=72;const openings=[];const until=Date.now()+100000;
    while(Date.now()<until){
     s=await read();const b=boss(s);assert.deepEqual(errors,[]);if(!b||b.phase==='dying')break;
     if(b.phase==='recover'){
      seen.add(b.phaseNumber);const key=`${b.phaseNumber}:${b.attacks}`;
-     if(key!==openingKey){openingKey=key;openingHp=b.hp;openings.push({phase:b.phaseNumber,duration:b.recoveryDurationMs});assert.equal(b.recoveryDurationMs,b.phaseNumber===2?2600:3000);}
+     if(key!==openingKey){openingKey=key;openingHp=b.hp;openings.push({phase:b.phaseNumber,duration:b.recoveryDurationMs});assert.equal(b.recoveryDurationMs,b.phaseNumber>=2?2600:3000);}
      if(openingHp-b.hp<6&&b.phaseMs<1800){await place(675,255);await page.keyboard.down('Space');}
-     else{await page.keyboard.up('Space');await place(240,165);}
-    }else{await page.keyboard.up('Space');await place(240,b.aimY<300?445:165);}
+     else{await page.keyboard.up('Space');await place(100,145);}
+    }else{await page.keyboard.up('Space');await place(100,b.move==='barrage'&&['tell','attack'].includes(b.phase)?b.safeY:b.aimY<300?475:145);}
     await page.evaluate(()=>window.advanceTime(60));
    }
-   await page.keyboard.up('Space');s=await wait((s,b)=>b?.phase==='dying');assert.deepEqual([...seen].sort(),[1,2]);assert(!s.flight.finaleDefeated);
+   await page.keyboard.up('Space');s=await wait((s,b)=>b?.phase==='dying');assert.deepEqual([...seen].sort(),[1,2,3]);assert(!s.flight.finaleDefeated);
    assert.equal(s.projectiles.filter(p=>p.enemyProjectile).length,0);const score=s.progress.score;
    await page.keyboard.press('p');await wait(s=>s.mode==='paused');const frozen=boss(await read());await page.waitForTimeout(250);assert.deepEqual(boss(await read()),frozen);
    await page.getByRole('button',{name:'Resume Playing'}).click();await capture('wreck');
