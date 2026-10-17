@@ -189,6 +189,39 @@ canvas {
     transform: scale(0.82);
     transform-origin: bottom right;
   }
+
+  /* Give phone thumbs larger, separated directions without resizing the canvas. */
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --phone-movement-size: clamp(3.75rem, 20vmin, 4.25rem);
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer {
+    gap: 0.5rem;
+    padding: 0.375rem;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-controls [data-touch-control="left"],
+  .game-app-shell[data-mobile="true"] .touch-controls [data-touch-control="right"],
+  .game-app-shell[data-mobile="true"] .touch-controls [data-touch-control="up"],
+  .game-app-shell[data-mobile="true"] .touch-controls [data-touch-control="down"] {
+    width: var(--phone-movement-size);
+    height: var(--phone-movement-size);
+    min-width: var(--phone-movement-size);
+    min-height: var(--phone-movement-size);
+    flex-shrink: 0;
+    font-size: 1.75rem;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-dpad:not(.touch-dpad-platformer) {
+    grid-template-columns: repeat(3, var(--phone-movement-size));
+    grid-template-rows: repeat(3, var(--phone-movement-size));
+    gap: 0.25rem;
+    padding: 0.25rem;
+    width: calc(3 * var(--phone-movement-size) + 1rem);
+    height: calc(3 * var(--phone-movement-size) + 1rem);
+  }
 }
 
 .phone-portrait-rotate {

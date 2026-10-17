@@ -1,5 +1,11 @@
 Original prompt: take a look at this git and lets clone it and start working on it https://github.com/CLOVETHEDESTROYER/the-unknown-universe-doodle-beat-em-up.git
 
+## 2026-10-17 - Larger phone movement buttons
+
+- User requested bigger movement buttons, especially on phones. Added scoped mobile-landscape CSS: direction buttons grow from 44px (platformer) / 28px-high (flight) to 60–68px according to viewport height, with 8px platformer gaps. Includes the standalone auto-run crouch/butt-bomb button. The flight/legacy direction grid expands to contain the larger targets. Controls respect left/right safe-area insets; canvas sizing stays intact.
+- Applied existing game UI and frontend playtest workflows. Browser plugin not available; used project Playwright. Chromium and installed WebKit pass iPhone 13/15 landscape (68px directions), small 568x320 phone (64px), flight (68px), auto-run (68px), and iPad/desktop (existing 48px). Verified actual outer-edge taps, holding right while jumping, crouch, pointer release/pause reset, flight steering after launch, separate direction/action clusters and full-size gameplay canvas. Phone/flight/small-phone screenshots inspected. Temporary script/results/screenshots: C:/Users/analo/.codex/visualizations/2026/10/17/01a147b3-d038-7751-8247-0888464bd24c/larger-movement-*.
+- npm run build, git diff --check and standard develop-web-game movement/jump smoke pass; inspected output/larger-phone-controls/shot-0.png. No new test files for this reversible CSS change. Ready to push; physical phone ergonomics remain a user playtest.
+
 ## 2026-10-17 - Boss vulnerability readability
 
 - User requested a clear vulnerable state, including a color/strobe cue and an ATTACK graphic for at least the first two bosses. The existing gold ring/countdown is too subtle during a fight.
