@@ -31,7 +31,38 @@ but the actual device crash cause has not been confirmed.
   still permits the page to run; it cannot recover a terminated browser process.
 - Blocked browser storage no longer prevents the start screen/roster from loading.
 
-## Rebuild assets
+## Terrain allocation fix (2026-10-16)
+
+The reported iPad Pro / iPhone 13 / iPhone 15 failure happens after the title,
+character selection and intro, as gameplay begins. A browser audit found another
+large allocation outside the mobile asset catalog: Phaser TileSprite creates a
+private power-of-two pattern canvas and GPU texture for **each** platform. The
+2172x724 terrain artwork produced repeated 4096x1024 brick patterns and
+4096x256 cap patterns when the scene was created. Smaller hero atlases alone
+did not address this allocation.
+
+`gameplay/terrainTextures.ts` now prepares and caches terrain patterns at their
+displayed scale, capped at 512 pixels per side, before constructing TileSprites.
+It compensates tile scale to retain the original repeat distance. Platforms,
+moving/crumbling ledges, tiled hazards and the flight launch pad use this path;
+collision geometry is unchanged. Thin platforms no longer create an empty or
+negative-height brick layer.
+
+With the same local artwork and iPhone 13 landscape profile, a controlled
+before/after browser audit estimated live RGBA texture storage at 869.3 MiB
+before and 180.5 MiB after (79.2% reduction). The public deployment separately
+measured 892.0 MiB before this fix. These estimates track texture dimensions and
+deletion through WebGL calls; they are not physical-device process-memory
+measurements and exclude CPU image storage, canvas buffers and driver overhead.
+
+Production-build startup, touch movement/jump/attack, orientation changes and
+all six stage boots are checked with Playwright in Chromium and WebKit using
+phone/tablet profiles, plus desktop startup. Screenshots and allocation traces
+are stored outside the repository. The build passes; the full TypeScript check
+still reports pre-existing errors in the legacy engine, platformer and mobile
+configuration. Real iPad/iPhone confirmation remains necessary after publishing.
+
+## Rebuild mobile atlases
 
 Run `python scripts/pack_mobile_assets.py` after changing source artwork. This
 uses Pillow for mechanical cropping/packing, not new image generation. Generated
@@ -40,9 +71,9 @@ atlases are in `public/mobile-v1`, with the lookup catalog at
 
 ## Device review
 
-Production compilation passed. No browser automation or physical-device gameplay
-test was performed in this pass. Desktop viewport emulation alone would not
-confirm iOS browser memory behavior.
+The original atlas pass verified production compilation without browser automation
+or physical-device gameplay. The terrain follow-up above adds browser automation;
+desktop viewport emulation alone cannot confirm iOS browser memory behavior.
 
 After the updated build is hosted, review:
 

@@ -305,6 +305,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
     dashCooldownMultiplier: number;
     specialCooldownMs: number;
   }> = {
+    zgod: {
+      speedMultiplier: 1.1, damageTakenMultiplier: 0, attackDamageMultiplier: 1000,
+      attackDurationMultiplier: 1, attackReachBonus: 25, dashCooldownMultiplier: .8, specialCooldownMs: 1000
+    },
     xgod: {
       speedMultiplier: 1.04,
       damageTakenMultiplier: 0.9,

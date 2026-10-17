@@ -50,8 +50,8 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
         <div className="min-w-[8.5rem] flex-1">
           <div className="mb-1 flex justify-between text-xs">
-            <span>{flightMode ? "SHIP HULL" : "HEALTH"}</span>
-            <span>{Math.ceil(stats.health)}/{stats.maxHealth}</span>
+            <span>{selectedCharacterId === 'zgod' ? 'INVINCIBLE' : flightMode ? "SHIP HULL" : "HEALTH"}</span>
+            <span>{selectedCharacterId === 'zgod' ? '∞' : `${Math.ceil(stats.health)}/${stats.maxHealth}`}</span>
           </div>
           <div className="h-3 overflow-hidden rounded-full border border-white/70 bg-slate-900">
             <div

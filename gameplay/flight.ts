@@ -20,6 +20,7 @@ export const FLIGHT_BEACONS = [
   {distance:9900,y:180}, {distance:12650,y:280}, {distance:13850,y:440}, {distance:15150,y:310}
 ];
 export interface FlightState {
+  invincible?: boolean;
   phase: FlightPhase; phaseMs: number; clock: number; distance: number;
   x: number; y: number; vx: number; vy: number; hull: number; lives: number;
   checkpoint: number; invulnerableUntil: number; impacts: number; score: number;
@@ -39,6 +40,7 @@ export function createFlight(lives: number, score: number, difficulty: Difficult
 const approach = (v:number,target:number,amount:number) => v<target?Math.min(target,v+amount):Math.max(target,v-amount);
 export function setFlightPhase(s:FlightState, phase:FlightPhase) {s.phase=phase;s.phaseMs=0;}
 export function damageShip(s:FlightState,amount?:number) {
+  if(s.invincible)return false;
   if(s.phase!=='flight' || s.clock<s.invulnerableUntil)return false;
   s.hull=Math.max(0,s.hull-(amount??(s.difficulty==='EASY'?20:s.difficulty==='HARD'?26:32)));
   if(s.combat.weapon!=='twin'){

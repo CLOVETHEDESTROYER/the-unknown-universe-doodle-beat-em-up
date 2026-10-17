@@ -19,6 +19,16 @@ export interface CharacterConfig {
 export const ROSTER_UNLOCK_STORAGE_KEY = "unknownUniverse.xGodClear.v1";
 
 export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
+  zgod: {
+    id: "zgod",
+    name: "Z-God",
+    subtitle: "X God's Little Sister",
+    cardImage: "/cards/z-god-card.png",
+    hudColor: "pink",
+    rewardName: "Star Power",
+    rewardSubtitle: "Invincible. Every hit defeats an enemy—even a boss.",
+    stats: { strength: 100, speed: 90, defense: 100, spirit: 100 }
+  },
   xgod: {
     id: "xgod",
     name: "X God",
@@ -74,6 +84,7 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
 export const CHARACTER_IDS = Object.keys(CHARACTER_CONFIGS) as CharacterId[];
 
 export const isCharacterId = (value: string | null | undefined): value is CharacterId =>
+  value === "zgod" ||
   value === "xgod" ||
   value === "barrett" ||
   value === "nico" ||

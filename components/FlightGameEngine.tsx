@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
+import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport } from '../gameplay/mobileRuntime';
 import { CHARACTER_CONFIGS } from '../characters';
 import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
@@ -34,6 +35,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const seedText=params.get('flightSeed');
     const seed=seedText!==null&&/^\d+$/.test(seedText)?Number(seedText)>>>0:undefined;
     const state=createFlight(initialStats.lives,initialStats.score,difficulty,seed);
+    state.invincible=selectedCharacterId==='zgod';
     if(params.get('flightFinale')==='1'){
       state.phase='flight';state.distance=state.travel=state.checkpoint=PURSUER_CHECKPOINT;
       state.x=240;state.y=295;state.invulnerableUntil=2500;resetCombat(state.combat,state.checkpoint);
@@ -50,6 +52,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const failedAssets:string[]=[];
     const hero=CHARACTER_CONFIGS[selectedCharacterId];
     const xgod=selectedCharacterId==='xgod';
+    const drawnXgod=xgod&&params.get('xgodArt')!=='model';
+    const zgod=selectedCharacterId==='zgod';
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
@@ -441,10 +445,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         loadGameImage(this.load, 'flight_planet','platformer/void-regent-pencil-panorama-generated.png');
         loadGameImage(this.load, 'flight_pad','platformer/graveyard-moss-block.png');
         loadGameImage(this.load, 'flight_impact','doodles/impact-vfx-generated.png');
-        loadGameSheet(this.load, 'flight_hero',xgod?initialStats.hasFlameSword?'xgod_side_scroll_fire_sword_run_v1.png':'characters/xgod/motion-v2/blaster-run.png':`characters/${selectedCharacterId}/walk.png`,
-          {frameWidth:xgod?512:256,frameHeight:xgod?512:360});
-        loadGameSheet(this.load, 'flight_head',xgod?'characters/xgod/motion-v2/blaster-idle.png':`characters/${selectedCharacterId}/walk.png`,
-          {frameWidth:xgod?512:256,frameHeight:xgod?512:360});
+        loadGameSheet(this.load, 'flight_hero',zgod?'characters/z-god-v1/hands-run.png':drawnXgod?`characters/xgod/drawn-v1/${initialStats.hasFlameSword?'sword':'blaster'}-run.png`:xgod?initialStats.hasFlameSword?'xgod_side_scroll_fire_sword_run_v1.png':'characters/xgod/motion-v2/blaster-run.png':`characters/${selectedCharacterId}/walk.png`,
+          {frameWidth:zgod||drawnXgod?768:xgod?512:256,frameHeight:zgod||xgod?512:360});
+        loadGameSheet(this.load, 'flight_head',zgod?'characters/z-god-v1/hands-idle.png':drawnXgod?'characters/xgod/drawn-v1/idle.png':xgod?'characters/xgod/motion-v2/blaster-idle.png':`characters/${selectedCharacterId}/walk.png`,
+          {frameWidth:zgod||drawnXgod?768:xgod?512:256,frameHeight:zgod||xgod?512:360});
       },create(this:Phaser.Scene){
         scene=this;
         witch=[0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-40));
@@ -452,14 +456,16 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         clouds=[0,1].map(i=>this.add.image(i*1728,0,'flight_clouds').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-26));
         orbit=[this.add.image(0,0,'flight_orbit').setOrigin(0).setDisplaySize(1728,576).setDepth(-39)];
         planet=[0,1].map(i=>this.add.image(i*1728,0,'flight_planet').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-38));
-        pads=[this.add.tileSprite(0,492,1024,84,'flight_pad').setTileScale(.24,.24).setOrigin(0).setDepth(5)];
+        pads=[addTerrainTiles(this,0,492,1024,84,'flight_pad',undefined,.24,.24).setOrigin(0).setDepth(5)];
         exhaust=this.add.graphics();
         shipHull=this.add.image(0,0,'flight_ship').setDisplaySize(184,74);
         pilot=this.add.sprite(12,5,'flight_head',0).setOrigin(.5).setScale(xgod?.12:.13);
         pilot.setCrop(xgod?175:35,xgod?70:0,xgod?185:190,xgod?190:170);
+        if(zgod)pilot.setCrop(280,210,220,190).setPosition(12,-18);
+        if(drawnXgod)pilot.setCrop(270,135,245,220).setPosition(12,-6);
         const glass=this.add.ellipse(15,-11,54,23,0x92d4ef,.15);
         ship=this.add.container(state.x,state.y,[exhaust,shipHull,pilot,glass]).setDepth(15);
-        walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,xgod?.9375:1).setScale(xgod?.34:.39).setDepth(16);
+        walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod)?0.9375:1).setScale(xgod?.34:.39).setDepth(16);
         this.anims.create({key:'flight_board_walk',frames:this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
         walker.play('flight_board_walk');
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};

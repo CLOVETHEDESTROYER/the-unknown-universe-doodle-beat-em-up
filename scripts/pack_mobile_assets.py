@@ -25,6 +25,8 @@ for folder in ['runner-v4', 'runner-sword-v1', 'motion-v2', 'jump-v3', 'sword-id
     add(f'characters/xgod/{folder}/*.png', 512, 512)
 add('xgod_side_scroll*.png', 512, 512)
 add('characters/equipment-v4/*.png', 768, 512)
+add('characters/xgod/drawn-v1/*.png', 768, 512)
+add('characters/z-god-v1/*.png', 768, 512)
 add('characters/playable-v3/*-run.png', 640, 512)
 add('characters/playable-v3/*-attack.png', 640, 512)
 add('characters/playable-v3/*-jump.png', 640, 512)

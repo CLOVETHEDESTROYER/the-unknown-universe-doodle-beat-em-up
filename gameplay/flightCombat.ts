@@ -25,7 +25,7 @@ export interface FlightCombat {
   finaleStarted:boolean;finaleDefeated:boolean;
   weapon:FlightWeaponId;
 }
-export interface CombatHost {x:number;y:number;bank:number;clock:number;distance:number;checkpoint:number;hull:number;score:number;difficulty:DifficultyMode;phase:string}
+export interface CombatHost {x:number;y:number;bank:number;clock:number;distance:number;checkpoint:number;hull:number;score:number;difficulty:DifficultyMode;phase:string;invincible?:boolean}
 type Host=CombatHost;
 export const FLIGHT_WAVES:{at:number;kind:EnemyKind;ys:number[];name:string}[]=[
   {at:650,kind:'scout',ys:[210,300,390],name:'SCOUT FORMATION — OPEN FIRE!'},
@@ -143,7 +143,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     if(stone){
       spendHit(b,`rock:${stone.id}`);
       if(b.owner==='player'){
-        c.rockBlocks++;c.rockHits++;stone.hp=Math.max(0,stone.hp-b.damage);
+        c.rockBlocks++;c.rockHits++;stone.hp=Math.max(0,stone.hp-(s.invincible?stone.hp:b.damage));
         if(stone.hp===0){c.rocksDestroyed++;s.score+=50;effect(c,s,'destroy',stone.x,stone.y,stone.radius*3,'asteroid');}
         else effect(c,s,'hit',b.x,b.y,45,'asteroid');
       }else effect(c,s,'blocked',b.x,b.y);
@@ -156,11 +156,11 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     }
     const target=c.enemies.find(e=>e.hp>0&&!b.hitIds?.includes(e.id)&&Math.abs(e.x-b.x)<(e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='interceptor'?48:29)&&Math.abs(e.y-b.y)<(e.kind==='pursuer'?37:e.kind==='gunship'?30:21));
     if(!target)continue;
-    if(target.kind==='pursuer'&&target.phase!=='recover'){
+    if(target.kind==='pursuer'&&target.phase!=='recover'&&!s.invincible){
       b.expires=0;c.guardedHits++;effect(c,s,'blocked',b.x,b.y);continue;
     }
     spendHit(b,target.id);
-    const appliedDamage=target.kind==='pursuer'&&b.weapon==='spread'?b.damage*.5:b.damage;
+    const appliedDamage=s.invincible?target.hp:target.kind==='pursuer'&&b.weapon==='spread'?b.damage*.5:b.damage;
     target.hp=Math.max(0,target.hp-appliedDamage);target.hitUntil=s.clock+100;c.hits++;effect(c,s,'hit',b.x,b.y,45);
     if(target.hp<=0){
       effect(c,s,'destroy',target.x,target.y,target.kind==='pursuer'?190:target.kind==='gunship'?155:115,target.kind);

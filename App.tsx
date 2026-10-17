@@ -118,7 +118,7 @@ const getInitialCharacterId = (): CharacterId => {
     return "xgod";
   }
 
-  if (requested === "xgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
+  if (requested === "xgod" || requested === "zgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
     return requested;
   }
 
@@ -205,7 +205,7 @@ const getInitialStats = (): GameStats => {
   const gravityCoreUnlocked = readBooleanQuery(params.get("gravityCoreUnlocked")) || readBooleanQuery(params.get("gravityCore"));
   const gravityCoreChargesParam = Number.parseInt(params.get("gravityCoreCharges") ?? "", 10);
   const selectedCharacterId = getInitialCharacterId();
-  const characterPowerUnlocked = readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
+  const characterPowerUnlocked = selectedCharacterId === 'zgod' || readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
   const inkShieldReadyParam = params.get("shieldReady");
   const swordDurabilityParam = Number.parseInt(params.get("swordDurability") ?? "", 10);
   const maxSwordDurabilityParam = Number.parseInt(params.get("maxSwordDurability") ?? "", 10);
@@ -213,8 +213,8 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
-    health: Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
     souls: Number.isFinite(soulsParam) ? Math.max(0, soulsParam) : DEFAULT_STATS.souls,
@@ -257,7 +257,8 @@ const App: React.FC = () => {
   const [isIdeatorCollapsed, setIsIdeatorCollapsed] = useState(false);
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
-  const [useLegacyBrawler] = useState(shouldUseLegacyBrawler);
+  const [requestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
@@ -557,12 +558,12 @@ const App: React.FC = () => {
       hasTeleportationC: characterId === "teleportation_c" ? false : hasTeleportationC,
       gravityCoreUnlocked: currentLevel >= (useLegacyBrawler ? 4 : FINAL_LEVEL) && powered,
       gravityCoreCharges: currentLevel >= (useLegacyBrawler ? 4 : FINAL_LEVEL) && powered ? 3 : 0,
-      characterPowerUnlocked: powered
+      characterPowerUnlocked: characterId === 'zgod' || powered
     });
   };
 
   const restartGame = () => {
-    setStats({ ...DEFAULT_STATS, selectedCharacterId, equipment:createLoadout(selectedCharacterId==='xgod'?'blaster':'hands') });
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -576,7 +577,7 @@ const App: React.FC = () => {
   };
 
   const beginRunWithCharacter = (characterId: CharacterId) => {
-    const canSelect = characterId === "xgod" || isRosterUnlocked;
+    const canSelect = characterId === "xgod" || characterId === "zgod" || isRosterUnlocked;
     if (!canSelect) {
       return;
     }
@@ -584,7 +585,8 @@ const App: React.FC = () => {
     setSelectedCharacterId(characterId);
     setStats({
       ...DEFAULT_STATS,
-      selectedCharacterId: characterId
+      selectedCharacterId: characterId,
+      characterPowerUnlocked: characterId === 'zgod'
     });
     setIsPaused(false);
     setTitlePanel(null);
@@ -701,7 +703,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={gameSuspended} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls isPaused={gameSuspended} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -827,14 +829,14 @@ const App: React.FC = () => {
         {appPhase === "characterSelect" && (
           <div className="absolute inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950 p-3 font-['Gochi_Hand'] sm:p-4">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_12%,rgba(124,58,237,0.36)_0%,rgba(15,23,42,0.92)_42%,#020617_100%)]" />
-            <div className="relative z-10 flex h-full w-full max-w-7xl flex-col justify-center">
+            <div className="relative z-10 flex min-h-full w-full max-w-7xl shrink-0 flex-col justify-start py-3 md:justify-center">
               <div className="mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
                 <div>
                   <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
                   <p className="mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
                     {isRosterUnlocked
                       ? "The roster is unlocked. Choose who enters the Unknown Universe."
-                      : "Beat the game with X God to pick your player."}
+                      : "X God and Z-God are ready. Beat the game with X God to unlock the other heroes."}
                   </p>
                 </div>
                 <button
@@ -846,10 +848,10 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 md:gap-4">
+              <div className="grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4">
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
-                  const locked = characterId !== "xgod" && !isRosterUnlocked;
+                  const locked = characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
                   return (
                     <button
                       key={character.id}

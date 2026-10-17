@@ -696,6 +696,126 @@
       "height": 512,
       "count": 16
     },
+    "characters/xgod/drawn-v1/attack.png": {
+      "url": "/mobile-v1/300e06f83f578f91.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/xgod/drawn-v1/blaster-attack.png": {
+      "url": "/mobile-v1/b405dff9ead39af6.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/xgod/drawn-v1/blaster-crouch.png": {
+      "url": "/mobile-v1/7495cc6b28b60ef3.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/blaster-idle.png": {
+      "url": "/mobile-v1/097fb8d96372742e.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/blaster-jump.png": {
+      "url": "/mobile-v1/3224ea66fa5fee36.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/blaster-run.png": {
+      "url": "/mobile-v1/0e5f235d8e35ac89.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/drawn-v1/blaster-skid.png": {
+      "url": "/mobile-v1/98f331b8b657b651.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/crouch.png": {
+      "url": "/mobile-v1/625a35a05436617f.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/damage.png": {
+      "url": "/mobile-v1/59475944f8e4ed5a.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/death.png": {
+      "url": "/mobile-v1/5c6af8bf6b4737ac.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/idle.png": {
+      "url": "/mobile-v1/0af79d08a4c6b151.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/jump.png": {
+      "url": "/mobile-v1/f164057650e5144f.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/run.png": {
+      "url": "/mobile-v1/c810aa5bf80dc3d2.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/drawn-v1/skid.png": {
+      "url": "/mobile-v1/4a1113ec74a49cac.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/sword-attack.png": {
+      "url": "/mobile-v1/4c503376e05a896d.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/drawn-v1/sword-crouch.png": {
+      "url": "/mobile-v1/91d0588b9647b9b1.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/sword-idle.png": {
+      "url": "/mobile-v1/d1ac055ca560b0db.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/sword-jump.png": {
+      "url": "/mobile-v1/684ddb0043dc1cd1.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/drawn-v1/sword-run.png": {
+      "url": "/mobile-v1/0ca82eef75fd1357.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/drawn-v1/sword-skid.png": {
+      "url": "/mobile-v1/be41ad2ab2b743ee.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
     "characters/xgod/jump-v3/blaster-jump.png": {
       "url": "/mobile-v1/37d1ae8b188c234b.json",
       "width": 512,
@@ -851,6 +971,228 @@
       "width": 512,
       "height": 512,
       "count": 4
+    },
+    "characters/z-god-v1/blaster-attack.png": {
+      "url": "/mobile-v1/a898c7c084d41f04.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/blaster-crouch.png": {
+      "url": "/mobile-v1/fd8688596bc207de.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/blaster-idle.png": {
+      "url": "/mobile-v1/2d4af4cc1318dd49.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/blaster-jump.png": {
+      "url": "/mobile-v1/4821c94b75a82735.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/blaster-run.png": {
+      "url": "/mobile-v1/3b4f7acf3affbaba.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/z-god-v1/dash.png": {
+      "url": "/mobile-v1/5534ec92573dfb9c.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/ember-attack.png": {
+      "url": "/mobile-v1/52cf3f545454c51d.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/ember-crouch.png": {
+      "url": "/mobile-v1/093ff00aba2d9d00.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/z-god-v1/ember-idle.png": {
+      "url": "/mobile-v1/84a9a726728550af.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/ember-jump.png": {
+      "url": "/mobile-v1/0a00ce938cb77ca6.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/ember-run.png": {
+      "url": "/mobile-v1/c4791156bc8a95f9.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/z-god-v1/extras-crouch.png": {
+      "url": "/mobile-v1/66fe81274a259660.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/extras-dash.png": {
+      "url": "/mobile-v1/26d561f371d8164f.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/extras-idle.png": {
+      "url": "/mobile-v1/8d2931bba3138ad7.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/extras-react.png": {
+      "url": "/mobile-v1/cacc13dd6e7a5ab6.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/z-god-v1/extras-victory.png": {
+      "url": "/mobile-v1/5e2c4a5f47d57e9e.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/z-god-v1/frost-attack.png": {
+      "url": "/mobile-v1/e451bf2be071eb63.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/frost-crouch.png": {
+      "url": "/mobile-v1/63095b10583d2a02.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/frost-idle.png": {
+      "url": "/mobile-v1/c05df89bfb215139.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/frost-jump.png": {
+      "url": "/mobile-v1/5760b90d06b1ed14.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/frost-run.png": {
+      "url": "/mobile-v1/6205fe53d490fd2f.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/z-god-v1/hands-attack.png": {
+      "url": "/mobile-v1/4e18c69f9cf7e0fb.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/hands-idle.png": {
+      "url": "/mobile-v1/8f020c1a5a5d74fa.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/hands-jump.png": {
+      "url": "/mobile-v1/35eb8558545a1b48.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/hands-run.png": {
+      "url": "/mobile-v1/ee79df3f4eacef67.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/z-god-v1/idle.png": {
+      "url": "/mobile-v1/521bedc58451a755.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/reward.png": {
+      "url": "/mobile-v1/080f269c10d278d6.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/storm-attack.png": {
+      "url": "/mobile-v1/4b46f4d06ea087ec.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/storm-crouch.png": {
+      "url": "/mobile-v1/d436abbd0ec07aa3.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/z-god-v1/storm-idle.png": {
+      "url": "/mobile-v1/23a8af23c31ac1fb.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/storm-jump.png": {
+      "url": "/mobile-v1/65f4606495497d29.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/storm-run.png": {
+      "url": "/mobile-v1/7b9f01656c08df81.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/z-god-v1/sword-attack.png": {
+      "url": "/mobile-v1/9590fad1fd36229f.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/z-god-v1/sword-crouch.png": {
+      "url": "/mobile-v1/3ba9b3e431d1bd8e.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/sword-idle.png": {
+      "url": "/mobile-v1/c9e27c8c7fce7474.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/z-god-v1/sword-jump.png": {
+      "url": "/mobile-v1/59347284599e1f8b.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/z-god-v1/sword-run.png": {
+      "url": "/mobile-v1/9937e05474d510a9.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
     },
     "companions/dinio/hybrid-v1/attack.png": {
       "url": "/mobile-v1/538feb7422079002.json",
@@ -1009,6 +1351,7 @@
     "cards/nico-card.png": "/mobile-v1/eefef2142f9eca7a-image.png",
     "cards/teleportation-c-card.png": "/mobile-v1/a5483444b13b2f16-image.png",
     "cards/xgod-card.png": "/mobile-v1/145107c0373db976-image.png",
+    "cards/z-god-card.png": "/mobile-v1/65a39d1f36beaa48-image.png",
     "cave_level_1.png": "/mobile-v1/f1cb0c48039854d5-image.png",
     "cave_level_2.png": "/mobile-v1/c478a4152583c3d6-image.png",
     "cave_level_3.png": "/mobile-v1/87e79758e51a71cf-image.png",
