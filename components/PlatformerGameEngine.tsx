@@ -15,6 +15,7 @@ import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear,
 import { playSfx } from '../audio/gameAudio';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
+import { XGodMobility } from '../gameplay/xgodMobility';
 
 interface PlatformerGameEngineProps {
   initialEquipment?: PowerupLoadout;
@@ -979,7 +980,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const worldWidth = Math.max(6000, level.endX + 300);
     const failedAssetKeys = new Set<string>();
     let signature: SignatureSpecialRuntime | null = null;
+    let mobility: XGodMobility | null = null;
     let specialQueuedAt = -9999;
+    let jumpQueuedAt = -9999, downQueuedAt = -9999, downWasHeld = false;
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
@@ -1048,7 +1051,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let lastGroundedAt = 0;
     let jumpBufferedAt = -9999;
     let jumpWasHeld = false;
-    let airLaunchKind: "jump" | "spring" | "stomp" | "boss-stomp" | null = null;
+    let airLaunchKind: "jump" | "double-jump" | "butt-bomb" | "spring" | "stomp" | "boss-stomp" | null = null;
     let jumpVisualAirborne=false;
     let jumpVisualStartedAt=0;
     let lastAirborneVelocity=0;
@@ -1177,6 +1180,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     function preload(this: Phaser.Scene) {
+      if (useDrawnXGod) {
+        this.load.multiatlas('xgod_double_jump', '/characters/xgod/mobility-v1/double-jump.json', '/characters/xgod/mobility-v1/');
+        this.load.multiatlas('xgod_butt_bomb', '/characters/xgod/mobility-v1/butt-bomb.json', '/characters/xgod/mobility-v1/');
+      }
       this.load.multiatlas('signature_special', `/characters/signature-specials-v1/${selectedCharacterId}.json`, '/characters/signature-specials-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
       this.load.on("loaderror", (file: { key?: string }) => {
@@ -1627,7 +1634,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         player, enemies, projectiles,
         facing: () => facingDirection,
         grounded: () => isPlayerGrounded(player.body as Phaser.Physics.Arcade.Body),
-        canUse: () => !isRespawning && !isLevelClearing && !isCrouching,
+        canUse: () => !isRespawning && !isLevelClearing && !isCrouching && !mobility?.busy,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
         damage: (enemy, amount) => damageEnemy(scene, enemy, amount),
         lockMovement: until => { movementLockedUntil = Math.max(movementLockedUntil, until); },
@@ -1649,6 +1656,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           const space=teleportSpace(),from={x:player.x,y:body.bottom};
           return safeTeleportPoint(x,y,space,true)&&teleportPathClear(from,{x,y},space)?y:null;
         },
+      });
+      if (useDrawnXGod) mobility = new XGodMobility(scene, {
+        player, enemies, facing: () => facingDirection,
+        canUse: () => !isRespawning && !isLevelClearing && !signature?.casting
+          && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
+        clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
+        damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true),
       });
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
@@ -1689,7 +1703,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
-      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); return; }
 
       const now = scene.time.now;
       updateMovingPlatforms(delta);
@@ -1698,6 +1712,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body = player.body as Phaser.Physics.Arcade.Body;
       const touch = window.__unknownUniverseTouchControls ?? {};
       const grounded = isPlayerGrounded(body);
+      mobility?.update(grounded);
       if (grounded && body.velocity.y >= 0 && now - lastStompAt > 120) {
         stompChain = 0;
         airLaunchKind = null;
@@ -1707,13 +1722,24 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       let jumpedThisFrame = false;
       if (grounded) lastGroundedAt = now;
       const jumpHeld = jumpKey.isDown || jumpAltKey.isDown || Boolean(touch.jump || touch.up);
-      if (jumpHeld && !jumpWasHeld) {
+      const queuedJump = performance.now()-jumpQueuedAt < 200;
+      jumpQueuedAt = -9999;
+      if (queuedJump || jumpHeld && !jumpWasHeld) {
         jumpBufferedAt = now;
       }
       const jumpCutSpeed = airLaunchKind === "stomp" ? 380 : 300;
       if (!jumpHeld && jumpWasHeld && body.velocity.y < -jumpCutSpeed && now >= springJumpUntil) body.setVelocityY(-jumpCutSpeed);
       jumpWasHeld = jumpHeld;
-      const wantsCrouch = !signature?.casting && grounded && (cursors.down.isDown || crouchKey.isDown || Boolean(touch.down));
+      const downHeld = cursors.down.isDown || crouchKey.isDown || Boolean(touch.down);
+      const downPressed = performance.now()-downQueuedAt < 200 || downHeld && !downWasHeld;
+      downQueuedAt = -9999; downWasHeld = downHeld;
+      if (!grounded && downPressed && canStandUp() && mobility?.startBomb()) {
+        setCrouching(false, now);
+        jumpBufferedAt = lastGroundedAt = -9999;
+        attackVisualUntil = shotRecoilUntil = -9999;
+        airLaunchKind = 'butt-bomb';
+      }
+      const wantsCrouch = !signature?.casting && !mobility?.busy && grounded && downHeld;
       setCrouching(wantsCrouch, now);
 
       const moveLeft = !isAutoRun && (cursors.left.isDown || Boolean(touch.left));
@@ -1755,17 +1781,27 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           body.velocity.x - movementRate * delta / 1000,
           body.velocity.x + movementRate * delta / 1000
         );
-      if (now >= movementLockedUntil) body.setVelocityX(Math.abs(nextVelocityX) < 1 ? 0 : nextVelocityX);
+      if (now >= movementLockedUntil && !mobility?.busy) body.setVelocityX(Math.abs(nextVelocityX) < 1 ? 0 : nextVelocityX);
 
-      if (!signature?.casting && now - jumpBufferedAt < 140 && now - lastGroundedAt < 130 && (!isCrouching || canStandUp())) {
+      if (!signature?.casting && !mobility?.busy && now - jumpBufferedAt < 140 && now - lastGroundedAt < 130 && (!isCrouching || canStandUp())) {
         setCrouching(false, now);
         body.setVelocityY(-playFeel.jumpVelocity);
+        body.blocked.down = body.touching.down = false;
         playSfx('jump');
         airLaunchKind = "jump";
         jumpBufferedAt = -9999;
         lastGroundedAt = -9999;
         jumpedThisFrame = true;
+      } else if (!grounded && !signature?.casting && !mobility?.busy && now-jumpBufferedAt < 140
+        && canStandUp() && mobility?.doubleJump(playFeel.jumpVelocity*.94)) {
+        setCrouching(false, now);
+        airLaunchKind = 'double-jump';
+        jumpBufferedAt = lastGroundedAt = -9999;
+        springJumpUntil = now+180;
+        jumpedThisFrame = true;
       }
+      // Inputs during a committed ground pound cannot become a jump on recovery.
+      if (mobility?.busy) jumpBufferedAt = -9999;
       const blinkInput=dashKey.isDown||Boolean(touch.dash),recallInput=recallKey.isDown||Boolean(touch.recall);
       const blinkPressed=Phaser.Input.Keyboard.JustDown(dashKey),recallPressed=Phaser.Input.Keyboard.JustDown(recallKey);
       const queuedBlink=performance.now()-blinkQueuedAt<160,queuedRecall=performance.now()-recallQueuedAt<160;
@@ -1784,7 +1820,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const blasterEquipped = equipment.active==='blaster'||equipment.active==='frost';
       const shootHeld = shootKey.isDown || Boolean(touch.shoot)
         || (blasterEquipped && (attackKey.isDown || Boolean(touch.attack)));
-      if (!signature?.casting && blasterEquipped && shootHeld && !isCrouching && now >= attackVisualUntil && now - lastShotAt >= POWERUPS[equipment.active].cooldown) {
+      if (!signature?.casting && !mobility?.busy && blasterEquipped && shootHeld && !isCrouching && now >= attackVisualUntil && now - lastShotAt >= POWERUPS[equipment.active].cooldown) {
         if (equipment.active==='frost'?fireFrostShot(scene):firePlayerShot(scene)) {
           lastShotAt = now;
           shotRecoilUntil = now + 180;
@@ -1793,7 +1829,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       const keyboardAttackPressed = Phaser.Input.Keyboard.JustDown(attackKey);
       const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot));
-      if (!signature?.casting && attackPressed && !isCrouching && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
+      if (!signature?.casting && !mobility?.busy && attackPressed && !isCrouching && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
         }else{
@@ -1812,18 +1848,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         attackResolution='pending';
         scene.time.delayedCall(selectedCharacterId==='teleportation_c'?(blinkCounter?55:125):isXGod && useSideScrollXGodRun ? (hasFlameSword ? 172 : 140) : !isXGod ? 100 : 0, () => {
           attackResolution=!player.active||isRespawning||isLevelClearing?'inactive':isCrouching?'crouched':equipment.active!==attackEquipment?'equipment_changed':now<=lastDamageAt?'damaged':selectedCharacterId==='teleportation_c'&&attackTeleport!==teleport.blinks+teleport.recalls?'teleported':'resolved';
-          if(attackResolution==='resolved')performAttack(scene, combo,blinkCounter);
+          if(attackResolution==='resolved' && !mobility?.busy)performAttack(scene, combo,blinkCounter);
         });
         }
       }
       updatePowerupEffects(scene);
 
-      if (tryHeadStomp(scene)) jumpedThisFrame = true;
-      if (trySpringLaunch(scene)) jumpedThisFrame = true;
+      if (!mobility?.busy && tryHeadStomp(scene)) jumpedThisFrame = true;
+      if (!mobility?.busy && trySpringLaunch(scene)) jumpedThisFrame = true;
       const platformSnapped = snapPlayerToPlatformTop();
       if (platformSnapped) lastGroundedAt = now;
       updatePlayerVisual(scene, (grounded || platformSnapped) && !jumpedThisFrame, delta);
       signature?.present();
+      mobility?.present(Boolean(signature?.casting || xgodDamagePose?.active || now < attackVisualUntil),
+        Boolean(signature?.casting || xgodDamagePose?.active));
       if (xgodDamagePose?.active) {
         xgodDamagePose.setPosition(player.x, (player.body as Phaser.Physics.Arcade.Body).bottom).setFlipX(facingDirection < 0);
       }
@@ -2258,6 +2296,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function placePlayerOnPlatform(x: number, preferredY?: number, keepHorizontalVelocity = false) {
+      mobility?.cancel(true);
+      jumpQueuedAt = downQueuedAt = jumpBufferedAt = -9999;
       const body = player.body as Phaser.Physics.Arcade.Body;
       // A raised platform can overlap the ground below it. Explicit stand heights
       // must win here or a valid mid-air catch would incorrectly snap to ground.
@@ -4189,6 +4229,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function handlePlayerEnemyOverlap(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite) {
       if(signature?.invulnerable)return;
+      if(mobility?.contact(enemy, canStomp(enemy))) return;
       if(selectedCharacterId==='teleportation_c'&&scene.time.now<teleport.phaseUntil)return;
       if(scene.time.now<emberUntil&&equipment.active==='ember'&&enemy.active&&enemy.getData('kind')!=='boss'){
         if(!emberTargets.has(enemy)){emberTargets.add(enemy);if(damageEnemy(scene,enemy,3,true))powerHits++;}
@@ -4326,6 +4367,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       playerHealth = Math.max(0, playerHealth - safeDamage);
       signature?.cancel();
+      mobility?.cancel();
       playSfx(forceRespawn||playerHealth<=0?'playerDeath':'playerHit');
       const previousPower=equipment.active;
       equipment=hitPowerup(equipment,forceRespawn||playerHealth<=0);
@@ -4697,6 +4739,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           rangedTool: equipment.active==='blaster'?'ink_marker_blaster':equipment.active==='frost'?'frost_gauntlet':null,
           texture: player.texture.key,
           frame: player.frame.name,
+          visible: player.visible,
           health: playerHealth,
           lives: playerLives,
           bodyBottom: Math.round(body?.bottom ?? 0)
@@ -4721,6 +4764,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         sideScrollVariant: useSideScrollXGodRun
       },
       movement: {
+        xgodMobility: mobility?.read() ?? null,
         turnSkidActive: isSkidding,
         skidTimeRemainingMs: Math.max(0, Math.round(skidUntil - latestSceneTime)),
         turnSkidsTriggered: turnSkidCount,
@@ -4786,8 +4830,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing)specialQueuedAt=performance.now();
     };
     window.addEventListener('unknown-universe:special',queueSpecial);
+    const queueJump = () => {
+      if(!isPausedRef.current&&!isRespawning&&!isLevelClearing) jumpQueuedAt=performance.now();
+    };
+    const queueDown = () => {
+      if(!isPausedRef.current&&!isRespawning&&!isLevelClearing) downQueuedAt=performance.now();
+    };
+    window.addEventListener('unknown-universe:jump',queueJump);
+    window.addEventListener('unknown-universe:down',queueDown);
     const handlePause=(event:KeyboardEvent)=>{
       if(event.code==='KeyX'&&!event.repeat)queueSpecial();
+      if(!event.repeat && (event.code==='KeyZ'||event.code==='ArrowUp')) queueJump();
+      if(!event.repeat && (event.code==='KeyS'||event.code==='ArrowDown')) queueDown();
       if(selectedCharacterId==='teleportation_c'&&!event.repeat&&!isPausedRef.current&&!isRespawning&&!isLevelClearing){
         if(event.code==='KeyX')blinkQueuedAt=performance.now();
         if(event.code==='KeyR')recallQueuedAt=performance.now();
@@ -4802,6 +4856,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       unwatchViewport();
       window.removeEventListener('keydown',handlePause);
       window.removeEventListener('unknown-universe:special',queueSpecial);
+      window.removeEventListener('unknown-universe:jump',queueJump);
+      window.removeEventListener('unknown-universe:down',queueDown);
       window.render_game_to_text = () => JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
         engine: "platformer",
@@ -4847,6 +4903,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerCollectPickup = undefined;
       window.__unknownPlatformerSpecialTest = undefined;
       signature?.destroy();signature=null;
+      mobility?.destroy();mobility=null;
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;

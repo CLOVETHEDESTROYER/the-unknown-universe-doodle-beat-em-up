@@ -1,0 +1,16 @@
+{
+  "double-jump": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "scale": 0.4116222760290557,
+    "anchor": "body center"
+  },
+  "butt-bomb": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "scale": 0.4,
+    "anchor": "bottom center"
+  }
+}

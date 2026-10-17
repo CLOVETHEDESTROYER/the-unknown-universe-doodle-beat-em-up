@@ -919,6 +919,11 @@ const App: React.FC = () => {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm pointer-events-auto">
             <div className="pause-dialog mx-3 max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-slate-800 bg-white p-4 text-center font-['Gochi_Hand'] shadow-2xl md:p-8">
               <h2 className="mb-3 text-4xl font-bold text-slate-800 md:text-5xl">Game Paused</h2>
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
+                && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
+                && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
+                <p className="mb-3 text-lg text-slate-700">Double jump: tap Z / Up or J again in midair.<br />Butt bomb: press Down / S or touch v while airborne.</p>
+              )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.</p>}
               <SoundControls settings={audioSettings} />
               <button
