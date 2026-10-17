@@ -108,7 +108,8 @@ const TouchButton: React.FC<{
 };
 
 const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatformer?: boolean; autoRun?: boolean; canCrouch?: boolean; canShoot?: boolean; blasterEquipped?: boolean; teleportControls?:boolean; starControls?:boolean; specialName?:string }> = ({ isPaused, flightMode = false, isPlatformer = false, autoRun = false, canCrouch = false, canShoot = false, blasterEquipped = false,teleportControls=false,starControls=false,specialName }) => {
-  const airborneMoves = isPlatformer && canCrouch && new URLSearchParams(window.location.search).get('xgodArt') !== 'model';
+  const airborneMoves = isPlatformer && (starControls || canCrouch && new URLSearchParams(window.location.search).get('xgodArt') !== 'model');
+  const downLabel = airborneMoves ? starControls ? 'Crouch / airborne ground punch' : 'Crouch / airborne butt bomb' : 'Crouch';
   useEffect(() => {
     resetControls();
 
@@ -140,11 +141,11 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
   return (
     <div className={`touch-controls pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isPlatformer ? "touch-controls-platformer" : ""}`}>
       {isPlatformer && autoRun ? (
-        airborneMoves ? <div className="pointer-events-auto"><TouchButton control="down" label="v" accessibleLabel="Crouch / airborne butt bomb" compact /></div> : <div className="w-10" aria-hidden="true" />
+        airborneMoves ? <div className="pointer-events-auto"><TouchButton control="down" label="v" accessibleLabel={downLabel} compact /></div> : <div className="w-10" aria-hidden="true" />
       ) : isPlatformer ? (
         <div className="touch-dpad touch-dpad-platformer pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/16 p-2 backdrop-blur-[2px]">
           <TouchButton control="left" label="<" compact />
-          {starControls || canCrouch ? <TouchButton control="down" label="v" accessibleLabel={airborneMoves ? "Crouch / airborne butt bomb" : "Crouch"} compact /> : <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />}
+          {starControls || canCrouch ? <TouchButton control="down" label="v" accessibleLabel={downLabel} compact /> : <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />}
           <TouchButton control="right" label=">" compact />
         </div>
       ) : (

@@ -14,12 +14,12 @@ ART = ROOT / 'art/xgod-mobility-v1'
 OUT = ROOT / 'public/characters/xgod/mobility-v1'
 
 
-def pack():
-    OUT.mkdir(parents=True, exist_ok=True)
+def pack(art=ART, out=OUT, names=('double-jump', 'butt-bomb')):
+    out.mkdir(parents=True, exist_ok=True)
     preview = Image.new('RGBA', (1536, 560), '#e4ded1')
     metadata = {}
-    for row, name in enumerate(['double-jump', 'butt-bomb']):
-        pixels = np.asarray(Image.open(ART / f'{name}-source.png').convert('RGBA'))
+    for row, name in enumerate(names):
+        pixels = np.asarray(Image.open(art / f'{name}-source.png').convert('RGBA'))
         labels, _ = ndimage.label(pixels[:, :, 3] > 210)
         counts = np.bincount(labels.ravel())
         boxes = ndimage.find_objects(labels)
@@ -54,13 +54,13 @@ def pack():
                 'sourceSize': {'w': 256, 'h': 256},
                 'spriteSourceSize': {'x': box[0], 'y': box[1], 'w': crop.width, 'h': crop.height}})
             preview.alpha_composite(cell, (n*256, row*280+24))
-        page.save(OUT / f'{name}.png', optimize=True)
-        (OUT / f'{name}.json').write_text(json.dumps({'textures': [{'image': f'{name}.png', 'frames': entries}]}, separators=(',', ':')))
+        page.save(out / f'{name}.png', optimize=True)
+        (out / f'{name}.json').write_text(json.dumps({'textures': [{'image': f'{name}.png', 'frames': entries}]}, separators=(',', ':')))
         metadata[name] = {'frames': 6, 'frameSize': 256, 'baseline': 220, 'scale': scale,
             'anchor': 'body center' if name == 'double-jump' else 'bottom center'}
         ImageDraw.Draw(preview).text((8, row*280+5), name, fill='#17172a')
-    (ART / 'metadata.json').write_text(json.dumps(metadata, indent=2)+'\n')
-    preview.convert('RGB').save(ART / 'preview.jpg', quality=92)
+    (art / 'metadata.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    preview.convert('RGB').save(art / 'preview.jpg', quality=92)
     print('Packed two 780x520 atlases (3.1 MiB RGBA total).')
 
 

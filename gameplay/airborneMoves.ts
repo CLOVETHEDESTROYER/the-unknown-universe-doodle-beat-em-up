@@ -6,21 +6,23 @@ type BombPhase = 'ready' | 'windup' | 'diving' | 'landing';
 interface Hooks {
   player: Enemy;
   enemies: Phaser.Physics.Arcade.Group;
+  projectiles: Phaser.Physics.Arcade.Group;
   facing: () => number;
   canUse: () => boolean;
   clearLine: (enemy: Enemy) => boolean;
   damage: (enemy: Enemy, amount: number) => boolean;
 }
 
-/** X God's airborne moves share the ordinary player collider and scene clock. */
-export class XGodMobility {
+/** Airborne moves share the ordinary player collider, input edges and scene clock. */
+export class AirborneMoves {
   private actor: Phaser.GameObjects.Sprite;
   private ink: Phaser.GameObjects.Graphics;
   private available = true;
   private jumpAt = -9999;
   private phase: BombPhase = 'ready';
   private phaseAt = -9999;
-  private impact: { x: number; y: number; at: number } | null = null;
+  private impact: { x: number; y: number; at: number; left: number; right: number } | null = null;
+  private knockouts = new Set<Phaser.GameObjects.Sprite>();
   private targets = new Set<Enemy>();
   private hidden = false;
   private alive = true;
@@ -28,10 +30,12 @@ export class XGodMobility {
   private bombs = 0;
   private impacts = 0;
   private hits = 0;
+  private clearedShots = 0;
+  private screenClears = 0;
 
-  constructor(private scene: Phaser.Scene, private hooks: Hooks) {
-    this.actor = scene.add.sprite(0, 0, 'xgod_double_jump', '0')
-      .setOrigin(.5, 220/256).setScale(.78).setDepth(24).setVisible(false);
+  constructor(private scene: Phaser.Scene, private hooks: Hooks, readonly hero: 'xgod' | 'zgod') {
+    this.actor = scene.add.sprite(0, 0, `${hero}_double_jump`, '0')
+      .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : .78).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }
@@ -90,8 +94,21 @@ export class XGodMobility {
   private hit(enemy: Enemy, amount: number) {
     if (this.targets.has(enemy)) return;
     this.targets.add(enemy);
-    if (!this.hooks.damage(enemy, amount)) return;
+    const star = this.hero === 'zgod';
+    // Keep a brief airborne KO pose after the real enemy is defeated. Bosses use
+    // their established collapse/reward sequence instead of a second death copy.
+    const copy = star && enemy.getData('kind') !== 'boss' ? this.scene.add.sprite(enemy.x, enemy.y, enemy.texture.key, enemy.frame.name)
+      .setOrigin(enemy.originX, enemy.originY).setScale(enemy.scaleX, enemy.scaleY)
+      .setRotation(enemy.rotation).setFlip(enemy.flipX, enemy.flipY).setDepth(22) : null;
+    if (!this.hooks.damage(enemy, star ? Number(enemy.getData('hp')) : amount)) { copy?.destroy(); return; }
     this.hits++;
+    if (copy) {
+      this.knockouts.add(copy);
+      const direction = copy.x < this.body.center.x ? -1 : 1;
+      this.scene.tweens.add({ targets: copy, x: copy.x+direction*170, y: copy.y-150,
+        angle: direction*55, alpha: 0, duration: 550, ease: 'Quad.out',
+        onComplete: () => { this.knockouts.delete(copy); copy.destroy(); } });
+    }
     if (enemy.active && enemy.getData('kind') !== 'boss') {
       enemy.setData('specialStunUntil', this.scene.time.now+450);
       enemy.setVelocity(0, -280);
@@ -101,7 +118,14 @@ export class XGodMobility {
   private land() {
     const body = this.body, now = this.scene.time.now;
     this.phase = 'landing'; this.phaseAt = now; this.impacts++;
-    this.impact = { x: body.center.x, y: body.bottom, at: now };
+    const camera = this.scene.cameras.main;
+    this.impact = { x: body.center.x, y: body.bottom, at: now, left: camera.scrollX, right: camera.scrollX+camera.width };
+    if (this.hero === 'zgod') {
+      this.clearScreen();
+      this.scene.cameras.main.shake(220, .005);
+      playSfx('explosion', { pitch: .8 });
+      return;
+    }
     const area = new Phaser.Geom.Rectangle(body.center.x-180, body.bottom-125, 360, 140);
     for (const enemy of [...this.hooks.enemies.getChildren()] as Enemy[]) {
       if (!enemy.active || !this.hooks.clearLine(enemy)) continue;
@@ -110,6 +134,26 @@ export class XGodMobility {
     }
     this.scene.cameras.main.shake(130, .0035);
     playSfx('stomp', { pitch: .7 });
+  }
+
+  private clearScreen() {
+    this.screenClears++;
+    const camera = this.scene.cameras.main;
+    const view = new Phaser.Geom.Rectangle(camera.scrollX, camera.scrollY, camera.width, camera.height);
+    const visible = (sprite: Enemy) => {
+      const b = sprite.body as Phaser.Physics.Arcade.Body;
+      return b?.enable && Phaser.Geom.Intersects.RectangleToRectangle(view,
+        new Phaser.Geom.Rectangle(b.x, b.y, b.width, b.height));
+    };
+    // Screen-wide power deliberately crosses platforms and defeats guarded bosses.
+    for (const shot of [...this.hooks.projectiles.getChildren()] as Enemy[]) {
+      if (shot.active && shot.getData('enemyProjectile') && visible(shot)) {
+        shot.destroy(); this.clearedShots++;
+      }
+    }
+    for (const enemy of [...this.hooks.enemies.getChildren()] as Enemy[]) {
+      if (enemy.active && visible(enemy)) this.hit(enemy, Number(enemy.getData('hp')));
+    }
   }
 
   present(obscured: boolean, hidePlayer: boolean) {
@@ -123,7 +167,7 @@ export class XGodMobility {
         : this.phase === 'diving' ? 2
         : this.phase === 'landing' ? 3+Math.min(2, Math.floor((now-this.phaseAt)/100))
         : Math.min(5, Math.floor(age/70));
-      this.actor.setTexture(this.busy ? 'xgod_butt_bomb' : 'xgod_double_jump', String(frame))
+      this.actor.setTexture(this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       this.hooks.player.setVisible(false); this.hidden = true;
     } else if (this.hidden) {
@@ -136,9 +180,31 @@ export class XGodMobility {
   private drawImpact(now: number) {
     this.ink.clear();
     if (!this.impact) return;
-    const p = (now-this.impact.at)/420;
+    const star = this.hero === 'zgod';
+    const p = (now-this.impact.at)/(star ? 700 : 420);
     if (p >= 1) { this.impact = null; return; }
     const {x,y} = this.impact;
+    if (star) {
+      const reach = Math.max(x-this.impact.left, this.impact.right-x)+80;
+      const radius = 30+p*reach;
+      this.ink.lineStyle(9, 0xff8fe0, (1-p)*.8).strokeEllipse(x, y-5, radius*2, 32+p*110);
+      this.ink.lineStyle(4, 0xffed9d, 1-p).strokeEllipse(x, y-5, radius*2+14, 45+p*110);
+      // Two bright shock fronts race toward opposite edges of the visible screen.
+      for (const direction of [-1, 1]) {
+        const front = x+direction*radius;
+        this.ink.lineStyle(8, 0xffb2ed, 1-p).lineBetween(front-direction*30, y-7, front, y-85)
+          .lineBetween(front, y-85, front+direction*18, y-12);
+        for (let i=0; i<4; i++) {
+          const sx = front-direction*i*28, sy = y-24-Math.sin(p*Math.PI)*(30+i*16), r = 7+i%2*4;
+          const points = Array.from({ length: 10 }, (_, n) => {
+            const angle = -Math.PI/2+n*Math.PI/5+p*2, radius = n%2 ? r*.45 : r;
+            return { x: sx+Math.cos(angle)*radius, y: sy+Math.sin(angle)*radius };
+          });
+          this.ink.fillStyle(i%2 ? 0xffed9d : 0xff9bde, 1-p).fillPoints(points, true);
+        }
+      }
+      return;
+    }
     this.ink.lineStyle(6, 0xffcb69, 1-p).strokeEllipse(x, y-3, 60+p*300, 15+p*35);
     for (let i=0; i<8; i++) {
       const dx = (i-3.5)*14*(1+p*2);
@@ -150,6 +216,8 @@ export class XGodMobility {
   read() {
     return { doubleJumpAvailable: this.available, doubleJumps: this.jumps, bombPhase: this.phase,
       bombs: this.bombs, impacts: this.impacts, hits: this.hits,
+      name: this.hero === 'zgod' ? 'Starfall Ground Punch' : 'Butt Bomb', screenClears: this.screenClears,
+      clearedShots: this.clearedShots, shockwaveActive: Boolean(this.impact), knockoutPoses: this.knockouts.size,
       texture: this.actor.visible ? this.actor.texture.key : null,
       frame: this.actor.visible ? Number(this.actor.frame.name) : null };
   }
@@ -158,6 +226,8 @@ export class XGodMobility {
     this.phase = 'ready'; this.jumpAt = -9999; this.impact = null;
     if (refill) this.available = true;
     this.targets.clear(); this.actor.setVisible(false); this.ink.clear();
+    for (const copy of this.knockouts) { this.scene.tweens.killTweensOf(copy); copy.destroy(); }
+    this.knockouts.clear();
     if (this.hooks.player.active) {
       this.body.setAllowGravity(true);
       if (this.hidden) this.hooks.player.setVisible(true);

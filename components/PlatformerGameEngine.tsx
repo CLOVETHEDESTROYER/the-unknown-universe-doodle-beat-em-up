@@ -15,7 +15,7 @@ import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear,
 import { playSfx } from '../audio/gameAudio';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
-import { XGodMobility } from '../gameplay/xgodMobility';
+import { AirborneMoves } from '../gameplay/airborneMoves';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
 
 interface PlatformerGameEngineProps {
@@ -981,7 +981,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const worldWidth = Math.max(6000, level.endX + 300);
     const failedAssetKeys = new Set<string>();
     let signature: SignatureSpecialRuntime | null = null;
-    let mobility: XGodMobility | null = null;
+    let mobility: AirborneMoves | null = null;
     let specialQueuedAt = -9999;
     let jumpQueuedAt = -9999, downQueuedAt = -9999, downWasHeld = false;
 
@@ -1053,7 +1053,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let lastGroundedAt = 0;
     let jumpBufferedAt = -9999;
     let jumpWasHeld = false;
-    let airLaunchKind: "jump" | "double-jump" | "butt-bomb" | "spring" | "stomp" | "boss-stomp" | null = null;
+    let airLaunchKind: "jump" | "double-jump" | "butt-bomb" | "ground-punch" | "spring" | "stomp" | "boss-stomp" | null = null;
     let jumpVisualAirborne=false;
     let jumpVisualStartedAt=0;
     let lastAirborneVelocity=0;
@@ -1185,6 +1185,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (useDrawnXGod) {
         this.load.multiatlas('xgod_double_jump', '/characters/xgod/mobility-v1/double-jump.json', '/characters/xgod/mobility-v1/');
         this.load.multiatlas('xgod_butt_bomb', '/characters/xgod/mobility-v1/butt-bomb.json', '/characters/xgod/mobility-v1/');
+      }
+      if (isZGod) {
+        this.load.multiatlas('zgod_double_jump', '/characters/z-god-v1/mobility-v1/double-jump.json', '/characters/z-god-v1/mobility-v1/');
+        this.load.multiatlas('zgod_ground_punch', '/characters/z-god-v1/mobility-v1/ground-punch.json', '/characters/z-god-v1/mobility-v1/');
       }
       this.load.multiatlas('signature_special', `/characters/signature-specials-v1/${selectedCharacterId}.json`, '/characters/signature-specials-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
@@ -1660,13 +1664,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           return safeTeleportPoint(x,y,space,true)&&teleportPathClear(from,{x,y},space)?y:null;
         },
       });
-      if (useDrawnXGod) mobility = new XGodMobility(scene, {
-        player, enemies, facing: () => facingDirection,
+      if (useDrawnXGod || isZGod) mobility = new AirborneMoves(scene, {
+        player, enemies, projectiles, facing: () => facingDirection,
         canUse: () => !isRespawning && !isLevelClearing && !signature?.casting
           && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
         damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true),
-      });
+      }, isZGod ? 'zgod' : 'xgod');
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
         projectiles.getChildren().slice().forEach(child=>child.destroy());
@@ -1740,7 +1744,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         setCrouching(false, now);
         jumpBufferedAt = lastGroundedAt = -9999;
         attackVisualUntil = shotRecoilUntil = -9999;
-        airLaunchKind = 'butt-bomb';
+        airLaunchKind = isZGod ? 'ground-punch' : 'butt-bomb';
       }
       const wantsCrouch = !signature?.casting && !mobility?.busy && grounded && downHeld;
       setCrouching(wantsCrouch, now);
@@ -4772,7 +4776,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         sideScrollVariant: useSideScrollXGodRun
       },
       movement: {
-        xgodMobility: mobility?.read() ?? null,
+        xgodMobility: useDrawnXGod ? mobility?.read() ?? null : null,
+        zgodMobility: isZGod ? mobility?.read() ?? null : null,
         turnSkidActive: isSkidding,
         skidTimeRemainingMs: Math.max(0, Math.round(skidUntil - latestSceneTime)),
         turnSkidsTriggered: turnSkidCount,
