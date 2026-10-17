@@ -16,7 +16,8 @@ The Dragon's oversized painted flame cone is excluded from its individual-shot a
 
 ## Shared fairness rules
 
-- Purple status/health bar and GUARDED advice mean no damage can be dealt from any direction. Gold rings, a shrinking arc, and an OPEN countdown mark the counter window.
+- Purple status/health bar and GUARDED advice mean no damage can be dealt from any direction. During the counter window, the boss gains a slow coral-red highlight and a bold yellow **ATTACK!** sign with a draining time bar. Gold rings, a shrinking arc, and the OPEN countdown reinforce the same opening. The sign stays visible for the whole opening and vanishes as soon as armor returns, including between guarded phase-two follow-up attacks.
+- The highlight tracks the currently rendered boss pose without changing its original tint, alpha, collider or movement. The sign follows the head, stays within the camera and below the HUD, and moves beside tall bosses when needed. Reduced-motion preferences use a steady red highlight. The cue is shared by all five on-foot bosses, including Dark Dragon and Kilina's Daughter, and clears on retreat, death and scene transitions.
 - Sword, blaster, companion, and stomp attacks pass through the same strict state/time check. Opening damage is 1.5×, with Cinder retaining its 2× core bonus. Accepted hits have a 160 ms interval and never interrupt a boss commitment. Guarded attempts cannot consume that interval, extend the opening, or award stomp points.
 - Aim, rain lanes, and travel destinations lock during the warning. Faster phase-two warnings remain explicit. The second wind waits until the current recovery has fully ended.
 - Dragon lunge and Regent dash advise moving clear of the marked travel path. Low fire, quake waves, and the Regent's phase-two ground waves can be jumped. The movement hints do not promise that a ground jump clears a tall boss's entire body.
@@ -30,8 +31,15 @@ The Dragon's oversized painted flame cone is excluded from its individual-shot a
 
 `components/PlatformerGameEngine.tsx` contains the move timing table `BOSS_MOVES`, `beginStageBossMove`, `updateStageBoss`, warning/projectile/pose helpers, shared camera/guard helpers, and Kilina's existing dedicated controller. Debug output includes configured recovery duration, elapsed state time, rendered warning/status flags, body dimensions, and projectile patterns/velocities.
 
+`gameplay/bossVulnerabilityCue.ts` draws the live pose highlight and ATTACK sign
+using existing textures and Phaser graphics/text. `bossCues.vulnerability` in
+`render_game_to_text()` reports prompt/highlight visibility, frame, remaining
+time, bar fraction, reduced-motion preference and sign placement. The cue receives
+the same `isBossVulnerable()` result used by the damage gate.
+
 ## Verification and review
 
+- `node scripts/test_boss_vulnerability_cues.mjs`: first two bosses, actual guarded/open blaster hits, per-frame cue/damage-gate agreement, phase-two/return-dash timing, countdown pause, reduced motion, retreat and defeat cleanup. Set `GAME_TEST_URL`, `GAME_TEST_BROWSER=webkit`, optional `GAME_TEST_EXECUTABLE`, and `GAME_TEST_DEVICE` (a Playwright device name or `desktop`) to select the local server/browser/profile. `GAME_TEST_PHASE_TWO=0` runs the shorter presentation check for additional layouts.
 - `node scripts/test_boss_encounters_v2.mjs [1|3|4|6]`: actual keyboard sword counters through every attack in both phases, protected rear hits and second wind, fixed targeting, body/arena alignment, rendered warning/status cues, settled phone captures, defeat cleanup, and exit activation. Positioning hooks isolate scenarios; they do not damage bosses.
 - `node scripts/test_boss_dodges_v2.mjs`: zero guarded blaster damage and full opening damage for all three revised bosses; real held keyboard jumps clear Dragon low fire and Cinder quake; Regent arrives at its already marked blink destination.
 - Existing Kilina encounter, blaster, boss-stomp, normal stomp/movement, and combat-presentation regressions cover the shared systems. The Dragon blaster-clear regression now uses real recovery counters instead of assuming the old unguarded 16 HP fight.

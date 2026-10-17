@@ -16,6 +16,7 @@ import { playSfx } from '../audio/gameAudio';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { XGodMobility } from '../gameplay/xgodMobility';
+import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
 
 interface PlatformerGameEngineProps {
   initialEquipment?: PowerupLoadout;
@@ -1021,6 +1022,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let bossAttackVisual: Phaser.GameObjects.Sprite | null = null;
     let bossAttackWarning: Phaser.GameObjects.Graphics | null = null;
     let bossGuardVisual: Phaser.GameObjects.Graphics | null = null;
+    let bossVulnerabilityCue: BossVulnerabilityCue | null = null;
     let bossArenaCameraLocked = false;
     let levelTitle: Phaser.GameObjects.Text | null = null;
     let bossDeathVisual: Phaser.GameObjects.Sprite | null = null;
@@ -1494,6 +1496,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       endGate.body.setSize(76, 150).setOffset(12, 12);
       if (!bossDefeated) {
         bossTellMarker = scene.add.image(0, 0, "boss_tell_ring").setDepth(11).setAlpha(0.72).setVisible(false);
+        bossVulnerabilityCue = new BossVulnerabilityCue(scene);
         if (currentLevel === 1 || currentLevel >= 4) bossTellMarker.setDisplaySize(150, 150);
         else bossTellMarker.setScale(0.75);
         bossBarrier = scene.add.rectangle(level.endX - 150, 320, 28, 480, 0x7c3aed, 0.3).setDepth(14);
@@ -1703,7 +1706,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
-      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); bossVulnerabilityCue?.hide(); return; }
 
       const now = scene.time.now;
       updateMovingPlatforms(delta);
@@ -3371,7 +3374,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       bossGuardVisual.clear();
       if (!boss.getData("engaged")) return;
       const open = isBossVulnerable(boss, scene.time.now);
-      const pulse = 0.65 + Math.sin(scene.time.now / 100) * 0.15;
+      const pulse = bossVulnerabilityCue?.reducedMotion ? .8 : 0.65 + Math.sin(scene.time.now / 100) * 0.15;
       if (open) {
         // A shrinking gold arc and foot ring mark the time left to counter.
         const duration = Number(boss.getData("recoveryDuration") ?? (boss.getData("phase") === 2 ? 850 : 1100));
@@ -3635,6 +3638,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (!bossHudText) return;
       const boss = enemies.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite).find((enemy) => enemy.active && enemy.getData("kind") === "boss");
       if (!boss || !boss.getData("engaged")) {
+        bossVulnerabilityCue?.hide();
         bossHudText.setVisible(false);
         bossHudFrame?.setVisible(false);
         bossHudFill?.setVisible(false);
@@ -3652,6 +3656,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const phase = Number(boss.getData("phase") ?? 1);
       const kilinaMove = boss.getData("move");
       const kilinaOpen = isBossVulnerable(boss, scene.time.now);
+      const pose = bossAttackVisual?.active && bossAttackVisual.visible ? bossAttackVisual : boss;
+      bossVulnerabilityCue?.update(boss, pose, kilinaOpen, Number(boss.getData('recoverUntil')),
+        Number(boss.getData('recoveryDuration') ?? (phase === 2 ? 850 : 1100)), compactHud);
       updateBossGuard(scene, boss);
       const openingSeconds = Math.max(0, Math.ceil((Number(boss.getData("recoverUntil")) - scene.time.now) / 100) / 10);
       const kilinaIntent = kilinaOpen ? `OPEN ${openingSeconds.toFixed(1)}s - ATTACK!` : state === "phase" ? "GUARDED - SECOND WIND!"
@@ -4144,6 +4151,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       bossAttackWarning?.clear();
       bossGuardVisual?.clear();
       bossHudText?.setVisible(false);
+      bossVulnerabilityCue?.hide();
       bossHudFrame?.setVisible(false);
       bossHudFill?.setVisible(false);
       projectiles.getChildren().filter((child) => (child as Phaser.Physics.Arcade.Sprite).getData("enemyProjectile"))
@@ -4817,7 +4825,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         pickups: activePickups,
         projectiles: activeProjectiles,
         bossArenaCamera: { locked: bossArenaCameraLocked, left: Math.round(sceneCameraLeft()), width: SCREEN_WIDTH },
-        bossCues: { warningVisible: Boolean(bossAttackWarning?.commandBuffer.length), statusVisible: Boolean(bossGuardVisual?.commandBuffer.length) },
+        bossCues: { warningVisible: Boolean(bossAttackWarning?.commandBuffer.length), statusVisible: Boolean(bossGuardVisual?.commandBuffer.length),
+          vulnerability: bossVulnerabilityCue?.read() ?? null },
         touchControls: window.__unknownUniverseTouchControls ?? {}
       });
     }
@@ -4904,6 +4913,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerSpecialTest = undefined;
       signature?.destroy();signature=null;
       mobility?.destroy();mobility=null;
+      bossVulnerabilityCue?.destroy();bossVulnerabilityCue=null;
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
