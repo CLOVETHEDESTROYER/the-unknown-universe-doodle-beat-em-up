@@ -17,6 +17,7 @@ import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
 import { EMBER_DASH, EmberJets } from '../gameplay/emberJets';
+import { FLAME_SWORD, FireBlades } from '../gameplay/fireBlade';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
 import { BOSS_DEATH_BASE_FACING, BOSS_DEFEAT_DURATION, bossCounterWindow, bossDeathPose, bossDeathTexture } from '../gameplay/bossPresentation';
 
@@ -985,9 +986,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let signature: SignatureSpecialRuntime | null = null;
     let mobility: AirborneMoves | null = null;
     let emberJets: EmberJets | null = null;
+    let fireBlades: FireBlades | null = null;
     let specialQueuedAt = -9999;
     let jumpQueuedAt = -9999, downQueuedAt = -9999, downWasHeld = false;
-    let emberAttackQueuedAt = -9999;
+    let equipmentAttackQueuedAt = -9999;
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
@@ -1200,6 +1202,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         this.load.multiatlas('ember_jets','/powerups/ember-jets-v1/jets.json','/powerups/ember-jets-v1/');
         if(useDrawnXGod)this.load.multiatlas('ember_xgod_dash','/powerups/ember-jets-v1/xgod.json','/powerups/ember-jets-v1/');
       }
+      this.load.spritesheet('fire_blade','/powerups/fire-blade-v1/blade.png',{frameWidth:128,frameHeight:224});
       this.load.multiatlas('signature_special', `/characters/signature-specials-v1/${selectedCharacterId}.json`, '/characters/signature-specials-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
       this.load.on("loaderror", (file: { key?: string }) => {
@@ -1426,6 +1429,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemies = scene.physics.add.group({ allowGravity: true });
       pickups = scene.physics.add.group({ allowGravity: false });
       projectiles = scene.physics.add.group({ allowGravity: false });
+      fireBlades = new FireBlades(scene,projectiles);
       const shotArtwork = scene.add.graphics();
       shotArtwork.fillStyle(0x1c1824).fillEllipse(2, 2, 32, 17);
       shotArtwork.fillStyle(0xf4f0b3).fillEllipse(5, 4, 25, 12);
@@ -1569,7 +1573,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       scene.physics.add.overlap(player, endGate, () => clearLevel(scene));
       scene.physics.add.overlap(projectiles, enemies, (projectileObj, enemyObj) => {
         const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
+        if(!projectile.active)return;
         if (projectile.getData("enemyProjectile")) return;
+        if(projectile.getData('fireBlade')){
+          fireBlades?.hit(projectile,enemyObj as Phaser.Physics.Arcade.Sprite,(enemy,amount)=>damageEnemy(scene,enemy,amount,true));
+          return;
+        }
         const damage = Number(projectile.getData("damage")) || (selectedCharacterId === "nico" ? 3 : 2);
         const isPlayerShot = Boolean(projectile.getData("playerShotExpiresAt"));
         const frost=Boolean(projectile.getData('frostShot'));
@@ -1721,7 +1730,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
-      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); bossVulnerabilityCue?.hide(); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
 
       const now = scene.time.now;
       // Phaser Clock.now follows wall time; Arcade integrates smoothed delta.
@@ -1858,9 +1867,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
 
       const keyboardAttackPressed = Phaser.Input.Keyboard.JustDown(attackKey);
-      const queuedEmberAttack=equipment.active==='ember'&&performance.now()-emberAttackQueuedAt<200;
-      emberAttackQueuedAt=-9999;
-      const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot) || queuedEmberAttack);
+      const queuedEquipmentAttack=(equipment.active==='ember'||equipment.active==='sword')&&performance.now()-equipmentAttackQueuedAt<200;
+      equipmentAttackQueuedAt=-9999;
+      const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot) || queuedEquipmentAttack);
       if (!signature?.casting && !mobility?.busy && attackPressed && !isCrouching && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
@@ -1904,6 +1913,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       updateDoghostCompanion(scene, delta);
       updateTeleportationCCompanion(scene, delta);
       cleanupProjectiles();
+      fireBlades?.update(delta);
       updateBossHud(scene);
       updateRooftopRush(scene);
 
@@ -4066,12 +4076,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
 
       const blinkStrike=selectedCharacterId==='teleportation_c'&&blinkCounter;
-      const attackRange = (equipment.active==='hands'?86+comboStep*8:Math.max(playFeel.attackRange, selectedCharacterId === "xgod" ? 165 : 150) + comboStep * 18)+(blinkStrike?45:0);
+      const swordReach=selectedCharacterId==='xgod'?165:150;
+      const attackRange = (equipment.active==='hands'?86+comboStep*8:(hasFlameSword?swordReach:Math.max(playFeel.attackRange,swordReach)) + comboStep * 18)+(blinkStrike?45:0);
       let damage = equipment.active==='hands'?(selectedCharacterId==='barrett'?2:1)+(comboStep===3?1:0):selectedCharacterId === "xgod"
         ? (hasFlameSword ? 2 : 1) + (comboStep === 3 ? 1 : 0)
         : selectedCharacterId === "barrett"
           ? (comboStep === 3 ? 3 : 2)
           : 1 + Math.floor(comboStep / 2);
+      if(hasFlameSword)damage=comboStep===3?FLAME_SWORD.finisherDamage:FLAME_SWORD.damage;
       if(blinkStrike){damage+=1;teleport.counterUntil=0;teleport.strikes++;portalBurst(scene,player.x+facingDirection*50,player.y);}
       const hitRect = new Phaser.Geom.Rectangle(
         facingDirection > 0 ? player.x - 12 : player.x - attackRange + 12,
@@ -4079,11 +4091,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         attackRange,
         172
       );
-      const slash = scene.add.image(player.x + facingDirection * 66, player.y - 70, "projectile_static")
+      const slash = scene.add.image(player.x + facingDirection * 66, player.y - 70, hasFlameSword?'fire_blade':"projectile_static",hasFlameSword?0:undefined)
         .setDepth(22)
         .setScale((isXGod && !hasFlameSword ? 0.35 : 0.7) * facingDirection, isXGod && !hasFlameSword ? 0.35 : 0.7)
         .setAlpha(0.82);
+      if(hasFlameSword)slash.setDisplaySize(65,140).setFlipX(facingDirection<0);
       let hits = 0;
+      const swordTargets=new Set<Phaser.Physics.Arcade.Sprite>();
       scene.tweens.add({ targets: slash, alpha: 0, scaleX: slash.scaleX * 1.35, scaleY: 0.9, duration: 180 + comboStep * 35, onComplete: () => slash.destroy() });
       enemies.getChildren().forEach((child) => {
         const enemy = child as Phaser.Physics.Arcade.Sprite;
@@ -4091,9 +4105,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const targetRect = new Phaser.Geom.Rectangle(target.left, target.top, target.width, target.height);
         if (enemy.active && !platformSeparatesPlayerAndEnemy(enemy) && Phaser.Geom.Rectangle.Overlaps(hitRect, targetRect)) {
           hits += 1;
+          if(hasFlameSword)swordTargets.add(enemy);
           damageEnemy(scene, enemy, damage);
         }
       });
+      if(hasFlameSword){
+        const body=player.body as Phaser.Physics.Arcade.Body;
+        // Short heroes need the cutting edge clear of the floor, too.
+        fireBlades?.launch(player.x+facingDirection*32,Math.min(body.center.y,body.bottom-54),facingDirection,swordTargets);
+      }
       attackDebug = { active: true, hits, x: Math.round(hitRect.x), y: Math.round(hitRect.y), w: Math.round(hitRect.width), h: Math.round(hitRect.height) };
       scene.time.delayedCall(260, () => {
         attackDebug = { ...attackDebug, active: false };
@@ -4716,6 +4736,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           velocityY: Math.round((projectile.body as Phaser.Physics.Arcade.Body).velocity.y),
           playerShot: Boolean(projectile.getData("playerShotExpiresAt")),
           frostShot: Boolean(projectile.getData('frostShot')),
+          fireBlade: Boolean(projectile.getData('fireBlade')),
+          texture:projectile.texture.key,frame:projectile.frame.name,
+          fireBladeAge:projectile.getData('fireBladeAge')??null,
+          fireBladeTravel:projectile.getData('fireBlade')?Math.round(Math.abs(projectile.x-Number(projectile.getData('fireBladeStart')))):null,
           damage: projectile.getData("damage") ?? null
         }))
         : [];
@@ -4762,7 +4786,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         heroDeath: !isXGod || useDrawnXGod ? {active:Boolean(heroDeathVisual?.active),frame:heroDeathVisual?.active?Number(heroDeathVisual.frame.name):null,
           elapsedMs:heroDeathVisual?.active?Math.max(0,(gameRef.current?.scene.getScene('PlatformerScene').time.now??latestSceneTime)-heroDeathStartedAt):0,
           final:playerLives<=0,respawning:isRespawning} : null,
-        weapon: { primary: equipment.active, shotsFired },
+        weapon: { primary: equipment.active, shotsFired,fireBlades:fireBlades?.read()??null },
         equipment:{...equipment,name:POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
           cooldownRemainingMs:Math.max(0,POWERUPS[equipment.active].cooldown-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil,
           emberRemainingMs:Math.max(0,emberUntil-latestSceneTime),emberSpeed:EMBER_DASH.speed,emberDurationMs:EMBER_DASH.duration,emberJets:emberJets?.read()??null},
@@ -4854,14 +4878,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const queueDown = () => {
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing) downQueuedAt=performance.now();
     };
-    const queueEmberAttack=()=>{
-      if(equipment.active==='ember'&&!isPausedRef.current&&!isRespawning&&!isLevelClearing)emberAttackQueuedAt=performance.now();
+    const queueEquipmentAttack=()=>{
+      if((equipment.active==='ember'||equipment.active==='sword')&&!isPausedRef.current&&!isRespawning&&!isLevelClearing)equipmentAttackQueuedAt=performance.now();
     };
     window.addEventListener('unknown-universe:jump',queueJump);
     window.addEventListener('unknown-universe:down',queueDown);
-    window.addEventListener('unknown-universe:attack',queueEmberAttack);
+    window.addEventListener('unknown-universe:attack',queueEquipmentAttack);
     const handlePause=(event:KeyboardEvent)=>{
       if(event.code==='KeyX'&&!event.repeat)queueSpecial();
+      if(!event.repeat&&(event.code==='Space'||event.code==='KeyC'))queueEquipmentAttack();
       if(!event.repeat && (event.code==='KeyZ'||event.code==='ArrowUp')) queueJump();
       if(!event.repeat && (event.code==='KeyS'||event.code==='ArrowDown')) queueDown();
       if(selectedCharacterId==='teleportation_c'&&!event.repeat&&!isPausedRef.current&&!isRespawning&&!isLevelClearing){
@@ -4880,7 +4905,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.removeEventListener('unknown-universe:special',queueSpecial);
       window.removeEventListener('unknown-universe:jump',queueJump);
       window.removeEventListener('unknown-universe:down',queueDown);
-      window.removeEventListener('unknown-universe:attack',queueEmberAttack);
+      window.removeEventListener('unknown-universe:attack',queueEquipmentAttack);
       window.render_game_to_text = () => JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
         engine: "platformer",

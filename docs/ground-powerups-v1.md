@@ -4,12 +4,12 @@
 
 The current platformer campaign has one active equipment slot. Equipment survives three unblocked damage events; the HUD's three dots show remaining hits. The third hit switches immediately to fists. Damage still reduces health normally. The850ms hit protection prevents repeated overlaps from spending multiple equipment hits. Ink Shield consumes itself before health or equipment damage. Death or a pit retry drops the current power immediately, retaining the list of powers discovered during the run. Companions remain separate.
 
-Space/C or the A touch button uses the equipped attack. Blaster and Frost also support held fire and the S button. C no longer produces a weak projectile while holding the sword or using fists. X God uses his existing unarmed run/idle/jump/crouch/punch art when equipment is lost; sword and gun retain their approved poses. Other heroes can collect the same equipment and punch when unarmed; Barrett retains stronger fists. No new controls are required.
+Space/C or the A touch button uses the equipped attack. Blaster and Frost also support held fire and the S button. The sword launches its fire crescent with its slash; fists remain melee. X God uses his existing unarmed run/idle/jump/crouch/punch art when equipment is lost; sword and gun retain their approved poses. Other heroes can collect the same equipment and punch when unarmed; Barrett retains stronger fists. No new controls are required.
 
 | Power | First appearance | Action |
 | --- | --- | --- |
 | Ink Blaster | Scratch; X God's starting equipment |2-damage shots every230ms, original gun sockets |
-| Flame Sword | Scratch boss reward; replacement swords from Graveyard | Existing sword combo, now with three-hit durability |
+| Flame Sword | Scratch boss reward; replacement swords from Graveyard | 4/4/6-damage slash combo plus a 3-damage animated fire blade that travels ~560px and pierces two ordinary enemies. Same-swing melee targets cannot be hit again by its wave. 440ms cooldown, three-hit durability; walls and boss armor block waves. See [Fire blade](fire-blade-v1.md). |
 | Frost Gauntlet | Graveyard, level2 |1.5-damage icy fist shots every470ms; ordinary enemies lose horizontal movement/attacks for900ms, with a thaw warning delay before their next attack. Bosses take normal damage during openings and cannot be frozen. |
 | Ember Boots | Furnace, level3 |600ms dash at700px/s (~420px),3damage once per enemy,1050ms cooldown. Animated PNG heel jets and drawn X God dash poses; see [Ember jet pass](ember-jets-v1.md). Runs through normal enemies while the dash is active. Solid walls, gaps, hazards, enemy projectiles and guarded bosses still matter. |
 | Storm Halo | Witchwood, level4 |150-unit pulse,2.5damage,850ms cooldown; clears hostile projectiles inside its radius. Uses the existing boss guard/opening rules. |

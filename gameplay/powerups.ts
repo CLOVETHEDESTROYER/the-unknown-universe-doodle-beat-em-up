@@ -5,7 +5,7 @@ export const POWERUP_HITS = 3;
 export const POWERUPS: Record<PowerupId, {name:string;level:number;color:number;hint:string;icon:string;cooldown:number}> = {
   hands:{name:'Fists',level:1,color:0xffedc1,hint:'Space / C: punch',icon:'',cooldown:360},
   blaster:{name:'Ink Blaster',level:1,color:0xc9ef83,hint:'Hold Space / C: fire',icon:'characters/xgod/ink-marker-blaster-v1.png',cooldown:230},
-  sword:{name:'Flame Sword',level:1,color:0xffc077,hint:'Space / C: slash',icon:'xgod_sword_reward_fit.png',cooldown:440},
+  sword:{name:'Flame Sword',level:1,color:0xffc077,hint:'Space / C: fire blade',icon:'xgod_sword_reward_fit.png',cooldown:440},
   frost:{name:'Frost Gauntlet',level:2,color:0x8ce5fa,hint:'Hold Space / C: ice shot',icon:'powerups/v1/frost.png',cooldown:470},
   ember:{name:'Ember Boots',level:3,color:0xffa56e,hint:'Space / C: fire dash',icon:'powerups/v1/ember.png',cooldown:1050},
   storm:{name:'Storm Halo',level:4,color:0xdec0ff,hint:'Space / C: shock pulse',icon:'powerups/v1/storm.png',cooldown:850}
