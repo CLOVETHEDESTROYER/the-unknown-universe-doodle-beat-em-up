@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
+import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport } from '../gameplay/mobileRuntime';
 import { CHARACTER_CONFIGS } from '../characters';
 import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
 import type { CharacterId, DifficultyMode, GameStats } from '../types';
@@ -421,28 +422,28 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(rock.hp<=rock.maxHp/2)combatArt.beginPath().moveTo(x+5,y-4).lineTo(x+rock.radius*.55,y+rock.radius*.18).strokePath();
       }
     }
-    const game=new Phaser.Game({type:params.get('renderer')==='canvas'?Phaser.CANVAS:Phaser.AUTO,
+    const game=new Phaser.Game({...mobileGameOptions(),type:params.get('renderer')==='canvas'?Phaser.CANVAS:Phaser.AUTO,
       audio:{noAudio:true},
       parent:host.current,width:1024,height:576,backgroundColor:'#211f41',
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
-      scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:1024,height:576},
+      scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:1024,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
-        this.load.image('flight_ship','flight/starbreak-ship-armed-v2.png');
-        for(const weapon of ['spread','lance','homing'])this.load.image(`flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
-        for(const kind of ['scout','interceptor','gunship'])this.load.image(`flight_${kind}`,`flight/${kind}-v2.png`);
-        this.load.image('flight_rock','flight/starbreak-asteroid-v1.png');
-        this.load.spritesheet('flight_pursuer','flight/void-pursuer-v3.png',{frameWidth:640,frameHeight:400,endFrame:2});
-        this.load.image('flight_witch','platformer/witchwood-panorama-generated.png');
-        this.load.image('flight_ascent','flight/ascent-panorama-v3.png');
-        this.load.image('flight_clouds','flight/cloud-parallax-v3.png');
-        this.load.image('flight_orbit','flight/orbit-panorama-v3.png');
-        this.load.image('flight_planet','platformer/void-regent-pencil-panorama-generated.png');
-        this.load.image('flight_pad','platformer/graveyard-moss-block.png');
-        this.load.image('flight_impact','doodles/impact-vfx-generated.png');
-        this.load.spritesheet('flight_hero',xgod?initialStats.hasFlameSword?'xgod_side_scroll_fire_sword_run_v1.png':'characters/xgod/motion-v2/blaster-run.png':`characters/${selectedCharacterId}/walk.png`,
+        loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
+        for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
+        for(const kind of ['scout','interceptor','gunship'])loadGameImage(this.load, `flight_${kind}`,`flight/${kind}-v2.png`);
+        loadGameImage(this.load, 'flight_rock','flight/starbreak-asteroid-v1.png');
+        loadGameSheet(this.load, 'flight_pursuer','flight/void-pursuer-v3.png',{frameWidth:640,frameHeight:400,endFrame:2});
+        loadGameImage(this.load, 'flight_witch','platformer/witchwood-panorama-generated.png');
+        loadGameImage(this.load, 'flight_ascent','flight/ascent-panorama-v3.png');
+        loadGameImage(this.load, 'flight_clouds','flight/cloud-parallax-v3.png');
+        loadGameImage(this.load, 'flight_orbit','flight/orbit-panorama-v3.png');
+        loadGameImage(this.load, 'flight_planet','platformer/void-regent-pencil-panorama-generated.png');
+        loadGameImage(this.load, 'flight_pad','platformer/graveyard-moss-block.png');
+        loadGameImage(this.load, 'flight_impact','doodles/impact-vfx-generated.png');
+        loadGameSheet(this.load, 'flight_hero',xgod?initialStats.hasFlameSword?'xgod_side_scroll_fire_sword_run_v1.png':'characters/xgod/motion-v2/blaster-run.png':`characters/${selectedCharacterId}/walk.png`,
           {frameWidth:xgod?512:256,frameHeight:xgod?512:360});
-        this.load.spritesheet('flight_head',xgod?'characters/xgod/motion-v2/blaster-idle.png':`characters/${selectedCharacterId}/walk.png`,
+        loadGameSheet(this.load, 'flight_head',xgod?'characters/xgod/motion-v2/blaster-idle.png':`characters/${selectedCharacterId}/walk.png`,
           {frameWidth:xgod?512:256,frameHeight:xgod?512:360});
       },create(this:Phaser.Scene){
         scene=this;
@@ -514,6 +515,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       enemies:state.combat.enemies.map(e=>({...e,vulnerable:e.kind!=='pursuer'||e.phase==='recover',visualFrame:e.kind==='pursuer'?e.phase==='dying'?2:['tell','attack','charge'].includes(e.phase)?1:0:0})),
       effects:state.combat.effects.map(fx=>({...fx,progress:Math.min(1,(state.clock-fx.born)/fx.duration)})),
       projectiles:state.combat.bolts.map(b=>({...b,playerShot:b.owner==='player',enemyProjectile:b.owner==='enemy'})),repairs:state.combat.repairs});
+    const unwatchViewport=watchGameViewport(game,host.current);
     window.render_game_to_text=read;
     window.advanceTime=async(ms:number)=>{
       // Once automation takes the clock, rendering and tool latency must not advance combat again.
@@ -527,6 +529,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       window.__unknownFlightSetShipPosition=(x,y)=>{state.x=Phaser.Math.Clamp(x,100,910);state.y=Phaser.Math.Clamp(y,145,475);state.vx=state.vy=0;};
     }
     return ()=>{
+      unwatchViewport();
       disposed=true;ready=false;
       window.removeEventListener('keydown',toggle);
       window.__unknownFlightDamageShip=undefined;window.__unknownFlightSetShipPosition=undefined;

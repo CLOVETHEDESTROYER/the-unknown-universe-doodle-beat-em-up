@@ -94,6 +94,7 @@ const TouchButton: React.FC<{
       onPointerDown={press}
       onPointerUp={release}
       onPointerCancel={release}
+      onLostPointerCapture={(event) => releasePointer(event.pointerId)}
       className={`touch-control select-none rounded-full border-[3px] border-white/70 bg-slate-950/58 font-['Gochi_Hand'] font-bold text-white shadow-[0_8px_22px_rgba(0,0,0,0.35)] backdrop-blur-md active:scale-95 active:bg-violet-700/80 ${
         compact ? "h-12 w-12 text-2xl" : "h-16 w-16 text-3xl"
       } ${className}`}

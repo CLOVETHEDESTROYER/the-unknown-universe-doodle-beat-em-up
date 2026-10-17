@@ -8,6 +8,7 @@ import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacte
 import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
 import { createLoadout } from './gameplay/powerups';
+import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import SoundControls from './components/SoundControls';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
@@ -93,7 +94,8 @@ const isRosterUnlockedFromStorage = () => {
     return false;
   }
 
-  return window.localStorage.getItem(ROSTER_UNLOCK_STORAGE_KEY) === "true";
+  try { return window.localStorage.getItem(ROSTER_UNLOCK_STORAGE_KEY) === "true"; }
+  catch { return false; }
 };
 
 const isRosterUnlockBypassed = () => {
@@ -248,6 +250,10 @@ const App: React.FC = () => {
   const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
   const [isIntroExiting, setIsIntroExiting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [mobileGraphics] = useState(isMobileGraphicsEnabled);
+  const [portraitPhone, setPortraitPhone] = useState(() => mobileGraphics && window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+  const [graphicsLost, setGraphicsLost] = useState(false);
+  const gameSuspended = isPaused || portraitPhone || graphicsLost;
   const [isIdeatorCollapsed, setIsIdeatorCollapsed] = useState(false);
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
@@ -261,7 +267,33 @@ const App: React.FC = () => {
     const unsubscribe=subscribeAudioSettings(()=>setAudioSettings(getAudioSettings()));
     return ()=>{unsubscribe();removeDebug();removeAudio();};
   },[]);
-  useEffect(()=>{setEffectsPaused(appPhase!=='game'||isPaused);},[appPhase,isPaused]);
+  useEffect(()=>{setEffectsPaused(appPhase!=='game'||gameSuspended);},[appPhase,gameSuspended]);
+
+  useEffect(() => {
+    let frame = 0;
+    const fitViewport = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const height = window.visualViewport?.height ?? window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+        setPortraitPhone(mobileGraphics && window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+      });
+    };
+    const backgrounded = () => { if (document.hidden) setIsPaused(true); };
+    const graphicsInterrupted = () => setGraphicsLost(true);
+    fitViewport();
+    window.addEventListener('resize', fitViewport);
+    window.visualViewport?.addEventListener('resize', fitViewport);
+    document.addEventListener('visibilitychange', backgrounded);
+    window.addEventListener('unknown-universe:graphics-lost', graphicsInterrupted);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', fitViewport);
+      window.visualViewport?.removeEventListener('resize', fitViewport);
+      document.removeEventListener('visibilitychange', backgrounded);
+      window.removeEventListener('unknown-universe:graphics-lost', graphicsInterrupted);
+    };
+  }, [mobileGraphics]);
 
   useEffect(() => {
     if (appPhase !== "intro") {
@@ -289,7 +321,7 @@ const App: React.FC = () => {
       return;
     }
 
-    window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true");
+    try { window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true"); } catch { /* Keep the roster unlocked for this session. */ }
     setIsRosterUnlocked(true);
   }, [selectedCharacterId, stats.isVictory]);
 
@@ -365,7 +397,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const shouldPauseMusic = appPhase === "game" && (isPaused || stats.isGameOver || stats.isVictory);
+    const shouldPauseMusic = appPhase === "game" && (gameSuspended || stats.isGameOver || stats.isVictory);
     let audio = backgroundMusicRef.current;
 
     if (!audio || !audio.src.endsWith(musicSrc)) {
@@ -414,7 +446,7 @@ const App: React.FC = () => {
       window.removeEventListener("pointerdown", unlockPlayback);
       window.removeEventListener("keydown", unlockPlayback);
     };
-  }, [appPhase, isPaused, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
+  }, [appPhase, gameSuspended, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
 
   useEffect(() => {
     return () => {
@@ -573,13 +605,22 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900 transition-all duration-500">
+    <div data-mobile={mobileGraphics ? 'true' : 'false'} className="game-app-shell mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900">
       <div className="relative flex-grow overflow-hidden transition-all duration-500">
+        {graphicsLost && (
+          <div role="alert" className="absolute inset-0 z-[80] flex items-center justify-center bg-slate-950 p-6 text-center text-white">
+            <div className="max-w-sm">
+              <h2 className="text-2xl font-bold">Graphics interrupted</h2>
+              <p className="my-4">Reload to start the game again.</p>
+              <button type="button" className="rounded-xl bg-violet-700 px-6 py-3" onClick={() => window.location.reload()}>Reload game</button>
+            </div>
+          </div>
+        )}
         {appPhase !== "start" && appPhase !== "characterSelect" && (
           useLegacyBrawler ? (
             <GameEngine
               key={`brawler-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}-${stats.characterPowerUnlocked ? "powered" : "base"}-${stats.hasFlameSword ? "sword" : "nosword"}`}
-              isPaused={appPhase !== "game" || isPaused || stats.isGameOver || stats.isVictory}
+              isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
               currentLevel={stats.level}
               difficulty={difficulty}
               selectedCharacterId={selectedCharacterId}
@@ -606,7 +647,7 @@ const App: React.FC = () => {
           ) : stats.level === FLIGHT_LEVEL ? (
             <FlightGameEngine
               key={`flight-${selectedCharacterId}-${difficulty}`}
-              isPaused={appPhase !== "game" || isPaused || stats.isGameOver || stats.isVictory}
+              isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
               selectedCharacterId={selectedCharacterId}
               difficulty={difficulty}
               initialStats={stats}
@@ -616,7 +657,7 @@ const App: React.FC = () => {
           ) : (
             <PlatformerGameEngine
               key={`platformer-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
-            isPaused={appPhase !== "game" || isPaused || stats.isGameOver || stats.isVictory}
+            isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
             initialLives={stats.lives}
             initialEquipment={stats.equipment}
@@ -660,7 +701,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={isPaused} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls isPaused={gameSuspended} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -683,7 +724,7 @@ const App: React.FC = () => {
                 }}
               >
                 <img
-                  src={START_SCREEN_IMAGE}
+                  src={mobileImagePath(START_SCREEN_IMAGE)}
                   alt="Unknown Universe game start screen"
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
@@ -823,7 +864,8 @@ const App: React.FC = () => {
                     >
                       <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-200">
                         <img
-                          src={character.cardImage}
+                          loading="lazy" decoding="async"
+                          src={mobileImagePath(character.cardImage)}
                           alt={`${character.name} character card`}
                           className="h-full w-full object-cover"
                         />
@@ -856,7 +898,7 @@ const App: React.FC = () => {
               }`}
             >
               <img
-                src={LEVEL_ONE_INTRO_IMAGE}
+                src={mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
                 alt="Level 1 intro screen"
                 className="h-full w-full object-cover"
               />

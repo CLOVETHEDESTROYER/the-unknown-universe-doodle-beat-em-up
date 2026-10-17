@@ -15,6 +15,65 @@ body {
   background: #0f172a;
 }
 
+.game-app-shell[data-mobile] {
+  height: 100vh;
+  height: var(--app-height, 100dvh);
+  min-height: 0;
+}
+
+/* Keep the playfield clear of the HUD and thumbs on phones and tablets. */
+.game-app-shell[data-mobile="true"] .unknown-universe-game {
+  position: absolute;
+  inset: 56px 0 104px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+}
+
+.game-app-shell[data-mobile="true"] button {
+  -webkit-touch-callout: none;
+}
+
+.game-app-shell[data-mobile="true"] .touch-control,
+.game-app-shell[data-mobile="true"] .touch-dpad,
+.game-app-shell[data-mobile="true"] .phone-portrait-rotate {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  .game-app-shell[data-mobile="true"] .unknown-universe-game {
+    inset: 52px 0 88px;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-actions {
+    gap: 0.2rem;
+    transform: none;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-actions .touch-control {
+    height: 2.5rem;
+    min-width: 2.75rem;
+    font-size: 1.1rem;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-dpad-flight {
+    height: 5.5rem;
+    width: 7.5rem;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-dpad-flight .touch-control {
+    height: 1.75rem;
+    width: 2.5rem;
+    font-size: 1rem;
+  }
+
+  .game-app-shell[data-mobile="true"] .touch-dpad-flight > div {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

@@ -1,0 +1,80 @@
+import Phaser from 'phaser';
+import manifestData from './mobileAssetManifest.json';
+
+type MobileSheet = { url: string; width: number; height: number; count: number };
+const manifest = manifestData as { sheets: Record<string, MobileSheet>; images: Record<string, string> };
+
+export function isMobileGraphicsEnabled(): boolean {
+  const quality = new URLSearchParams(window.location.search).get('quality');
+  if (quality === 'desktop') return false;
+  return quality === 'mobile' || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    || navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches;
+}
+
+export function mobileImagePath(path: string): string {
+  return isMobileGraphicsEnabled() ? manifest.images[path.replace(/^\//, '')] ?? path : path;
+}
+
+export function loadGameImage(loader: Phaser.Loader.LoaderPlugin, key: string, path: string) {
+  return loader.image(key, mobileImagePath(path));
+}
+
+/** Trimmed atlas frames retain their original logical size and numeric names. */
+export function loadGameSheet(loader: Phaser.Loader.LoaderPlugin, key: string, path: string,
+  config: Phaser.Types.Loader.FileTypes.ImageFrameConfig) {
+  const sheet = isMobileGraphicsEnabled() ? manifest.sheets[path.replace(/^\//, '')] : undefined;
+  if (!sheet || sheet.width !== config.frameWidth || sheet.height !== config.frameHeight
+    || (config.startFrame ?? 0) > 0 || config.margin || config.spacing) {
+    return loader.spritesheet(key, path, config);
+  }
+  loader.multiatlas(key, sheet.url, '/mobile-v1/');
+  // Match spritesheet defaults and endFrame semantics before scene creation.
+  loader.once(Phaser.Loader.Events.COMPLETE, () => {
+    if (!loader.scene.textures.exists(key)) return;
+    const texture = loader.scene.textures.get(key);
+    // Packing order across pages may differ from chronological frame order.
+    texture.firstFrame = '0';
+    if (config.endFrame !== undefined && config.endFrame >= 0 && config.endFrame < sheet.count - 1) {
+      for (let n = config.endFrame! + 1; n < sheet.count; n++) {
+        // Phaser 3.90 remove() does not update frameTotal itself.
+        if (texture.remove(String(n))) texture.frameTotal--;
+      }
+    }
+  });
+  return loader;
+}
+
+export function mobileGameOptions(): Partial<Phaser.Types.Core.GameConfig> {
+  return isMobileGraphicsEnabled() ? {
+    resolution: 1,
+    loader: { maxParallelDownloads: 2, imageLoadType: 'HTMLImageElement' },
+  } : {};
+}
+
+/** Refresh CSS fit after browser chrome / orientation changes; keep the canvas resolution fixed. */
+export function watchGameViewport(game: Phaser.Game, host: HTMLElement) {
+  let frame = 0;
+  const resize = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      if (game.isBooted && game.scale) game.scale.refresh();
+    });
+  };
+  const lost = (event: Event) => {
+    event.preventDefault();
+    window.dispatchEvent(new Event('unknown-universe:graphics-lost'));
+  };
+  const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
+  observer?.observe(host);
+  window.addEventListener('resize', resize);
+  const bindCanvas = () => game.canvas?.addEventListener('webglcontextlost', lost);
+  if (game.canvas) bindCanvas();
+  else game.events.once(Phaser.Core.Events.BOOT, bindCanvas);
+  return () => {
+    observer?.disconnect();
+    window.removeEventListener('resize', resize);
+    cancelAnimationFrame(frame);
+    game.events.off(Phaser.Core.Events.BOOT, bindCanvas);
+    game.canvas?.removeEventListener('webglcontextlost', lost);
+  };
+}

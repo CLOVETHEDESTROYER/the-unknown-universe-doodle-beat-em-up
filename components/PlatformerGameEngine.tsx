@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
+import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport } from "../gameplay/mobileRuntime";
 import { CHARACTER_CONFIGS } from "../characters";
 import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
@@ -1134,6 +1135,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     const config: Phaser.Types.Core.GameConfig = {
+      ...mobileGameOptions(),
       audio:{noAudio:true},
       type: params.get("renderer") === "canvas" ? Phaser.CANVAS : Phaser.AUTO,
       render: { preserveDrawingBuffer: params.get("capture") === "1" },
@@ -1152,7 +1154,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT
+        height: SCREEN_HEIGHT,
+        expandParent: false
       },
       scene: {
         key: "PlatformerScene",
@@ -1168,86 +1171,86 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       });
 
       if (currentLevel === 1) {
-        this.load.image("platform_school_block", "platformer/school-rooftop-block.png");
-        this.load.image("school_rooftop_panorama", "platformer/school-rooftop-panorama.png");
-        this.load.image("platform_ink_hazard", "platformer/ink-hazard-generated.png");
-        this.load.image("rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
-        this.load.image("boss_dead_dark_dragon", "bosses/dark-dragon-death-v3.png");
+        loadGameImage(this.load, "platform_school_block", "platformer/school-rooftop-block.png");
+        loadGameImage(this.load, "school_rooftop_panorama", "platformer/school-rooftop-panorama.png");
+        loadGameImage(this.load, "platform_ink_hazard", "platformer/ink-hazard-generated.png");
+        loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
+        loadGameImage(this.load, "boss_dead_dark_dragon", "bosses/dark-dragon-death-v3.png");
       }
       if (currentLevel === 2) {
-        this.load.image("platform_graveyard_block", "platformer/graveyard-moss-block.png");
-        this.load.image("graveyard_moonlit_panorama", "platformer/graveyard-moonlit-panorama.png");
-        this.load.image("platform_fog_hazard", "platformer/fog-hazard-generated.png");
+        loadGameImage(this.load, "platform_graveyard_block", "platformer/graveyard-moss-block.png");
+        loadGameImage(this.load, "graveyard_moonlit_panorama", "platformer/graveyard-moonlit-panorama.png");
+        loadGameImage(this.load, "platform_fog_hazard", "platformer/fog-hazard-generated.png");
       }
       if (currentLevel === 3) {
-        this.load.image("platform_furnace_block", "platformer/furnace-block-generated.png");
-        this.load.image("platform_lava_hazard", "platformer/lava-hazard-generated.png");
-        this.load.image("rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
+        loadGameImage(this.load, "platform_furnace_block", "platformer/furnace-block-generated.png");
+        loadGameImage(this.load, "platform_lava_hazard", "platformer/lava-hazard-generated.png");
+        loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
       }
       if (currentLevel === 4) {
-        this.load.image("platform_witchwood_block", "platformer/graveyard-moss-block.png");
-        this.load.image("platform_witchwood_hazard", "platformer/fog-hazard-generated.png");
-        this.load.image("witchwood_panorama", "platformer/witchwood-panorama-generated.png");
-        this.load.image("witchwood_parallax", "platformer/witchwood-parallax-generated.png");
-        this.load.image("rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
+        loadGameImage(this.load, "platform_witchwood_block", "platformer/graveyard-moss-block.png");
+        loadGameImage(this.load, "platform_witchwood_hazard", "platformer/fog-hazard-generated.png");
+        loadGameImage(this.load, "witchwood_panorama", "platformer/witchwood-panorama-generated.png");
+        loadGameImage(this.load, "witchwood_parallax", "platformer/witchwood-parallax-generated.png");
+        loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
       }
       if (currentLevel === FINAL_LEVEL) {
-        this.load.image("platform_dread_planet_block", "platformer/dread-planet-block-generated.png");
-        this.load.image("void_regent_pencil_panorama", "platformer/void-regent-pencil-panorama-generated.png");
-        this.load.image("platform_void_hazard", "platformer/void-hazard-generated.png");
-        this.load.image("rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
+        loadGameImage(this.load, "platform_dread_planet_block", "platformer/dread-planet-block-generated.png");
+        loadGameImage(this.load, "void_regent_pencil_panorama", "platformer/void-regent-pencil-panorama-generated.png");
+        loadGameImage(this.load, "platform_void_hazard", "platformer/void-hazard-generated.png");
+        loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
       }
       if (isXGod && useSideScrollXGodRun) {
-        this.load.image("xgod_damage_pose", "characters/xgod/runner-blaster-v1/damage-pose-v1.png");
-        this.load.image("xgod_death_pose", "characters/xgod/runner-blaster-v1/death-pose-v1.png");
-        this.load.spritesheet("xgod_side_scroll_fire_sword_run_v1", "xgod_side_scroll_fire_sword_run_v1.png", {
+        loadGameImage(this.load, "xgod_damage_pose", "characters/xgod/runner-blaster-v1/damage-pose-v1.png");
+        loadGameImage(this.load, "xgod_death_pose", "characters/xgod/runner-blaster-v1/death-pose-v1.png");
+        loadGameSheet(this.load, "xgod_side_scroll_fire_sword_run_v1", "xgod_side_scroll_fire_sword_run_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_fire_sword_attack_v1", "xgod_side_scroll_fire_sword_attack_v1.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_fire_sword_attack_v1", "xgod_side_scroll_fire_sword_attack_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
         ["idle", "run", "jump", "attack", "crouch", "sword-idle", "sword-run", "sword-jump", "sword-attack", "sword-crouch"].forEach((action) => {
           const revisedPose = ["sword-idle", "sword-jump", "sword-crouch"].includes(action);
           const spriteSet = action === "sword-jump" ? "jump-v3" : action === "sword-idle" ? "sword-idle-v3" : revisedPose ? "motion-v2" : action.startsWith("sword-") ? "runner-sword-v1" : "runner-v4";
-          this.load.spritesheet(`runner_${action}`, `characters/xgod/${spriteSet}/${action}.png`, { frameWidth: 512, frameHeight: 512, endFrame: action === "sword-jump" ? 7 : action.endsWith("jump") || revisedPose && action.endsWith("crouch") ? 5 : action.endsWith("crouch") || action.endsWith("idle") ? 3 : 7 });
+          loadGameSheet(this.load, `runner_${action}`, `characters/xgod/${spriteSet}/${action}.png`, { frameWidth: 512, frameHeight: 512, endFrame: action === "sword-jump" ? 7 : action.endsWith("jump") || revisedPose && action.endsWith("crouch") ? 5 : action.endsWith("crouch") || action.endsWith("idle") ? 3 : 7 });
         });
         ["idle", "run", "jump", "attack", "crouch"].forEach((action) => {
-          this.load.spritesheet(`runner_blaster-${action}`, `characters/xgod/${action === "run" ? "blaster-run-v3" : action === "jump" ? "jump-v3" : "motion-v2"}/blaster-${action}.png`, { frameWidth: 512, frameHeight: 512, endFrame: action === "run" ? 15 : action === "crouch" ? 5 : action === "idle" ? 3 : 7 });
+          loadGameSheet(this.load, `runner_blaster-${action}`, `characters/xgod/${action === "run" ? "blaster-run-v3" : action === "jump" ? "jump-v3" : "motion-v2"}/blaster-${action}.png`, { frameWidth: 512, frameHeight: 512, endFrame: action === "run" ? 15 : action === "crouch" ? 5 : action === "idle" ? 3 : 7 });
         });
         this.load.json("xgod_motion_v2_meta", "characters/xgod/motion-v2/metadata.json");
         this.load.json("xgod_jump_v3_meta", "characters/xgod/jump-v3/metadata.json");
         this.load.json("xgod_blaster_run_v3_meta", "characters/xgod/blaster-run-v3/metadata.json");
       }
-      this.load.image("checkpoint_flag", "platformer/checkpoint-flag-generated.png");
-      this.load.image("end_gate", "platformer/end-gate-generated.png");
-      this.load.image("gold_pickup", "gold_pickup.png");
-      this.load.image("heart", "heart_sprite.png");
-      this.load.image("power_pickup", isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
-      this.load.image("shield_pickup", "ink_shield_power.png");
-      this.load.image("gravity_pickup", "doodles/gravity_core.png");
-      (['blaster','sword','frost','ember','storm'] as EquippedPowerup[]).forEach(id=>this.load.image(`equipment_${id}`,POWERUPS[id].icon));
-      this.load.image("dinio_pickup", "doodles/dinio_orb.png");
-      this.load.image("dinio_shot", "doodles/dinio_shot.png");
-      this.load.spritesheet("dinio_walk", "companions/dinio/hybrid-v1/walk.png", { frameWidth: 320, frameHeight: 320 });
-      this.load.spritesheet("dinio_attack", "companions/dinio/hybrid-v1/attack.png", { frameWidth: 448, frameHeight: 320 });
-      this.load.image("doghost_pickup", "doodles/doghost_orb.png");
-      this.load.spritesheet("doghost_walk", "doghost_walk.png", { frameWidth: 240, frameHeight: 180 });
-      this.load.image("teleportation_c_pickup", "doodles/teleportation_c_orb.png");
-      this.load.spritesheet("teleportation_c_walk", "characters/teleportation_c/walk.png", { frameWidth:256,frameHeight:360 });
-      this.load.spritesheet('teleportation_c_dash','characters/teleportation_c/dash.png',{frameWidth:256,frameHeight:360});
-      this.load.spritesheet('teleportation_c_attack','characters/teleportation_c/attack.png',{frameWidth:480,frameHeight:360});
-      this.load.image("shadow", "doodles/shadow_oval.png");
-      this.load.image("enemy_hit_impact", "doodles/impact-vfx-generated.png");
-      this.load.image("boss_tell_ring", "doodles/tell-ring-generated.png");
-      this.load.image("projectile_static", isXGod ? "doodles/attack_slash.png" : `characters/${selectedCharacterId}/projectile.png`);
-      this.load.image("boss_fire_orb", "bosses/boss_fire_orb_v2.png");
-      this.load.image("boss_ink_orb", "bosses/boss_ink_orb_v2.png");
-      this.load.image("boss_bullet", "bosses/boss_bullet_v2.png");
+      loadGameImage(this.load, "checkpoint_flag", "platformer/checkpoint-flag-generated.png");
+      loadGameImage(this.load, "end_gate", "platformer/end-gate-generated.png");
+      loadGameImage(this.load, "gold_pickup", "gold_pickup.png");
+      loadGameImage(this.load, "heart", "heart_sprite.png");
+      loadGameImage(this.load, "power_pickup", isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
+      loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
+      loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
+      (['blaster','sword','frost','ember','storm'] as EquippedPowerup[]).forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
+      loadGameImage(this.load, "dinio_pickup", "doodles/dinio_orb.png");
+      loadGameImage(this.load, "dinio_shot", "doodles/dinio_shot.png");
+      loadGameSheet(this.load, "dinio_walk", "companions/dinio/hybrid-v1/walk.png", { frameWidth: 320, frameHeight: 320 });
+      loadGameSheet(this.load, "dinio_attack", "companions/dinio/hybrid-v1/attack.png", { frameWidth: 448, frameHeight: 320 });
+      loadGameImage(this.load, "doghost_pickup", "doodles/doghost_orb.png");
+      loadGameSheet(this.load, "doghost_walk", "doghost_walk.png", { frameWidth: 240, frameHeight: 180 });
+      loadGameImage(this.load, "teleportation_c_pickup", "doodles/teleportation_c_orb.png");
+      loadGameSheet(this.load, "teleportation_c_walk", "characters/teleportation_c/walk.png", { frameWidth:256,frameHeight:360 });
+      loadGameSheet(this.load, 'teleportation_c_dash','characters/teleportation_c/dash.png',{frameWidth:256,frameHeight:360});
+      loadGameSheet(this.load, 'teleportation_c_attack','characters/teleportation_c/attack.png',{frameWidth:480,frameHeight:360});
+      loadGameImage(this.load, "shadow", "doodles/shadow_oval.png");
+      loadGameImage(this.load, "enemy_hit_impact", "doodles/impact-vfx-generated.png");
+      loadGameImage(this.load, "boss_tell_ring", "doodles/tell-ring-generated.png");
+      loadGameImage(this.load, "projectile_static", isXGod ? "doodles/attack_slash.png" : `characters/${selectedCharacterId}/projectile.png`);
+      loadGameImage(this.load, "boss_fire_orb", "bosses/boss_fire_orb_v2.png");
+      loadGameImage(this.load, "boss_ink_orb", "bosses/boss_ink_orb_v2.png");
+      loadGameImage(this.load, "boss_bullet", "bosses/boss_bullet_v2.png");
       Object.values(BOSS_DEFINITIONS).forEach((boss) => {
         if (!level.enemies.some(enemy => enemy.bossId && BOSS_DEFINITIONS[enemy.bossId] === boss)) return;
-        this.load.spritesheet(boss.textureKey, boss.assetPath, {
+        loadGameSheet(this.load, boss.textureKey, boss.assetPath, {
           frameWidth: boss.frameWidth,
           frameHeight: boss.frameHeight
         });
@@ -1255,7 +1258,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       level.enemies.filter(enemy => enemy.bossId).forEach(enemy => {
         const bossId = enemy.bossId as BossId;
         const visual = BOSS_ATTACK_VISUALS[bossId];
-        this.load.spritesheet(`boss_attack_${bossId}`, visual.path, {
+        loadGameSheet(this.load, `boss_attack_${bossId}`, visual.path, {
           frameWidth: visual.frameWidth,
           frameHeight: visual.frameHeight
         });
@@ -1265,85 +1268,86 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (currentLevel <= 2) return;
         if (currentLevel === 4 || currentLevel === FINAL_LEVEL && backgroundKey === "void_regent_pencil_panorama") return;
         const path = backgroundKey.startsWith("space_") ? `doodles/${backgroundKey}.png` : `${backgroundKey}.png`;
-        this.load.image(backgroundKey, path);
+        loadGameImage(this.load, backgroundKey, path);
       });
 
       if (!isXGod) {
         this.load.json('hero_equipment_meta','characters/equipment-v4/metadata.json');
         for(const power of ['blaster','sword','frost','ember','storm'])for(const action of ['run','jump','idle','attack']){
-          this.load.spritesheet(`hero_${power}_${action}`,`characters/equipment-v4/${selectedCharacterId}-${power}-${action}.png`,{frameWidth:768,frameHeight:512});
+          loadGameSheet(this.load, `hero_${power}_${action}`,`characters/equipment-v4/${selectedCharacterId}-${power}-${action}.png`,{frameWidth:768,frameHeight:512});
         }
-        this.load.spritesheet('hero_death','characters/equipment-v4/'+selectedCharacterId+'-death-collapse.png',{frameWidth:768,frameHeight:512});
+        loadGameSheet(this.load, 'hero_death','characters/equipment-v4/'+selectedCharacterId+'-death-collapse.png',{frameWidth:768,frameHeight:512});
         const legacyTeleport=selectedCharacterId==='teleportation_c';
         const unarmedNico=selectedCharacterId==='nico';
-        this.load.spritesheet("character_walk", legacyTeleport ? `characters/${selectedCharacterId}/walk.png` : unarmedNico ? 'characters/equipment-v4/nico-hands-run.png' : `characters/playable-v3/${selectedCharacterId}-run.png`, {
+        loadGameSheet(this.load, "character_walk", legacyTeleport ? `characters/${selectedCharacterId}/walk.png` : unarmedNico ? 'characters/equipment-v4/nico-hands-run.png' : `characters/playable-v3/${selectedCharacterId}-run.png`, {
           frameWidth: legacyTeleport ? CHARACTER_WALK_FRAME_WIDTH : unarmedNico ? 768 : 640,
           frameHeight: legacyTeleport ? CHARACTER_WALK_FRAME_HEIGHT : 512
         });
-        this.load.spritesheet("character_attack", legacyTeleport ? `characters/${selectedCharacterId}/attack.png` : unarmedNico ? 'characters/equipment-v4/nico-hands-attack.png' : `characters/playable-v3/${selectedCharacterId}-attack.png`, {
+        loadGameSheet(this.load, "character_attack", legacyTeleport ? `characters/${selectedCharacterId}/attack.png` : unarmedNico ? 'characters/equipment-v4/nico-hands-attack.png' : `characters/playable-v3/${selectedCharacterId}-attack.png`, {
           frameWidth: legacyTeleport ? CHARACTER_ATTACK_FRAME_WIDTH : unarmedNico ? 768 : 640,
           frameHeight: legacyTeleport ? CHARACTER_ATTACK_FRAME_HEIGHT : 512
         });
-        this.load.spritesheet("character_jump", unarmedNico ? 'characters/equipment-v4/nico-hands-jump.png' : `characters/playable-v3/${selectedCharacterId}-jump.png`, {frameWidth:unarmedNico?768:640,frameHeight:512});
-        this.load.image("character_idle", unarmedNico ? 'characters/equipment-v4/nico-hands-idle.png' : `characters/playable-v3/${selectedCharacterId}-idle.png`);
-        if(legacyTeleport)this.load.image('character_land','characters/playable-v3/teleportation_c-land.png');
-        this.load.image("character_dash", `characters/${selectedCharacterId}/dash.png`);
+        loadGameSheet(this.load, "character_jump", unarmedNico ? 'characters/equipment-v4/nico-hands-jump.png' : `characters/playable-v3/${selectedCharacterId}-jump.png`, {frameWidth:unarmedNico?768:640,frameHeight:512});
+        loadGameImage(this.load, "character_idle", unarmedNico ? 'characters/equipment-v4/nico-hands-idle.png' : `characters/playable-v3/${selectedCharacterId}-idle.png`);
+        if(legacyTeleport)loadGameImage(this.load, 'character_land','characters/playable-v3/teleportation_c-land.png');
+        loadGameImage(this.load, "character_dash", `characters/${selectedCharacterId}/dash.png`);
       } else if (playerSprite) {
-        this.load.spritesheet("player_walk", playerSprite, { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
+        loadGameSheet(this.load, "player_walk", playerSprite, { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
       } else if (!useSideScrollXGodRun) {
-        this.load.spritesheet("player_walk_internal", "player_walk.png", { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
-        this.load.spritesheet("xgod_platformer_run", "xgod_platformer_run.png", { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
-        this.load.spritesheet("xgod_side_scroll_run_v1", "xgod_side_scroll_run_v1.png", {
+        loadGameSheet(this.load, "player_walk_internal", "player_walk.png", { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
+        loadGameSheet(this.load, "xgod_platformer_run", "xgod_platformer_run.png", { frameWidth: FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
+        loadGameSheet(this.load, "xgod_side_scroll_run_v1", "xgod_side_scroll_run_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_sprint_run_v1", "xgod_side_scroll_sprint_run_v1.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_sprint_run_v1", "xgod_side_scroll_sprint_run_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_jump_v1", "xgod_side_scroll_jump_v1.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_jump_v1", "xgod_side_scroll_jump_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_attack_v2", "xgod_side_scroll_attack_v2.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_attack_v2", "xgod_side_scroll_attack_v2.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_fire_sword_run_v1", "xgod_side_scroll_fire_sword_run_v1.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_fire_sword_run_v1", "xgod_side_scroll_fire_sword_run_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.spritesheet("xgod_side_scroll_fire_sword_attack_v1", "xgod_side_scroll_fire_sword_attack_v1.png", {
+        loadGameSheet(this.load, "xgod_side_scroll_fire_sword_attack_v1", "xgod_side_scroll_fire_sword_attack_v1.png", {
           frameWidth: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE,
           frameHeight: XGOD_SIDE_SCROLL_RUN_FRAME_SIZE
         });
-        this.load.image("player_jump", "player_jump.png");
-        this.load.image("player_attack", "player_attack.png");
-        this.load.image("player_dash", "player_dash.png");
-        this.load.spritesheet("player_sword_walk", "player_sword_walk.png", { frameWidth: 232, frameHeight: 327 });
-        this.load.spritesheet("xgod_platformer_sword_run", "xgod_platformer_sword_run.png", { frameWidth: XGOD_SWORD_RUN_FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
-        this.load.spritesheet("player_sword_attack", "player_sword_attack.png", { frameWidth: 350, frameHeight: 332 });
+        loadGameImage(this.load, "player_jump", "player_jump.png");
+        loadGameImage(this.load, "player_attack", "player_attack.png");
+        loadGameImage(this.load, "player_dash", "player_dash.png");
+        loadGameSheet(this.load, "player_sword_walk", "player_sword_walk.png", { frameWidth: 232, frameHeight: 327 });
+        loadGameSheet(this.load, "xgod_platformer_sword_run", "xgod_platformer_sword_run.png", { frameWidth: XGOD_SWORD_RUN_FRAME_WIDTH, frameHeight: FRAME_HEIGHT });
+        loadGameSheet(this.load, "player_sword_attack", "player_sword_attack.png", { frameWidth: 350, frameHeight: 332 });
       }
 
-      this.load.spritesheet("grunt_walking", "grunt_walking_ai.png", {
+      loadGameSheet(this.load, "grunt_walking", "grunt_walking_ai.png", {
         frameWidth: GRUNT_WALK_FRAME_WIDTH,
         frameHeight: GRUNT_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet("m_alien_walk", "doodles/m_alien_walk_ai.png", {
+      loadGameSheet(this.load, "m_alien_walk", "doodles/m_alien_walk_ai.png", {
         frameWidth: SMALL_ENEMY_FRAME_WIDTH,
         frameHeight: SMALL_ENEMY_FRAME_HEIGHT
       });
-      this.load.spritesheet("m_dasher_walk", "doodles/m_dasher_walk_ai.png", {
+      loadGameSheet(this.load, "m_dasher_walk", "doodles/m_dasher_walk_ai.png", {
         frameWidth: SMALL_ENEMY_FRAME_WIDTH,
         frameHeight: SMALL_ENEMY_FRAME_HEIGHT
       });
-      this.load.spritesheet("m_giant_walk", "doodles/m_giant_walk_ai.png", {
+      loadGameSheet(this.load, "m_giant_walk", "doodles/m_giant_walk_ai.png", {
         frameWidth: GIANT_ENEMY_FRAME_WIDTH,
         frameHeight: GIANT_ENEMY_FRAME_HEIGHT
       });
       for (const [kind, def] of Object.entries(RESTORED_ENEMIES)) {
-        this.load.spritesheet(`restored_${kind}_walk`, `enemies/restored-v1/${kind}-walk.png`, {frameWidth:512,frameHeight:512});
-        if (def.attackFrames) this.load.spritesheet(`restored_${kind}_attack`, `enemies/restored-v1/${kind}-attack.png`, {frameWidth:512,frameHeight:512});
+        if (!level.enemies.some(enemy => enemy.kind === kind)) continue;
+        loadGameSheet(this.load, `restored_${kind}_walk`, `enemies/restored-v1/${kind}-walk.png`, {frameWidth:512,frameHeight:512});
+        if (def.attackFrames) loadGameSheet(this.load, `restored_${kind}_attack`, `enemies/restored-v1/${kind}-attack.png`, {frameWidth:512,frameHeight:512});
       }
     }
 
@@ -1595,6 +1599,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         await new Promise((resolve) => window.setTimeout(resolve, ms));
       };
       syncStats();
+      // The scene may finish loading after the initial pause effect ran.
+      if (isPausedRef.current) scene.scene.pause();
     }
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
@@ -1819,6 +1825,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function makeAnimations(scene: Phaser.Scene) {
       for (const [kind,def] of Object.entries(RESTORED_ENEMIES)) {
+        if (!scene.textures.exists(`restored_${kind}_walk`)) continue;
         scene.anims.create({key:`restored_${kind}_walk`,frames:scene.anims.generateFrameNumbers(`restored_${kind}_walk`,{start:0,end:def.walkFrames-1}),frameRate:def.fps,repeat:-1});
       }
       const walkKey = getPlayerWalkTexture(scene);
@@ -4551,8 +4558,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
     window.addEventListener('keydown',handlePause);
     gameRef.current = new Phaser.Game(config);
+    const unwatchViewport = watchGameViewport(gameRef.current, gameContainerRef.current);
 
     return () => {
+      unwatchViewport();
       window.removeEventListener('keydown',handlePause);
       window.render_game_to_text = () => JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",

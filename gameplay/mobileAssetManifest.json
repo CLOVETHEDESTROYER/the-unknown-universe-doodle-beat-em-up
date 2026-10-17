@@ -1,0 +1,1025 @@
+{
+  "sheets": {
+    "bosses/encounters-v2/dark_dragon/attack.png": {
+      "url": "/mobile-v1/05895ebdc09b29a4.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "bosses/encounters-v2/dark_dragon/walk.png": {
+      "url": "/mobile-v1/caf32be87dc98333.json",
+      "width": 640,
+      "height": 640,
+      "count": 7
+    },
+    "bosses/encounters-v2/ink_behemoth/attack.png": {
+      "url": "/mobile-v1/656059b68ce2febd.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "bosses/encounters-v2/ink_behemoth/walk.png": {
+      "url": "/mobile-v1/ff6a962170e9fe89.json",
+      "width": 640,
+      "height": 640,
+      "count": 6
+    },
+    "bosses/encounters-v2/void_regent/attack.png": {
+      "url": "/mobile-v1/df317b85199333e0.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "bosses/encounters-v2/void_regent/walk.png": {
+      "url": "/mobile-v1/a437065e6c7f7fc3.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "bosses/kilina-v3/attack.png": {
+      "url": "/mobile-v1/6de7e441da5ce206.json",
+      "width": 640,
+      "height": 640,
+      "count": 8
+    },
+    "bosses/kilina-v3/walk.png": {
+      "url": "/mobile-v1/23abad78bd035af6.json",
+      "width": 640,
+      "height": 640,
+      "count": 8
+    },
+    "bosses/kilina-witch-v1/attack.png": {
+      "url": "/mobile-v1/4c3a6830a8c5aa26.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "bosses/kilina-witch-v1/walk.png": {
+      "url": "/mobile-v1/81e95299ae91420c.json",
+      "width": 640,
+      "height": 640,
+      "count": 4
+    },
+    "characters/barrett/attack.png": {
+      "url": "/mobile-v1/53befcc9554c85da.json",
+      "width": 480,
+      "height": 360,
+      "count": 5
+    },
+    "characters/equipment-v4/barrett-blaster-attack.png": {
+      "url": "/mobile-v1/33ec89ef69d66510.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/barrett-blaster-idle.png": {
+      "url": "/mobile-v1/f884c6488c6a28eb.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-blaster-jump.png": {
+      "url": "/mobile-v1/abb43e7bcf1afd66.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-blaster-run.png": {
+      "url": "/mobile-v1/559e529698a723f0.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/barrett-death-collapse.png": {
+      "url": "/mobile-v1/d93cf159cd589eb3.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-ember-attack.png": {
+      "url": "/mobile-v1/4a9bec627c6a887d.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-ember-idle.png": {
+      "url": "/mobile-v1/1b208162307fd515.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-ember-jump.png": {
+      "url": "/mobile-v1/5800fd7e875ff244.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/barrett-ember-run.png": {
+      "url": "/mobile-v1/36f11c325368247f.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-frost-attack.png": {
+      "url": "/mobile-v1/cb9ca720d6a16e6b.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-frost-idle.png": {
+      "url": "/mobile-v1/8c10c5e246199bf3.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-frost-jump.png": {
+      "url": "/mobile-v1/918e92ca946adb96.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/barrett-frost-run.png": {
+      "url": "/mobile-v1/e6a8a75efe7e8cca.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-storm-attack.png": {
+      "url": "/mobile-v1/14d30ecf6408715d.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-storm-idle.png": {
+      "url": "/mobile-v1/192643deeee13499.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-storm-jump.png": {
+      "url": "/mobile-v1/49efaa626c60aed6.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/barrett-storm-run.png": {
+      "url": "/mobile-v1/28959c87ed9cf90d.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-sword-attack.png": {
+      "url": "/mobile-v1/b5fef34e68d86b97.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/barrett-sword-idle.png": {
+      "url": "/mobile-v1/275f1e1e09f710ae.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/barrett-sword-jump.png": {
+      "url": "/mobile-v1/52ebedd723efd9f5.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/barrett-sword-run.png": {
+      "url": "/mobile-v1/da8b22f1b9be00d4.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/ezra-blaster-attack.png": {
+      "url": "/mobile-v1/d0b1eb55a1b4241d.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/ezra-blaster-idle.png": {
+      "url": "/mobile-v1/c63796ebfbfe5100.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-blaster-jump.png": {
+      "url": "/mobile-v1/020cf8f1ae1676c7.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-blaster-run.png": {
+      "url": "/mobile-v1/a2752445f910c910.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/ezra-death-collapse.png": {
+      "url": "/mobile-v1/12a513e941a2edff.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-ember-attack.png": {
+      "url": "/mobile-v1/5837788dfbbfcb3b.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-ember-idle.png": {
+      "url": "/mobile-v1/98edd9158462eccd.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-ember-jump.png": {
+      "url": "/mobile-v1/df6c9e614d15865d.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/ezra-ember-run.png": {
+      "url": "/mobile-v1/8fa3846b713d377f.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-frost-attack.png": {
+      "url": "/mobile-v1/e151ff5f8bea9e91.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-frost-idle.png": {
+      "url": "/mobile-v1/639271c48b63de6f.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-frost-jump.png": {
+      "url": "/mobile-v1/d01e3596b25e28f7.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/ezra-frost-run.png": {
+      "url": "/mobile-v1/58d063cd89530413.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-storm-attack.png": {
+      "url": "/mobile-v1/39c296db80870639.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-storm-idle.png": {
+      "url": "/mobile-v1/159e0a8fb968009f.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-storm-jump.png": {
+      "url": "/mobile-v1/2ced76a9b9d5d8cf.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/ezra-storm-run.png": {
+      "url": "/mobile-v1/bee2de80cb7646dd.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-sword-attack.png": {
+      "url": "/mobile-v1/2812ff424428c0a7.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/ezra-sword-idle.png": {
+      "url": "/mobile-v1/e596e14a2d3b29e9.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/ezra-sword-jump.png": {
+      "url": "/mobile-v1/9a0dc11e777eb286.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/ezra-sword-run.png": {
+      "url": "/mobile-v1/fb9bfe942c40e4ac.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/nico-blaster-attack.png": {
+      "url": "/mobile-v1/cb7f7869801bbfe0.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/nico-blaster-idle.png": {
+      "url": "/mobile-v1/8d80485c6965147c.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-blaster-jump.png": {
+      "url": "/mobile-v1/2930777844e0d882.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-blaster-run.png": {
+      "url": "/mobile-v1/bc19f03f16c56731.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/nico-death-collapse.png": {
+      "url": "/mobile-v1/e077d26270463128.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-ember-attack.png": {
+      "url": "/mobile-v1/89e63181030c6dfc.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-ember-idle.png": {
+      "url": "/mobile-v1/ed5443e9babecf68.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-ember-jump.png": {
+      "url": "/mobile-v1/7027469b388caeb1.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/nico-ember-run.png": {
+      "url": "/mobile-v1/2b428b0559a4f55e.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-frost-attack.png": {
+      "url": "/mobile-v1/5ca8b4029750f9d3.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-frost-idle.png": {
+      "url": "/mobile-v1/81c091466c67c32d.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-frost-jump.png": {
+      "url": "/mobile-v1/add3ff93023e31f2.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/nico-frost-run.png": {
+      "url": "/mobile-v1/2eca9c11e7759cad.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-hands-attack.png": {
+      "url": "/mobile-v1/69fe16d9f6055e4b.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/nico-hands-idle.png": {
+      "url": "/mobile-v1/644a7351040997f2.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-hands-jump.png": {
+      "url": "/mobile-v1/87ab77581f019662.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-hands-run.png": {
+      "url": "/mobile-v1/08aaa387ee5fd9df.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/nico-storm-attack.png": {
+      "url": "/mobile-v1/090b90b3d410c1e7.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-storm-idle.png": {
+      "url": "/mobile-v1/a31530c730ae1711.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-storm-jump.png": {
+      "url": "/mobile-v1/056ed66ba715a799.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/nico-storm-run.png": {
+      "url": "/mobile-v1/c025c5ce9171a2f9.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-sword-attack.png": {
+      "url": "/mobile-v1/3a3d238e0a4e12bb.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/nico-sword-idle.png": {
+      "url": "/mobile-v1/b9b878c9d7118055.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/nico-sword-jump.png": {
+      "url": "/mobile-v1/359a58fa50b28992.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/nico-sword-run.png": {
+      "url": "/mobile-v1/e2c8becac7e73fab.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/teleportation_c-blaster-attack.png": {
+      "url": "/mobile-v1/7031d2a3a8e5e168.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/teleportation_c-blaster-idle.png": {
+      "url": "/mobile-v1/04ee608523b654bb.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-blaster-jump.png": {
+      "url": "/mobile-v1/18eabab3806562d3.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-blaster-run.png": {
+      "url": "/mobile-v1/0fa55c781cd952a7.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/equipment-v4/teleportation_c-death-collapse.png": {
+      "url": "/mobile-v1/5d067ef94007a4f3.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-ember-attack.png": {
+      "url": "/mobile-v1/a87384701f80d43a.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-ember-idle.png": {
+      "url": "/mobile-v1/f2320ed2752ed772.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-ember-jump.png": {
+      "url": "/mobile-v1/155180a2ce7d7980.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/teleportation_c-ember-run.png": {
+      "url": "/mobile-v1/cb655239e7bcc3ac.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-frost-attack.png": {
+      "url": "/mobile-v1/f7c13cc852205b18.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-frost-idle.png": {
+      "url": "/mobile-v1/eedff8eb9f780926.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-frost-jump.png": {
+      "url": "/mobile-v1/5422dcb168cb6403.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/teleportation_c-frost-run.png": {
+      "url": "/mobile-v1/617463dce7c281b8.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-storm-attack.png": {
+      "url": "/mobile-v1/977edcac818fee54.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-storm-idle.png": {
+      "url": "/mobile-v1/c7ef45d61a576dc7.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-storm-jump.png": {
+      "url": "/mobile-v1/45c5d4db5a238276.json",
+      "width": 768,
+      "height": 512,
+      "count": 2
+    },
+    "characters/equipment-v4/teleportation_c-storm-run.png": {
+      "url": "/mobile-v1/10aa65e19e705bed.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-sword-attack.png": {
+      "url": "/mobile-v1/6dd944943250ff79.json",
+      "width": 768,
+      "height": 512,
+      "count": 3
+    },
+    "characters/equipment-v4/teleportation_c-sword-idle.png": {
+      "url": "/mobile-v1/f04f178667f90ba5.json",
+      "width": 768,
+      "height": 512,
+      "count": 1
+    },
+    "characters/equipment-v4/teleportation_c-sword-jump.png": {
+      "url": "/mobile-v1/537e6d1550b51e69.json",
+      "width": 768,
+      "height": 512,
+      "count": 4
+    },
+    "characters/equipment-v4/teleportation_c-sword-run.png": {
+      "url": "/mobile-v1/4a6226e6cce9db55.json",
+      "width": 768,
+      "height": 512,
+      "count": 8
+    },
+    "characters/ezra/attack.png": {
+      "url": "/mobile-v1/af5633e46cee2790.json",
+      "width": 480,
+      "height": 360,
+      "count": 5
+    },
+    "characters/nico/attack.png": {
+      "url": "/mobile-v1/417621d84994bece.json",
+      "width": 480,
+      "height": 360,
+      "count": 5
+    },
+    "characters/nico/walk.png": {
+      "url": "/mobile-v1/257170a3f79e5263.json",
+      "width": 256,
+      "height": 360,
+      "count": 8
+    },
+    "characters/playable-v3/barrett-attack.png": {
+      "url": "/mobile-v1/c3f199d20321c74b.json",
+      "width": 640,
+      "height": 512,
+      "count": 3
+    },
+    "characters/playable-v3/barrett-jump.png": {
+      "url": "/mobile-v1/2c055de22bf7a094.json",
+      "width": 640,
+      "height": 512,
+      "count": 4
+    },
+    "characters/playable-v3/barrett-run.png": {
+      "url": "/mobile-v1/a5dd6530eda56eb6.json",
+      "width": 640,
+      "height": 512,
+      "count": 8
+    },
+    "characters/playable-v3/ezra-attack.png": {
+      "url": "/mobile-v1/a9f9d1e2fa336bc9.json",
+      "width": 640,
+      "height": 512,
+      "count": 3
+    },
+    "characters/playable-v3/ezra-jump.png": {
+      "url": "/mobile-v1/cea4272ebe99ebae.json",
+      "width": 640,
+      "height": 512,
+      "count": 4
+    },
+    "characters/playable-v3/ezra-run.png": {
+      "url": "/mobile-v1/4fbda16976a98da8.json",
+      "width": 640,
+      "height": 512,
+      "count": 8
+    },
+    "characters/playable-v3/nico-attack.png": {
+      "url": "/mobile-v1/f78b03686fac2e26.json",
+      "width": 640,
+      "height": 512,
+      "count": 3
+    },
+    "characters/playable-v3/nico-jump.png": {
+      "url": "/mobile-v1/bf0ee63dd8c74984.json",
+      "width": 640,
+      "height": 512,
+      "count": 4
+    },
+    "characters/playable-v3/nico-run.png": {
+      "url": "/mobile-v1/8d053f9911626f75.json",
+      "width": 640,
+      "height": 512,
+      "count": 8
+    },
+    "characters/playable-v3/teleportation_c-jump.png": {
+      "url": "/mobile-v1/796052e3b3430495.json",
+      "width": 640,
+      "height": 512,
+      "count": 4
+    },
+    "characters/teleportation_c/attack.png": {
+      "url": "/mobile-v1/991d84461a8cf065.json",
+      "width": 480,
+      "height": 360,
+      "count": 5
+    },
+    "characters/teleportation_c/dash.png": {
+      "url": "/mobile-v1/469b07cd167ffb93.json",
+      "width": 256,
+      "height": 360,
+      "count": 4
+    },
+    "characters/teleportation_c/walk.png": {
+      "url": "/mobile-v1/e782d8fe49bc02dc.json",
+      "width": 256,
+      "height": 360,
+      "count": 4
+    },
+    "characters/xgod/blaster-run-v3/blaster-run.png": {
+      "url": "/mobile-v1/169dba5daa6dbfff.json",
+      "width": 512,
+      "height": 512,
+      "count": 16
+    },
+    "characters/xgod/jump-v3/blaster-jump.png": {
+      "url": "/mobile-v1/37d1ae8b188c234b.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/jump-v3/sword-jump.png": {
+      "url": "/mobile-v1/6652d022ca41e5a8.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/blaster-attack.png": {
+      "url": "/mobile-v1/afc223b02208f7eb.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/blaster-crouch.png": {
+      "url": "/mobile-v1/049d012cd2193055.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/blaster-idle.png": {
+      "url": "/mobile-v1/ff311a9f70b42bbb.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/motion-v2/blaster-jump.png": {
+      "url": "/mobile-v1/36cee5facf5e53df.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/blaster-run.png": {
+      "url": "/mobile-v1/e7b5ed5f04ebf467.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/sword-crouch.png": {
+      "url": "/mobile-v1/f34b84157360d4f8.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/motion-v2/sword-idle.png": {
+      "url": "/mobile-v1/215e5061dc6e4c72.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/motion-v2/sword-jump.png": {
+      "url": "/mobile-v1/921f2d8c291d0108.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-sword-v1/sword-attack.png": {
+      "url": "/mobile-v1/b97cd8209a85211a.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-sword-v1/sword-crouch.png": {
+      "url": "/mobile-v1/8cd5cb796d71ec82.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-sword-v1/sword-idle.png": {
+      "url": "/mobile-v1/08df073c4cf63ff7.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-sword-v1/sword-jump.png": {
+      "url": "/mobile-v1/98b356bdb8d4a98f.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-sword-v1/sword-run.png": {
+      "url": "/mobile-v1/a8fd5a054641ceed.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/attack.png": {
+      "url": "/mobile-v1/92e63159198741a9.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/crouch.png": {
+      "url": "/mobile-v1/61e0c854062e7f04.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-v4/idle.png": {
+      "url": "/mobile-v1/fb370fa768392423.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-v4/jump.png": {
+      "url": "/mobile-v1/90bfa1cae5f483c5.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/run.png": {
+      "url": "/mobile-v1/5f09ac17d6fb600d.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/sword-attack.png": {
+      "url": "/mobile-v1/a14cb56560de4f2d.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/sword-crouch.png": {
+      "url": "/mobile-v1/e89ce6655950fe5d.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-v4/sword-idle.png": {
+      "url": "/mobile-v1/26a89b18b22373cb.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "characters/xgod/runner-v4/sword-jump.png": {
+      "url": "/mobile-v1/ea1216f93441a4d2.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/runner-v4/sword-run.png": {
+      "url": "/mobile-v1/192ebac48328a523.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "characters/xgod/sword-idle-v3/sword-idle.png": {
+      "url": "/mobile-v1/62992a1e74a3d0f4.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "companions/dinio/hybrid-v1/attack.png": {
+      "url": "/mobile-v1/538feb7422079002.json",
+      "width": 448,
+      "height": 320,
+      "count": 3
+    },
+    "companions/dinio/hybrid-v1/walk.png": {
+      "url": "/mobile-v1/7172b3c64f8e76ad.json",
+      "width": 320,
+      "height": 320,
+      "count": 6
+    },
+    "doghost_walk.png": {
+      "url": "/mobile-v1/aa407ae8a0a52119.json",
+      "width": 240,
+      "height": 180,
+      "count": 3
+    },
+    "doodles/m_alien_walk_ai.png": {
+      "url": "/mobile-v1/6c91066cdbffc4bf.json",
+      "width": 280,
+      "height": 280,
+      "count": 4
+    },
+    "doodles/m_dasher_walk_ai.png": {
+      "url": "/mobile-v1/b55a52aa75184711.json",
+      "width": 280,
+      "height": 280,
+      "count": 4
+    },
+    "doodles/m_giant_walk_ai.png": {
+      "url": "/mobile-v1/78a9c6502986c5ec.json",
+      "width": 360,
+      "height": 420,
+      "count": 4
+    },
+    "enemies/restored-v1/cosmic-walk.png": {
+      "url": "/mobile-v1/c0cdedf34eed924b.json",
+      "width": 512,
+      "height": 512,
+      "count": 4
+    },
+    "enemies/restored-v1/ghost-attack.png": {
+      "url": "/mobile-v1/31bbdd110e5dcb36.json",
+      "width": 512,
+      "height": 512,
+      "count": 1
+    },
+    "enemies/restored-v1/ghost-walk.png": {
+      "url": "/mobile-v1/662c04ac3701a6dc.json",
+      "width": 512,
+      "height": 512,
+      "count": 1
+    },
+    "enemies/restored-v1/spider-attack.png": {
+      "url": "/mobile-v1/4c27ade487f768f1.json",
+      "width": 512,
+      "height": 512,
+      "count": 3
+    },
+    "enemies/restored-v1/spider-walk.png": {
+      "url": "/mobile-v1/9bc4a8990e4dec8e.json",
+      "width": 512,
+      "height": 512,
+      "count": 3
+    },
+    "enemies/restored-v1/terror-attack.png": {
+      "url": "/mobile-v1/73c7f5237bb9bf92.json",
+      "width": 512,
+      "height": 512,
+      "count": 5
+    },
+    "enemies/restored-v1/terror-walk.png": {
+      "url": "/mobile-v1/6200089957d281db.json",
+      "width": 512,
+      "height": 512,
+      "count": 2
+    },
+    "flight/void-pursuer-v3.png": {
+      "url": "/mobile-v1/3b9116c4a9f8550a.json",
+      "width": 640,
+      "height": 400,
+      "count": 3
+    },
+    "grunt_walking_ai.png": {
+      "url": "/mobile-v1/e82edd15d91535a7.json",
+      "width": 543,
+      "height": 724,
+      "count": 4
+    },
+    "xgod_side_scroll_attack_v1.png": {
+      "url": "/mobile-v1/44bf9af48e4b088d.json",
+      "width": 512,
+      "height": 512,
+      "count": 24
+    },
+    "xgod_side_scroll_attack_v2.png": {
+      "url": "/mobile-v1/2893c06a055e2d20.json",
+      "width": 512,
+      "height": 512,
+      "count": 6
+    },
+    "xgod_side_scroll_dash_v2.png": {
+      "url": "/mobile-v1/1d5dd7956b03d927.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "xgod_side_scroll_dash_v3.png": {
+      "url": "/mobile-v1/3cec379a65bfde9e.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "xgod_side_scroll_dash_v4.png": {
+      "url": "/mobile-v1/ea52b8ea48590694.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "xgod_side_scroll_fire_sword_attack_v1.png": {
+      "url": "/mobile-v1/dd780bd506659ed8.json",
+      "width": 512,
+      "height": 512,
+      "count": 6
+    },
+    "xgod_side_scroll_fire_sword_run_v1.png": {
+      "url": "/mobile-v1/460cbcd4f3ffa67d.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "xgod_side_scroll_jump_v1.png": {
+      "url": "/mobile-v1/1ad65b778f1d8d91.json",
+      "width": 512,
+      "height": 512,
+      "count": 6
+    },
+    "xgod_side_scroll_run_v1.png": {
+      "url": "/mobile-v1/5006bb742a4d7572.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    },
+    "xgod_side_scroll_sprint_run_v1.png": {
+      "url": "/mobile-v1/569aff7fc34b1e72.json",
+      "width": 512,
+      "height": 512,
+      "count": 8
+    }
+  },
+  "images": {
+    "cards/barrett-card.png": "/mobile-v1/2b1376c879aeba12-image.png",
+    "cards/ezra-card.png": "/mobile-v1/248c786cee35bb2a-image.png",
+    "cards/nico-card.png": "/mobile-v1/eefef2142f9eca7a-image.png",
+    "cards/teleportation-c-card.png": "/mobile-v1/a5483444b13b2f16-image.png",
+    "cards/xgod-card.png": "/mobile-v1/145107c0373db976-image.png",
+    "cave_level_1.png": "/mobile-v1/f1cb0c48039854d5-image.png",
+    "cave_level_2.png": "/mobile-v1/c478a4152583c3d6-image.png",
+    "cave_level_3.png": "/mobile-v1/87e79758e51a71cf-image.png",
+    "flight/ascent-panorama-v3.png": "/mobile-v1/f02cbd95945fed64-image.png",
+    "flight/cloud-parallax-v3.png": "/mobile-v1/9cf04a002c09e201-image.png",
+    "flight/orbit-panorama-v3.png": "/mobile-v1/899888d7bf8fa83f-image.png",
+    "GameStartScreen.png": "/mobile-v1/902d8f27d929ebf8-image.png",
+    "platformer/graveyard-moonlit-panorama.png": "/mobile-v1/64b1e54f0e7a42be-image.png",
+    "platformer/school-rooftop-panorama.png": "/mobile-v1/3be13a15aecb7150-image.png",
+    "platformer/void-regent-pencil-panorama-generated.png": "/mobile-v1/05ca31655185c97a-image.png",
+    "platformer/witchwood-panorama-generated.png": "/mobile-v1/869b8744ddf95f3d-image.png",
+    "platformer/witchwood-parallax-generated.png": "/mobile-v1/1ec6c1270c7c4357-image.png"
+  }
+}
