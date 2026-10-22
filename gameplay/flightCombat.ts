@@ -111,7 +111,15 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     e.age+=ms;e.phaseMs+=ms;
     if(e.kind==='pursuer')stepPursuer(s,c,e,ms,(kind,x,y)=>effect(c,s,kind,x,y));
     else if(e.kind==='scout'){
-      e.phase='weave';e.x-=135*dt;e.y=e.baseY+Math.sin(e.age/420+e.baseY)*26;
+      e.x-=135*dt;e.y=e.baseY+Math.sin(e.age/420+e.baseY)*26;
+      if(e.phase==='enter')phase(e,'weave',s);
+      if(e.phase==='weave'&&e.phaseMs>=1400&&e.x>200)phase(e,'tell',s);
+      else if(e.phase==='tell'&&e.phaseMs>=650){
+        const angle=Math.atan2(e.aimY-e.y,e.aimX-e.x);
+        c.bolts.push({id:c.nextId++,owner:'enemy',x:e.x-25,y:e.y,vx:Math.cos(angle)*250,vy:Math.sin(angle)*250,expires:s.clock+2600,damage:9});
+        c.enemyShots++;phase(e,'attack',s);
+      }else if(e.phase==='attack'&&e.phaseMs>=220)phase(e,'recover',s);
+      else if(e.phase==='recover'&&e.phaseMs>=600)phase(e,'weave',s);
     }else if(e.phase==='enter'){
       e.x-=(e.kind==='gunship'?110:155)*dt;
       if(e.x<=835)phase(e,'tell',s);

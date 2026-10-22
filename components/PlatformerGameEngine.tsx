@@ -6,7 +6,10 @@ import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
 import { createCrumble, stepCrumble, ventPhase } from "../gameplay/groundObstacles";
 import type { CrumbleState, CrumblingPlatformPlan, TimedVentPlan } from "../gameplay/groundObstacles";
-import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy } from "../gameplay/enemyVariety";
+import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy, localEnemyKind, LEVEL_FOE_NAMES } from "../gameplay/enemyVariety";
+import { ENEMY_MOTION, GRUNT_THEMES, foeAsset, foeTexture, foeWalk } from '../gameplay/enemyMotion';
+import type { GroundFoe } from '../gameplay/enemyMotion';
+import { localEnemyMove, updateLocalEnemy, playEnemyDefeat } from '../gameplay/enemyMotionRuntime';
 import type { RestoredEnemyKind } from "../gameplay/enemyVariety";
 import { RESTORED_ENEMY_BODIES } from "../gameplay/restoredEnemyBodies";
 import { POWERUPS, restoreLoadout, equipPowerup, hitPowerup, powerupRoute } from '../gameplay/powerups';
@@ -130,6 +133,7 @@ declare global {
     __unknownPlatformerSetPlayerPosition?: (x: number, y?: number) => void;
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
     __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean}) => void;
+    __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
     advanceTime?: (ms: number) => Promise<void>;
     render_game_to_text?: () => string;
   }
@@ -979,10 +983,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const plan = originalLevel.enemies.filter(enemy => enemy.kind === kind && !enemy.bounceLane)[index];
       if (plan) replacements.set(plan,replacement);
     }
-    const level = {...originalLevel,enemies:originalLevel.enemies.map(enemy => replacements.has(enemy)
-      ? {...enemy,kind:replacements.get(enemy)!} : enemy)};
+    const level = {...originalLevel,enemies:originalLevel.enemies.map((enemy,index) => ({...enemy,
+      kind:enemy===originalLevel.enemies.find(e=>e.kind==='walker')?'walker':localEnemyKind(currentLevel,replacements.get(enemy)??enemy.kind,index) as EnemyKind}))};
     const worldWidth = Math.max(6000, level.endX + 300);
     const failedAssetKeys = new Set<string>();
+    const enemyDeaths=new Set<Phaser.GameObjects.Sprite>();
     let signature: SignatureSpecialRuntime | null = null;
     let mobility: AirborneMoves | null = null;
     let emberJets: EmberJets | null = null;
@@ -1401,26 +1406,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameSheet(this.load, "player_sword_attack", "player_sword_attack.png", { frameWidth: 350, frameHeight: 332 });
       }
 
-      loadGameSheet(this.load, "grunt_walking", "grunt_walking_ai.png", {
-        frameWidth: GRUNT_WALK_FRAME_WIDTH,
-        frameHeight: GRUNT_WALK_FRAME_HEIGHT
-      });
-      loadGameSheet(this.load, "m_alien_walk", "doodles/m_alien_walk_ai.png", {
-        frameWidth: SMALL_ENEMY_FRAME_WIDTH,
-        frameHeight: SMALL_ENEMY_FRAME_HEIGHT
-      });
-      loadGameSheet(this.load, "m_dasher_walk", "doodles/m_dasher_walk_ai.png", {
-        frameWidth: SMALL_ENEMY_FRAME_WIDTH,
-        frameHeight: SMALL_ENEMY_FRAME_HEIGHT
-      });
-      loadGameSheet(this.load, "m_giant_walk", "doodles/m_giant_walk_ai.png", {
-        frameWidth: GIANT_ENEMY_FRAME_WIDTH,
-        frameHeight: GIANT_ENEMY_FRAME_HEIGHT
-      });
-      for (const [kind, def] of Object.entries(RESTORED_ENEMIES)) {
-        if (!level.enemies.some(enemy => enemy.kind === kind)) continue;
-        loadGameSheet(this.load, `restored_${kind}_walk`, `enemies/restored-v1/${kind}-walk.png`, {frameWidth:512,frameHeight:512});
-        if (def.attackFrames) loadGameSheet(this.load, `restored_${kind}_attack`, `enemies/restored-v1/${kind}-attack.png`, {frameWidth:512,frameHeight:512});
+      for(const kind of Object.keys(ENEMY_MOTION) as GroundFoe[]) {
+        if(!level.enemies.some(enemy=>enemy.kind===kind))continue;
+        this.load.multiatlas(foeTexture(kind),`/enemies/motion-v2/${foeAsset(kind,currentLevel)}.json`,'/enemies/motion-v2/');
       }
     }
 
@@ -1665,6 +1653,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           .map((child) => child as Phaser.Physics.Arcade.Sprite)
           .find((pickup) => pickup.active && (!kind || pickup.getData("kind") === kind));
         if (target) collectPickup(scene, target);
+      };
+      if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerEnemyTest=(kind,hp=12)=>{
+        if(!Object.hasOwn(ENEMY_MOTION,kind)||!scene.textures.exists(foeTexture(kind as GroundFoe)))throw Error('Enemy is not in this level roster');
+        enemies.getChildren().slice().forEach(child=>child.destroy());
+        signature?.cancel(false);mobility?.cancel();fireBlades?.clear();
+        projectiles.getChildren().slice().forEach(child=>child.destroy());
+        enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
+        addEnemy(scene,{kind:kind as GroundFoe,x:360,y:currentLevel<=2?450:470,left:240,right:680});
+        const enemy=enemies.getChildren().at(-1) as Phaser.Physics.Arcade.Sprite;
+        enemy.setData('hp',hp).setData('maxHp',hp).setData('nextAttackAt',scene.time.now+650);
       };
 
       signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
@@ -2023,10 +2021,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function makeAnimations(scene: Phaser.Scene) {
-      for (const [kind,def] of Object.entries(RESTORED_ENEMIES)) {
-        if (!scene.textures.exists(`restored_${kind}_walk`)) continue;
-        scene.anims.create({key:`restored_${kind}_walk`,frames:scene.anims.generateFrameNumbers(`restored_${kind}_walk`,{start:0,end:def.walkFrames-1}),frameRate:def.fps,repeat:-1});
+      for(const kind of Object.keys(ENEMY_MOTION) as GroundFoe[]){
+        if(!scene.textures.exists(foeTexture(kind)))continue;
+        scene.anims.create({key:foeWalk(kind),frames:Array.from({length:8},(_,n)=>({key:foeTexture(kind),frame:String(n)})),frameRate:ENEMY_MOTION[kind].fps,repeat:-1});
       }
+
       const walkKey = getPlayerWalkTexture(scene);
       const walkAnimKey = getWalkAnimationKey(walkKey);
       if (scene.textures.exists(walkKey) && !scene.anims.exists(walkAnimKey)) {
@@ -2037,9 +2036,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           frameRate: walkKey === "runner_blaster-run" ? 32 : walkKey.startsWith("runner_") || walkKey === "xgod_side_scroll_sprint_run_v1" ? 16 : isXGod ? 12 : 10,
           repeat: -1
         });
-      }
-      if (scene.textures.exists("grunt_walking")) {
-        scene.anims.create({ key: "platformer_walker", frames: scene.anims.generateFrameNumbers("grunt_walking", { start: 0, end: 3 }), frameRate: 8, repeat: -1 });
       }
       if (scene.textures.exists("character_attack") && !scene.anims.exists("platformer_player_attack")) {
         const usableFrames = Math.max(1, getPlatformerRunFrameCount(scene, "character_attack"));
@@ -2058,15 +2054,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           frameRate: 12,
           repeat: 0
         });
-      }
-      if (scene.textures.exists("m_alien_walk")) {
-        scene.anims.create({ key: "platformer_alien", frames: scene.anims.generateFrameNumbers("m_alien_walk", { start: 0, end: 3 }), frameRate: 7, repeat: -1 });
-      }
-      if (scene.textures.exists("m_dasher_walk")) {
-        scene.anims.create({ key: "platformer_dasher", frames: scene.anims.generateFrameNumbers("m_dasher_walk", { start: 0, end: 3 }), frameRate: 9, repeat: -1 });
-      }
-      if (scene.textures.exists("m_giant_walk")) {
-        scene.anims.create({ key: "platformer_giant", frames: scene.anims.generateFrameNumbers("m_giant_walk", { start: 0, end: 3 }), frameRate: 6, repeat: -1 });
       }
       Object.values(BOSS_DEFINITIONS).forEach((boss) => {
         const animationKey = getBossAnimationKey(boss);
@@ -2739,7 +2726,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function addEnemy(scene: Phaser.Scene, plan: EnemyPlan) {
       const boss = plan.bossId ? BOSS_DEFINITIONS[plan.bossId] : null;
       const restored = isRestoredEnemy(plan.kind) ? RESTORED_ENEMIES[plan.kind] : null;
-      const texture = boss?.textureKey ?? (restored ? `restored_${plan.kind}_walk` : plan.kind === "giant" ? "m_giant_walk" : plan.kind === "dasher" ? "m_dasher_walk" : plan.kind === "alien" ? "m_alien_walk" : "grunt_walking");
+      const texture = boss?.textureKey ?? foeTexture(plan.kind as GroundFoe);
       const enemy = enemies.create(plan.x, plan.y, texture, 0) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       const maxHp = boss?.maxHp ?? restored?.hp ?? (plan.kind === "giant" ? 7 : plan.kind === "dasher" ? 5 : plan.kind === "alien" ? 4 : 4);
       enemy.setData("kind", plan.kind)
@@ -2760,6 +2747,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         .setData("nextAttackAt", 900 + plan.x / 3);
       if (boss) enemy.setData("phase", 1);
       enemy.setDepth(12).setScale(boss?.scale ?? restored?.scale ?? (plan.kind === "giant" ? 0.32 : plan.kind === "walker" ? 0.22 : 0.54));
+      if(!boss)enemy.setScale(enemy.scaleX*2);
       enemy.setData("baseScale", enemy.scaleX);
       if (boss) {
         const profile = BOSS_BODY_PROFILES[plan.bossId as BossId];
@@ -2788,7 +2776,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         bossAttackVisual = scene.add.sprite(plan.x, plan.y, `boss_attack_${plan.bossId}`, 0)
           .setOrigin(visual.originX, visual.originY).setScale(boss.scale).setDepth(13).setVisible(false);
       }
-      if (plan.kind === "alien" || restored) {
+      if (!boss) {
         const margin = enemy.width * ENEMY_BODY_PROFILES[plan.kind as Exclude<EnemyKind,'boss'>].width * enemy.scaleX / 2 + 8;
         const support = level.platforms.filter((rect) => plan.x >= rect.x && plan.x <= rect.x + rect.w
           && rect.y >= plan.y && rect.w >= margin * 2)
@@ -2812,9 +2800,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           enemy.body.setAllowGravity(false);
           enemy.setData('homeY',homeY).setData('floorY',floor).setData('spawnY',homeY);
         }
-        enemy.once('destroy',()=>clearEnemyIntent(enemy));
       }
-      enemy.anims.play(boss ? getBossAnimationKey(boss) : restored ? `restored_${plan.kind}_walk` : plan.kind === "giant" ? "platformer_giant" : plan.kind === "dasher" ? "platformer_dasher" : plan.kind === "alien" ? "platformer_alien" : "platformer_walker", true);
+      enemy.once('destroy',()=>clearEnemyIntent(enemy));
+      enemy.setData('move',boss?enemy.getData('move'):localEnemyMove(plan.kind as GroundFoe,currentLevel));
+      enemy.anims.play(boss ? getBossAnimationKey(boss) : foeWalk(plan.kind as GroundFoe),true);
+
     }
 
     function updateEnemies(scene: Phaser.Scene) {
@@ -2830,8 +2820,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           enemy.setData("direction", -1).setData("attackState", "patrol").clearTint();
           return;
         }
-        if (kind === "alien" || isRestoredEnemy(kind)) {
-          // Keep ranged walkers on the roof they were assigned, including after knockback.
+        if (kind !== 'boss') {
+          // Keep patrols/committed charges on their assigned supporting platform.
           enemy.x = Phaser.Math.Clamp(enemy.x, enemy.getData("left") as number, enemy.getData("right") as number);
         }
         if (now < (enemy.getData("hurtUntil") as number)) return;
@@ -2848,93 +2838,31 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           enemy.setVelocityX(0).setTint(0x8ce5fa);enemy.anims.timeScale=.15;return;
         }
         if(enemy.getData('frozenUntil')){enemy.setData('frozenUntil',0).clearTint();enemy.anims.timeScale=1;}
+        if(enemy.getData('attackState')!=='tell'){
+          const color=kind==='ghost'&&currentLevel===4?0xc9b2ff:kind==='spider'&&currentLevel===1?0xffeac2:0xffffff;
+          enemy.setTint(color);
+        }
         if(isRestoredEnemy(kind)){
           updateRestoredEnemy(scene,enemy,kind,now);
           return;
         }
-        if (kind === "alien") {
-          updateGroundAlien(scene, enemy, now);
-          return;
-        }
         if (enemy.getData("bounceLane")) {
-          enemy.x = Phaser.Math.Clamp(enemy.x, left, right);
-          if (enemy.x <= left + 1) direction = 1;
-          if (enemy.x >= right - 1) direction = -1;
-          enemy.setData("direction", direction).setVelocityX(direction * 28);
-          enemy.anims.timeScale = 0.65;
-          faceNormalEnemy(enemy, kind, direction);
-          return;
+          enemy.x=Phaser.Math.Clamp(enemy.x,left,right);
+          if(enemy.x<=left+1)direction=1;if(enemy.x>=right-1)direction=-1;
+          enemy.setData('direction',direction).setVelocityX(direction*28);
+          enemy.anims.play(foeWalk(kind as GroundFoe),true);enemy.anims.timeScale=.65;
+          faceNormalEnemy(enemy,kind,direction);return;
         }
+        updateLocalEnemy(scene,enemy,kind as GroundFoe,now,{level:currentLevel,player,projectiles,place:placeBossAt,
+          damage:amount=>damagePlayer(scene,amount,false),clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),
+          clearIntent:clearEnemyIntent,showIntent:(enemy,kind)=>showEnemyIntent(scene,enemy,kind),
+          firePulse:(enemy,damage,color,speed,target)=>fireEnemyPulse(scene,enemy,damage,color,speed,target)});
 
-        if (now >= (enemy.getData("nextAttackAt") as number) && distanceToPlayer < 360) {
-          enemy.setData("attackState", "tell").setData("attackTellUntil", now + 360).setData("attackUntil", now + 620).setData("nextAttackAt", now + (kind === "dasher" ? 1900 : 1450));
-          enemy.setTint(0xffd166);
-        }
-
-        const attackState = enemy.getData("attackState") as string;
-        if (attackState === "tell" && now < (enemy.getData("attackTellUntil") as number)) {
-          faceNormalEnemy(enemy, kind, player.x < enemy.x ? -1 : 1);
-          enemy.setVelocityX(0);
-          enemy.setScale((enemy.getData("baseScale") as number) * 1.08, (enemy.getData("baseScale") as number) * 0.92);
-          return;
-        }
-        if (attackState === "tell") {
-          enemy.setData("attackState", "attack").clearTint();
-          enemy.setScale(enemy.getData("baseScale") as number);
-        }
-        if (enemy.getData("attackState") === "attack" && now < (enemy.getData("attackUntil") as number)) {
-          const attackDirection = player.x < enemy.x ? -1 : 1;
-          faceNormalEnemy(enemy, kind, attackDirection);
-          enemy.setVelocityX(attackDirection * (kind === "dasher" ? 340 : kind === "giant" ? 210 : 250));
-          return;
-        }
-        if (enemy.getData("attackState") === "attack") {
-          enemy.setData("attackState", "patrol");
-          enemy.setScale(enemy.getData("baseScale") as number);
-        }
-        if (enemy.x <= left) direction = 1;
-        if (enemy.x >= right) direction = -1;
-        enemy.setData("direction", direction);
-        faceNormalEnemy(enemy, kind, direction);
-        if (kind === "dasher") {
-          enemy.setVelocityX(direction * 180);
-        } else if (kind === "giant") {
-          enemy.setVelocityX(direction * 70);
-        } else {
-          enemy.setVelocityX(direction * 92);
-        }
       });
     }
 
-    function updateGroundAlien(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite, now: number) {
-      const state = enemy.getData("attackState") as string;
-      if (state === "tell" || state === "attack") {
-        enemy.setVelocityX(0);
-        enemy.anims.pause();
-        faceNormalEnemy(enemy, "alien", player.x < enemy.x ? -1 : 1);
-        if (state === "tell" && now >= (enemy.getData("attackTellUntil") as number)) {
-          enemy.clearTint().setData("attackState", "attack").setData("attackUntil", now + 240);
-          fireEnemyPulse(scene, enemy, 10, 0xb5ffb3);
-        } else if (state === "attack" && now >= (enemy.getData("attackUntil") as number)) {
-          enemy.setData("attackState", "patrol");
-        }
-        return;
-      }
-      if (now >= (enemy.getData("nextAttackAt") as number) && Math.abs(player.x - enemy.x) < 620) {
-        enemy.setVelocityX(0).setTint(0xffd166).setData("attackState", "tell")
-          .setData("attackTellUntil", now + 420).setData("nextAttackAt", now + 2100);
-        return;
-      }
-      let direction = enemy.getData("direction") as number;
-      enemy.anims.resume();
-      if (enemy.x <= (enemy.getData("left") as number) + 1) direction = 1;
-      if (enemy.x >= (enemy.getData("right") as number) - 1) direction = -1;
-      enemy.setData("direction", direction).setVelocityX(direction * 85);
-      faceNormalEnemy(enemy, "alien", direction);
-    }
-
     function faceNormalEnemy(enemy: Phaser.Physics.Arcade.Sprite, kind: EnemyKind, direction: number) {
-      enemy.setFlipX(kind === "dasher" || kind === "alien" ? direction < 0 : direction > 0);
+      enemy.setFlipX(direction > 0);
     }
 
     function clearEnemyIntent(enemy: Phaser.Physics.Arcade.Sprite) {
@@ -2942,13 +2870,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemy.setData('tellVisual',null);
     }
 
-    function showEnemyIntent(scene:Phaser.Scene,enemy:Phaser.Physics.Arcade.Sprite,kind:RestoredEnemyKind) {
+    function showEnemyIntent(scene:Phaser.Scene,enemy:Phaser.Physics.Arcade.Sprite,kind:GroundFoe) {
       clearEnemyIntent(enemy);
       const body=enemy.body as Phaser.Physics.Arcade.Body;
       const targetX=Number(enemy.getData('targetX')),targetY=Number(enemy.getData('targetY'));
       const visual=scene.add.graphics().setDepth(17);
       visual.lineStyle(3,kind==='ghost'?0xf5a3d5:0xffd166,0.9);
-      if(kind==='ghost') visual.strokeEllipse(targetX,targetY-body.height/2,90,65);
+      if(kind==='alien'){
+        visual.lineBetween(body.center.x,body.center.y,targetX,targetY);
+        visual.strokeCircle(targetX,targetY,18);
+      }
+      else if(kind==='giant') visual.strokeEllipse(enemy.x,body.bottom-6,320,34);
+      else if(kind==='ghost') visual.strokeEllipse(targetX,targetY-body.height/2,90,65);
       else if(kind==='cosmic'){
         visual.lineBetween(body.center.x,body.center.y,targetX,targetY);
         visual.strokeCircle(targetX,targetY,12);
@@ -2972,9 +2905,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const elapsed=now-started;
       const lockedDirection=Number(enemy.getData('attackDirection')??-1);
       if(state==='tell'){
-        enemy.setVelocityX(0).anims.pause();
+        enemy.setVelocityX(0).anims.stop();enemy.setTexture(foeTexture(kind),elapsed<def.tellMs/2?'8':'9');
         // Face the committed attack; moving behind the enemy does not redirect it.
-        enemy.setFlipX(kind==='terror'?lockedDirection<0:lockedDirection>0);
+        enemy.setFlipX(lockedDirection>0);
         if(elapsed<def.tellMs)return;
         clearEnemyIntent(enemy);
         enemy.clearTint().setData('attackState','attack').setData('stateStartedAt',now).setData('shotsInBurst',0);
@@ -2983,12 +2916,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         return;
       }
       if(state==='attack'){
-        if(def.attackFrames){
-          enemy.anims.stop();
-          enemy.setTexture(`restored_${kind}_attack`,Math.min(def.attackFrames-1,Math.floor(elapsed/def.attackMs*def.attackFrames)));
-          enemy.setFlipX(kind==='terror'?lockedDirection<0:lockedDirection>0);
-        }
+        enemy.anims.stop();
+        enemy.setTexture(foeTexture(kind),elapsed<def.attackMs*.65?'10':'11');
+        enemy.setFlipX(lockedDirection>0);
         if(kind==='spider') enemy.setVelocityX(lockedDirection*310);
+        if(kind==='spider'&&currentLevel===4&&elapsed>=140&&!enemy.getData('attackFired')){
+          enemy.setData('attackFired',true);
+          for(const dy of [-48,0,48])fireEnemyPulse(scene,enemy,8,0xbce69a,190,{x:Number(enemy.getData('targetX')),y:Number(enemy.getData('targetY'))+dy});
+        }
+        if(kind==='ghost'&&currentLevel===4&&elapsed>=def.attackMs*.7&&!enemy.getData('attackFired')){
+          enemy.setData('attackFired',true);
+          for(const dy of [-40,40])fireEnemyPulse(scene,enemy,9,0xd8a7ff,190,{x:Number(enemy.getData('targetX')),y:Number(enemy.getData('targetY'))+dy});
+        }
         if(kind==='ghost'){
           const t=Phaser.Math.Clamp(elapsed/def.attackMs,0,1),ease=t*t*(3-2*t);
           placeBossAt(enemy,Phaser.Math.Linear(Number(enemy.getData('launchX')),Number(enemy.getData('targetX')),ease),
@@ -3028,7 +2967,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             Phaser.Math.Linear(Number(enemy.getData('recoverFromY')),Number(enemy.getData('homeY')),ease));
         }
         enemy.anims.stop();
-        enemy.setTexture(`restored_${kind}_walk`,0);
+        enemy.setTexture(foeTexture(kind),'7');
         if(elapsed>=def.recoverMs){
           enemy.setData('attackState','patrol').setData('stateStartedAt',now).setData('nextAttackAt',now+def.cooldownMs);
         }
@@ -3039,7 +2978,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(enemy.x<=left+1)direction=1;
       if(enemy.x>=right-1)direction=-1;
       enemy.setData('direction',direction).setFlipX(direction>0);
-      enemy.anims.play(`restored_${kind}_walk`,true);
+      enemy.anims.play(foeWalk(kind),true);
       enemy.anims.timeScale=1;
       if(kind==='ghost'){
         placeBossAt(enemy,enemy.x,Number(enemy.getData('homeY'))+Math.sin(now/460+Number(enemy.getData('spawnX')))*13);
@@ -3054,6 +2993,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           .setData('attackFired',false).setData('targetX',kind==='ghost'?Phaser.Math.Clamp(player.x,left,right):target.center.x)
           .setData('targetY',kind==='ghost'?Math.min(Number(enemy.getData('floorY'))-6,target.center.y+body.height/2):target.center.y)
           .setTint(0xffd166).setVelocityX(0).setAngle(0);
+        enemy.anims.stop();enemy.setTexture(foeTexture(kind),'8');
         showEnemyIntent(scene,enemy,kind);
       }
     }
@@ -4204,7 +4144,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         currentScore += isBoss ? 1500 : 150;
         if (isBoss) {
           playBossDefeat(scene, enemy);
-        } else {playSfx('enemyDeath');enemy.destroy();}
+        } else {playSfx('enemyDeath');clearEnemyIntent(enemy);playEnemyDefeat(scene,enemy,enemyDeaths);}
         syncStats();
       }
       return true;
@@ -4274,10 +4214,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (hitStopActive) return;
       hitStopActive = true;
       scene.physics.world.pause();
-      window.setTimeout(() => {
-        if (scene.sys.isActive()) scene.physics.world.resume();
+      scene.time.delayedCall(duration, () => {
+        scene.physics.world.resume();
         hitStopActive = false;
-      }, duration);
+      });
     }
 
     function handlePlayerEnemyOverlap(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite) {
@@ -4440,12 +4380,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         // A checkpoint retry starts a fresh readable encounter, without old aim lines or volleys.
         enemies.getChildren().forEach(child=>{
           const enemy=child as Phaser.Physics.Arcade.Sprite;
-          if(!isRestoredEnemy(enemy.getData('kind')))return;
+          if(!Object.hasOwn(ENEMY_MOTION,enemy.getData('kind')))return;
           clearEnemyIntent(enemy);
           enemy.setData('attackState','patrol').setData('nextAttackAt',now+1600).clearTint();
           enemy.setVelocity(0,0);
         });
-        projectiles.getChildren().filter(child=>isRestoredEnemy(child.getData('sourceKind'))).forEach(child=>child.destroy());
+        projectiles.getChildren().filter(child=>Object.hasOwn(ENEMY_MOTION,child.getData('sourceKind')??'')).forEach(child=>child.destroy());
         resetRooftopRush(scene);
         resetGroundObstacles();
         jumpVisualAirborne=false;landingVisualStartedAt=-9999;
@@ -4687,7 +4627,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const activeEnemies = enemies
         ? enemies.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite).filter((enemy) => enemy.active).map((enemy) => ({
           kind: enemy.getData("kind"),
-          name: isRestoredEnemy(enemy.getData('kind')) ? RESTORED_ENEMIES[enemy.getData('kind') as RestoredEnemyKind].name : enemy.getData('kind'),
+          name: LEVEL_FOE_NAMES[currentLevel]?.[enemy.getData('kind')]??(enemy.getData('kind')==='walker'?GRUNT_THEMES[currentLevel].name:enemy.getData('kind')),
           texture: enemy.texture.key,
           velocityY: Math.round((enemy.body as Phaser.Physics.Arcade.Body).velocity.y),
           warningVisible: Boolean(enemy.getData('tellVisual')?.active),
@@ -4748,6 +4688,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           x: Math.round(projectile.x),
           y: Math.round(projectile.y),
           enemyProjectile: Boolean(projectile.getData("enemyProjectile")),
+          sourceKind:projectile.getData('sourceKind')??null,
           quakeWave: Boolean(projectile.getData("quakeWave")),
           pattern: projectile.getData("pattern") ?? null,
           bossMove: projectile.getData("bossMove") ?? null,
@@ -4813,6 +4754,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         powerStations:powerStations.map(p=>({kind:p.kind,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
         bossDefeated,
         bossAttackVisualVisible: Boolean(bossAttackVisual?.active && bossAttackVisual.visible),
+        enemyDeaths:[...enemyDeaths].filter(s=>s.active).map(s=>({kind:s.getData('kind'),texture:s.texture.key,frame:s.frame.name,alpha:s.alpha})),
         bossDeath: { bossId: bossDeathId, stage: bossDeathStage, visible: Boolean(bossDeathVisual?.active && bossDeathVisual.visible), texture: bossDeathVisual?.active ? bossDeathVisual.texture.key : null,
           frame: bossDeathVisual?.active ? Number(bossDeathVisual.frame.name) : null, elapsedMs: bossDeathId ? Math.max(0, latestSceneTime-bossDeathStartedAt) : 0 },
       attack: {
@@ -4988,6 +4930,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerSetPlayerPosition = undefined;
       window.__unknownPlatformerCollectPickup = undefined;
       window.__unknownPlatformerSpecialTest = undefined;
+      window.__unknownPlatformerEnemyTest = undefined;
+      enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;
       mobility?.destroy();mobility=null;
       bossVulnerabilityCue?.destroy();bossVulnerabilityCue=null;

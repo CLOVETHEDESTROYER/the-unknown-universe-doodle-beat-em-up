@@ -1,0 +1,145 @@
+{
+  "grunt": {
+    "source": "grunt_walking_ai.png",
+    "cell": [
+      543,
+      724
+    ],
+    "bounds": [
+      140,
+      118,
+      487,
+      594
+    ]
+  },
+  "alien": {
+    "source": "doodles/m_alien_walk_ai.png",
+    "cell": [
+      280,
+      280
+    ],
+    "bounds": [
+      66,
+      26,
+      213,
+      268
+    ]
+  },
+  "dasher": {
+    "source": "doodles/m_dasher_walk_ai.png",
+    "cell": [
+      280,
+      280
+    ],
+    "bounds": [
+      9,
+      61,
+      271,
+      268
+    ]
+  },
+  "giant": {
+    "source": "doodles/m_giant_walk_ai.png",
+    "cell": [
+      360,
+      420
+    ],
+    "bounds": [
+      29,
+      38,
+      331,
+      408
+    ]
+  },
+  "spider": {
+    "source": "enemies/restored-v1/spider-walk.png",
+    "cell": [
+      512,
+      512
+    ],
+    "bounds": [
+      117,
+      273,
+      395,
+      480
+    ]
+  },
+  "ghost": {
+    "source": "enemies/restored-v1/ghost-walk.png",
+    "cell": [
+      512,
+      512
+    ],
+    "bounds": [
+      121,
+      180,
+      447,
+      480
+    ]
+  },
+  "terror": {
+    "source": "enemies/restored-v1/terror-walk.png",
+    "cell": [
+      512,
+      512
+    ],
+    "bounds": [
+      162,
+      219,
+      333,
+      480
+    ]
+  },
+  "cosmic": {
+    "source": "enemies/restored-v1/cosmic-walk.png",
+    "cell": [
+      512,
+      512
+    ],
+    "bounds": [
+      147,
+      200,
+      365,
+      480
+    ]
+  },
+  "scout": {
+    "source": "flight/scout-v2.png",
+    "cell": [
+      0,
+      0
+    ],
+    "bounds": [
+      18,
+      18,
+      335,
+      373
+    ]
+  },
+  "interceptor": {
+    "source": "flight/interceptor-v2.png",
+    "cell": [
+      0,
+      0
+    ],
+    "bounds": [
+      38,
+      38,
+      789,
+      447
+    ]
+  },
+  "gunship": {
+    "source": "flight/gunship-v2.png",
+    "cell": [
+      0,
+      0
+    ],
+    "bounds": [
+      36,
+      36,
+      749,
+      452
+    ]
+  }
+}
