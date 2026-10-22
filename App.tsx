@@ -706,7 +706,7 @@ const App: React.FC = () => {
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
           <TouchControls isPaused={gameSuspended} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
-        {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
+        {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
             <div className="max-w-sm rounded-3xl border-4 border-white/70 bg-slate-900/92 p-6 shadow-2xl">
               <p className="text-4xl font-bold">Turn Sideways</p>
@@ -828,13 +828,13 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "characterSelect" && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950 p-3 font-['Gochi_Hand'] sm:p-4">
+          <div className="character-select absolute inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950 p-3 font-['Gochi_Hand'] sm:p-4" role="dialog" aria-labelledby="character-select-title">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_12%,rgba(124,58,237,0.36)_0%,rgba(15,23,42,0.92)_42%,#020617_100%)]" />
-            <div className="relative z-10 flex min-h-full w-full max-w-7xl shrink-0 flex-col justify-start py-3 md:justify-center">
-              <div className="mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
+            <div className="character-select-content relative z-10 flex min-h-full w-full max-w-7xl shrink-0 flex-col justify-start py-3 md:justify-center">
+              <div className="character-select-header mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
                 <div>
-                  <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
-                  <p className="mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
+                  <h1 id="character-select-title" className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
+                  <p className="character-select-description mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
                     {isRosterUnlocked
                       ? "The roster is unlocked. Choose who enters the Unknown Universe."
                       : "X God and Z-God are ready. Beat the game with X God to unlock the other heroes."}
@@ -849,7 +849,7 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4">
+              <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
                   const locked = characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
@@ -858,29 +858,31 @@ const App: React.FC = () => {
                       key={character.id}
                       type="button"
                       disabled={locked}
+                      data-character-id={character.id}
+                      aria-label={`${character.name}: ${locked ? 'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
                       onClick={() => beginRunWithCharacter(character.id)}
-                      className={`group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
+                      className={`character-card group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
                         locked
                           ? "border-slate-700 opacity-55 grayscale"
                           : "border-amber-200 hover:-translate-y-1 hover:border-white hover:shadow-[10px_12px_0_rgba(0,0,0,0.5)]"
                       }`}
                     >
-                      <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-200">
+                      <div className="character-card-art relative aspect-[2/3] w-full overflow-hidden bg-slate-200">
                         <img
                           loading="lazy" decoding="async"
                           src={mobileImagePath(character.cardImage)}
                           alt={`${character.name} character card`}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center bg-slate-950/64 px-3 text-center">
                             <p className="rounded-xl border-2 border-white/60 bg-black/70 px-2 py-2 text-base leading-tight text-white sm:px-3 sm:text-xl">
-                              Beat the game with X God to pick your player.
+                              LOCKED
                             </p>
                           </div>
                         )}
                       </div>
-                      <div className="border-t-4 border-slate-900 bg-white p-2 sm:p-3">
+                      <div className="character-card-details border-t-4 border-slate-900 bg-white p-2 sm:p-3">
                         <p className="text-xl font-bold text-slate-900 sm:text-2xl">{character.name}</p>
                         <p className="text-base text-slate-600 sm:text-lg">{character.subtitle}</p>
                         <p className="mt-1 text-sm font-bold text-amber-700">{SIGNATURE_SPECIALS[character.id].name}</p>
@@ -890,6 +892,7 @@ const App: React.FC = () => {
                   );
                 })}
               </div>
+              <p className="character-scroll-hint" aria-hidden="true">Swipe to browse heroes → · Tap SELECT to play</p>
             </div>
           </div>
         )}
