@@ -1,3 +1,4 @@
+import {UNIQUE_ENEMIES,isUniqueEnemy} from './uniqueEnemies';
 /** Original drawn enemies restored to the ground campaign. Distances are world pixels. */
 export type RestoredEnemyKind = 'spider' | 'ghost' | 'terror' | 'cosmic';
 export const RESTORED_ENEMIES = {
@@ -23,11 +24,11 @@ export const ENEMY_REINTRODUCTIONS: Record<number, Array<[string, number, Restor
 
 /** Distinct local rosters; repeat silhouettes get level-specific attacks and palettes. */
 export const LEVEL_ENEMY_ROSTERS:Record<number,readonly string[]>={
-  1:['walker','spider','dasher'],
-  2:['walker','ghost','terror'],
-  3:['walker','alien','giant'],
-  4:['walker','spider','ghost'],
-  6:['walker','cosmic','dasher'],
+  1:['walker','spider','dasher','tagger'],
+  2:['walker','ghost','terror','bellkeeper'],
+  3:['walker','alien','giant','boiler'],
+  4:['walker','spider','mantis'],
+  6:['walker','cosmic','dasher','mimic'],
 };
 export const LEVEL_FOE_NAMES:Record<number,Partial<Record<string,string>>>={
   1:{spider:'Chalk Crawler',dasher:'Locker Rusher'},
@@ -38,6 +39,13 @@ export const LEVEL_FOE_NAMES:Record<number,Partial<Record<string,string>>>={
 };
 export function localEnemyKind(level:number,kind:string,index:number){
   if(kind==='boss'||kind==='walker')return kind;
+  if(level===4&&kind==='ghost')return 'mantis';
   const roster=LEVEL_ENEMY_ROSTERS[level]??LEVEL_ENEMY_ROSTERS[1];
-  return roster.includes(kind)?kind:roster[1+index%(roster.length-1)];
+  // Adding a new kind must not redistribute every existing placement by a new modulo.
+  const established=roster.filter(kind=>!isUniqueEnemy(kind));
+  return roster.includes(kind)?kind:established[1+index%(established.length-1)];
+}
+
+export function enemyDisplayName(level:number,kind:string){
+  return isUniqueEnemy(kind)?UNIQUE_ENEMIES[kind].name:LEVEL_FOE_NAMES[level]?.[kind]??kind;
 }

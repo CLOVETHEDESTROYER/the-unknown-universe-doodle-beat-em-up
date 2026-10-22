@@ -4,7 +4,7 @@ import type { PursuerMove } from './flightPursuer';
 import { FLIGHT_WEAPONS } from './flightWeapons';
 import type { FlightWeaponId } from './flightWeapons';
 
-export type EnemyKind='scout'|'interceptor'|'gunship'|'pursuer';
+export type EnemyKind='scout'|'interceptor'|'gunship'|'prism'|'pursuer';
 type EnemyPhase='enter'|'weave'|'tell'|'charge'|'recover'|'exit'|'attack'|'transition'|'dying';
 export interface FlightEnemy {
   id:string;kind:EnemyKind;x:number;y:number;baseY:number;hp:number;maxHp:number;age:number;
@@ -33,7 +33,7 @@ export const FLIGHT_WAVES:{at:number;kind:EnemyKind;ys:number[];name:string}[]=[
   {at:650,kind:'scout',ys:[210,300,390],name:'SCOUT FORMATION — OPEN FIRE!'},
   {at:3300,kind:'interceptor',ys:[205,425],name:'INTERCEPTORS — WATCH THE CHARGE'},
   {at:6400,kind:'gunship',ys:[285],name:'HEAVY GUNSHIP — DODGE THE FAN'},
-  {at:9000,kind:'scout',ys:[180,300,420],name:'SCOUT WING — CLEAR A LANE'},
+  {at:9000,kind:'prism',ys:[240,390],name:'PRISM RAYS — DODGE THE THREE LASER LANES'},
   {at:11650,kind:'interceptor',ys:[190,440],name:'INTERCEPTORS — LEAVE THE MARK'}
 ];
 export function createCombat():FlightCombat {
@@ -100,7 +100,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     c.spawnedWaves.push(waveId);c.waveName=w.name;c.waveNoticeUntil=s.clock+2200;
     w.ys.forEach((y,i)=>{
       const id=`${waveId}:${i}`;if(c.defeated.includes(id))return;
-      const hp=w.kind==='scout'?2:w.kind==='interceptor'?4:s.difficulty==='EASY'?8:s.difficulty==='HARD'?10:12;
+      const hp=w.kind==='scout'?2:w.kind==='interceptor'?4:w.kind==='prism'?6:s.difficulty==='EASY'?8:s.difficulty==='HARD'?10:12;
       c.enemies.push({id,kind:w.kind,x:1110+i*125,y,baseY:y,hp,maxHp:hp,age:0,phase:'enter',phaseMs:0,aimX:0,aimY:0,startX:0,startY:0});
     });
   }
@@ -110,6 +110,26 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
   for(const e of c.enemies){
     e.age+=ms;e.phaseMs+=ms;
     if(e.kind==='pursuer')stepPursuer(s,c,e,ms,(kind,x,y)=>effect(c,s,kind,x,y));
+    else if(e.kind==='prism'){
+      if(e.phase==='enter'){
+        e.x-=150*dt;e.y=e.baseY+Math.sin(e.age/430)*32;
+        if(e.x<=825)phase(e,'tell',s);
+      }else if(e.phase==='tell'){
+        // Aim is committed for all three pulses; no tracking after the warning.
+        if(e.phaseMs>=850){e.volley=0;phase(e,'attack',s);}
+      }else if(e.phase==='attack'){
+        const volley=e.volley??0;
+        if(volley<3&&e.phaseMs>=volley*200){
+          const y=Math.max(145,Math.min(475,e.aimY+[-65,0,65][volley]));
+          c.bolts.push({id:c.nextId++,owner:'enemy',x:e.x-70,y,vx:-360,vy:0,expires:s.clock+2900,damage:11});
+          c.enemyShots++;e.volley=volley+1;
+        }
+        if(e.phaseMs>=650)phase(e,'recover',s);
+      }else if(e.phase==='recover'){
+        e.y=e.baseY+Math.sin(e.age/450)*38;
+        if(e.phaseMs>=1400)phase(e,e.age>9500?'exit':'tell',s);
+      }else if(e.phase==='exit')e.x-=270*dt;
+    }
     else if(e.kind==='scout'){
       e.x-=135*dt;e.y=e.baseY+Math.sin(e.age/420+e.baseY)*26;
       if(e.phase==='enter')phase(e,'weave',s);
@@ -141,7 +161,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     }else if(e.phase==='recover'&&e.phaseMs>=1750){
       phase(e,e.age>8500?'exit':'tell',s);
     }else if(e.phase==='exit')e.x-=240*dt;
-    const halfW=e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='interceptor'?48:29,halfH=e.kind==='pursuer'?37:e.kind==='gunship'?30:21;
+    const halfW=e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='prism'?68:e.kind==='interceptor'?48:29,halfH=e.kind==='pursuer'?37:e.kind==='gunship'?30:e.kind==='prism'?25:21;
     if(e.phase!=='dying'&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
     if(s.phase!=='flight'){clearCombat(c);return;}
   }
@@ -164,7 +184,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
       if(s.phase!=='flight'){clearCombat(c);return;}
       continue;
     }
-    const target=c.enemies.find(e=>e.hp>0&&!b.hitIds?.includes(e.id)&&Math.abs(e.x-b.x)<(e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='interceptor'?48:29)&&Math.abs(e.y-b.y)<(e.kind==='pursuer'?37:e.kind==='gunship'?30:21));
+    const target=c.enemies.find(e=>e.hp>0&&!b.hitIds?.includes(e.id)&&Math.abs(e.x-b.x)<(e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='prism'?68:e.kind==='interceptor'?48:29)&&Math.abs(e.y-b.y)<(e.kind==='pursuer'?37:e.kind==='gunship'?30:e.kind==='prism'?25:21));
     if(!target)continue;
     if(target.kind==='pursuer'&&target.phase!=='recover'&&!s.invincible){
       b.expires=0;c.guardedHits++;effect(c,s,'blocked',b.x,b.y);continue;
@@ -175,7 +195,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     if(target.hp<=0){
       effect(c,s,'destroy',target.x,target.y,target.kind==='pursuer'?190:target.kind==='gunship'?155:115,target.kind);
       if(!c.defeated.includes(target.id)){
-        c.defeated.push(target.id);s.score+=target.kind==='pursuer'?700:target.kind==='gunship'?300:target.kind==='interceptor'?180:100;
+        c.defeated.push(target.id);s.score+=target.kind==='pursuer'?700:target.kind==='gunship'?300:target.kind==='interceptor'?180:target.kind==='prism'?220:100;
         if(target.kind==='gunship')c.repairs.push({id:c.nextId++,x:target.x,y:target.y,expires:s.clock+8000});
       }
       if(target.kind==='pursuer'){

@@ -1,6 +1,7 @@
 /** Shared art contract: eight locomotion, four attack, four defeat poses. */
-export type GroundFoe = 'walker'|'alien'|'dasher'|'giant'|'spider'|'ghost'|'terror'|'cosmic';
+export type GroundFoe = 'walker'|'alien'|'dasher'|'giant'|'spider'|'ghost'|'terror'|'cosmic'|'tagger'|'bellkeeper'|'boiler'|'mantis'|'mimic';
 export const ENEMY_MOTION = {
+  ...Object.fromEntries(['tagger','bellkeeper','boiler','mantis','mimic'].map(asset=>[asset,{asset,width:256,height:256,feet:.94,facesRight:false,fps:12}])) as Record<'tagger'|'bellkeeper'|'boiler'|'mantis'|'mimic',{asset:string;width:number;height:number;feet:number;facesRight:boolean;fps:number}>,
   walker:{asset:'grunt',width:272,height:362,feet:.78,facesRight:false,fps:12},
   alien:{asset:'alien',width:140,height:140,feet:.95,facesRight:false,fps:10},
   dasher:{asset:'dasher',width:140,height:140,feet:.93,facesRight:false,fps:16},
@@ -18,6 +19,7 @@ export const GRUNT_THEMES:Record<number,{name:string;tint:number;glow:number}>={
   6:{name:'Void Grunt',tint:0xc5a0ff,glow:0xba8fff},
 };
 export const ENEMY_DEATH_MS=700;
+export const foeFolder=(kind:GroundFoe)=>['tagger','bellkeeper','boiler','mantis','mimic'].includes(kind)?'level-v3':'motion-v2';
 export const foeAsset=(kind:GroundFoe,level:number)=>kind==='walker'&&level!==1?`grunt-${level}`:ENEMY_MOTION[kind].asset;
 export const foeTexture=(kind:GroundFoe)=>`foe_${kind}`;
 export const foeWalk=(kind:GroundFoe)=>`foe_${kind}_walk`;

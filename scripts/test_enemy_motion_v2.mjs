@@ -19,7 +19,7 @@ const shot=async name=>{
 };
 const place=(x,level)=>page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x,y:level<=2?480:520});
 const fixture=foe=>page.evaluate(foe=>window.__unknownPlatformerEnemyTest(foe),foe);
-const rosters={1:['walker','spider','dasher'],2:['walker','ghost','terror'],3:['walker','alien','giant'],4:['walker','spider','ghost'],6:['walker','cosmic','dasher']};
+const rosters={1:['walker','spider','dasher','tagger'],2:['walker','ghost','terror','bellkeeper'],3:['walker','alien','giant','boiler'],4:['walker','spider','mantis'],6:['walker','cosmic','dasher','mimic']};
 try{
  for(const [levelText,roster] of Object.entries(rosters)){
   const level=Number(levelText);
@@ -28,7 +28,7 @@ try{
   let s=await read();assert.deepEqual(s.failedAssets,[]);
   assert.deepEqual([...new Set(s.enemies.filter(e=>e.kind!=='boss').map(e=>e.kind))].sort(),[...roster].sort());
   await shot('level-'+level+'-roster');
-  for(const foe of roster){
+  for(const foe of roster.filter(kind=>!['tagger','bellkeeper','boiler','mantis','mimic'].includes(kind))){
    await place(80,level);await fixture(foe);s=await wait(s=>s.enemies.length===1);
    const frames=new Set();for(let n=0;n<7;n++){s=await read();frames.add(String(s.enemies[0].visualFrame));await page.waitForTimeout(70);}
    assert(frames.size>=2,`${foe} animates locomotion`);

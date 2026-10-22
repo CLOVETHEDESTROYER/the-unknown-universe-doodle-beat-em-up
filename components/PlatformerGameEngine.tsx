@@ -6,9 +6,11 @@ import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
 import { createCrumble, stepCrumble, ventPhase } from "../gameplay/groundObstacles";
 import type { CrumbleState, CrumblingPlatformPlan, TimedVentPlan } from "../gameplay/groundObstacles";
-import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy, localEnemyKind, LEVEL_FOE_NAMES } from "../gameplay/enemyVariety";
-import { ENEMY_MOTION, GRUNT_THEMES, foeAsset, foeTexture, foeWalk } from '../gameplay/enemyMotion';
+import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy, localEnemyKind, enemyDisplayName } from "../gameplay/enemyVariety";
+import { ENEMY_MOTION, GRUNT_THEMES, foeAsset, foeFolder, foeTexture, foeWalk } from '../gameplay/enemyMotion';
 import type { GroundFoe } from '../gameplay/enemyMotion';
+import {UNIQUE_ENEMIES,UNIQUE_ENEMY_BODIES,UNIQUE_LEVEL_ENEMY,isUniqueEnemy} from '../gameplay/uniqueEnemies';
+import {updateUniqueEnemy,updateUniqueProjectiles,uniqueProjectileWall} from '../gameplay/uniqueEnemyRuntime';
 import { localEnemyMove, updateLocalEnemy, playEnemyDefeat } from '../gameplay/enemyMotionRuntime';
 import type { RestoredEnemyKind } from "../gameplay/enemyVariety";
 import { RESTORED_ENEMY_BODIES } from "../gameplay/restoredEnemyBodies";
@@ -56,7 +58,7 @@ interface PlatformerGameEngineProps {
 }
 
 type LevelNumber = 1 | 2 | 3 | 4 | 6;
-type EnemyKind = "walker" | "alien" | "dasher" | "giant" | "boss" | RestoredEnemyKind;
+type EnemyKind = GroundFoe | "boss";
 type BossId = "dark_dragon" | "killinas_daughter" | "ink_behemoth" | "kilina" | "void_regent";
 type PickupKind = "coin" | "heart" | "power" | "shield" | "gravity" | "dinio" | "doghost" | "teleportation_c" | "rush_star" | EquippedPowerup;
 
@@ -172,6 +174,7 @@ const ENEMY_BODY_PROFILES: Record<Exclude<EnemyKind, "boss">, {
   alien: { x: 0.28, y: 0.10, width: 0.44, height: 0.85, footAnchor: 0.95 },
   dasher: { x: 0.18, y: 0.20, width: 0.64, height: 0.73, footAnchor: 0.93 },
   giant: { x: 0.14, y: 0.10, width: 0.72, height: 0.87, footAnchor: 0.97 },
+  ...UNIQUE_ENEMY_BODIES,
   ...RESTORED_ENEMY_BODIES
 };
 
@@ -985,6 +988,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
     const level = {...originalLevel,enemies:originalLevel.enemies.map((enemy,index) => ({...enemy,
       kind:enemy===originalLevel.enemies.find(e=>e.kind==='walker')?'walker':localEnemyKind(currentLevel,replacements.get(enemy)??enemy.kind,index) as EnemyKind}))};
+    // Replace two existing ground placements; keep the opening grunt and all bounce lessons.
+    const uniqueKind=UNIQUE_LEVEL_ENEMY[currentLevel];
+    const candidates=level.enemies.filter(e=>e.kind!=='boss'&&e.kind!=='walker'&&e.kind!==uniqueKind&&!e.bounceLane&&e.y>=440);
+    const kindCounts=new Map<EnemyKind,number>();
+    for(const plan of level.enemies)kindCounts.set(plan.kind,(kindCounts.get(plan.kind)??0)+1);
+    let replacementsMade=0;
+    for(const plan of candidates){
+      // Keep at least one placement of every other local silhouette.
+      if((kindCounts.get(plan.kind)??0)<=1)continue;
+      kindCounts.set(plan.kind,kindCounts.get(plan.kind)!-1);plan.kind=uniqueKind;
+      if(++replacementsMade===2)break;
+    }
     const worldWidth = Math.max(6000, level.endX + 300);
     const failedAssetKeys = new Set<string>();
     const enemyDeaths=new Set<Phaser.GameObjects.Sprite>();
@@ -1408,7 +1423,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       for(const kind of Object.keys(ENEMY_MOTION) as GroundFoe[]) {
         if(!level.enemies.some(enemy=>enemy.kind===kind))continue;
-        this.load.multiatlas(foeTexture(kind),`/enemies/motion-v2/${foeAsset(kind,currentLevel)}.json`,'/enemies/motion-v2/');
+        this.load.multiatlas(foeTexture(kind),`/enemies/${foeFolder(kind)}/${foeAsset(kind,currentLevel)}.json`,`/enemies/${foeFolder(kind)}/`);
       }
     }
 
@@ -1562,7 +1577,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const surface=(platform as Phaser.GameObjects.Rectangle).body as Phaser.Physics.Arcade.StaticBody;
         return body.velocity.y>=0&&body.prev.y+body.height<=surface.top+8;
       });
-      scene.physics.add.collider(projectiles, platforms, (projectile) => projectile.destroy(), (_, platform) =>
+      scene.physics.add.collider(projectiles, platforms, (projectile) => uniqueProjectileWall(scene,projectile as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody), (_, platform) =>
         !(platform as Phaser.GameObjects.Rectangle).getData("oneWay"));
       scene.physics.add.overlap(player, hazards, () => damagePlayer(scene, 12, false));
       scene.physics.add.overlap(player, enemies, (_, enemyObj) => handlePlayerEnemyOverlap(scene, enemyObj as Phaser.Physics.Arcade.Sprite));
@@ -2725,10 +2740,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function addEnemy(scene: Phaser.Scene, plan: EnemyPlan) {
       const boss = plan.bossId ? BOSS_DEFINITIONS[plan.bossId] : null;
+      const unique = isUniqueEnemy(plan.kind)?UNIQUE_ENEMIES[plan.kind]:null;
       const restored = isRestoredEnemy(plan.kind) ? RESTORED_ENEMIES[plan.kind] : null;
       const texture = boss?.textureKey ?? foeTexture(plan.kind as GroundFoe);
       const enemy = enemies.create(plan.x, plan.y, texture, 0) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-      const maxHp = boss?.maxHp ?? restored?.hp ?? (plan.kind === "giant" ? 7 : plan.kind === "dasher" ? 5 : plan.kind === "alien" ? 4 : 4);
+      const maxHp = boss?.maxHp ?? unique?.hp ?? restored?.hp ?? (plan.kind === "giant" ? 7 : plan.kind === "dasher" ? 5 : plan.kind === "alien" ? 4 : 4);
       enemy.setData("kind", plan.kind)
         .setData("bounceLane", Boolean(plan.bounceLane))
         .setData("bossId", plan.bossId ?? null)
@@ -2746,7 +2762,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         .setData("attackFired", false)
         .setData("nextAttackAt", 900 + plan.x / 3);
       if (boss) enemy.setData("phase", 1);
-      enemy.setDepth(12).setScale(boss?.scale ?? restored?.scale ?? (plan.kind === "giant" ? 0.32 : plan.kind === "walker" ? 0.22 : 0.54));
+      enemy.setDepth(12).setScale(boss?.scale ?? (unique ? .35 : undefined) ?? restored?.scale ?? (plan.kind === "giant" ? 0.32 : plan.kind === "walker" ? 0.22 : 0.54));
       if(!boss)enemy.setScale(enemy.scaleX*2);
       enemy.setData("baseScale", enemy.scaleX);
       if (boss) {
@@ -2802,7 +2818,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
       }
       enemy.once('destroy',()=>clearEnemyIntent(enemy));
-      enemy.setData('move',boss?enemy.getData('move'):localEnemyMove(plan.kind as GroundFoe,currentLevel));
+      enemy.setData('move',boss?enemy.getData('move'):unique?.move??localEnemyMove(plan.kind as GroundFoe,currentLevel));
       enemy.anims.play(boss ? getBossAnimationKey(boss) : foeWalk(plan.kind as GroundFoe),true);
 
     }
@@ -2841,6 +2857,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(enemy.getData('attackState')!=='tell'){
           const color=kind==='ghost'&&currentLevel===4?0xc9b2ff:kind==='spider'&&currentLevel===1?0xffeac2:0xffffff;
           enemy.setTint(color);
+        }
+        if(isUniqueEnemy(kind)){
+          updateUniqueEnemy(scene,enemy,kind,now,{player,projectiles,clearIntent:clearEnemyIntent,floorAt:getPlatformStandY});
+          return;
         }
         if(isRestoredEnemy(kind)){
           updateRestoredEnemy(scene,enemy,kind,now);
@@ -3635,6 +3655,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function cleanupProjectiles() {
+      updateUniqueProjectiles(player.scene,projectiles,latestSceneTime);
       projectiles.getChildren().forEach((child) => {
         const projectile = child as Phaser.Physics.Arcade.Sprite;
         if (projectile.active && (projectile.x < -160 || projectile.x > worldWidth + 160 || projectile.y < -160 || projectile.y > WORLD_HEIGHT + 160 || (projectile.getData("dinioShotExpiresAt") && latestSceneTime > projectile.getData("dinioShotExpiresAt")) || (projectile.getData("playerShotExpiresAt") && latestSceneTime > projectile.getData("playerShotExpiresAt")) || (projectile.getData("bossShotExpiresAt") && latestSceneTime > projectile.getData("bossShotExpiresAt")))) {
@@ -4328,12 +4349,25 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       syncStats();
     }
 
+    function resetNormalEnemyAttacks(now:number) {
+      // A checkpoint retry starts a fresh readable encounter, without old aim lines or volleys.
+      enemies.getChildren().forEach(child=>{
+        const enemy=child as Phaser.Physics.Arcade.Sprite;
+        if(!Object.hasOwn(ENEMY_MOTION,enemy.getData('kind')))return;
+        clearEnemyIntent(enemy);
+        enemy.setData('attackState','patrol').setData('nextAttackAt',now+1600).clearTint();
+        enemy.setVelocity(0,0);
+      });
+      projectiles.getChildren().filter(child=>Object.hasOwn(ENEMY_MOTION,child.getData('sourceKind')??'')).forEach(child=>child.destroy());
+    }
+
     function damagePlayer(scene: Phaser.Scene, damage: number, forceRespawn: boolean) {
       if(isRespawning||isLevelClearing)return;
       if(!forceRespawn&&signature?.invulnerable)return;
       const now = scene.time.now;
       if (isZGod) {
         if (forceRespawn) {
+          resetNormalEnemyAttacks(now);
           isCrouching=false;zGodDashUntil=-9999;movementLockedUntil=-9999;
           jumpVisualAirborne=false;landingVisualStartedAt=-9999;
           placePlayerOnPlatform(checkpoint.x,checkpoint.y);
@@ -4377,15 +4411,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         resetTeleport(teleport);blinkQueuedAt=recallQueuedAt=-9999;allyReturnAt=now;allyAssistAt=now+1200;
         // Lost equipment stays lost; nearby supply pickups become available on the retry.
         powerStations.forEach(p=>{if(p.nextAt)p.nextAt=now+800;});
-        // A checkpoint retry starts a fresh readable encounter, without old aim lines or volleys.
-        enemies.getChildren().forEach(child=>{
-          const enemy=child as Phaser.Physics.Arcade.Sprite;
-          if(!Object.hasOwn(ENEMY_MOTION,enemy.getData('kind')))return;
-          clearEnemyIntent(enemy);
-          enemy.setData('attackState','patrol').setData('nextAttackAt',now+1600).clearTint();
-          enemy.setVelocity(0,0);
-        });
-        projectiles.getChildren().filter(child=>Object.hasOwn(ENEMY_MOTION,child.getData('sourceKind')??'')).forEach(child=>child.destroy());
+        resetNormalEnemyAttacks(now);
         resetRooftopRush(scene);
         resetGroundObstacles();
         jumpVisualAirborne=false;landingVisualStartedAt=-9999;
@@ -4627,7 +4653,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const activeEnemies = enemies
         ? enemies.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite).filter((enemy) => enemy.active).map((enemy) => ({
           kind: enemy.getData("kind"),
-          name: LEVEL_FOE_NAMES[currentLevel]?.[enemy.getData('kind')]??(enemy.getData('kind')==='walker'?GRUNT_THEMES[currentLevel].name:enemy.getData('kind')),
+          name: enemy.getData('kind')==='walker'?GRUNT_THEMES[currentLevel].name:enemyDisplayName(currentLevel,enemy.getData('kind')),
           texture: enemy.texture.key,
           velocityY: Math.round((enemy.body as Phaser.Physics.Arcade.Body).velocity.y),
           warningVisible: Boolean(enemy.getData('tellVisual')?.active),
@@ -4689,6 +4715,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           y: Math.round(projectile.y),
           enemyProjectile: Boolean(projectile.getData("enemyProjectile")),
           sourceKind:projectile.getData('sourceKind')??null,
+          armed: Boolean((projectile.body as Phaser.Physics.Arcade.Body).enable),
+          returned: Boolean(projectile.getData('returned')),
+          bounces: projectile.getData('bounces')??0,
           quakeWave: Boolean(projectile.getData("quakeWave")),
           pattern: projectile.getData("pattern") ?? null,
           bossMove: projectile.getData("bossMove") ?? null,

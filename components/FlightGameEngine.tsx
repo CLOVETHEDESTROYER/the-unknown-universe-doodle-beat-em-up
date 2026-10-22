@@ -6,7 +6,7 @@ import { CHARACTER_CONFIGS } from '../characters';
 import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
 import type { CharacterId, DifficultyMode, GameStats } from '../types';
 import { createFlight, damageShip, FLIGHT_BEACONS, FLIGHT_END, rockX, rockY, stepFlight } from '../gameplay/flight';
-import { resetCombat, shipMuzzles } from '../gameplay/flightCombat';
+import { resetCombat, shipMuzzles, FLIGHT_WAVES } from '../gameplay/flightCombat';
 import { PURSUER_CHECKPOINT, PURSUER_PHASE_NAMES, pursuerAttackHint, pursuerSweepPoint } from '../gameplay/flightPursuer';
 import { FLIGHT_WEAPONS, FLIGHT_WEAPON_PICKUPS, weaponPickupY } from '../gameplay/flightWeapons';
 import { FLIGHT_PARALLAX, flightSpeedStreaks } from '../gameplay/flightVisuals';
@@ -335,11 +335,11 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(!art){
           art=scene.add.image(e.x,e.y,`flight_${e.kind}`,0).setDepth(13);
           if(e.kind==='pursuer')art.setDisplaySize(260,162.5);
-          else art.setScale((e.kind==='scout'?85:e.kind==='interceptor'?140:172)/scene.textures.get(`flight_${e.kind}`).get('0').cutWidth);
+          else art.setScale((e.kind==='scout'?85:e.kind==='interceptor'?140:e.kind==='prism'?170:172)/scene.textures.get(`flight_${e.kind}`).get('0').cutWidth);
           enemyViews.set(e.id,art);
           if(e.kind==='gunship')enemyLabels.set(e.id,scene.add.text(0,0,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'15px',color:'#fff1bd',stroke:'#241b39',strokeThickness:3}).setOrigin(.5).setDepth(17));
         }
-        const open=(e.kind==='gunship'||e.kind==='pursuer')&&e.phase==='recover';
+        const open=(e.kind==='gunship'||e.kind==='prism'||e.kind==='pursuer')&&e.phase==='recover';
         const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/BOSS_DEFEAT_DURATION*24:e.phase==='charge'?Math.sin(e.phaseMs/350)*-14:e.phase==='attack'&&e.move==='strafe'?Math.sin(e.phaseMs/600)*10:Math.sin(e.age/700)*3
           :e.kind==='scout'?Math.cos(e.age/420)*7:e.kind==='interceptor'&&e.phase==='charge'
           ?-Phaser.Math.RadToDeg(Math.atan2(e.aimY-e.startY,e.startX-e.aimX+170)):0;
@@ -371,7 +371,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         }
         if(e.phase==='tell'){
           const muzzle=e.x-(e.kind==='pursuer'?102:e.kind==='gunship'?78:55);
-          if(e.kind==='pursuer'&&e.move==='sweep'){
+          if(e.kind==='prism'){
+            for(const offset of [-65,0,65]){
+              const lane=Phaser.Math.Clamp(e.aimY+offset,145,475);
+              combatArt.lineStyle(2,0xff88ef,.6).lineBetween(95,lane,muzzle,lane);
+            }
+          }else if(e.kind==='pursuer'&&e.move==='sweep'){
             const points=Array.from({length:25},(_,i)=>pursuerSweepPoint(e,i/24));
             const end=pursuerSweepPoint(e,.5);
             combatArt.lineStyle(4,0xffd478,.7).strokePoints(points,false).strokeCircle(end.x,end.y,38);
@@ -421,10 +426,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
             .setTint(fx.kind==='blocked'?0xbfa6f0:0xffedbd);explosions.set(fx.id,image);
         }
         const t=Phaser.Math.Clamp((state.clock-fx.born)/fx.duration,0,1);
-        if(fx.kind==='destroy'&&['scout','interceptor','gunship'].includes(fx.source??'')){
-          const source=fx.source as 'scout'|'interceptor'|'gunship',key=`flight_${source}`;
+        if(fx.kind==='destroy'&&['scout','interceptor','gunship','prism'].includes(fx.source??'')){
+          const source=fx.source as 'scout'|'interceptor'|'gunship'|'prism',key=`flight_${source}`;
           image.setTexture(key,String(12+Math.min(3,Math.floor(t*4)))).clearTint()
-            .setScale((source==='scout'?85:source==='interceptor'?140:172)/scene.textures.get(key).get('0').cutWidth)
+            .setScale((source==='scout'?85:source==='interceptor'?140:source==='prism'?170:172)/scene.textures.get(key).get('0').cutWidth)
             .setPosition(fx.x-50*t,fx.y+12*t*t).setAlpha(t<.75?1:Math.max(0,1-(t-.75)*4));
           continue;
         }
@@ -470,7 +475,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
         for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
-        for(const kind of ['scout','interceptor','gunship'])this.load.multiatlas(`flight_${kind}`,`/enemies/motion-v2/${kind}.json`,'/enemies/motion-v2/');
+        for(const kind of ['scout','interceptor','gunship','prism']){
+          const folder=kind==='prism'?'level-v3':'motion-v2';
+          this.load.multiatlas(`flight_${kind}`,`/enemies/${folder}/${kind}.json`,`/enemies/${folder}/`);
+        }
         loadGameImage(this.load, 'flight_rock','flight/starbreak-asteroid-v1.png');
         loadGameSheet(this.load, 'flight_pursuer','flight/void-pursuer-v3.png',{frameWidth:640,frameHeight:400,endFrame:2});
         this.load.multiatlas(bossDeathTexture('pursuer'), '/bosses/deaths-v1/pursuer.json', '/bosses/deaths-v1/');
@@ -581,10 +589,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       window.__unknownFlightDamageShip=(amount)=>{damageShip(state,amount);syncFlightSounds();sync();draw();};
       window.__unknownFlightSetShipPosition=(x,y)=>{state.x=Phaser.Math.Clamp(x,100,910);state.y=Phaser.Math.Clamp(y,145,475);state.vx=state.vy=0;};
       window.__unknownFlightEnemyTest=(kind,hp=8)=>{
-        if(!['scout','interceptor','gunship'].includes(kind))return;
+        if(!['scout','interceptor','gunship','prism'].includes(kind))return;
         state.phase='flight';state.phaseMs=0;state.distance=1000;state.x=230;state.y=300;state.vx=state.vy=0;state.rocks=[];
         state.combat.enemies=[{id:'motion-test',kind,x:720,y:300,baseY:300,hp,maxHp:hp,age:0,phase:'enter',phaseMs:0,aimX:230,aimY:300,startX:720,startY:300}];
-        state.combat.bolts=[];state.combat.effects=[];state.combat.spawnedWaves=[0,1,2,3,4];state.combat.finaleStarted=false;
+        state.combat.bolts=[];state.combat.effects=[];state.combat.spawnedWaves=FLIGHT_WAVES.map((_,i)=>i);state.combat.finaleStarted=false;
         draw();
       };
     }

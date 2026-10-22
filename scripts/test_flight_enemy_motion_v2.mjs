@@ -10,7 +10,9 @@ const shot=n=>page.screenshot({path:fileURLToPath(new URL(n+'.png',out))});
 try{
  await page.goto(`${origin}/?autostart=1&capture=1&level=5&character=zgod`);
  await page.waitForFunction(()=>window.render_game_to_text&&JSON.parse(window.render_game_to_text()).player,{},{timeout:60000});await step(0);
- for(const foe of ['scout','interceptor','gunship']){
+ for(let n=0;n<120&&!(await read()).enemies.some(e=>e.kind==='prism');n++)await step(1000);
+ assert((await read()).enemies.some(e=>e.kind==='prism'),'Prism Rays appear in the real campaign wave');await shot('prism-campaign-wave');
+ for(const foe of ['scout','interceptor','gunship','prism']){
   await page.evaluate(foe=>window.__unknownFlightEnemyTest(foe),foe);
   const frames=new Set();for(let n=0;n<7;n++){await step(100);frames.add(String((await read()).enemies[0].visualFrame));}assert(frames.size>=2);
   for(let n=0;n<80&&(await read()).enemies[0]?.phase!=='tell';n++)await step(40);
@@ -19,6 +21,13 @@ try{
   await page.evaluate(()=>window.__unknownFlightSetShipPosition(230,440));
   for(let n=0;n<60&&['tell'].includes((await read()).enemies[0]?.phase);n++)await step(30);
   s=await read();assert.equal(s.enemies[0].aimX,aim.x);assert.equal(s.enemies[0].aimY,aim.y);assert(['10','11'].includes(String(s.enemies[0].visualFrame)));await shot(foe+'-attack');
+  if(foe==='prism'){
+    const shotsBefore=s.combat.enemyShots;
+    for(let n=0;n<25;n++)await step(25);
+    s=await read();assert(s.combat.enemyShots>=shotsBefore+2,'Prism emits all three laser pulses');
+    assert(s.projectiles.filter(b=>b.owner==='enemy').every(b=>b.vy===0));
+    assert.equal(s.enemies[0].aimY,aim.y);
+  }
   // Actual ship cannons remove a one-hit target; its destroy effect plays four art poses.
   await page.evaluate(foe=>window.__unknownFlightEnemyTest(foe,1),foe);await step(0);await page.keyboard.down('Space');
   for(let n=0;n<100&&!(await read()).effects.some(e=>e.kind==='destroy'&&e.source===foe);n++)await step(20);
@@ -27,5 +36,16 @@ try{
   assert.equal(deathFrames.size,4);await step(300);assert(!(await read()).effects.some(e=>e.kind==='destroy'&&e.source===foe));
   evidence.push({foe,cruiseFrames:frames.size,lockedAttack:true,pause:true,deathFrames:[...deathFrames]});
  }
+ await page.goto(`${origin}/?autostart=1&capture=1&level=5&character=xgod`);
+ await page.waitForFunction(()=>window.render_game_to_text&&JSON.parse(window.render_game_to_text()).player,{},{timeout:60000});await step(0);
+ await page.evaluate(()=>window.__unknownFlightEnemyTest('prism',12));
+ for(let n=0;n<150&&(await read()).player.health===100;n++)await step(30);
+ assert.equal((await read()).player.health,89,'A real Prism laser does eleven damage');
+ await page.evaluate(()=>window.__unknownFlightEnemyTest('prism',12));await step(30);
+ assert.equal((await read()).enemies[0].phase,'tell');
+ await page.evaluate(()=>window.__unknownFlightSetShipPosition(230,440));
+ for(let n=0;n<100;n++)await step(30);
+ assert.equal((await read()).player.health,89,'Leaving the three warned lanes dodges the volley');
+ evidence.push({actualCampaignWave:true,prismDamage:11,prismDodge:true});
  assert.deepEqual(errors,[]);await fs.writeFile(new URL('results.json',out),JSON.stringify({evidence,errors},null,2));console.log(JSON.stringify({passed:true,browser:kind,evidence,errors}));
 }catch(error){await fs.writeFile(new URL('failure.json',out),JSON.stringify({error:String(error),state:await read().catch(()=>null),evidence,errors},null,2));await shot('failure').catch(()=>{});throw error;}finally{await browser.close();}
