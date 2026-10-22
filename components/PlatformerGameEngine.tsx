@@ -1638,8 +1638,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const kind=params.get('enemyPreview')!;
         const target=enemies.getChildren().find(child=>child.getData('kind')===kind) as Phaser.Physics.Arcade.Sprite | undefined;
         if(target){
-          const x=Math.max(80,Number(target.getData('left'))-180);
-          placePlayerOnPlatform(x,getPlatformStandY(x)??480);
+          const floor=Number(target.getData('supportY')??target.getData('floorY')??getPlatformStandY(target.x)??480);
+          const support=level.platforms.find(rect=>rect.y===floor&&target.x>=rect.x&&target.x<=rect.x+rect.w);
+          const preferred=Math.max(80,Number(target.getData('left'))-180);
+          const x=support?Phaser.Math.Clamp(preferred,support.x+70,support.x+support.w-70):preferred;
+          placePlayerOnPlatform(x,floor);
+          target.setData('nextAttackAt',scene.time.now+350);
           scene.cameras.main.centerOn(player.x,SCREEN_HEIGHT/2);
         }
       }
