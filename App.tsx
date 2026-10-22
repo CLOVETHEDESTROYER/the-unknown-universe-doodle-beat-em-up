@@ -898,18 +898,20 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "intro" && (
-          <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
+          <div className="level-intro pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
             <div
-              className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
+              className={`level-intro-frame absolute inset-0 transition-transform duration-700 ease-in-out ${
                 isIntroExiting ? "-translate-x-full" : "translate-x-0"
               }`}
             >
-              <img
-                src={mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
-                alt="Level 1 intro screen"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-x-0 bottom-10 flex justify-center">
+              <div className="level-intro-art">
+                <img
+                  src={mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
+                  alt="Level 1 intro screen"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="level-intro-status flex justify-center" role="status">
                 <div className="rounded-full border-2 border-white/70 bg-slate-950/65 px-6 py-2 font-['Gochi_Hand'] text-2xl tracking-wide text-white shadow-lg">
                   LOADING LEVEL 1...
                 </div>

@@ -58,6 +58,18 @@ canvas {
 }
 
 .character-select .character-scroll-hint { display: none; }
+.level-intro .level-intro-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+.level-intro .level-intro-art { flex: 1 1 0; min-height: 0; min-width: 0; }
+.level-intro .level-intro-art img { object-fit: contain; }
+.level-intro .level-intro-status { flex: 0 0 auto; }
+@media (max-height: 520px) {
+  .level-intro .level-intro-status > div { font-size: 18px; line-height: 24px; padding: 4px 18px; }
+}
 .character-select .character-roster:focus-visible { outline: 3px solid #fcd34d; outline-offset: 3px; }
 .character-select .character-card:focus-visible { outline: 4px solid #fcd34d; outline-offset: -4px; }
 @media (max-width: 767px), (max-height: 600px) {
