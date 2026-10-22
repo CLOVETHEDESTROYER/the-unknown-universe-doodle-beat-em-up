@@ -1,5 +1,6 @@
-import Phaser from 'phaser';
+import type Phaser from 'phaser';
 import manifestData from './mobileAssetManifest.json';
+import { deliveryImagePath, deliveryAtlasPath } from './assetDelivery';
 
 type MobileSheet = { url: string; width: number; height: number; count: number };
 const manifest = manifestData as { sheets: Record<string, MobileSheet>; images: Record<string, string> };
@@ -12,7 +13,7 @@ export function isMobileGraphicsEnabled(): boolean {
 }
 
 export function mobileImagePath(path: string): string {
-  return isMobileGraphicsEnabled() ? manifest.images[path.replace(/^\//, '')] ?? path : path;
+  return deliveryImagePath(isMobileGraphicsEnabled() ? manifest.images[path.replace(/^\//, '')] ?? path : path);
 }
 
 export function loadGameImage(loader: Phaser.Loader.LoaderPlugin, key: string, path: string) {
@@ -27,9 +28,10 @@ export function loadGameSheet(loader: Phaser.Loader.LoaderPlugin, key: string, p
     || (config.startFrame ?? 0) > 0 || config.margin || config.spacing) {
     return loader.spritesheet(key, path, config);
   }
-  loader.multiatlas(key, sheet.url, '/mobile-v1/');
+  const atlasUrl = deliveryAtlasPath(sheet.url);
+  loader.multiatlas(key, atlasUrl, atlasUrl === sheet.url ? '/mobile-v1/' : '');
   // Match spritesheet defaults and endFrame semantics before scene creation.
-  loader.once(Phaser.Loader.Events.COMPLETE, () => {
+  loader.once('complete', () => {
     if (!loader.scene.textures.exists(key)) return;
     const texture = loader.scene.textures.get(key);
     // Packing order across pages may differ from chronological frame order.
@@ -98,13 +100,13 @@ export function watchGameViewport(game: Phaser.Game, host: HTMLElement, layout?:
   resize();
   const bindCanvas = () => game.canvas?.addEventListener('webglcontextlost', lost);
   if (game.canvas) bindCanvas();
-  else game.events.once(Phaser.Core.Events.BOOT, bindCanvas);
+  else game.events.once('boot', bindCanvas);
   return () => {
     observer?.disconnect();
     window.removeEventListener('resize', resize);
     window.visualViewport?.removeEventListener('resize', resize);
     cancelAnimationFrame(frame);
-    game.events.off(Phaser.Core.Events.BOOT, bindCanvas);
+    game.events.off('boot', bindCanvas);
     game.canvas?.removeEventListener('webglcontextlost', lost);
   };
 }

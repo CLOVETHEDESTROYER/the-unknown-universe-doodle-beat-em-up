@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test:loading": "node scripts/test_loading_v1.mjs",
     "test:game": "node scripts/run_game_test.mjs",
     "test:game:headed": "node scripts/run_game_test.mjs --headless false",
     "test:game:level2": "node scripts/run_game_test.mjs --start-level 2 --start-sword --start-sword-durability 2 --iterations 1 --screenshot-dir output/web-game-level2 --port 4175",
@@ -23,7 +24,10 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.6.1",
     "playwright": "^1.58.2",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   },

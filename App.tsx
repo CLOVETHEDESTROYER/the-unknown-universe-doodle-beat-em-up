@@ -1,7 +1,4 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import GameEngine from "./components/GameEngine";
-import PlatformerGameEngine from "./components/PlatformerGameEngine";
-import FlightGameEngine from "./components/FlightGameEngine";
 import TouchControls from "./components/TouchControls";
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
@@ -10,10 +7,17 @@ import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
 import { createLoadout } from './gameplay/powerups';
 import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
+import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
 const MonsterIdeator = lazy(() => import("./components/MonsterIdeator"));
+const loadPlatformer = () => import('./components/PlatformerGameEngine');
+const loadFlight = () => import('./components/FlightGameEngine');
+const loadLegacy = () => import('./components/GameEngine');
+const PlatformerGameEngine = lazy(loadPlatformer);
+const FlightGameEngine = lazy(loadFlight);
+const GameEngine = lazy(loadLegacy);
 type AppPhase = "start" | "characterSelect" | "intro" | "game";
 type TitlePanel = "options" | "credits" | null;
 
@@ -248,8 +252,10 @@ const App: React.FC = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
   const [isIntroExiting, setIsIntroExiting] = useState(false);
+  const introStartedRef = React.useRef(0);
   const [isPaused, setIsPaused] = useState(false);
   const [mobileGraphics] = useState(isMobileGraphicsEnabled);
   const [portraitPhone, setPortraitPhone] = useState(() => mobileGraphics && window.innerWidth < 768 && window.innerHeight > window.innerWidth);
@@ -264,6 +270,17 @@ const App: React.FC = () => {
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
   const [audioSettings,setAudioSettings]=useState(getAudioSettings);
+  useEffect(() => {
+    const update = (event: Event) => setLoadingProgress((event as CustomEvent<number>).detail);
+    window.addEventListener(GAME_LOADING_EVENT, update);
+    return () => window.removeEventListener(GAME_LOADING_EVENT, update);
+  }, []);
+  useEffect(() => { setLoadingProgress(0); }, [stats.level, selectedCharacterId, difficulty, playerSprite]);
+  useEffect(() => {
+    if (appPhase !== 'characterSelect') return;
+    const load = useLegacyBrawler ? loadLegacy : stats.level === FLIGHT_LEVEL ? loadFlight : loadPlatformer;
+    void load().catch(() => { /* React.lazy handles a later import failure. */ });
+  }, [appPhase, useLegacyBrawler, stats.level]);
   useEffect(()=>{
     const removeAudio=installGameAudio(),removeDebug=installAudioDebug();
     const unsubscribe=subscribeAudioSettings(()=>setAudioSettings(getAudioSettings()));
@@ -299,24 +316,29 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (appPhase !== "intro") {
+      introStartedRef.current = 0;
       setIsIntroExiting(false);
       return;
     }
 
+    if (!introStartedRef.current) introStartedRef.current = performance.now();
+    if (!useLegacyBrawler && loadingProgress < 1) return;
+    const remaining = Math.max(0, (useLegacyBrawler ? 3200 : 1200) - (performance.now() - introStartedRef.current));
+
     const beginExitTimer = window.setTimeout(() => {
       setIsIntroExiting(true);
-    }, 3200);
+    }, remaining);
 
     const finishIntroTimer = window.setTimeout(() => {
       setAppPhase("game");
       setIsIntroExiting(false);
-    }, 4000);
+    }, remaining + 800);
 
     return () => {
       window.clearTimeout(beginExitTimer);
       window.clearTimeout(finishIntroTimer);
     };
-  }, [appPhase]);
+  }, [appPhase, loadingProgress, useLegacyBrawler]);
 
   useEffect(() => {
     if (!stats.isVictory || selectedCharacterId !== "xgod" || typeof window === "undefined") {
@@ -382,7 +404,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const bossTrack = BOSS_MUSIC[stats.level];
     const musicSrc =
-      appPhase === "start"
+      appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
         : appPhase === "intro"
           ? LEVEL_MUSIC[1]
@@ -407,6 +429,7 @@ const App: React.FC = () => {
         audio.pause();
       }
       audio = new Audio(musicSrc);
+      audio.preload = 'none';
       audio.loop = true;
       backgroundMusicRef.current = audio;
     }
@@ -620,7 +643,8 @@ const App: React.FC = () => {
           </div>
         )}
         {appPhase !== "start" && appPhase !== "characterSelect" && (
-          useLegacyBrawler ? (
+          <Suspense fallback={null}>
+          {useLegacyBrawler ? (
             <GameEngine
               key={`brawler-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}-${stats.characterPowerUnlocked ? "powered" : "base"}-${stats.hasFlameSword ? "sword" : "nosword"}`}
               isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
@@ -689,6 +713,15 @@ const App: React.FC = () => {
             onTogglePause={togglePause}
           />
           )
+          }
+          </Suspense>
+        )}
+        {appPhase === 'game' && !useLegacyBrawler && loadingProgress < 1 && (
+          <div role="status" aria-label="Loading game" className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center font-['Gochi_Hand'] text-white">
+            <p className="text-3xl">Entering the Unknown Universe…</p>
+            <progress className="h-4 w-64 max-w-full accent-violet-500" max={100} value={Math.round(loadingProgress * 100)} />
+            <p className="text-xl">{Math.round(loadingProgress * 100)}%</p>
+          </div>
         )}
         {appPhase === "game" && (
           <UIOverlay
@@ -913,7 +946,7 @@ const App: React.FC = () => {
               </div>
               <div className="level-intro-status flex justify-center" role="status">
                 <div className="rounded-full border-2 border-white/70 bg-slate-950/65 px-6 py-2 font-['Gochi_Hand'] text-2xl tracking-wide text-white shadow-lg">
-                  LOADING LEVEL 1...
+                  {loadingProgress === 1 ? 'READY!' : `LOADING LEVEL 1… ${Math.round(loadingProgress * 100)}%`}
                 </div>
               </div>
             </div>
@@ -1000,7 +1033,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <div
+      {useLegacyDesktopControls && appPhase === 'game' && <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
           !useLegacyDesktopControls ? "hidden" : isIdeatorCollapsed || appPhase !== "game" ? "w-0" : "hidden w-0 lg:block lg:w-80"
         }`}
@@ -1027,7 +1060,7 @@ const App: React.FC = () => {
             <MonsterIdeator onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)} />
           </Suspense>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

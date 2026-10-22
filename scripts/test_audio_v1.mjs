@@ -34,7 +34,7 @@ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()
 const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
 const audio=()=>page.evaluate(()=>window.__unknownGameAudio.read());
 const shot=n=>page.screenshot({path:fileURLToPath(new URL(n+'.png',out))});
-const wait=async(fn,ms=7000)=>{const until=Date.now()+ms;while(Date.now()<until){assert.deepEqual(errors,[]);const s=await read();if(await fn(s))return s;await page.waitForTimeout(20);}throw Error('Timeout: '+fn.toString());};
+const wait=async(fn,ms=7000)=>{await page.waitForFunction(()=>typeof window.render_game_to_text==='function',{},{timeout:60000});const until=Date.now()+ms;while(Date.now()<until){assert.deepEqual(errors,[]);const s=await read();if(await fn(s))return s;await page.waitForTimeout(20);}throw Error('Timeout: '+fn.toString());};
 const played=async name=>(await audio()).played[name]??0;
 const place=(x,y)=>page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x,y});
 const hurt=n=>page.evaluate(n=>window.__unknownPlatformerDamagePlayer(n),n);
@@ -42,6 +42,7 @@ const collect=kind=>page.evaluate(kind=>window.__unknownPlatformerCollectPickup(
 async function boot(level=2,extra=''){
  for(const k of ['Space','KeyC','KeyX','KeyR','ArrowRight','ArrowLeft','KeyZ'])await page.keyboard.up(k);
  await page.goto(`${process.env.GAME_TEST_URL||'http://127.0.0.1:3000'}/?autostart=1&level=${level}&capture=1${extra}`);
+ await page.waitForFunction(()=>typeof window.render_game_to_text==='function',{},{timeout:60000});
  await wait(s=>s.player&&(s.engine==='flight'||s.player.grounded));
  assert.equal((await audio()).unlocked,false);assert.equal((await audio()).totalPlayed,0);
  await page.mouse.click(15,110);await page.waitForFunction(()=>window.__unknownGameAudio.read().loadedClips===39&&window.__unknownGameAudio.read().state==='running');
@@ -66,11 +67,11 @@ try{
  await page.waitForTimeout(300);s=await read();enemy=s.enemies.find(e=>e.kind==='walker');await place(enemy.x-95,enemy.bodyBottom);await page.keyboard.press('Space',{delay:65});
  await wait(async()=>await played('punchHit')>0);assert(await played('punchSwing')>0);assert(await played('playerHit')>=3);await shot('punch-audio');evidence.punchAndPlayerDamageSounds=true;
  await place(80,480);await page.waitForTimeout(920);await hurt(100);await wait(async()=>await played('playerDeath')===1);await page.waitForTimeout(700);assert.equal(await played('playerDeath'),1);evidence.deathSoundOncePerLife=true;
- await boot(2,'&lives=1');await hurt(100);await wait(s=>s.mode==='transition');assert.equal(await played('playerDeath'),1);assert.equal((await audio()).paused,false);evidence.lastLifeDeathTailNotCutOff=true;
+ await boot(2,'&lives=1');await hurt(100);await wait(s=>s.heroDeath.active);assert.equal(await played('playerDeath'),1);assert.equal((await audio()).paused,false);evidence.lastLifeDeathTailNotCutOff=true;
  await boot(3);await collect('ember');assert(await played('powerup')>0);await page.keyboard.press('Space',{delay:60});await wait(async()=>await played('ember')>0);
  await boot(4);await collect('storm');await page.keyboard.press('Space',{delay:60});await wait(async()=>await played('storm')>0);
  await boot(2);await collect('frost');await page.keyboard.press('Space',{delay:80});await wait(async()=>await played('frost')>0);evidence.powerupAndElementalSounds=true;
- await boot(2,'&character=teleportation_c&unlockRoster=1');await place(80,480);await page.keyboard.press('KeyX',{delay:25});await wait(async()=>await played('teleport')===1);assert.equal((await read()).teleport.blinks,1);evidence.actualTeleportSound=true;
+ await boot(2,'&character=teleportation_c&unlockRoster=1');await place(80,480);await page.keyboard.press('KeyX',{delay:25});await wait(async()=>await played('teleport')===1);assert.equal((await read()).special.uses,1);evidence.actualTeleportSound=true;
  // Audio controls must change the mix without restarting the paused scene.
  await page.keyboard.press('KeyP');await page.getByRole('heading',{name:'Game Paused',exact:true}).waitFor();await page.waitForTimeout(100);
  assert.equal((await audio()).activeVoices,0);const position=(await read()).player.x;

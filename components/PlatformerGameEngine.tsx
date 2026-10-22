@@ -13,6 +13,7 @@ import { POWERUPS, restoreLoadout, equipPowerup, hitPowerup, powerupRoute } from
 import type { PowerupLoadout, EquippedPowerup } from '../gameplay/powerups';
 import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear, startTeleport, resetTeleport, BLINK_COOLDOWN } from '../gameplay/teleportation';
 import { playSfx } from '../audio/gameAudio';
+import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
@@ -1121,6 +1122,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let emberRemaining=0,emberClockAt=-9999;
     const emberTargets=new Set<Phaser.Physics.Arcade.Sprite>();
     const routePowers=powerupRoute(currentLevel,level);
+    const availablePowers=(['blaster','sword','frost','ember','storm'] as EquippedPowerup[])
+      .filter(id=>POWERUPS[id].level<=currentLevel||equipment.active===id);
     const powerStations:Array<{kind:EquippedPowerup;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     let bossDefeated = !level.enemies.some((enemy) => enemy.kind === "boss");
     let activeBossId: BossId | null = null;
@@ -1190,6 +1193,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     function preload(this: Phaser.Scene) {
+      trackSceneLoading(this.load);
       if (useDrawnXGod) {
         this.load.multiatlas('xgod_double_jump', '/characters/xgod/mobility-v1/double-jump.json', '/characters/xgod/mobility-v1/');
         this.load.multiatlas('xgod_butt_bomb', '/characters/xgod/mobility-v1/butt-bomb.json', '/characters/xgod/mobility-v1/');
@@ -1280,17 +1284,23 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "power_pickup", isZGod ? 'characters/z-god-v1/reward.png' : isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
-      (['blaster','sword','frost','ember','storm'] as EquippedPowerup[]).forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
-      loadGameImage(this.load, "dinio_pickup", "doodles/dinio_orb.png");
-      loadGameImage(this.load, "dinio_shot", "doodles/dinio_shot.png");
-      loadGameSheet(this.load, "dinio_walk", "companions/dinio/hybrid-v1/walk.png", { frameWidth: 320, frameHeight: 320 });
-      loadGameSheet(this.load, "dinio_attack", "companions/dinio/hybrid-v1/attack.png", { frameWidth: 448, frameHeight: 320 });
-      loadGameImage(this.load, "doghost_pickup", "doodles/doghost_orb.png");
-      loadGameSheet(this.load, "doghost_walk", "doghost_walk.png", { frameWidth: 240, frameHeight: 180 });
-      loadGameImage(this.load, "teleportation_c_pickup", "doodles/teleportation_c_orb.png");
-      loadGameSheet(this.load, "teleportation_c_walk", "characters/teleportation_c/walk.png", { frameWidth:256,frameHeight:360 });
-      loadGameSheet(this.load, 'teleportation_c_dash','characters/teleportation_c/dash.png',{frameWidth:256,frameHeight:360});
-      loadGameSheet(this.load, 'teleportation_c_attack','characters/teleportation_c/attack.png',{frameWidth:480,frameHeight:360});
+      availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
+      if (hasDinio || level.pickups.some(p => p.kind === 'dinio')) {
+        loadGameImage(this.load, "dinio_pickup", "doodles/dinio_orb.png");
+        loadGameImage(this.load, "dinio_shot", "doodles/dinio_shot.png");
+        loadGameSheet(this.load, "dinio_walk", "companions/dinio/hybrid-v1/walk.png", { frameWidth: 320, frameHeight: 320 });
+        loadGameSheet(this.load, "dinio_attack", "companions/dinio/hybrid-v1/attack.png", { frameWidth: 448, frameHeight: 320 });
+      }
+      if (hasDoghost || level.pickups.some(p => p.kind === 'doghost')) {
+        loadGameImage(this.load, "doghost_pickup", "doodles/doghost_orb.png");
+        loadGameSheet(this.load, "doghost_walk", "doghost_walk.png", { frameWidth: 240, frameHeight: 180 });
+      }
+      if (hasTeleportationC || level.pickups.some(p => p.kind === 'teleportation_c')) {
+        loadGameImage(this.load, "teleportation_c_pickup", "doodles/teleportation_c_orb.png");
+        loadGameSheet(this.load, "teleportation_c_walk", "characters/teleportation_c/walk.png", { frameWidth:256,frameHeight:360 });
+        loadGameSheet(this.load, 'teleportation_c_dash','characters/teleportation_c/dash.png',{frameWidth:256,frameHeight:360});
+        loadGameSheet(this.load, 'teleportation_c_attack','characters/teleportation_c/attack.png',{frameWidth:480,frameHeight:360});
+      }
       loadGameImage(this.load, "shadow", "doodles/shadow_oval.png");
       loadGameImage(this.load, "enemy_hit_impact", "doodles/impact-vfx-generated.png");
       loadGameImage(this.load, "boss_tell_ring", "doodles/tell-ring-generated.png");
@@ -1324,7 +1334,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       if (isZGod) {
         this.load.json('hero_equipment_meta', 'characters/z-god-v1/metadata.json');
-        for (const power of ['blaster','sword','frost','ember','storm']) for (const action of ['run','jump','idle','attack','crouch']) {
+        for (const power of availablePowers) for (const action of ['run','jump','idle','attack','crouch']) {
           loadGameSheet(this.load, `hero_${power}_${action}`, `characters/z-god-v1/${power}-${action}.png`, {frameWidth:768,frameHeight:512});
         }
         for (const [key, action] of [['character_walk','run'],['character_jump','jump'],['character_attack','attack']]) {
@@ -1336,7 +1346,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
       } else if (!isXGod) {
         this.load.json('hero_equipment_meta','characters/equipment-v4/metadata.json');
-        for(const power of ['blaster','sword','frost','ember','storm'])for(const action of ['run','jump','idle','attack']){
+        for(const power of availablePowers)for(const action of ['run','jump','idle','attack']){
           loadGameSheet(this.load, `hero_${power}_${action}`,`characters/equipment-v4/${selectedCharacterId}-${power}-${action}.png`,{frameWidth:768,frameHeight:512});
         }
         loadGameSheet(this.load, 'hero_death','characters/equipment-v4/'+selectedCharacterId+'-death-collapse.png',{frameWidth:768,frameHeight:512});
@@ -1726,6 +1736,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       syncStats();
       // The scene may finish loading after the initial pause effect ran.
       if (isPausedRef.current) scene.scene.pause();
+      reportGameLoading(1);
     }
 
     function update(this: Phaser.Scene, _time: number, delta: number) {

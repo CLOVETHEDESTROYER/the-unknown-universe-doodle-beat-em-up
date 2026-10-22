@@ -13,6 +13,7 @@ import { FLIGHT_PARALLAX, flightSpeedStreaks } from '../gameplay/flightVisuals';
 import { shipDeathPose } from '../gameplay/flightDeath';
 import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWindow } from '../gameplay/bossPresentation';
 import { playSfx } from '../audio/gameAudio';
+import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 
 interface Props {
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
@@ -451,6 +452,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
       scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:viewport.width,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
+        trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
         for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
@@ -507,7 +509,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         keys.w=keys.W;keys.a=keys.A;keys.s=keys.S;keys.d=keys.D;
         keys.fire=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keys.alternate=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
-        ready=true;sync();draw();
+        ready=true;sync();draw();reportGameLoading(1);
       },update(_time:number,delta:number){
         let remaining=manualStepping?0:Math.min(delta,100);
         while(remaining>0){const step=Math.min(remaining,1000/120);tick(step);remaining-=step;}

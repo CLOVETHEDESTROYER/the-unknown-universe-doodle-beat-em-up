@@ -24,6 +24,7 @@ export function updateAudioSettings(patch:Partial<AudioSettings>){
 let context:AudioContext|null=null,master:GainNode|null=null,readyPromise:Promise<void>|null=null;
 let paused=false,installed=0,unlocked=false;
 const buffers=new Map<string,AudioBuffer>(),raw=new Map<string,Promise<ArrayBuffer>>();
+const preparing=new Map<string,Promise<void>>();
 const voices=new Set<{source:AudioBufferSourceNode;gain:GainNode;priority:number}>();
 const lastPlayed=new Map<SoundName,number>();
 const variants=new Map<SoundName,number>();
@@ -36,19 +37,21 @@ function fetchClip(path:string){
   if(!promise){promise=fetch(path).then(response=>{if(!response.ok)throw Error(String(response.status));return response.arrayBuffer();});raw.set(path,promise);}
   return promise;
 }
-function preload(){
-  for(const [name,def] of entries)for(let n=0;n<def.variants;n++){
-    const path=soundPath(name,n);void fetchClip(path).catch(()=>failed.add(path));
-  }
+function prepareClip(path:string){
+  if(buffers.has(path)||!context)return Promise.resolve();
+  const existing=preparing.get(path);if(existing)return existing;
+  const ctx=context;
+  const promise=fetchClip(path).then(bytes=>ctx.decodeAudioData(bytes)).then(buffer=>{buffers.set(path,buffer);})
+    .catch(()=>{failed.add(path);}).finally(()=>{raw.delete(path);preparing.delete(path);});
+  preparing.set(path,promise);
+  return promise;
 }
 function prepare(){
   if(readyPromise||!context)return readyPromise??Promise.resolve();
-  const ctx=context;
-  readyPromise=Promise.all(entries.flatMap(([name,def])=>Array.from({length:def.variants},async(_,n)=>{
-    const path=soundPath(name,n);
-    try{const bytes=await fetchClip(path);buffers.set(path,await ctx.decodeAudioData(bytes.slice(0)));}
-    catch{failed.add(path);}
-  }))).then(()=>{});
+  const queue=entries.flatMap(([name,def])=>Array.from({length:def.variants},(_,n)=>soundPath(name,n)));
+  // Warm in small batches after interaction; avoid 39 simultaneous fetches/decodes.
+  const worker=async()=>{while(queue.length)await prepareClip(queue.shift()!);};
+  readyPromise=Promise.all([worker(),worker()]).then(()=>{});
   return readyPromise;
 }
 function unlock(){
@@ -66,7 +69,7 @@ function unlock(){
   }catch{/* Audio support must not interrupt gameplay. */}
 }
 export function installGameAudio(){
-  if(installed++===0){preload();window.addEventListener('pointerdown',unlock,true);window.addEventListener('keydown',unlock,true);}
+  if(installed++===0){window.addEventListener('pointerdown',unlock,true);window.addEventListener('keydown',unlock,true);}
   return ()=>{if(--installed===0){window.removeEventListener('pointerdown',unlock,true);window.removeEventListener('keydown',unlock,true);stopEffects();}};
 }
 export function stopEffects(){for(const voice of [...voices]){try{voice.source.stop();}catch{}voice.source.disconnect();voice.gain.disconnect();voices.delete(voice);}}
@@ -96,7 +99,7 @@ export function playSfx(name:SoundName,options:PlayOptions={}){
     source.start();played[name]=(played[name]??0)+1;totalPlayed++;lastSound=name;return true;
   };
   if(buffers.has(path))return start();
-  void prepare().then(()=>{if(performance.now()-requested<120)start();});
+  void prepareClip(path).then(()=>{if(performance.now()-requested<120)start();});
   return false;
 }
 export const getAudioDebug=()=>({settings:{...settings},unlocked,state:context?.state??'locked',loadedClips:buffers.size,
