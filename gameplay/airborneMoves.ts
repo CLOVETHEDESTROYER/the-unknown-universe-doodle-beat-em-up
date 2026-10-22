@@ -63,6 +63,11 @@ export class AirborneMoves {
     return true;
   }
 
+  /** A fresh third jump press chains into the slam after the extra jump is spent. */
+  bombAfterDoubleJump() {
+    return !this.available && this.startBomb();
+  }
+
   update(grounded: boolean) {
     const now = this.scene.time.now, body = this.body;
     if (grounded && body.velocity.y >= 0) {

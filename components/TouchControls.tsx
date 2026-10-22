@@ -1,14 +1,5 @@
-import React, { useEffect } from "react";
-
-type TouchControlKey = "left" | "right" | "up" | "down" | "attack" | "shoot" | "jump" | "dash" | "recall";
-
-type TouchControlState = Record<TouchControlKey, boolean>;
-
-declare global {
-  interface Window {
-    __unknownUniverseTouchControls?: Partial<TouchControlState>;
-  }
-}
+import React, { useEffect, useRef } from "react";
+import type { TouchControlKey, TouchControlState } from '../types';
 
 const CONTROL_KEYS: TouchControlKey[] = ["left", "right", "up", "down", "attack", "shoot", "jump", "dash", "recall"];
 const activePointers = new Map<number, Set<TouchControlKey>>();
@@ -53,7 +44,67 @@ const resetControls = () => {
   }
 
   activePointers.clear();
-  window.__unknownUniverseTouchControls = Object.fromEntries(CONTROL_KEYS.map((key) => [key, false])) as TouchControlState;
+  window.__unknownUniverseTouchControls = { ...Object.fromEntries(CONTROL_KEYS.map((key) => [key, false])), axisX: 0, axisY: 0 } as TouchControlState;
+  window.dispatchEvent(new Event('unknown-universe:controls-reset'));
+};
+
+/** Pointer capture keeps steering when a thumb slides outside the base. */
+const TouchJoystick: React.FC<{ platformer: boolean; canDown: boolean }> = ({ platformer, canDown }) => {
+  const base = useRef<HTMLDivElement>(null);
+  const knob = useRef<HTMLSpanElement>(null);
+  const pointer = useRef<number | null>(null);
+  const neutral = () => {
+    if (pointer.current !== null) releasePointer(pointer.current);
+    pointer.current = null;
+    if (window.__unknownUniverseTouchControls) {
+      window.__unknownUniverseTouchControls.axisX = 0;
+      window.__unknownUniverseTouchControls.axisY = 0;
+    }
+    base.current?.removeAttribute('data-active');
+    if (knob.current) knob.current.style.transform = 'translate(-50%, -50%)';
+  };
+  useEffect(() => {
+    window.addEventListener('unknown-universe:controls-reset', neutral);
+    return () => { window.removeEventListener('unknown-universe:controls-reset', neutral); neutral(); };
+  }, []);
+  const steer = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (pointer.current !== event.pointerId) return;
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const travel = rect.width * .29;
+    const dx = (event.clientX - rect.left - rect.width / 2) / travel;
+    const dy = (event.clientY - rect.top - rect.height / 2) / travel;
+    const distance = Math.hypot(dx, dy), scale = Math.max(1, distance);
+    const x = dx / scale, y = dy / scale;
+    const axis = (value: number) => Math.abs(value) <= .18 ? 0 : Math.sign(value) * (Math.abs(value) - .18) / .82;
+    const axisX = axis(x), axisY = axis(y);
+    setControl('left', axisX < 0, event.pointerId);
+    setControl('right', axisX > 0, event.pointerId);
+    setControl('up', !platformer && axisY < 0, event.pointerId);
+    const down = (!platformer || canDown) && axisY > .5 && (!platformer || Math.abs(axisX) < .45);
+    const wasDown = Boolean(window.__unknownUniverseTouchControls?.down);
+    setControl('down', down, event.pointerId);
+    window.__unknownUniverseTouchControls = { ...window.__unknownUniverseTouchControls, axisX, axisY: platformer ? 0 : axisY };
+    if (platformer && down && !wasDown) window.dispatchEvent(new Event('unknown-universe:down'));
+    if (knob.current) knob.current.style.transform = `translate(calc(-50% + ${x * travel}px), calc(-50% + ${y * travel}px))`;
+  };
+  return <div ref={base} role="group" aria-label={platformer ? 'Movement joystick: left, right and down' : 'Movement joystick: steer in any direction'}
+    data-touch-joystick className="touch-joystick pointer-events-auto select-none"
+    onContextMenu={event => event.preventDefault()}
+    onPointerDown={event => {
+      if (pointer.current !== null || event.button !== 0) return;
+      pointer.current = event.pointerId;
+      try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Synthetic events lack capture. */ }
+      event.currentTarget.setAttribute('data-active', 'true');
+      steer(event);
+    }}
+    onPointerMove={steer}
+    onPointerUp={event => { if (pointer.current === event.pointerId) neutral(); }}
+    onPointerCancel={event => { if (pointer.current === event.pointerId) neutral(); }}
+    onLostPointerCapture={event => { if (pointer.current === event.pointerId) neutral(); }}>
+    <span className="touch-joystick-guide" aria-hidden="true">✥</span>
+    <span ref={knob} className="touch-joystick-knob" aria-hidden="true" />
+  </div>;
 };
 
 const TouchButton: React.FC<{
@@ -117,11 +168,16 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
     const releaseAll = () => resetControls();
     const releaseOne = (event: PointerEvent) => releasePointer(event.pointerId);
     window.addEventListener("blur", releaseAll);
+    window.addEventListener('resize', releaseAll);
+    const visibility = () => { if (document.hidden) releaseAll(); };
+    document.addEventListener('visibilitychange', visibility);
     window.addEventListener("pointerup", releaseOne);
     window.addEventListener("pointercancel", releaseOne);
 
     return () => {
       window.removeEventListener("blur", releaseAll);
+      window.removeEventListener('resize', releaseAll);
+      document.removeEventListener('visibilitychange', visibility);
       window.removeEventListener("pointerup", releaseOne);
       window.removeEventListener("pointercancel", releaseOne);
       resetControls();
@@ -140,27 +196,11 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
   }, [flightMode, isPlatformer]);
 
   return (
-    <div className={`touch-controls pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isPlatformer ? "touch-controls-platformer" : ""}`}>
+    <div aria-hidden={isPaused || undefined} inert={isPaused || undefined} className={`touch-controls pointer-events-none absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${isPlatformer ? "touch-controls-platformer" : ""}`}>
       {isPlatformer && autoRun ? (
         airborneMoves ? <div className="pointer-events-auto"><TouchButton control="down" label="v" accessibleLabel={downLabel} compact /></div> : <div className="w-10" aria-hidden="true" />
-      ) : isPlatformer ? (
-        <div className="touch-dpad touch-dpad-platformer pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/16 p-2 backdrop-blur-[2px]">
-          <TouchButton control="left" label="<" compact />
-          {starControls || canCrouch ? <TouchButton control="down" label="v" accessibleLabel={downLabel} compact /> : <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />}
-          <TouchButton control="right" label=">" compact />
-        </div>
       ) : (
-        <div className={`touch-dpad pointer-events-auto grid grid-cols-3 grid-rows-3 place-items-center rounded-full border border-white/10 bg-slate-950/16 p-1 backdrop-blur-[2px] ${flightMode ? "touch-dpad-flight h-40 w-40" : "h-44 w-44"}`}>
-          <div />
-          <TouchButton control="up" label="^" compact />
-          <div />
-          <TouchButton control="left" label="<" compact />
-          <div className="h-10 w-10 rounded-full border-2 border-white/25 bg-white/10" />
-          <TouchButton control="right" label=">" compact />
-          <div />
-          <TouchButton control="down" label="v" compact />
-          <div />
-        </div>
+        <TouchJoystick platformer={isPlatformer} canDown={starControls || canCrouch} />
       )}
 
       {flightMode && <div className="touch-actions pointer-events-auto mb-1">
@@ -168,7 +208,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       </div>}
       {!flightMode && <div className="touch-actions pointer-events-auto relative mb-1 grid grid-cols-2 gap-3">
         {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{blasterEquipped ? "Space / C: shoot" : "Space / C: attack"}</span>}
-        <TouchButton control="jump" label="J" accessibleLabel={airborneMoves ? "Jump / tap again in midair to double jump" : "Jump"} className="bg-sky-700/72" />
+        <TouchButton control="jump" label="J" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${starControls ? 'ground punch' : 'butt bomb'}` : "Jump"} className="bg-sky-700/72" />
         {isPlatformer && specialName ? (
           <TouchButton control="dash" label="SP" accessibleLabel={`Special: ${specialName}`} className="bg-violet-700/80 text-xl" />
         ) : starControls ? (
@@ -180,7 +220,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
         )}
         {isPlatformer && canShoot && !teleportControls && <TouchButton control="shoot" label="S" accessibleLabel="Hold to shoot equipped weapon" className="bg-lime-700/82" />}
         {teleportControls&&<TouchButton control="recall" label="R" accessibleLabel="Return to teleport anchor" className="bg-violet-700/72" />}
-        <TouchButton control="attack" label="A" accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className={`${isPlatformer && (canShoot||teleportControls) ? "" : "col-span-2 w-36"} h-16 bg-amber-600/82 text-4xl`} />
+        <TouchButton control="attack" label="A" accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className="bg-amber-600/82 text-4xl" />
       </div>}
     </div>
   );

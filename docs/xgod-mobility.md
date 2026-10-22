@@ -4,11 +4,11 @@ The current drawn X God has both moves on every on-foot stage. They are always
 available, independent of weapons and the X Breaker signature cooldown.
 
 - **Double jump:** tap Z / Up (keyboard) or J (touch), release, then press again
-  while airborne. One extra jump per airtime; a third press does nothing.
+  while airborne. One extra jump per airtime; a fresh third press starts the butt bomb.
   Landing, checkpoint retries and spring-pad launches replenish the extra jump.
   Walking off a ledge also permits the airborne jump.
-- **Butt bomb:** press Down / S (keyboard) or the center v button on the touch
-  D-pad while airborne. X God tucks for 150ms, dives bottom-first, and lands with
+- **Butt bomb:** press jump a third time after the double jump, or press Down / S
+  (keyboard) or pull the touch joystick down while airborne. X God tucks for 150ms, dives bottom-first, and lands with
   a 180px-radius shockwave and a 300ms seated recovery. Direct head hits do 6
   damage; nearby foes take 4 damage and briefly launch/stun. Each enemy can only
   take one hit per bomb. Existing boss armor, openings and damage multipliers

@@ -124,7 +124,6 @@ interface LevelPlan {
 
 declare global {
   interface Window {
-    __unknownUniverseTouchControls?: Partial<Record<"left" | "right" | "up" | "down" | "attack" | "shoot" | "jump" | "dash" | "recall", boolean>>;
     __unknownPlatformerForceFall?: () => void;
     __unknownPlatformerDamagePlayer?: (damage?: number) => void;
     __unknownPlatformerSetPlayerPosition?: (x: number, y?: number) => void;
@@ -1785,7 +1784,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       // Auto-turn inside boss yards: a missed attack must never strand a mobile runner at the gate.
       if (isAutoRun && !bossDefeated && player.x > level.endX - 220) autoRunDirection = -1;
       if (bossDefeated || player.x < level.endX - 1080) autoRunDirection = 1;
-      const targetVelocity = isAutoRun ? playFeel.runSpeed * autoRunDirection : isCrouching ? 0 : moveLeft ? -playFeel.runSpeed : moveRight ? playFeel.runSpeed : 0;
+      const keyboardAxis=Number(cursors.right.isDown)-Number(cursors.left.isDown);
+      const touchAxis=touch.axisX??(Number(Boolean(touch.right))-Number(Boolean(touch.left)));
+      const targetVelocity = isAutoRun ? playFeel.runSpeed * autoRunDirection : isCrouching ? 0 : playFeel.runSpeed*(keyboardAxis||touchAxis);
       if (isAutoRun) facingDirection = autoRunDirection;
       if (moveRight) facingDirection = 1;
       if (moveLeft) facingDirection = -1;
@@ -1838,6 +1839,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         jumpBufferedAt = lastGroundedAt = -9999;
         springJumpUntil = now+180;
         jumpedThisFrame = true;
+      } else if (!grounded && now-jumpBufferedAt < 140 && canStandUp() && mobility?.bombAfterDoubleJump()) {
+        setCrouching(false, now);
+        jumpBufferedAt = lastGroundedAt = -9999;
+        attackVisualUntil = shotRecoilUntil = -9999;
+        airLaunchKind = isZGod ? 'ground-punch' : 'butt-bomb';
       }
       // Inputs during a committed ground pound cannot become a jump on recovery.
       if (mobility?.busy) jumpBufferedAt = -9999;

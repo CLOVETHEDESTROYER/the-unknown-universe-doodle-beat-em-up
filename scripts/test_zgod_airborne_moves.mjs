@@ -19,10 +19,10 @@ const read = () => page.evaluate(() => JSON.parse(window.render_game_to_text()))
 const move = s => s.movement.zgodMobility;
 const control = key => page.locator(`[data-touch-control="${key}"]`);
 const tap = async key => {
-  if (device === 'desktop') await page.keyboard.press({ jump: 'z', down: 'ArrowDown', dash: 'x' }[key]);
+  if (device === 'desktop' || key==='down') await page.keyboard.press({ jump: 'z', down: 'ArrowDown', dash: 'x' }[key]);
   else await control(key).tap();
 };
-const hold = (key, down) => control(key).dispatchEvent(down ? 'pointerdown' : 'pointerup', { pointerId: 7, pointerType: 'touch' });
+const hold = (key, down) => key==='down' ? page.keyboard[down?'down':'up']('ArrowDown') : control(key).dispatchEvent(down ? 'pointerdown' : 'pointerup', { pointerId: 7, pointerType: 'touch' });
 const enemies = options => page.evaluate(o => window.__unknownPlatformerSpecialTest(o), options);
 async function wait(fn, timeout = 15000) {
   const deadline = Date.now()+timeout;
@@ -68,8 +68,11 @@ try {
   assert.equal(s.player.bodyHeight, 82, 'The regular collider stays in use');
   assert.equal(move(s).texture, 'zgod_double_jump');
   await shot('double-jump'); await record('double jump and pose');
-  await tap('jump'); await page.waitForTimeout(50);
-  assert.equal(move(await read()).doubleJumps, 1, 'A third airborne press does nothing');
+  await tap('jump'); await wait(s=>move(s).bombs===1);
+  assert.equal(move(await read()).doubleJumps, 1, 'Third press slams instead of adding a jump');
+  await wait(s=>move(s).bombPhase==='ready'&&s.player.grounded);
+  await boot();await enemies({offsets:[]});await jump();await tap('jump');
+  await wait(s=>move(s).doubleJumps===1);
 
   await enemies({ offsets: [250, 550, 800, 1500], hp: 100, projectile: true });
   await hold('down', true);
@@ -87,7 +90,7 @@ try {
   assert.equal(move(s).texture, 'zgod_ground_punch');
   assert.equal(s.enemies.length, 4);
   await shot('fist-first-dive');
-  await tap('jump'); await tap('dash');
+  await page.evaluate(()=>{for(const control of ['jump','dash']){const node=document.querySelector(`[data-touch-control="${control}"]`);for(const type of ['pointerdown','pointerup'])node.dispatchEvent(new PointerEvent(type,{pointerId:9,pointerType:'touch',button:0,bubbles:true}));}});
   s = await wait(s => move(s).bombPhase === 'landing' && move(s).frame === 4);
   assert.equal(move(s).screenClears, 1);
   assert.equal(move(s).hits, 3);

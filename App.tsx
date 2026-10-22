@@ -922,10 +922,10 @@ const App: React.FC = () => {
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
                 && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
                 && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
-                <p className="mb-3 text-lg text-slate-700">Double jump: tap Z / Up or J again in midair.<br />Butt bomb: press Down / S or touch v while airborne.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or J: jump → double jump → butt bomb.<br />You can also pull the joystick down or press Down / S while airborne to slam.</p>
               )}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'zgod' && (
-                <p className="mb-3 text-lg text-slate-700">Double jump: tap Z / Up or J again in midair.<br />Ground punch: press Down / S or touch v while airborne. Clears enemies and enemy shots across the screen.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or J: jump → double jump → ground punch.<br />You can also pull the joystick down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : 'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />

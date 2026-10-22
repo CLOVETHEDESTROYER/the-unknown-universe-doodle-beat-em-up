@@ -82,8 +82,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let deathPreviewTriggered=false;
     const input=()=>{
       const touch=window.__unknownUniverseTouchControls ?? {};
-      return {x:Number(Boolean(keys?.right.isDown||keys?.d.isDown||touch.right))-Number(Boolean(keys?.left.isDown||keys?.a.isDown||touch.left)),
-        y:Number(Boolean(keys?.down.isDown||keys?.s.isDown||touch.down))-Number(Boolean(keys?.up.isDown||keys?.w.isDown||touch.up)),
+      return {x:(Number(Boolean(keys?.right.isDown||keys?.d.isDown))-Number(Boolean(keys?.left.isDown||keys?.a.isDown))) || touch.axisX || Number(Boolean(touch.right))-Number(Boolean(touch.left)),
+        y:(Number(Boolean(keys?.down.isDown||keys?.s.isDown))-Number(Boolean(keys?.up.isDown||keys?.w.isDown))) || touch.axisY || Number(Boolean(touch.down))-Number(Boolean(touch.up)),
         fire:Boolean(keys?.fire.isDown||keys?.alternate.isDown||touch.attack||touch.shoot)};
     };
     function sync(){

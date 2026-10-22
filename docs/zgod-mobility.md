@@ -3,7 +3,8 @@
 - **Double jump:** tap Z / Up or touch J, release, then press again in midair.
   One extra jump per airtime; landing, spring launches and checkpoint recovery
   replenish it. Holding jump does not automatically double jump.
-- **Starfall Ground Punch:** press Down / S or touch v while airborne. Z God
+- **Starfall Ground Punch:** press jump a third time after the double jump, or
+  press Down / S or pull the touch joystick down while airborne. Z God
   winds up, dives fist-first, then punches the ground. Pink/gold shockwaves and
   stars shoot out in both directions, with a brief planted-fist recovery.
 
