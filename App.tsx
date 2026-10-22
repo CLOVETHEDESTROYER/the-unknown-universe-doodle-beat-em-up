@@ -608,7 +608,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div data-mobile={mobileGraphics ? 'true' : 'false'} className="game-app-shell mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900">
+    <div data-mobile={mobileGraphics ? 'true' : 'false'} data-phase={appPhase} className="game-app-shell mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900">
       <div className="relative flex-grow overflow-hidden transition-all duration-500">
         {graphicsLost && (
           <div role="alert" className="absolute inset-0 z-[80] flex items-center justify-center bg-slate-950 p-6 text-center text-white">
@@ -1002,7 +1002,7 @@ const App: React.FC = () => {
 
       <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
-          isIdeatorCollapsed || appPhase !== "game" || !useLegacyDesktopControls ? "w-0" : "hidden w-0 lg:block lg:w-80"
+          !useLegacyDesktopControls ? "hidden" : isIdeatorCollapsed || appPhase !== "game" ? "w-0" : "hidden w-0 lg:block lg:w-80"
         }`}
       >
         <button

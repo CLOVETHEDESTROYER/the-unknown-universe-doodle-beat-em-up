@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
-import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport } from "../gameplay/mobileRuntime";
+import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport, landscapeGameViewport } from "../gameplay/mobileRuntime";
 import { CHARACTER_CONFIGS } from "../characters";
 import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
@@ -134,7 +134,6 @@ declare global {
   }
 }
 
-const SCREEN_WIDTH = 1024;
 const SCREEN_HEIGHT = 576;
 const WORLD_HEIGHT = 720;
 const MAX_LEVEL = FINAL_LEVEL;
@@ -957,6 +956,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   useEffect(() => {
     if (!gameContainerRef.current) return;
 
+    let viewport = landscapeGameViewport(gameContainerRef.current);
     const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
     const isXGod = selectedCharacterId === "xgod";
     const isZGod = selectedCharacterId === "zgod";
@@ -1029,6 +1029,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let bossGuardVisual: Phaser.GameObjects.Graphics | null = null;
     let bossVulnerabilityCue: BossVulnerabilityCue | null = null;
     let bossArenaCameraLocked = false;
+    let bossArenaCenterX: number | null = null;
     let levelTitle: Phaser.GameObjects.Text | null = null;
     let bossDeathVisual: Phaser.GameObjects.Sprite | null = null;
     let bossDeathStage: "none" | "recoil" | "collapse" | "fallen" | "finished" = "none";
@@ -1163,7 +1164,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       type: params.get("renderer") === "canvas" ? Phaser.CANVAS : Phaser.AUTO,
       render: { preserveDrawingBuffer: params.get("capture") === "1" },
       parent: gameContainerRef.current,
-      width: SCREEN_WIDTH,
+      width: viewport.width,
       height: SCREEN_HEIGHT,
       backgroundColor: "#0f172a",
       physics: {
@@ -1176,7 +1177,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: SCREEN_WIDTH,
+        width: viewport.width,
         height: SCREEN_HEIGHT,
         expandParent: false
       },
@@ -1467,7 +1468,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (level.rooftopRush) {
         makeRooftopStarTexture(scene);
         addRooftopRushStars(scene);
-        rushHud = scene.add.text(SCREEN_WIDTH - 24, 110, "", {
+        rushHud = scene.add.text(viewport.width - Math.max(24,viewport.safeRight), 110, "", {
           fontFamily: "Gochi Hand, sans-serif", fontSize: "23px", color: "#f4dcff",
           stroke: "#271d36", strokeThickness: 5
         }).setOrigin(1, 0).setScrollFactor(0).setDepth(83).setVisible(false);
@@ -1494,9 +1495,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isXGod && useSideScrollXGodRun) player.setTexture(playerPosePrefix()+'idle', 0);
       powerAura=scene.add.graphics().setDepth(23);
       if(currentLevel>=3)emberJets=new EmberJets(scene,player,useDrawnXGod);
-      powerHud=scene.add.text(SCREEN_WIDTH-22,72,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'18px',align:'right',color:'#fff4d6',stroke:'#19182e',strokeThickness:4})
+      powerHud=scene.add.text(viewport.width-viewport.safeRight,72,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'18px',align:'right',color:'#fff4d6',stroke:'#19182e',strokeThickness:4})
         .setOrigin(1,0).setScrollFactor(0).setDepth(82);
-      if(selectedCharacterId==='teleportation_c')teleportHud=scene.add.text(SCREEN_WIDTH-22,122,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'17px',color:'#cfb6ff',stroke:'#19182e',strokeThickness:4})
+      if(selectedCharacterId==='teleportation_c')teleportHud=scene.add.text(viewport.width-viewport.safeRight,122,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'17px',color:'#cfb6ff',stroke:'#19182e',strokeThickness:4})
         .setOrigin(1,0).setScrollFactor(0).setDepth(82);
       checkpoint = { x: checkpoint.x, y: player.y };
       if (hasDinio) spawnDinioCompanion(scene);
@@ -1520,17 +1521,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         bossBarrier = scene.add.rectangle(level.endX - 150, 320, 28, 480, 0x7c3aed, 0.3).setDepth(14);
         scene.physics.add.existing(bossBarrier, true);
         scene.physics.add.collider(player, bossBarrier);
-        bossHudFrame = scene.add.rectangle(SCREEN_WIDTH / 2, 148, 420, 24, 0x111827, 0.82)
+        bossHudFrame = scene.add.rectangle(viewport.width / 2, 148, 420, 24, 0x111827, 0.82)
           .setStrokeStyle(3, 0xfef3c7)
           .setScrollFactor(0)
           .setDepth(84)
           .setVisible(false);
-        bossHudFill = scene.add.rectangle(SCREEN_WIDTH / 2 - 202, 148, 404, 14, 0xef4444, 1)
+        bossHudFill = scene.add.rectangle(viewport.width / 2 - 202, 148, 404, 14, 0xef4444, 1)
           .setOrigin(0, 0.5)
           .setScrollFactor(0)
           .setDepth(85)
           .setVisible(false);
-        bossHudText = scene.add.text(SCREEN_WIDTH / 2, 120, "GUARDIAN", {
+        bossHudText = scene.add.text(viewport.width / 2, 120, "GUARDIAN", {
           fontFamily: "Gochi Hand, sans-serif",
           fontSize: "22px",
           color: "#fda4af",
@@ -1710,7 +1711,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
       };
 
-      levelTitle = scene.add.text(28, 72, `${level.chapter}: ${level.title}`, {
+      levelTitle = scene.add.text(Math.max(28,viewport.safeLeft), 72, `${level.chapter}: ${level.title}`, {
         fontFamily: "Gochi Hand, sans-serif",
         fontSize: "28px",
         color: "#fff7ed",
@@ -3381,6 +3382,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function setBossArenaCamera(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite | null, locked: boolean) {
       if (bossArenaCameraLocked === locked) return;
       bossArenaCameraLocked = locked;
+      bossArenaCenterX=locked&&boss?(Number(boss.getData('left'))+Number(boss.getData('right')))/2:null;
       activeBossId = locked && boss ? boss.getData("bossId") as BossId : null;
       levelTitle?.setVisible(!locked);
       const camera = scene.cameras.main;
@@ -4648,7 +4650,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           swordDurability = equipment.hits;
         }
       }
-      scene.add.text(SCREEN_WIDTH / 2, 210, currentLevel >= MAX_LEVEL ? "UNIVERSE SAVED!" : "LEVEL CLEAR!", {
+      scene.add.text(viewport.width / 2, 210, currentLevel >= MAX_LEVEL ? "UNIVERSE SAVED!" : "LEVEL CLEAR!", {
         fontFamily: "Gochi Hand, sans-serif",
         fontSize: "60px",
         color: "#fef3c7",
@@ -4753,6 +4755,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       return JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
         engine: "platformer",
+        viewport: {...viewport},
         mode: isPausedRef.current ? "paused" : isLevelClearing ? "transition" : "platforming",
         special: signature?.read() ?? null,
         autoRun: isAutoRun,
@@ -4863,7 +4866,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         } : null,
         pickups: activePickups,
         projectiles: activeProjectiles,
-        bossArenaCamera: { locked: bossArenaCameraLocked, left: Math.round(sceneCameraLeft()), width: SCREEN_WIDTH },
+        bossArenaCamera: { locked: bossArenaCameraLocked, left: Math.round(sceneCameraLeft()), width: viewport.width },
         bossCues: { warningVisible: Boolean(bossAttackWarning?.commandBuffer.length), statusVisible: Boolean(bossGuardVisual?.commandBuffer.length),
           vulnerability: bossVulnerabilityCue?.read() ?? null },
         touchControls: window.__unknownUniverseTouchControls ?? {}
@@ -4903,7 +4906,24 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
     window.addEventListener('keydown',handlePause);
     gameRef.current = new Phaser.Game(config);
-    const unwatchViewport = watchGameViewport(gameRef.current, gameContainerRef.current);
+    const unwatchViewport = watchGameViewport(gameRef.current, gameContainerRef.current, next => {
+      const changed=viewport.width!==next.width;
+      viewport=next;
+      const scene=gameRef.current?.scene.getScene('PlatformerScene');
+      const camera=scene?.cameras?.main;
+      if(!camera)return;
+      camera.setSize(next.width,next.height);
+      powerHud?.setX(next.width-next.safeRight);
+      teleportHud?.setX(next.width-next.safeRight);
+      rushHud?.setX(next.width-Math.max(24,next.safeRight));
+      levelTitle?.setX(Math.max(28,next.safeLeft));
+      bossHudFrame?.setX(next.width/2);
+      bossHudFill?.setX(next.width/2-202);
+      bossHudText?.setX(next.width/2);
+      if(changed&&bossArenaCameraLocked&&bossArenaCenterX!==null){
+        camera.panEffect.reset();camera.centerOn(bossArenaCenterX,SCREEN_HEIGHT/2);
+      }
+    });
 
     return () => {
       unwatchViewport();
@@ -4915,6 +4935,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.render_game_to_text = () => JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
         engine: "platformer",
+        viewport: {...viewport},
         mode: "remounting",
         level: currentLevel,
         chapter: level.chapter,

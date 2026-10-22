@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
-import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport } from '../gameplay/mobileRuntime';
+import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport, landscapeGameViewport } from '../gameplay/mobileRuntime';
 import { CHARACTER_CONFIGS } from '../characters';
 import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
 import type { CharacterId, DifficultyMode, GameStats } from '../types';
@@ -32,6 +32,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
   useEffect(()=>{paused.current=isPaused;},[isPaused]);
   useEffect(()=>{
     if(!host.current)return;
+    let viewport=landscapeGameViewport(host.current);
     const params=new URLSearchParams(window.location.search);
     const seedText=params.get('flightSeed');
     const seed=seedText!==null&&/^\d+$/.test(seedText)?Number(seedText)>>>0:undefined;
@@ -139,12 +140,14 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       const cosmic=ending?1:Phaser.Math.Clamp((state.distance-3500)/3000,0,1);
       const approach=ending?1:state.combat.finaleDefeated?Phaser.Math.Clamp((state.distance-16500)/500,0,1):0;
       const offset=state.travel;
-      witch.forEach((image,i)=>image.setX(i*1728-(offset*FLIGHT_PARALLAX.witch)%1728).setAlpha(1-departure));
-      ascent.forEach((image,i)=>image.setX(i*1728-(offset*FLIGHT_PARALLAX.ascent)%1728).setAlpha(departure*(1-cosmic)));
-      clouds.forEach((image,i)=>image.setX(i*1728-(offset*FLIGHT_PARALLAX.clouds)%1728).setAlpha(departure*(1-cosmic)*.45));
+      const gutter=(viewport.width-1024)/2;
+      scene.cameras.main.setScroll(-gutter,0);
+      witch.forEach((image,i)=>image.setX((i-1)*1728-(offset*FLIGHT_PARALLAX.witch)%1728).setAlpha(1-departure));
+      ascent.forEach((image,i)=>image.setX((i-1)*1728-(offset*FLIGHT_PARALLAX.ascent)%1728).setAlpha(departure*(1-cosmic)));
+      clouds.forEach((image,i)=>image.setX((i-1)*1728-(offset*FLIGHT_PARALLAX.clouds)%1728).setAlpha(departure*(1-cosmic)*.45));
       // Drift within one wide panorama so the destination planet never repeats at a tile seam.
-      orbit.forEach(image=>image.setX(-352*(1-Math.cos(offset/FLIGHT_PARALLAX.orbitPeriod))).setAlpha(departure*cosmic*(1-approach)));
-      planet.forEach((image,i)=>image.setX(i*1728-(offset*FLIGHT_PARALLAX.planet)%1728).setAlpha(cosmic*approach));
+      orbit.forEach(image=>image.setX(-gutter-Math.max(0,1728-viewport.width)/2*(1-Math.cos(offset/FLIGHT_PARALLAX.orbitPeriod))).setAlpha(departure*cosmic*(1-approach)));
+      planet.forEach((image,i)=>image.setX((i-1)*1728-(offset*FLIGHT_PARALLAX.planet)%1728).setAlpha(cosmic*approach));
       speedLines.clear();
       const speedStrength=flying?1:state.phase==='launch'?Math.min(1,state.phaseMs/1900):state.phase==='landing'?Math.max(0,1-state.phaseMs/2200):0;
       for(const streak of flightSpeedStreaks(offset,state.clock,speedStrength)){
@@ -444,9 +447,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     }
     const game=new Phaser.Game({...mobileGameOptions(),type:params.get('renderer')==='canvas'?Phaser.CANVAS:Phaser.AUTO,
       audio:{noAudio:true},
-      parent:host.current,width:1024,height:576,backgroundColor:'#211f41',
+      parent:host.current,width:viewport.width,height:576,backgroundColor:'#211f41',
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
-      scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:1024,height:576,expandParent:false},
+      scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:viewport.width,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
@@ -468,12 +471,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           {frameWidth:zgod||drawnXgod?768:xgod?512:256,frameHeight:zgod||xgod?512:360});
       },create(this:Phaser.Scene){
         scene=this;
-        witch=[0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-40));
-        ascent=[0,1].map(i=>this.add.image(i*1728,0,'flight_ascent').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-39.5));
-        clouds=[0,1].map(i=>this.add.image(i*1728,0,'flight_clouds').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-26));
-        orbit=[this.add.image(0,0,'flight_orbit').setOrigin(0).setDisplaySize(1728,576).setDepth(-39)];
-        planet=[0,1].map(i=>this.add.image(i*1728,0,'flight_planet').setOrigin(0).setDisplaySize(1728,576).setFlipX(i===1).setDepth(-38));
-        pads=[addTerrainTiles(this,0,492,1024,84,'flight_pad',undefined,.24,.24).setOrigin(0).setDepth(5)];
+        witch=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-40));
+        ascent=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_ascent').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-39.5));
+        clouds=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_clouds').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-26));
+        orbit=[this.add.image(0,0,'flight_orbit').setOrigin(0).setDisplaySize(Math.max(1728,viewport.width),Math.max(1728,viewport.width)/3).setDepth(-39)];
+        planet=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_planet').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-38));
+        pads=[addTerrainTiles(this,-(viewport.width-1024)/2,492,viewport.width,84,'flight_pad',undefined,.24,.24).setOrigin(0).setDepth(5)];
         exhaust=this.add.graphics();
         shipHull=this.add.image(0,0,'flight_ship').setDisplaySize(184,74);
         pilot=this.add.sprite(12,5,'flight_head',0).setOrigin(.5).setScale(xgod?.12:.13);
@@ -514,7 +517,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       if(!event.repeat && ['Escape','p','P'].includes(event.key)){event.preventDefault();callbacks.current.onTogglePause();}
     };
     window.addEventListener('keydown',toggle);
-    const read=()=>JSON.stringify({coordinateSystem:'screen origin top-left; x right, y down; course scrolls left',engine:'flight',
+    const read=()=>JSON.stringify({coordinateSystem:'screen origin top-left; x right, y down; course scrolls left',engine:'flight',viewport:{...viewport,combatWidth:1024},
       mode:state.phase==='gameover'?'gameover':paused.current?'paused':state.phase,level:FLIGHT_LEVEL,chapter:'STARBREAK RUN',
       section:state.distance<5000?'Canopy Climb':state.distance<11500?'High Orbit':'Void Approach',failedAssets,
       selectedCharacter:{id:selectedCharacterId,name:hero.name},
@@ -541,7 +544,15 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         death:e.kind==='pursuer'&&e.phase==='dying'?{...bossDeathPose(e.phaseMs),texture:bossDeathTexture('pursuer'),elapsedMs:e.phaseMs}:null})),
       effects:state.combat.effects.map(fx=>({...fx,progress:Math.min(1,(state.clock-fx.born)/fx.duration)})),
       projectiles:state.combat.bolts.map(b=>({...b,playerShot:b.owner==='player',enemyProjectile:b.owner==='enemy'})),repairs:state.combat.repairs});
-    const unwatchViewport=watchGameViewport(game,host.current);
+    const unwatchViewport=watchGameViewport(game,host.current,next=>{
+      viewport=next;
+      if(!ready)return;
+      scene.cameras.main.setSize(next.width,next.height);
+      pads.forEach(p=>p.setPosition(-(next.width-1024)/2,492).setSize(next.width,84));
+      const span=Math.max(1728,next.width);
+      orbit.forEach(image=>image.setDisplaySize(span,span/3));
+      draw();
+    });
     window.render_game_to_text=read;
     window.advanceTime=async(ms:number)=>{
       // Once automation takes the clock, rendering and tool latency must not advance combat again.

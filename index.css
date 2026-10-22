@@ -32,6 +32,11 @@ body {
 
 /* Landscape is height-limited: overlay controls instead of shrinking the game. */
 @media (orientation: landscape) {
+  .game-app-shell[data-mobile="true"][data-phase="game"] { padding: 0; }
+  .game-app-shell[data-mobile="true"][data-phase="game"] .game-hud {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
   .game-app-shell[data-mobile="true"] .unknown-universe-game {
     inset: 0;
   }

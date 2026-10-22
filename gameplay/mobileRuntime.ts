@@ -51,13 +51,40 @@ export function mobileGameOptions(): Partial<Phaser.Types.Core.GameConfig> {
   } : {};
 }
 
-/** Refresh CSS fit after browser chrome / orientation changes; keep the canvas resolution fixed. */
-export function watchGameViewport(game: Phaser.Game, host: HTMLElement) {
+export interface GameViewport { width: number; height: number; safeLeft: number; safeRight: number }
+
+/** Keep the established world height; wide phones reveal additional world horizontally. */
+export function landscapeGameViewport(host: HTMLElement): GameViewport {
+  const {width, height}=host.getBoundingClientRect();
+  const wide=isMobileGraphicsEnabled()&&width>height&&height>=120;
+  const viewWidth=wide?Math.max(1024,Math.round(576*width/height)):1024;
+  let safeLeft=22,safeRight=22;
+  if(wide){
+    const probe=document.createElement('div');
+    probe.style.cssText='position:fixed;visibility:hidden;pointer-events:none;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)';
+    document.body.append(probe);
+    const style=getComputedStyle(probe),scale=Math.max(viewWidth/width,576/height);
+    safeLeft=Math.max(22,(parseFloat(style.paddingLeft)||0)*scale+12);
+    safeRight=Math.max(22,(parseFloat(style.paddingRight)||0)*scale+12);
+    probe.remove();
+  }
+  return {width:viewWidth,height:576,safeLeft,safeRight};
+}
+
+/** Resize the render viewport in place; rotation must not recreate the run. */
+export function watchGameViewport(game: Phaser.Game, host: HTMLElement, layout?: (view: GameViewport) => void) {
   let frame = 0;
   const resize = () => {
     cancelAnimationFrame(frame);
     frame = requestAnimationFrame(() => {
-      if (game.isBooted && game.scale) game.scale.refresh();
+      if (game.isBooted && game.scale) {
+        if(layout){
+          const view=landscapeGameViewport(host);
+          if(game.scale.gameSize.width!==view.width||game.scale.gameSize.height!==view.height)game.scale.setGameSize(view.width,view.height);
+          else game.scale.refresh();
+          layout(view);
+        }else game.scale.refresh();
+      }
     });
   };
   const lost = (event: Event) => {
@@ -67,12 +94,15 @@ export function watchGameViewport(game: Phaser.Game, host: HTMLElement) {
   const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
   observer?.observe(host);
   window.addEventListener('resize', resize);
+  window.visualViewport?.addEventListener('resize', resize);
+  resize();
   const bindCanvas = () => game.canvas?.addEventListener('webglcontextlost', lost);
   if (game.canvas) bindCanvas();
   else game.events.once(Phaser.Core.Events.BOOT, bindCanvas);
   return () => {
     observer?.disconnect();
     window.removeEventListener('resize', resize);
+    window.visualViewport?.removeEventListener('resize', resize);
     cancelAnimationFrame(frame);
     game.events.off(Phaser.Core.Events.BOOT, bindCanvas);
     game.canvas?.removeEventListener('webglcontextlost', lost);
