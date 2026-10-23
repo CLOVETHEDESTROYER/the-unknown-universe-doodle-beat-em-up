@@ -1088,6 +1088,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let jumpWasHeld = false;
     let airLaunchKind: "jump" | "double-jump" | "butt-bomb" | "ground-punch" | "spring" | "stomp" | "boss-stomp" | null = null;
     let jumpVisualAirborne=false;
+    let audioAirborneAt:number|null=null;
     let jumpVisualStartedAt=0;
     let lastAirborneVelocity=0;
     let landingVisualStartedAt=-9999;
@@ -1827,6 +1828,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body = player.body as Phaser.Physics.Arcade.Body;
       const touch = window.__unknownUniverseTouchControls ?? {};
       const grounded = isPlayerGrounded(body);
+      if(!grounded){audioAirborneAt??=now;}
+      else if(audioAirborneAt!==null){
+        if(now-audioAirborneAt>180&&!mobility?.busy)playSfx('landing');
+        audioAirborneAt=null;
+      }
       mobility?.update(grounded);
       if (grounded && body.velocity.y >= 0 && now - lastStompAt > 120) {
         stompChain = 0;
@@ -2416,6 +2422,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function placePlayerOnPlatform(x: number, preferredY?: number, keepHorizontalVelocity = false) {
       mobility?.cancel(true);
+      audioAirborneAt=null;
       if(!keepHorizontalVelocity)stopEmber();
       jumpQueuedAt = downQueuedAt = jumpBufferedAt = -9999;
       const body = player.body as Phaser.Physics.Arcade.Body;
@@ -4249,7 +4256,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (currentLevel >= 4 && enemy.getData("kind") === "boss") impact.setTint(currentLevel === 4 ? 0xf04c86 : 0xc084fc);
       scene.tweens.add({ targets: impact, scaleX: impact.scaleX * 1.7, scaleY: impact.scaleY * 1.7, alpha: 0, duration: 170, ease: "quad.out", onComplete: () => impact.destroy() });
       const hp = Math.max(0, (enemy.getData("hp") as number) - appliedDamage);
-      playSfx(isStomp?'stomp':isLightShot?'enemyHit':equipment.active==='sword'?'swordHit':'punchHit');
+      // A screen-wide slam owns its impact; avoid stacking a bass hit for every target.
+      if(!isButtBomb)playSfx(isStomp?'stomp':isLightShot?'enemyHit':equipment.active==='sword'?'swordHit':'punchHit');
+      else if(isBoss)playSfx('enemyHit',{volume:.45});
       enemy.setData("hp", hp);
       const baseScale = enemy.getData("baseScale") as number;
       const knockDirection = enemy.x < player.x ? -1 : 1;

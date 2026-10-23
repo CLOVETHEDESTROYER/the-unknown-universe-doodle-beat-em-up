@@ -61,7 +61,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
-    let audioShots=0,audioImpacts=0,audioDeathId:number|null=null,audioPickups=0,audioBeacons=0;
+    let audioShots=0,audioEnemyShots=0,audioImpacts=0,audioDeathId:number|null=null,audioPickups=0,audioBeacons=0;
     const heardEffects=new Set<number>();
     let ship:Phaser.GameObjects.Container,exhaust:Phaser.GameObjects.Graphics;
     let walker:Phaser.GameObjects.Sprite,pilot:Phaser.GameObjects.Sprite;
@@ -117,9 +117,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       }
     }
     function syncFlightSounds(){
-      if(state.combat.shotsFired!==audioShots){
-        audioShots=state.combat.shotsFired;playSfx('blaster',{pitch:state.combat.weapon==='lance'?1.2:state.combat.weapon==='homing'?.78:1,volume:.85});
+      if(state.combat.shotsFired>audioShots){
+        playSfx(state.combat.weapon==='lance'?'shipLance':state.combat.weapon==='homing'?'shipMissile':'shipLaser');
       }
+      audioShots=state.combat.shotsFired;
+      if(state.combat.enemyShots>audioEnemyShots)playSfx('enemyLaser');
+      audioEnemyShots=state.combat.enemyShots;
       if(state.impacts!==audioImpacts){audioImpacts=state.impacts;if(state.hull>0)playSfx('shipHit');}
       if(state.death&&state.death.id!==audioDeathId){audioDeathId=state.death.id;playSfx('shipExplosion');}
       if(state.collectedWeapons.length>audioPickups)playSfx('powerup');

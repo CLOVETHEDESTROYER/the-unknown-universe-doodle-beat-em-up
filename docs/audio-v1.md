@@ -1,5 +1,9 @@
 # Core sound effects v1
 
+Core action cues have since been upgraded by the [layered sound pass](audio-v2.md).
+This page preserves the original bank and music setup; current paths and new
+movement/weapon/slam cues are documented in v2.
+
 Original synthesized effects for the current platformer campaign and Starbreak flight level. No third-party samples, voices, or external generation service are used. Existing background music stays on its separate music channel. The old optional brawler runtime has not been given these new gameplay hooks.
 
 ## Dark Dragon battle music

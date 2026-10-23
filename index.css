@@ -200,6 +200,21 @@ canvas {
     margin: 0.5rem 0;
     padding: 0.5rem;
   }
+  .pause-dialog > p:not(.pause-equipment-hint) {
+    margin-bottom: 4px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+  .pause-dialog section[aria-label="Sound settings"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 10px;
+    margin: 4px 0 8px;
+  }
+  .pause-dialog section[aria-label="Sound settings"] > div { grid-column: 1 / -1; margin-bottom: 0; }
+  .pause-dialog section[aria-label="Sound settings"] > label { margin: 0; font-size: 14px; }
+  .pause-dialog section[aria-label="Sound settings"] > label.my-2 { grid-template-columns: 3rem 1fr 2rem; gap: 4px; }
+  .pause-dialog section[aria-label="Sound settings"] > button { margin: 0; justify-self: end; min-height: 32px; }
 
 }
 

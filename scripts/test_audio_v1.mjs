@@ -5,12 +5,12 @@ import fs from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const out=new URL('../output/audio-v1/playtest/',import.meta.url);await fs.mkdir(out,{recursive:true});
 await build({entryPoints:['audio/soundBank.ts'],bundle:true,platform:'node',format:'esm',outdir:fileURLToPath(new URL('simulation/',out)),outExtension:{'.js':'.mjs'},logLevel:'silent'});
-const {SOUND_BANK}=await import(new URL('simulation/soundBank.mjs',out));
-const manifest=JSON.parse(await fs.readFile(new URL('../public/audio/sfx-v1/manifest.json',import.meta.url)));
+const {SOUND_BANK,soundPath}=await import(new URL('simulation/soundBank.mjs',out));
+const manifest={files:Object.entries(SOUND_BANK).flatMap(([name,def])=>Array.from({length:def.variants},(_,variant)=>({file:soundPath(name,variant)})))};
 assert.equal(manifest.files.length,Object.values(SOUND_BANK).reduce((n,d)=>n+d.variants,0));
 let bytes=0;for(const item of manifest.files){
- const wav=await fs.readFile(new URL('../public/audio/sfx-v1/'+item.file,import.meta.url));bytes+=wav.length;
- assert.equal(wav.toString('ascii',0,4),'RIFF');assert.equal(wav.readUInt32LE(24),44100);assert.equal(wav.readUInt16LE(22),1);
+ const wav=await fs.readFile(new URL('../public'+item.file,import.meta.url));bytes+=wav.length;
+ assert.equal(wav.toString('ascii',0,4),'RIFF');assert([32000,44100].includes(wav.readUInt32LE(24)));assert.equal(wav.readUInt16LE(22),1);
  let peak=0,energy=0;for(let i=44;i<wav.length;i+=2){const sample=wav.readInt16LE(i)/32768;peak=Math.max(peak,Math.abs(sample));energy+=sample*sample;}
  assert(peak>.7&&peak<.81);assert(energy/((wav.length-44)/2)>.0001);assert.equal(wav.readInt16LE(wav.length-2),0);
 }
@@ -45,7 +45,7 @@ async function boot(level=2,extra=''){
  await page.waitForFunction(()=>typeof window.render_game_to_text==='function',{},{timeout:60000});
  await wait(s=>s.player&&(s.engine==='flight'||s.player.grounded));
  assert.equal((await audio()).unlocked,false);assert.equal((await audio()).totalPlayed,0);
- await page.mouse.click(15,110);await page.waitForFunction(()=>window.__unknownGameAudio.read().loadedClips===39&&window.__unknownGameAudio.read().state==='running');
+ await page.mouse.click(15,110);await page.waitForFunction(()=>window.__unknownGameAudio.read().loadedClips===window.__unknownGameAudio.read().expectedClips&&window.__unknownGameAudio.read().state==='running');
  assert.deepEqual((await audio()).failed,[]);
 }
 async function setVolume(label,value){
@@ -94,7 +94,7 @@ try{
  await wait(async()=>await played('shipExplosion')===1);assert.equal((await read()).player.lives,2);await page.evaluate(()=>window.advanceTime(700));assert.equal(await played('shipExplosion'),1);await shot('ship-explosion-audio');
  await page.evaluate(()=>window.advanceTime(600));assert.equal((await read()).ship.hull,100);evidence.actualShipDeathBoomAndRetry=true;
  await boot(5);await page.evaluate(()=>window.advanceTime(4800));await page.evaluate(()=>window.__unknownFlightDamageShip(20));await wait(async()=>await played('shipHit')===1);
- await page.keyboard.down('Space');await page.evaluate(()=>window.advanceTime(1000));await page.keyboard.up('Space');assert(await played('blaster')>0);evidence.flightCrashAndCannons=true;
+ await page.keyboard.down('Space');await page.evaluate(()=>window.advanceTime(1000));await page.keyboard.up('Space');assert(await played('shipLaser')>0);evidence.flightCrashAndCannons=true;
  // A burst of preview requests cannot exceed the mixer voice budget.
  await page.evaluate(()=>{for(let i=0;i<100;i++)window.__unknownGameAudio.preview(i%2?'punchHit':'swordHit');});assert((await audio()).activeVoices<=12);assert((await audio()).suppressed>0);evidence.rateLimitsAndVoiceBudget=true;
  assert.deepEqual(errors,[]);await fs.writeFile(new URL('results.json',out),JSON.stringify({evidence,audio:await audio(),errors},null,2));console.log(JSON.stringify({passed:true,evidence,errors}));

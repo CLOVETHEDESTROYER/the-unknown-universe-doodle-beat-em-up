@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { playSfx } from '../audio/gameAudio';
+import {SLAM_SOUNDS} from '../audio/soundBank';
 import type {CharacterId} from '../types';
 import {HERO_MOBILITY,hasNewMobilityArt} from './heroMobility';
 
@@ -52,7 +53,7 @@ export class AirborneMoves {
     this.jumps++;
     this.body.blocked.down = this.body.touching.down = false;
     this.body.setVelocityY(-speed);
-    playSfx('jump', { pitch: 1.25 });
+    playSfx('doubleJump');
     return true;
   }
 
@@ -61,7 +62,7 @@ export class AirborneMoves {
     this.phase = 'windup'; this.phaseAt = this.scene.time.now;
     this.jumpAt = -9999; this.targets.clear(); this.bombs++;
     this.body.setAllowGravity(false).setVelocity(0, 0);
-    playSfx('swordSwing', { pitch: .8, volume: .35 });
+    playSfx('slamCharge');
     return true;
   }
 
@@ -132,7 +133,7 @@ export class AirborneMoves {
     if (this.hero === 'zgod') {
       this.clearScreen();
       this.scene.cameras.main.shake(220, .005);
-      playSfx('explosion', { pitch: .8 });
+      playSfx(SLAM_SOUNDS[this.hero]);
       return;
     }
     const move=HERO_MOBILITY[this.hero];
@@ -146,7 +147,7 @@ export class AirborneMoves {
       if(shot.active&&shot.getData('enemyProjectile')&&Phaser.Math.Distance.Between(body.center.x,body.bottom-45,shot.x,shot.y)<=move.radius){shot.destroy();this.clearedShots++;}
     }
     this.scene.cameras.main.shake(130, .0035);
-    playSfx('stomp', { pitch: .7 });
+    playSfx(SLAM_SOUNDS[this.hero]);
   }
 
   private clearScreen() {
