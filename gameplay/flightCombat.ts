@@ -14,7 +14,7 @@ export interface FlightEnemy {
   hitUntil?:number;
 }
 export interface FlightBolt {id:number;owner:'player'|'enemy';x:number;y:number;vx:number;vy:number;expires:number;damage:number;
-  weapon?:FlightWeaponId;pierces?:number;hitIds?:string[];targetId?:string}
+  weapon?:FlightWeaponId;pierces?:number;hitIds?:string[];targetId?:string;sourceId?:string}
 export interface CombatEffect {id:number;kind:'hit'|'destroy'|'blocked'|'muzzle'|'repair';x:number;y:number;expires:number;born:number;duration:number;size:number;source?:'asteroid'|EnemyKind}
 export interface CombatRock {id:number;x:number;y:number;radius:number;hp:number}
 export interface FlightCombat {
@@ -162,11 +162,15 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
       phase(e,e.age>8500?'exit':'tell',s);
     }else if(e.phase==='exit')e.x-=240*dt;
     const halfW=e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='prism'?68:e.kind==='interceptor'?48:29,halfH=e.kind==='pursuer'?37:e.kind==='gunship'?30:e.kind==='prism'?25:21;
-    if(e.phase!=='dying'&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
+    if(e.phase!=='dying'&&!(e.kind==='pursuer'&&e.phase==='recover')&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
     if(s.phase!=='flight'){clearCombat(c);return;}
   }
   for(const b of c.bolts){
     if(b.expires<=s.clock)continue;
+    if(b.owner==='enemy'&&b.sourceId){
+      const source=c.enemies.find(e=>e.id===b.sourceId);
+      if(!source||source.phase==='recover'||source.phase==='dying'){b.expires=0;continue;}
+    }
     if(b.owner==='player'&&b.weapon==='homing')steerMissile(b,c,rocks,dt);
     b.x+=b.vx*dt;b.y+=b.vy*dt;
     const stone=rocks.find(r=>r.hp>0&&!b.hitIds?.includes(`rock:${r.id}`)&&Math.hypot(r.x-b.x,r.y-b.y)<r.radius+3);

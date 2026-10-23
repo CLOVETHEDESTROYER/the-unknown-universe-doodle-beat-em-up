@@ -46,7 +46,7 @@ try{
  await drag(1,0);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await touch()).axisX,0);assert.equal(await stick().getAttribute('data-active'),null);await page.mouse.up();
  await drag(1,0);const old=page.viewportSize();await page.setViewportSize({width:old.width-10,height:old.height});await page.waitForTimeout(100);assert.equal((await touch()).axisX,0);await page.mouse.up();await page.setViewportSize(old);evidence.push({blurResizeRelease:true});
  // Extra secondary buttons, tablet space and small phones use the same round targets.
- await boot(3,'teleportation_c');await layout('recall-layout');await boot(3,'nico');await page.evaluate(()=>window.__unknownPlatformerCollectPickup('blaster'));await button('shoot').waitFor();await layout('shoot-layout');
+ await boot(3,'teleportation_c');await layout('recall-layout');await boot(3,'nico');await page.evaluate(()=>window.__unknownPlatformerCollectPickup('blaster'));await button('attack').waitFor();assert.equal(await button('shoot').count(),0,'One clear FIRE button replaces duplicate shoot buttons');assert.equal((await button('attack').innerText()).trim(),'FIRE');await layout('shoot-layout');
  await page.setViewportSize({width:1194,height:834});await boot();await layout('ipad-landscape');assert((await button('jump').boundingBox()).width>=104);
  await page.setViewportSize({width:834,height:1194});await layout('ipad-portrait');const canvas=await page.locator('canvas').boundingBox();const j=await stick().boundingBox();assert(canvas.y+canvas.height<=j.y,'Portrait tablet leaves room below game');
  await page.setViewportSize({width:568,height:320});await layout('small-phone');

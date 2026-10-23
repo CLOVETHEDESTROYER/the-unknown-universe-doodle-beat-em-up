@@ -57,7 +57,7 @@ function recover(e: FlightEnemy) {
   e.phase='recover';e.phaseMs=0;e.startX=e.x;e.startY=e.y;
 }
 function bolt(s: CombatHost, c: FlightCombat, x: number, y: number, angle: number, speed: number) {
-  c.bolts.push({id:c.nextId++,owner:'enemy',x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+  c.bolts.push({id:c.nextId++,owner:'enemy',sourceId:PURSUER_ID,x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
     expires:s.clock+3900,damage:s.difficulty==='EASY'?10:s.difficulty==='HARD'?14:18});
   c.enemyShots++;
 }

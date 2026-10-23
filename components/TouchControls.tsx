@@ -3,6 +3,7 @@ import type { TouchControlKey, TouchControlState } from '../types';
 
 const CONTROL_KEYS: TouchControlKey[] = ["left", "right", "up", "down", "attack", "shoot", "jump", "dash", "recall"];
 const activePointers = new Map<number, Set<TouchControlKey>>();
+const pointerKinds = new Map<number,string>();
 
 const setControl = (key: TouchControlKey, value: boolean, pointerId: number) => {
   if (typeof window === "undefined") {
@@ -28,14 +29,13 @@ const setControl = (key: TouchControlKey, value: boolean, pointerId: number) => 
 
 const releasePointer = (pointerId: number) => {
   const pointerKeys = activePointers.get(pointerId);
-  if (!pointerKeys) {
-    return;
-  }
-
   activePointers.delete(pointerId);
-  for (const key of pointerKeys) {
+  pointerKinds.delete(pointerId);
+  for (const key of pointerKeys ?? []) {
     setControl(key, false, pointerId);
   }
+  // A missed capture release must clear analog axes as well as digital buttons.
+  window.dispatchEvent(new CustomEvent('unknown-universe:pointer-release', {detail:pointerId}));
 };
 
 const resetControls = () => {
@@ -44,6 +44,7 @@ const resetControls = () => {
   }
 
   activePointers.clear();
+  pointerKinds.clear();
   window.__unknownUniverseTouchControls = { ...Object.fromEntries(CONTROL_KEYS.map((key) => [key, false])), axisX: 0, axisY: 0 } as TouchControlState;
   window.dispatchEvent(new Event('unknown-universe:controls-reset'));
 };
@@ -53,9 +54,13 @@ const TouchJoystick: React.FC<{ platformer: boolean; canDown: boolean }> = ({ pl
   const base = useRef<HTMLDivElement>(null);
   const knob = useRef<HTMLSpanElement>(null);
   const pointer = useRef<number | null>(null);
+  const geometry = useRef<{x:number;y:number;travel:number}|null>(null);
+  const nativeTouch = useRef<number|null>(null);
   const neutral = () => {
-    if (pointer.current !== null) releasePointer(pointer.current);
+    const previous=pointer.current;
     pointer.current = null;
+    geometry.current=null;nativeTouch.current=null;
+    if (previous !== null) releasePointer(previous);
     if (window.__unknownUniverseTouchControls) {
       window.__unknownUniverseTouchControls.axisX = 0;
       window.__unknownUniverseTouchControls.axisY = 0;
@@ -64,24 +69,33 @@ const TouchJoystick: React.FC<{ platformer: boolean; canDown: boolean }> = ({ pl
     if (knob.current) knob.current.style.transform = 'translate(-50%, -50%)';
   };
   useEffect(() => {
+    const released=(event:Event)=>{if((event as CustomEvent<number>).detail===pointer.current)neutral();};
+    const touchEnded=(event:TouchEvent)=>{if([...event.changedTouches].some(t=>t.identifier===nativeTouch.current))neutral();};
     window.addEventListener('unknown-universe:controls-reset', neutral);
-    return () => { window.removeEventListener('unknown-universe:controls-reset', neutral); neutral(); };
+    window.addEventListener('unknown-universe:pointer-release',released);
+    window.addEventListener('touchend',touchEnded,true);window.addEventListener('touchcancel',touchEnded,true);
+    return () => {
+      window.removeEventListener('unknown-universe:controls-reset', neutral);
+      window.removeEventListener('unknown-universe:pointer-release',released);
+      window.removeEventListener('touchend',touchEnded,true);window.removeEventListener('touchcancel',touchEnded,true);neutral();
+    };
   }, []);
   const steer = (event: React.PointerEvent<HTMLDivElement>) => {
     if (pointer.current !== event.pointerId) return;
+    if(event.pointerType==='mouse'&&event.buttons===0){neutral();return;}
     event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
-    const travel = rect.width * .29;
-    const dx = (event.clientX - rect.left - rect.width / 2) / travel;
-    const dy = (event.clientY - rect.top - rect.height / 2) / travel;
+    const rect = geometry.current;if(!rect)return;
+    const travel=rect.travel;
+    const dx = (event.clientX - rect.x) / travel;
+    const dy = (event.clientY - rect.y) / travel;
     const distance = Math.hypot(dx, dy), scale = Math.max(1, distance);
     const x = dx / scale, y = dy / scale;
-    const axis = (value: number) => Math.abs(value) <= .18 ? 0 : Math.sign(value) * (Math.abs(value) - .18) / .82;
+    const axis = (value: number) => Math.abs(value) <= .14 ? 0 : Math.sign(value) * Math.pow((Math.abs(value) - .14) / .86,.85);
     const axisX = axis(x), axisY = axis(y);
     setControl('left', axisX < 0, event.pointerId);
     setControl('right', axisX > 0, event.pointerId);
     setControl('up', !platformer && axisY < 0, event.pointerId);
-    const down = (!platformer || canDown) && axisY > .5 && (!platformer || Math.abs(axisX) < .45);
+    const down = (!platformer || canDown) && axisY > .72 && (!platformer || Math.abs(axisX) < .35);
     const wasDown = Boolean(window.__unknownUniverseTouchControls?.down);
     setControl('down', down, event.pointerId);
     window.__unknownUniverseTouchControls = { ...window.__unknownUniverseTouchControls, axisX, axisY: platformer ? 0 : axisY };
@@ -91,9 +105,14 @@ const TouchJoystick: React.FC<{ platformer: boolean; canDown: boolean }> = ({ pl
   return <div ref={base} role="group" aria-label={platformer ? 'Movement joystick: left, right and down' : 'Movement joystick: steer in any direction'}
     data-touch-joystick className="touch-joystick pointer-events-auto select-none"
     onContextMenu={event => event.preventDefault()}
+    onTouchStart={event=>{nativeTouch.current=event.changedTouches[0]?.identifier??null;}}
     onPointerDown={event => {
       if (pointer.current !== null || event.button !== 0) return;
       pointer.current = event.pointerId;
+      pointerKinds.set(event.pointerId,event.pointerType);
+      const rect=event.currentTarget.getBoundingClientRect(),travel=rect.width*.29;
+      const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+      geometry.current={x:cx+Math.max(-travel*.35,Math.min(travel*.35,event.clientX-cx)),y:cy+Math.max(-travel*.35,Math.min(travel*.35,event.clientY-cy)),travel};
       try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Synthetic events lack capture. */ }
       event.currentTarget.setAttribute('data-active', 'true');
       steer(event);
@@ -114,8 +133,18 @@ const TouchButton: React.FC<{
   compact?: boolean;
   accessibleLabel?: string;
 }> = ({ control, label, className = "", compact = false, accessibleLabel }) => {
+  const node=useRef<HTMLButtonElement>(null),held=useRef(new Set<number>());
+  useEffect(()=>{
+    const released=(event:Event)=>{held.current.delete((event as CustomEvent<number>).detail);if(!held.current.size)node.current?.removeAttribute('data-pressed');};
+    const reset=()=>{held.current.clear();node.current?.removeAttribute('data-pressed');};
+    window.addEventListener('unknown-universe:pointer-release',released);window.addEventListener('unknown-universe:controls-reset',reset);
+    return()=>{window.removeEventListener('unknown-universe:pointer-release',released);window.removeEventListener('unknown-universe:controls-reset',reset);for(const id of held.current)releasePointer(id);};
+  },[]);
   const press = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if(event.button!==0||held.current.has(event.pointerId))return;
     event.preventDefault();
+    held.current.add(event.pointerId);event.currentTarget.setAttribute('data-pressed','true');
+    pointerKinds.set(event.pointerId,event.pointerType);
     try {
       event.currentTarget.setPointerCapture?.(event.pointerId);
     } catch {
@@ -137,11 +166,12 @@ const TouchButton: React.FC<{
     } catch {
       // Safe to ignore when the browser already released the pointer.
     }
-    setControl(control, false, event.pointerId);
+    releasePointer(event.pointerId);
   };
 
   return (
     <button
+      ref={node}
       type="button"
       aria-label={accessibleLabel ?? label}
       title={accessibleLabel ?? label}
@@ -150,7 +180,10 @@ const TouchButton: React.FC<{
       onPointerUp={release}
       onPointerCancel={release}
       onLostPointerCapture={(event) => releasePointer(event.pointerId)}
-      className={`touch-control select-none rounded-full border-[3px] border-white/70 bg-slate-950/58 font-['Gochi_Hand'] font-bold text-white shadow-[0_8px_22px_rgba(0,0,0,0.35)] backdrop-blur-md active:scale-95 active:bg-violet-700/80 ${
+      onTouchEnd={()=>{for(const id of [...held.current])releasePointer(id);}}
+      onTouchCancel={()=>{for(const id of [...held.current])releasePointer(id);}}
+      onContextMenu={event=>event.preventDefault()}
+      className={`touch-control select-none rounded-full border-[3px] border-white/70 bg-slate-950/80 font-['Gochi_Hand'] font-bold text-white shadow-[0_8px_22px_rgba(0,0,0,0.35)] active:scale-95 active:bg-violet-700/80 ${
         compact ? "h-12 w-12 text-2xl" : "h-16 w-16 text-3xl"
       } ${className}`}
     >
@@ -170,6 +203,9 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
     window.addEventListener("blur", releaseAll);
     window.addEventListener('resize', releaseAll);
     const visibility = () => { if (document.hidden) releaseAll(); };
+    const touchEnded=(event:TouchEvent)=>{if(event.touches.length===0)for(const [id,kind] of [...pointerKinds])if(kind==='touch')releasePointer(id);};
+    window.addEventListener('touchend',touchEnded);window.addEventListener('touchcancel',touchEnded);
+    window.addEventListener('pagehide',releaseAll);
     document.addEventListener('visibilitychange', visibility);
     window.addEventListener("pointerup", releaseOne);
     window.addEventListener("pointercancel", releaseOne);
@@ -178,6 +214,8 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       window.removeEventListener("blur", releaseAll);
       window.removeEventListener('resize', releaseAll);
       document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('touchend',touchEnded);window.removeEventListener('touchcancel',touchEnded);
+      window.removeEventListener('pagehide',releaseAll);
       window.removeEventListener("pointerup", releaseOne);
       window.removeEventListener("pointercancel", releaseOne);
       resetControls();
@@ -208,7 +246,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       </div>}
       {!flightMode && <div className="touch-actions pointer-events-auto relative mb-1 grid grid-cols-2 gap-3">
         {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{blasterEquipped ? "Space / C: shoot" : "Space / C: attack"}</span>}
-        <TouchButton control="jump" label="J" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${starControls ? 'ground punch' : 'butt bomb'}` : "Jump"} className="bg-sky-700/72" />
+        <TouchButton control="jump" label="JUMP" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${starControls ? 'ground punch' : 'butt bomb'}` : "Jump"} className="bg-sky-700/72" />
         {isPlatformer && specialName ? (
           <TouchButton control="dash" label="SP" accessibleLabel={`Special: ${specialName}`} className="bg-violet-700/80 text-xl" />
         ) : starControls ? (
@@ -218,9 +256,9 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
         ) : (
           <TouchButton control="dash" label={teleportControls?'BLINK':'D'} accessibleLabel={teleportControls?'Teleport step':'Dash'} className={`bg-fuchsia-700/72 ${teleportControls?'text-sm':''}`} />
         )}
-        {isPlatformer && canShoot && !teleportControls && <TouchButton control="shoot" label="S" accessibleLabel="Hold to shoot equipped weapon" className="bg-lime-700/82" />}
+        {isPlatformer && canShoot && !blasterEquipped && !teleportControls && <TouchButton control="shoot" label="FIRE" accessibleLabel="Hold to shoot equipped weapon" className="bg-lime-700/82" />}
         {teleportControls&&<TouchButton control="recall" label="R" accessibleLabel="Return to teleport anchor" className="bg-violet-700/72" />}
-        <TouchButton control="attack" label="A" accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className="bg-amber-600/82 text-4xl" />
+        <TouchButton control="attack" label={blasterEquipped?'FIRE':'HIT'} accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className="bg-amber-600/82 text-4xl" />
       </div>}
     </div>
   );

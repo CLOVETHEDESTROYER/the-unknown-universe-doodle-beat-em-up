@@ -1,6 +1,6 @@
 # Boss encounter pass
 
-The campaign now has five bosses with distinct movement and attack patterns, committed warnings, a guarded second-wind transition, and recovery-only damage. The axe/cannon boss is Kilina's Daughter. Original Kilina's new Witchwood chapter is documented in [Kilina's encounter](kilina-witch-level.md); [Starbreak flight](starbreak-flight-v1.md) follows at Level 5 and Void Regent is now Level 6.
+The campaign now has five bosses with distinct movement and attack patterns, committed warnings, a guarded second-wind transition, and recovery windows for ordinary attacks. Butt bombs can damage armor in every state. The axe/cannon boss is Kilina's Daughter. Original Kilina's new Witchwood chapter is documented in [Kilina's encounter](kilina-witch-level.md); [Starbreak flight](starbreak-flight-v1.md) follows at Level 5 and Void Regent is now Level 6.
 
 ## Fight identities
 
@@ -16,9 +16,10 @@ The Dragon's oversized painted flame cone is excluded from its individual-shot a
 
 ## Shared fairness rules
 
-- Purple status/health bar and GUARDED advice mean no damage can be dealt from any direction. During the counter window, the boss gains a slow coral-red highlight and a bold yellow **ATTACK!** sign with a draining time bar. Gold rings, a shrinking arc, and the OPEN countdown reinforce the same opening. The sign stays visible for the whole opening and vanishes as soon as armor returns, including between guarded phase-two follow-up attacks.
+- Purple status/health bar and GUARDED advice block ordinary weapon, companion and head-stomp damage. X God's butt bomb bypasses this guard; Z God's screen clear retains its existing power. During the counter window, the boss gains a slow coral-red highlight and a bold yellow **ATTACK!** sign with a draining time bar. Gold rings, a shrinking arc, and the OPEN countdown reinforce the same opening. The sign stays visible for the whole opening and vanishes as soon as armor returns, including between guarded phase-two follow-up attacks.
 - The highlight tracks the currently rendered boss pose without changing its original tint, alpha, collider or movement. The sign follows the head, stays within the camera and below the HUD, and moves beside tall bosses when needed. Reduced-motion preferences use a steady red highlight. The cue is shared by all five on-foot bosses, including Dark Dragon and Kilina's Daughter, and clears on retreat, death and scene transitions.
 - Sword, blaster, companion, and stomp attacks pass through the same strict state/time check. Opening damage is 1.5×, with Cinder retaining its 2× core bonus. Accepted hits have a 160 ms interval and never interrupt a boss commitment. Guarded attempts cannot consume that interval, extend the opening, or award stomp points.
+- X God's butt bomb deals its normal direct/shockwave damage even during warnings, attacks and second wind. It bypasses the ordinary hit interval, while still hitting each target once per bomb. Openings retain their damage bonus. During an opening, boss contact, direct attacks and that boss's projectiles cannot hurt or knock back the hero; existing boss shots clear as recovery starts. Other enemies and hazards remain dangerous. The flight Pursuer also stops contact/laser damage during recovery.
 - Aim, rain lanes, and travel destinations lock during the warning. Faster phase-two warnings remain explicit. The second wind waits until the current recovery has fully ended.
 - Dragon lunge and Regent dash advise moving clear of the marked travel path. Low fire, quake waves, and the Regent's phase-two ground waves can be jumped. The movement hints do not promise that a ground jump clears a tall boss's entire body.
 - Cornered movement attacks choose a marked destination across the arena rather than charging in place. Arena bounds stay on solid ground. Animated lean/squash affects the artwork while the collision body stays stable and follows the actual root immediately.

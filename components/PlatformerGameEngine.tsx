@@ -18,6 +18,7 @@ import { POWERUPS, restoreLoadout, equipPowerup, hitPowerup, powerupRoute } from
 import type { PowerupLoadout, EquippedPowerup } from '../gameplay/powerups';
 import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear, startTeleport, resetTeleport, BLINK_COOLDOWN } from '../gameplay/teleportation';
 import { playSfx } from '../audio/gameAudio';
+import {companionStride,stepCompanionGround} from '../gameplay/companionMotion';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
@@ -136,6 +137,7 @@ declare global {
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
     __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
+    __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy';cooldown?:boolean})=>void;
     advanceTime?: (ms: number) => Promise<void>;
     render_game_to_text?: () => string;
   }
@@ -1029,6 +1031,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let pickups: Phaser.Physics.Arcade.Group;
     let projectiles: Phaser.Physics.Arcade.Group;
     let dinioCompanion: Phaser.GameObjects.Sprite | null = null;
+    const dinioStride=companionStride();
+    let dinioShots=0,dinioHits=0,doghostShots=0,doghostHits=0,doghostNextShotAt=0,doghostAttackUntil=0,doghostAttackFacing=1;
     let dinioNextShotAt = 0;
     let dinioAttackUntil = 0;
     let dinioAttackFacing = 1;
@@ -1313,7 +1317,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if (hasDoghost || level.pickups.some(p => p.kind === 'doghost')) {
         loadGameImage(this.load, "doghost_pickup", "doodles/doghost_orb.png");
-        loadGameSheet(this.load, "doghost_walk", "doghost_walk.png", { frameWidth: 240, frameHeight: 180 });
+        this.load.multiatlas("doghost_walk","/companions/motion-v2/doghost.json","/companions/motion-v2/");
       }
       if (hasTeleportationC || level.pickups.some(p => p.kind === 'teleportation_c')) {
         loadGameImage(this.load, "teleportation_c_pickup", "doodles/teleportation_c_orb.png");
@@ -1595,9 +1599,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const damage = Number(projectile.getData("damage")) || (selectedCharacterId === "nico" ? 3 : 2);
         const isPlayerShot = Boolean(projectile.getData("playerShotExpiresAt"));
         const frost=Boolean(projectile.getData('frostShot'));
-        projectileObj.destroy();
+        const companion=projectile.getData('companion') as 'dinio'|'doghost'|undefined;
         const enemy=enemyObj as Phaser.Physics.Arcade.Sprite;
-        if(damageEnemy(scene,enemy,damage,isPlayerShot)&&frost&&enemy.active&&enemy.getData('kind')!=='boss'){
+        const targets=projectile.getData('companionTargets') as Set<Phaser.Physics.Arcade.Sprite>|undefined;
+        if(targets?.has(enemy))return;
+        targets?.add(enemy);
+        const pierces=Number(projectile.getData('companionPierces')??1);
+        if(pierces<=1)projectileObj.destroy();else projectile.setData('companionPierces',pierces-1);
+        const damaged=damageEnemy(scene,enemy,damage,isPlayerShot||Boolean(companion));
+        if(companion&&damaged){if(companion==='dinio')dinioHits++;else doghostHits++;}
+        if(companion&&!damaged&&projectile.active)projectile.destroy();
+        if(damaged&&frost&&enemy.active&&enemy.getData('kind')!=='boss'){
           clearEnemyIntent(enemy);enemy.setData('attackState','patrol').setData('nextAttackAt',scene.time.now+1400);
           enemy.setData('frozenUntil',scene.time.now+900);enemy.setVelocityX(0);enemy.setTint(0x8ce5fa);
           powerHits++;
@@ -1607,8 +1619,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
         if (!projectile.getData("enemyProjectile")) return;
         const damage = Number(projectile.getData("damage"));
+        const sourceBoss=projectile.getData("sourceBoss") as Phaser.Physics.Arcade.Sprite|undefined;
         projectile.destroy();
-        damagePlayer(scene, Number.isFinite(damage) && damage > 0 ? damage : 10, false);
+        damagePlayer(scene, Number.isFinite(damage) && damage > 0 ? damage : 10, false, sourceBoss);
       });
 
       if (debugCheckpoint && level.checkpoints[0]) {
@@ -1683,6 +1696,36 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const enemy=enemies.getChildren().at(-1) as Phaser.Physics.Arcade.Sprite;
         enemy.setData('hp',hp).setData('maxHp',hp).setData('nextAttackAt',scene.time.now+650);
       };
+      if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerBossRulesTest=options=>{
+        const boss=enemies.getChildren().find(e=>e.getData('kind')==='boss') as Phaser.Physics.Arcade.Sprite;
+        if(!boss)throw Error('This scene has no ground boss');
+        enemies.getChildren().slice().filter(e=>e!==boss).forEach(e=>e.destroy());
+        projectiles.getChildren().slice().forEach(e=>e.destroy());
+        mobility?.cancel(true);signature?.cancel(false);movementLockedUntil=lastDamageAt=-9999;playerHealth=100;
+        equipment=equipPowerup(equipment,'blaster',currentLevel);
+        const floor=Number(boss.getData('floorY')),x=boss.x,id=boss.getData('bossId') as BossId;
+        setBossArenaCamera(scene,null,false);placePlayerOnPlatform(x-260,floor);placeBossAt(boss,x,floor);
+        boss.setData('left',x-180).setData('right',x+200).setData('floorY',floor).setData('engaged',true)
+          .setData('phase',1).setData('phasePending',false).setData('hp',100).setData('maxHp',100)
+          .setData('hurtUntil',-9999).setData('damageReadyAt',options.cooldown?scene.time.now+10000:0).setData('buttBombHits',0);
+        if(id==='killinas_daughter')beginKilinaMove(scene,boss,'cannon_burst');
+        else beginStageBossMove(scene,boss,id==='ink_behemoth'?'ember_rain':id==='kilina'?'witch_hex':id==='void_regent'?'star_fan':'fire_volley');
+        if(options.state==='recover'){
+          if(id==='killinas_daughter')recoverKilina(scene,boss);else recoverStageBoss(scene,boss);
+        }else{
+          boss.setData('tellDuration',options.state==='tell'?10000:0)
+            .setData('attackTellUntil',scene.time.now+(options.state==='tell'?10000:0));
+        }
+        if(options.contact)placePlayerOnPlatform(boss.x,floor);
+        if(options.shot){
+          placeBossAt(player,player.x,player.y);
+          const body=player.body as Phaser.Physics.Arcade.Body;
+          const p=stageBossProjectile(scene,boss,body.center.x,body.center.y,0,0,'rule_test',32,11);
+          placeBossAt(p,p.x,p.y);
+          if(options.shot==='enemy')p.setData('sourceBoss',undefined).setData('sourceKind','walker');
+        }
+        syncStats();scene.cameras.main.centerOn(x,SCREEN_HEIGHT/2);
+      };
 
       signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
         player, enemies, projectiles,
@@ -1716,7 +1759,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         canUse: () => !isRespawning && !isLevelClearing && !signature?.casting
           && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
-        damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true),
+        damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true, true),
       }, isZGod ? 'zgod' : 'xgod');
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
@@ -2061,7 +2104,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         scene.anims.create({ key: "platformer_player_attack", frames: scene.anims.generateFrameNumbers("character_attack", { start: 0, end: Math.max(0, usableFrames - 1) }), frameRate: 9, repeat: 0 });
       }
       if (scene.textures.exists("doghost_walk") && !scene.anims.exists("platformer_doghost_walk")) {
-        scene.anims.create({ key: "platformer_doghost_walk", frames: scene.anims.generateFrameNumbers("doghost_walk", { start: 0, end: 2 }), frameRate: 7, repeat: -1 });
+        scene.anims.create({ key: "platformer_doghost_walk", frames: Array.from({length:8},(_,n)=>({key:"doghost_walk",frame:String(n)})), frameRate: 12, repeat: -1 });
       }
       if (scene.textures.exists("teleportation_c_walk") && !scene.anims.exists("platformer_teleportation_c_walk")) {
         scene.anims.create({ key: "platformer_teleportation_c_walk", frames: scene.anims.generateFrameNumbers("teleportation_c_walk", { start: 0, end: 3 }), frameRate: 12, repeat: -1 });
@@ -2601,25 +2644,27 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const travelDirection = getCompanionTravelDirection();
       const targetX = player.x - travelDirection * 112;
       const targetY = (player.body as Phaser.Physics.Arcade.Body).bottom;
-      followCompanion(dinio, targetX, targetY, delta);
+      const position=stepCompanionGround(dinioStride,dinio,{x:scene.time.now<dinioAttackUntil?dinio.x:targetX,y:targetY,airborne:!(player.body as Phaser.Physics.Arcade.Body).blocked.down},delta,companionFloorAt);
+      dinio.setPosition(position.x,position.y);
 
       const now = scene.time.now;
       const target = enemies.getChildren()
         .map((child) => child as Phaser.Physics.Arcade.Sprite)
-        .filter((enemy) => enemy.active && Phaser.Math.Distance.Between(dinio.x, dinio.y, enemy.x, enemy.y) < 360)
+        .filter((enemy) => companionCanTarget(dinio,enemy,540))
         .sort((a, b) => Phaser.Math.Distance.Between(dinio.x, dinio.y, a.x, a.y) - Phaser.Math.Distance.Between(dinio.x, dinio.y, b.x, b.y))[0];
       if (target && now >= dinioNextShotAt) {
         dinioNextShotAt = now + 880;
-        dinioAttackUntil = now + 270;
+        dinioAttackUntil = now + 360;
         dinioAttackFacing = target.x < dinio.x ? -1 : 1;
         scene.time.delayedCall(90, () => {
-          if (!dinio.active || !target.active) return;
+          if (!dinio.active || !companionCanTarget(dinio,target,580)) return;
           const targetBody = target.body as Phaser.Physics.Arcade.Body;
           const startX = dinio.x + dinioAttackFacing * 42;
           const startY = dinio.y - 74;
           const angle = Phaser.Math.Angle.Between(startX, startY, targetBody.center.x, targetBody.center.y);
           const shot = projectiles.create(startX, startY, "dinio_shot") as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-          shot.setData("enemyProjectile", false).setData("damage", 2).setData("dinioShotExpiresAt", scene.time.now + 1700)
+          dinioShots++;
+          shot.setData("companion","dinio").setData("companionTargets",new Set()).setData("enemyProjectile", false).setData("damage", 2).setData("dinioShotExpiresAt", scene.time.now + 1700)
             .setDepth(18).setDisplaySize(48, 25).setFlipX(dinioAttackFacing < 0);
           shot.body.setAllowGravity(false).setSize(105, 48, true);
           shot.setVelocity(Math.cos(angle) * 500, Math.sin(angle) * 500);
@@ -2627,11 +2672,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if (now < dinioAttackUntil) {
         const remaining = dinioAttackUntil - now;
-        dinio.setTexture("dinio_attack", remaining > 180 ? 0 : remaining > 90 ? 1 : 2);
+        dinio.setTexture("dinio_attack", remaining > 240 ? 0 : remaining > 120 ? 1 : 2);
         dinio.setOrigin(dinioAttackFacing < 0 ? 1 - 160 / 448 : 160 / 448, 0.9375);
         dinio.setFlipX(dinioAttackFacing < 0);
       } else {
-        dinio.setTexture("dinio_walk", Math.floor(now / 90) % 6);
+        dinio.setTexture("dinio_walk", !dinioStride.grounded?2:Math.abs(dinioStride.vx)>18?Math.floor(now / 80) % 6:0);
         dinio.setOrigin(0.5, 0.9375);
         dinio.setFlipX(travelDirection < 0);
       }
@@ -2642,7 +2687,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const feet = (player.body as Phaser.Physics.Arcade.Body).bottom;
       const travelDirection = getCompanionTravelDirection();
       doghostCompanion = scene.add.sprite(player.x - travelDirection * 190, feet - 54, "doghost_walk", 0)
-        .setOrigin(0.5, 0.9).setDisplaySize(108, 81).setAlpha(0.88).setDepth(18);
+        .setOrigin(0.5, 0.9).setScale(.48).setAlpha(0.94).setDepth(18);
       if (scene.anims.exists("platformer_doghost_walk")) doghostCompanion.play("platformer_doghost_walk");
     }
 
@@ -2656,7 +2701,29 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const targetX = player.x - travelDirection * 190;
       const targetY = feet - 54 + Math.sin(scene.time.now * 0.006) * 7;
       followCompanion(doghost, targetX, targetY, delta);
-      doghost.setFlipX(travelDirection < 0).setDepth(17);
+      const now=scene.time.now;
+      if(!scene.textures.exists('doghost_pulse')){
+        const art=scene.add.graphics();art.lineStyle(5,0xe3fff6,.95).beginPath().arc(32,32,23,-1.1,1.1).strokePath()
+          .lineStyle(3,0x91e4d4,.8).beginPath().arc(22,32,26,-1.1,1.1).strokePath();art.generateTexture('doghost_pulse',64,64);art.destroy();
+      }
+      const target=enemies.getChildren().map(e=>e as Phaser.Physics.Arcade.Sprite)
+        .filter(e=>companionCanTarget(doghost,e,580)).sort((a,b)=>Math.abs(a.x-player.x)-Math.abs(b.x-player.x))[0];
+      if(target&&now>=doghostNextShotAt){
+        doghostNextShotAt=now+1450;doghostAttackUntil=now+440;doghostAttackFacing=target.x<doghost.x?-1:1;
+        scene.time.delayedCall(160,()=>{
+          if(!doghost.active||!companionCanTarget(doghost,target,620))return;
+          const b=target.body as Phaser.Physics.Arcade.Body,x=doghost.x+doghostAttackFacing*35,y=doghost.y-42;
+          const angle=Phaser.Math.Angle.Between(x,y,b.center.x,b.center.y);
+          const pulse=projectiles.create(x,y,'doghost_pulse') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+          pulse.setData('companion','doghost').setData('companionTargets',new Set()).setData('companionPierces',2)
+            .setData('enemyProjectile',false).setData('damage',3).setData('companionShotExpiresAt',scene.time.now+1600)
+            .setDisplaySize(58,58).setRotation(angle).setDepth(18).setVelocity(Math.cos(angle)*470,Math.sin(angle)*470);
+          pulse.body.setAllowGravity(false).setSize(42,42,true);doghostShots++;playSfx('frost',{volume:.2,pitch:.65});
+        });
+      }
+      if(now<doghostAttackUntil){doghost.anims.stop();doghost.setFrame(String(8+Math.min(3,Math.floor((440-(doghostAttackUntil-now))/110)))).setFlipX(doghostAttackFacing<0);}
+      else{doghost.anims.play('platformer_doghost_walk',true);doghost.setFlipX(travelDirection<0);}
+      doghost.setDepth(17);
     }
 
     function spawnTeleportationCCompanion(scene: Phaser.Scene) {
@@ -2690,22 +2757,40 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(now>=allyAssistAt&&selectedCharacterId!=='teleportation_c'){
         const bolt=projectiles.getChildren().find(child=>child.active&&child.getData('enemyProjectile')&&Phaser.Math.Distance.Between(player.x,feet-54,(child as Phaser.Physics.Arcade.Sprite).x,(child as Phaser.Physics.Arcade.Sprite).y)<125) as Phaser.Physics.Arcade.Sprite|undefined;
         const foe=enemies.getChildren().map(child=>child as Phaser.Physics.Arcade.Sprite)
-          .filter(e=>e.active&&Math.abs(e.x-player.x)<480&&!platformSeparatesPlayerAndEnemy(e)&&(e.getData('kind')==='boss'?isBossVulnerable(e,now):Number(e.getData('hp'))<=2))
+          .filter(e=>e.active&&Math.abs(e.x-player.x)<480&&!platformSeparatesPlayerAndEnemy(e)&&(e.getData('kind')==='boss'?isBossVulnerable(e,now):Number(e.getData('hp'))>0))
           .sort((a,b)=>Number(b.getData('kind')==='boss')-Number(a.getData('kind')==='boss')||Math.abs(a.x-player.x)-Math.abs(b.x-player.x))[0];
         if(bolt){
           portalBurst(scene,ally.x,ally.y);ally.setPosition(bolt.x,bolt.y+48);bolt.destroy();allyIntercepts++;allyAssistKind='intercept';
         }else if(foe){
           const b=foe.body as Phaser.Physics.Arcade.Body;
           portalBurst(scene,ally.x,ally.y);ally.setPosition(foe.x+(player.x<foe.x?-65:65),b.bottom).setFlipX(player.x>foe.x);
-          if(damageEnemy(scene,foe,2,true))allyStrikes++;
+          scene.time.delayedCall(110,()=>{if(ally.active&&foe.active&&!platformSeparatesPlayerAndEnemy(foe)&&damageEnemy(scene,foe,3,true))allyStrikes++;});
           allyAssistKind='strike';
         }
-        if(allyAssistKind!=='none'){playSfx('teleport',{volume:.45,pitch:1.15});portalBurst(scene,ally.x,ally.y);allyAssistAt=now+2600;allyReturnAt=now+280;return;}
+        if(allyAssistKind!=='none'){playSfx('teleport',{volume:.45,pitch:1.15});portalBurst(scene,ally.x,ally.y);allyAssistAt=now+1900;allyReturnAt=now+280;return;}
       }
       if(Phaser.Math.Distance.Between(ally.x,ally.y,targetX,targetY)>280){portalBurst(scene,ally.x,ally.y);ally.setPosition(targetX,targetY);portalBurst(scene,targetX,targetY);}
       else followCompanion(ally,targetX,targetY,delta);
       ally.anims.timeScale=Phaser.Math.Clamp(Math.abs((player.body as Phaser.Physics.Arcade.Body).velocity.x)/260,.65,1.5);
       ally.setFlipX(travelDirection < 0).setDepth(19);
+    }
+
+    function companionFloorAt(x:number,near:number){
+      const surfaces=level.platforms.filter(rect=>x>=rect.x+4&&x<=rect.x+rect.w-4&&rect.y>=near-180&&rect.y+rect.h>=near-12);
+      return surfaces.length?Math.min(...surfaces.map(rect=>rect.y)):null;
+    }
+    function companionCanTarget(ally:Phaser.GameObjects.Sprite,enemy:Phaser.Physics.Arcade.Sprite,range:number){
+      if(!enemy.active||Number(enemy.getData('hp'))<=0||!enemy.body?.enable)return false;
+      if(enemy.getData('kind')==='boss'&&!isBossVulnerable(enemy,latestSceneTime))return false;
+      const b=enemy.body as Phaser.Physics.Arcade.Body;
+      const direction=enemy.x<ally.x?-1:1;
+      const startX=ally.x+direction*(ally===dinioCompanion?42:35),startY=ally.y-(ally===dinioCompanion?74:42);
+      if(Phaser.Math.Distance.Between(startX,startY,b.center.x,b.center.y)>range)return false;
+      const line=new Phaser.Geom.Line(startX,startY,b.center.x,b.center.y);
+      return !platforms.getChildren().some(child=>{
+        const body=child.body as Phaser.Physics.Arcade.StaticBody;
+        return body&&Phaser.Geom.Intersects.LineToRectangle(line,new Phaser.Geom.Rectangle(body.x,body.y,body.width,body.height));
+      });
     }
 
     function getCompanionTravelDirection() {
@@ -3090,7 +3175,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const config = BOSS_DEFINITIONS[boss.getData("bossId") as BossId];
       const key = kind === "quake" ? "cinder_quake_wave" : config.projectileKey;
       const orb = projectiles.create(x, y, key) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-      orb.setData("enemyProjectile", true).setData("damage", damage).setData("bossMove", boss.getData("move"))
+      orb.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("damage", damage).setData("bossMove", boss.getData("move"))
         .setData("bossShotExpiresAt", scene.time.now + (kind === "quake" ? 1900 : 2600))
         .setData("quakeWave", kind === "quake").setData("pattern", kind).setDepth(18)
         .setDisplaySize(kind === "quake" ? 86 : size, kind === "quake" ? 34 : size)
@@ -3122,7 +3207,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function hitStageBossLanding(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
       const body = player.body as Phaser.Physics.Arcade.Body;
       if (Math.abs(body.center.x - boss.x) < 145 && body.bottom > Number(boss.getData("floorY")) - 48) {
-        damagePlayer(scene, 16, false);
+        damagePlayer(scene, 16, false, boss);
       }
     }
 
@@ -3403,6 +3488,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         && now < Number(boss.getData("recoverUntil"));
     }
 
+    function bossCanDamage(boss:Phaser.Physics.Arcade.Sprite,now:number) {
+      return boss.active && Number(boss.getData('hp'))>0 && !isBossVulnerable(boss,now);
+    }
+
     function updateBossGuard(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
       if (!bossGuardVisual) return;
       bossGuardVisual.clear();
@@ -3429,7 +3518,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         : new Phaser.Geom.Rectangle(boss.x + (direction > 0 ? 20 : -165), floor - 133, 145, 92);
       if (!Phaser.Geom.Rectangle.Overlaps(hit, new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height))) return;
       const before = lastDamageAt;
-      damagePlayer(scene, landing ? 15 : 16, false);
+      damagePlayer(scene, landing ? 15 : 16, false, boss);
       if (before !== lastDamageAt && !isRespawning) {
         body.setVelocity((player.x < boss.x ? -1 : 1) * 300, -250);
         movementLockedUntil = scene.time.now + 150;
@@ -3444,7 +3533,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         + [0, -0.035, 0.035, -0.08, 0.08][index];
       const round = projectiles.create(muzzleX, muzzleY, "boss_bullet") as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       const speed = boss.getData("phase") === 2 ? 510 : 440;
-      round.setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 11)
+      round.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 11)
         .setData("bossShotExpiresAt", scene.time.now + 2200).setDepth(18).setDisplaySize(30, 18).setRotation(angle).setTint(0xe4b0ff)
         .setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
       round.body.setSize(round.width * 0.75, round.height * 0.65, true).setAllowGravity(false);
@@ -3462,7 +3551,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (boss.getData("phase") === 2) {
         [-1, 1].forEach(direction => {
           const wave = projectiles.create(boss.x + direction * 55, floor - 15, "boss_ink_orb") as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-          wave.setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 10)
+          wave.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 10)
             .setData("bossShotExpiresAt", scene.time.now + 1300).setDisplaySize(54, 26).setTint(0xd8a4ff).setDepth(18)
             .setVelocityX(direction * 280);
           wave.body.setSize(wave.width * 0.75, wave.height * 0.6, true).setAllowGravity(false);
@@ -3662,7 +3751,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       updateUniqueProjectiles(player.scene,projectiles,latestSceneTime);
       projectiles.getChildren().forEach((child) => {
         const projectile = child as Phaser.Physics.Arcade.Sprite;
-        if (projectile.active && (projectile.x < -160 || projectile.x > worldWidth + 160 || projectile.y < -160 || projectile.y > WORLD_HEIGHT + 160 || (projectile.getData("dinioShotExpiresAt") && latestSceneTime > projectile.getData("dinioShotExpiresAt")) || (projectile.getData("playerShotExpiresAt") && latestSceneTime > projectile.getData("playerShotExpiresAt")) || (projectile.getData("bossShotExpiresAt") && latestSceneTime > projectile.getData("bossShotExpiresAt")))) {
+        const sourceBoss=projectile.getData('sourceBoss') as Phaser.Physics.Arcade.Sprite|undefined;
+        if(sourceBoss&&!bossCanDamage(sourceBoss,latestSceneTime)){projectile.destroy();return;}
+        if (projectile.active && (projectile.x < -160 || projectile.x > worldWidth + 160 || projectile.y < -160 || projectile.y > WORLD_HEIGHT + 160 || (projectile.getData("dinioShotExpiresAt") && latestSceneTime > projectile.getData("dinioShotExpiresAt")) || (projectile.getData("playerShotExpiresAt") && latestSceneTime > projectile.getData("playerShotExpiresAt")) || (projectile.getData("bossShotExpiresAt") && latestSceneTime > projectile.getData("bossShotExpiresAt")) || (projectile.getData("companionShotExpiresAt") && latestSceneTime > projectile.getData("companionShotExpiresAt")))) {
           projectile.destroy();
         }
       });
@@ -4104,13 +4195,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       });
     }
 
-    function damageEnemy(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite, damage: number, isLightShot = false, isStomp = false) {
+    function damageEnemy(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite, damage: number, isLightShot = false, isStomp = false, isButtBomb = false) {
       if (!enemy.active || Number(enemy.getData("hp")) <= 0) return false;
       const targetBody = enemy.body as Phaser.Physics.Arcade.Body;
       const isBoss = enemy.getData("kind") === "boss";
       let appliedDamage = isZGod ? Number(enemy.getData('hp')) : damage;
       if (isBoss && !isZGod) {
-        if (!isBossVulnerable(enemy, scene.time.now)) {
+        const open=isBossVulnerable(enemy, scene.time.now);
+        if (!open && !isButtBomb) {
           enemy.setData("guardedHits", Number(enemy.getData("guardedHits")) + 1);
           // Blocking must not spend the opening's hit cooldown or interrupt an attack.
           if (scene.time.now >= Number(enemy.getData("guardFlashUntil") ?? 0)) {
@@ -4122,11 +4214,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           }
           return false;
         }
-        if (scene.time.now < Number(enemy.getData("damageReadyAt"))) return false;
-        appliedDamage *= enemy.getData("bossId") === "ink_behemoth" ? 2 : 1.5;
-        enemy.setData("damageReadyAt", scene.time.now + 160)
-          .setData("openingHits", Number(enemy.getData("openingHits")) + 1);
+        // A bomb already deduplicates targets per cast, so a recent gun hit cannot eat it.
+        if (!isButtBomb && scene.time.now < Number(enemy.getData("damageReadyAt"))) return false;
+        if(open)appliedDamage *= enemy.getData("bossId") === "ink_behemoth" ? 2 : 1.5;
+        enemy.setData("damageReadyAt", scene.time.now + 160);
+        if(open)enemy.setData("openingHits", Number(enemy.getData("openingHits")) + 1);
       }
+      if(isBoss&&isButtBomb)enemy.setData('buttBombHits',Number(enemy.getData('buttBombHits')??0)+1);
       const impact = scene.add.image(targetBody.center.x, targetBody.top + targetBody.height * 0.35, "enemy_hit_impact")
         .setDepth(25).setAlpha(0.9);
       if (currentLevel !== 3) impact.setDisplaySize(isLightShot ? 32 : 50, isLightShot ? 32 : 50);
@@ -4264,6 +4358,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         stompEnemy(scene, enemy);
         return;
       }
+      if(isBoss&&!bossCanDamage(enemy,scene.time.now))return;
       if (isZGod) { damagePlayer(scene,0,false); return; }
       const attackState = enemy.getData("attackState") as string;
       const bossConfig = isBoss ? BOSS_DEFINITIONS[enemy.getData("bossId") as BossId] : null;
@@ -4274,7 +4369,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         ? attackState === "recover" ? 4 : attackState === "attack"
           && (bossConfig?.attackStyle === "rush" || ["dragon_lunge", "cinder_bound", "shadow_dash", "witch_step"].includes(enemy.getData("move"))) ? 16 : 8
         : kind === "giant" ? 18 : 12;
-      damagePlayer(scene, contactDamage, false);
+      damagePlayer(scene, contactDamage, false, isBoss?enemy:undefined);
       if (playerLives !== livesBeforeContact) return;
       const knockDirection = player.x < enemy.x ? -1 : 1;
       body.setVelocity(knockDirection * 280, -240);
@@ -4365,8 +4460,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       projectiles.getChildren().filter(child=>Object.hasOwn(ENEMY_MOTION,child.getData('sourceKind')??'')).forEach(child=>child.destroy());
     }
 
-    function damagePlayer(scene: Phaser.Scene, damage: number, forceRespawn: boolean) {
+    function damagePlayer(scene: Phaser.Scene, damage: number, forceRespawn: boolean, sourceBoss?:Phaser.Physics.Arcade.Sprite) {
       if(isRespawning||isLevelClearing)return;
+      if(!forceRespawn&&sourceBoss&&!bossCanDamage(sourceBoss,scene.time.now))return;
       if(!forceRespawn&&signature?.invulnerable)return;
       const now = scene.time.now;
       if (isZGod) {
@@ -4683,6 +4779,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             ? Math.max(0, Math.round(Number(enemy.getData("recoverUntil")) - latestSceneTime)) : 0,
           recoveryDurationMs: enemy.getData("kind") === "boss"
             ? Number(enemy.getData("recoveryDuration") ?? bossCounterWindow(Number(enemy.getData('phase')))) : null,
+          buttBombHits:enemy.getData("buttBombHits")??0,
           guardedHits: enemy.getData("guardedHits") ?? null,
           openingHits: enemy.getData("openingHits") ?? null,
           attacksCompleted: enemy.getData("attacksCompleted") ?? null,
@@ -4719,6 +4816,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           y: Math.round(projectile.y),
           enemyProjectile: Boolean(projectile.getData("enemyProjectile")),
           sourceKind:projectile.getData('sourceKind')??null,
+          sourceBoss:projectile.getData('sourceBoss')?.getData('bossId')??null,
+          companion:projectile.getData('companion')??null,
           armed: Boolean((projectile.body as Phaser.Physics.Arcade.Body).enable),
           returned: Boolean(projectile.getData('returned')),
           bounces: projectile.getData('bounces')??0,
@@ -4827,8 +4926,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           gravityCoreUnlocked,
           gravityCoreCharges
         },
-        dinio: { unlocked: dinioUnlocked, active: hasDinio, x: dinioCompanion?.active ? Math.round(dinioCompanion.x) : null, y: dinioCompanion?.active ? Math.round(dinioCompanion.y) : null },
-        doghost: { unlocked: doghostUnlocked, active: hasDoghost, x: doghostCompanion?.active ? Math.round(doghostCompanion.x) : null, y: doghostCompanion?.active ? Math.round(doghostCompanion.y) : null },
+        dinio: { unlocked: dinioUnlocked, active: hasDinio, shots:dinioShots,hits:dinioHits,grounded:dinioStride.grounded,velocityX:Math.round(dinioStride.vx),warps:dinioStride.warps,frame:dinioCompanion?.frame.name,attacking:latestSceneTime<dinioAttackUntil, x: dinioCompanion?.active ? Math.round(dinioCompanion.x) : null, y: dinioCompanion?.active ? Math.round(dinioCompanion.y) : null },
+        doghost: { unlocked: doghostUnlocked, active: hasDoghost,shots:doghostShots,hits:doghostHits,frame:doghostCompanion?.frame.name,attacking:latestSceneTime<doghostAttackUntil, x: doghostCompanion?.active ? Math.round(doghostCompanion.x) : null, y: doghostCompanion?.active ? Math.round(doghostCompanion.y) : null },
         teleportationC: { unlocked: teleportationCUnlocked, active: hasTeleportationC, x: teleportationCCompanion?.active ? Math.round(teleportationCCompanion.x) : null, y: teleportationCCompanion?.active ? Math.round(teleportationCCompanion.y) : null,
           assist:allyAssistKind,intercepts:allyIntercepts,strikes:allyStrikes,cooldownRemainingMs:Math.max(0,allyAssistAt-latestSceneTime) },
         teleport:selectedCharacterId==='teleportation_c'?{...teleport,phaseActive:latestSceneTime<teleport.phaseUntil,counterReady:latestSceneTime<teleport.counterUntil,cooldownRemainingMs:Math.max(0,teleport.readyAt-latestSceneTime),stride:teleportStride}:null,
@@ -4964,6 +5063,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerCollectPickup = undefined;
       window.__unknownPlatformerSpecialTest = undefined;
       window.__unknownPlatformerEnemyTest = undefined;
+      window.__unknownPlatformerBossRulesTest = undefined;
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;
       mobility?.destroy();mobility=null;

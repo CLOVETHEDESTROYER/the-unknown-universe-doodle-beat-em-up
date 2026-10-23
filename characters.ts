@@ -33,7 +33,7 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
     id: "xgod",
     name: "X God",
     subtitle: "Main Character",
-    cardImage: "/cards/xgod-card.png",
+    cardImage: "/cards/xgod-current-v2.webp",
     hudColor: "amber",
     rewardName: "Fire Sword",
     rewardSubtitle: "Claim the blade and let its fire answer you.",

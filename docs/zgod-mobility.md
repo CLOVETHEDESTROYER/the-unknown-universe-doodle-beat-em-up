@@ -1,6 +1,6 @@
 # Z God airborne powers
 
-- **Double jump:** tap Z / Up or touch J, release, then press again in midair.
+- **Double jump:** tap Z / Up or touch JUMP, release, then press again in midair.
   One extra jump per airtime; landing, spring launches and checkpoint recovery
   replenish it. Holding jump does not automatically double jump.
 - **Starfall Ground Punch:** press jump a third time after the double jump, or
@@ -23,8 +23,8 @@ its separate X / SP input and cooldown. Auto-run includes a v button for the
 punch. Flight keeps ship controls.
 
 `gameplay/airborneMoves.ts` shares jump/input/landing/animation state with X God,
-whose smaller local butt-bomb shockwave keeps its established damage and armor
-rules. Both use their normal physics bodies beneath an anchored animation.
+whose smaller local butt-bomb shockwave bypasses boss armor while retaining
+its direct/shockwave damage and opening bonus. Both use their normal physics bodies beneath an anchored animation.
 Debug state is under `movement.zgodMobility` and `movement.xgodMobility`.
 
 New assets were generated with built-in ImageGen from the approved Z God seed:
