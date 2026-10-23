@@ -16,16 +16,17 @@ viewports only 343px high on modern phones. Compact landscape phones under
 controls at the edges; portrait tablets reserve space below the game. Safe-area
 insets are respected. Opt-in auto-run retains its large downward touch button.
 
-For drawn X God and Z God, press and release JUMP three times during one airtime:
+For every current on-foot hero, press and release JUMP three times during one airtime:
 
 1. Jump.
 2. Double jump.
-3. Butt bomb (X God) or screen-clearing ground punch (Z God).
+3. Character slam: Butt Bomb, Bear Drop, Rocket Drop, Flame Crash, Rift Drop, or Z God's screen-clearing ground punch.
 
 Keyboard Z/Up follows the same chain. Holding a button does not automatically
 advance it. Landing refills the extra jump. Down/S and joystick-down still allow
 an earlier slam. X God's butt bomb bypasses boss armor; Z God retains her
-invincibility and screen-clearing punch. Other heroes keep their normal jump.
+invincibility and screen-clearing punch. All heroes can hold joystick down to
+crouch and fire low with the other thumb. See [full-roster mobility](roster-mobility-v2.md).
 
 Pause hides and disables the controls and releases all held input. Pointer up,
 cancel/capture loss, blur, backgrounding, resize and scene/mode changes reset

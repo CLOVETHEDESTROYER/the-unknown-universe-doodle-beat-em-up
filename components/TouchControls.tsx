@@ -192,9 +192,9 @@ const TouchButton: React.FC<{
   );
 };
 
-const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatformer?: boolean; autoRun?: boolean; canCrouch?: boolean; canShoot?: boolean; blasterEquipped?: boolean; teleportControls?:boolean; starControls?:boolean; specialName?:string }> = ({ isPaused, flightMode = false, isPlatformer = false, autoRun = false, canCrouch = false, canShoot = false, blasterEquipped = false,teleportControls=false,starControls=false,specialName }) => {
-  const airborneMoves = isPlatformer && (starControls || canCrouch && new URLSearchParams(window.location.search).get('xgodArt') !== 'model');
-  const downLabel = airborneMoves ? starControls ? 'Crouch / airborne ground punch' : 'Crouch / airborne butt bomb' : 'Crouch';
+const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatformer?: boolean; autoRun?: boolean; canCrouch?: boolean; canShoot?: boolean; blasterEquipped?: boolean; teleportControls?:boolean; starControls?:boolean; specialName?:string; slamName?:string }> = ({ isPaused, flightMode = false, isPlatformer = false, autoRun = false, canCrouch = false, canShoot = false, blasterEquipped = false,teleportControls=false,starControls=false,specialName,slamName }) => {
+  const airborneMoves = isPlatformer && (starControls || canCrouch);
+  const downLabel = airborneMoves ? `Crouch / airborne ${slamName??(starControls?'ground punch':'butt bomb')}` : 'Crouch';
   useEffect(() => {
     resetControls();
 
@@ -246,7 +246,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       </div>}
       {!flightMode && <div className="touch-actions pointer-events-auto relative mb-1 grid grid-cols-2 gap-3">
         {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{blasterEquipped ? "Space / C: shoot" : "Space / C: attack"}</span>}
-        <TouchButton control="jump" label="JUMP" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${starControls ? 'ground punch' : 'butt bomb'}` : "Jump"} className="bg-sky-700/72" />
+        <TouchButton control="jump" label="JUMP" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${slamName??(starControls ? 'ground punch' : 'butt bomb')}` : "Jump"} className="bg-sky-700/72" />
         {isPlatformer && specialName ? (
           <TouchButton control="dash" label="SP" accessibleLabel={`Special: ${specialName}`} className="bg-violet-700/80 text-xl" />
         ) : starControls ? (

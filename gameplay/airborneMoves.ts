@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { playSfx } from '../audio/gameAudio';
+import type {CharacterId} from '../types';
+import {HERO_MOBILITY,hasNewMobilityArt} from './heroMobility';
 
 type Enemy = Phaser.Physics.Arcade.Sprite;
 type BombPhase = 'ready' | 'windup' | 'diving' | 'landing';
@@ -33,9 +35,9 @@ export class AirborneMoves {
   private clearedShots = 0;
   private screenClears = 0;
 
-  constructor(private scene: Phaser.Scene, private hooks: Hooks, readonly hero: 'xgod' | 'zgod') {
-    this.actor = scene.add.sprite(0, 0, `${hero}_double_jump`, '0')
-      .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : .78).setDepth(24).setVisible(false);
+  constructor(private scene: Phaser.Scene, private hooks: Hooks, readonly hero: CharacterId) {
+    this.actor = scene.add.sprite(0, 0, hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
+      .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:.72).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }
@@ -92,7 +94,7 @@ export class AirborneMoves {
   contact(enemy: Enemy, fromAbove: boolean) {
     if (this.phase === 'landing' && this.targets.has(enemy)) return true;
     if (!this.diving || (!fromAbove && !this.targets.has(enemy))) return false;
-    this.hit(enemy, 6);
+    this.hit(enemy, HERO_MOBILITY[this.hero].direct);
     return true;
   }
 
@@ -115,8 +117,10 @@ export class AirborneMoves {
         onComplete: () => { this.knockouts.delete(copy); copy.destroy(); } });
     }
     if (enemy.active && enemy.getData('kind') !== 'boss') {
-      enemy.setData('specialStunUntil', this.scene.time.now+450);
-      enemy.setVelocity(0, -280);
+      const move=HERO_MOBILITY[this.hero];
+      enemy.setData('specialStunUntil', this.scene.time.now+move.stun);
+      if(this.hero==='teleportation_c')enemy.setData('slamPullX',this.body.center.x).setData('slamPullUntil',this.scene.time.now+move.stun);
+      enemy.setVelocity(this.hero==='teleportation_c'?Math.sign(this.body.center.x-enemy.x)*180:0, -move.launch);
     }
   }
 
@@ -131,11 +135,15 @@ export class AirborneMoves {
       playSfx('explosion', { pitch: .8 });
       return;
     }
-    const area = new Phaser.Geom.Rectangle(body.center.x-180, body.bottom-125, 360, 140);
+    const move=HERO_MOBILITY[this.hero];
+    const area = new Phaser.Geom.Rectangle(body.center.x-move.radius, body.bottom-move.height, move.radius*2, move.height+15);
     for (const enemy of [...this.hooks.enemies.getChildren()] as Enemy[]) {
       if (!enemy.active || !this.hooks.clearLine(enemy)) continue;
       const b = enemy.body as Phaser.Physics.Arcade.Body;
-      if (Phaser.Geom.Intersects.RectangleToRectangle(area, new Phaser.Geom.Rectangle(b.x, b.y, b.width, b.height))) this.hit(enemy, 4);
+      if (Phaser.Geom.Intersects.RectangleToRectangle(area, new Phaser.Geom.Rectangle(b.x, b.y, b.width, b.height))) this.hit(enemy, move.wave);
+    }
+    if(this.hero==='nico')for(const shot of [...this.hooks.projectiles.getChildren()] as Enemy[]){
+      if(shot.active&&shot.getData('enemyProjectile')&&Phaser.Math.Distance.Between(body.center.x,body.bottom-45,shot.x,shot.y)<=move.radius){shot.destroy();this.clearedShots++;}
     }
     this.scene.cameras.main.shake(130, .0035);
     playSfx('stomp', { pitch: .7 });
@@ -161,18 +169,21 @@ export class AirborneMoves {
     }
   }
 
-  present(obscured: boolean, hidePlayer: boolean) {
+  present(obscured: boolean, hidePlayer: boolean, crouch?:{equipment:string;firing:boolean}) {
     if (!this.alive || !this.hooks.player.active) return;
     const now = this.scene.time.now, age = now-this.jumpAt;
     const spin = age < 420;
-    const visible = !obscured && (this.busy || spin);
+    const duck=Boolean(crouch)&&hasNewMobilityArt(this.hero)&&!this.busy;
+    const visible = !obscured && (this.busy || spin || duck);
     this.actor.setVisible(visible);
     if (visible) {
       const frame = this.phase === 'windup' ? (now-this.phaseAt < 80 ? 0 : 1)
         : this.phase === 'diving' ? 2
         : this.phase === 'landing' ? 3+Math.min(2, Math.floor((now-this.phaseAt)/100))
         : Math.min(5, Math.floor(age/70));
-      this.actor.setTexture(this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(frame))
+      const newFrame=duck?(crouch!.equipment==='blaster'?10:crouch!.equipment==='frost'?14:crouch!.equipment==='sword'?12:8)+(crouch!.firing?1:0)
+        :this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105));
+      this.actor.setTexture(hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(hasNewMobilityArt(this.hero)?newFrame:frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       this.hooks.player.setVisible(false); this.hidden = true;
     } else if (this.hidden) {
@@ -210,7 +221,14 @@ export class AirborneMoves {
       }
       return;
     }
-    this.ink.lineStyle(6, 0xffcb69, 1-p).strokeEllipse(x, y-3, 60+p*300, 15+p*35);
+    const move=HERO_MOBILITY[this.hero];
+    this.ink.lineStyle(6, move.color, 1-p).strokeEllipse(x, y-3, 60+p*move.radius*1.7, 15+p*35);
+    if(this.hero==='ezra')for(let i=0;i<7;i++){
+      const fx=x+(i-3)*42;
+      this.ink.lineStyle(7,move.color,1-p).lineBetween(fx-13,y-5,fx,y-35-Math.sin(p*Math.PI)*110).lineBetween(fx,y-35-Math.sin(p*Math.PI)*110,fx+13,y-5);
+    }
+    if(this.hero==='teleportation_c')this.ink.lineStyle(3,0xf2e5ff,1-p).strokeEllipse(x,y-6,move.radius*2*(1-p),35);
+    if(this.hero==='nico')this.ink.lineStyle(4,0xffdf8c,1-p).strokeCircle(x,y-45,20+p*move.radius);
     for (let i=0; i<8; i++) {
       const dx = (i-3.5)*14*(1+p*2);
       this.ink.fillStyle(i%2 ? 0xd9bb91 : 0xf9dfa9, (1-p)*.8)
@@ -221,7 +239,7 @@ export class AirborneMoves {
   read() {
     return { doubleJumpAvailable: this.available, doubleJumps: this.jumps, bombPhase: this.phase,
       bombs: this.bombs, impacts: this.impacts, hits: this.hits,
-      name: this.hero === 'zgod' ? 'Starfall Ground Punch' : 'Butt Bomb', screenClears: this.screenClears,
+      name: HERO_MOBILITY[this.hero].name, screenClears: this.screenClears,
       clearedShots: this.clearedShots, shockwaveActive: Boolean(this.impact), knockoutPoses: this.knockouts.size,
       texture: this.actor.visible ? this.actor.texture.key : null,
       frame: this.actor.visible ? Number(this.actor.frame.name) : null };

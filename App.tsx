@@ -6,6 +6,7 @@ import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
 import { createLoadout } from './gameplay/powerups';
 import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
+import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
@@ -737,7 +738,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={gameSuspended} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId === "xgod" && new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -960,10 +961,16 @@ const App: React.FC = () => {
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
                 && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
                 && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or J: jump → double jump → butt bomb.<br />You can also pull the joystick down or press Down / S while airborne to slam.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → butt bomb.<br />You can also pull the joystick down or press Down / S while airborne to slam.</p>
               )}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'zgod' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or J: jump → double jump → ground punch.<br />You can also pull the joystick down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → ground punch.<br />You can also pull the joystick down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
+              )}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && hasNewMobilityArt(selectedCharacterId) && (
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → {HERO_MOBILITY[selectedCharacterId].name}.<br />Down / S or joystick down also triggers the slam in midair.</p>
+              )}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
+                <p className="mb-3 text-base text-slate-700">Hold Down / S or joystick down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : 'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />

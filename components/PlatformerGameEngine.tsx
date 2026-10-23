@@ -23,6 +23,7 @@ import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgres
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
+import {hasNewMobilityArt} from '../gameplay/heroMobility';
 import { EMBER_DASH, EmberJets } from '../gameplay/emberJets';
 import { FLAME_SWORD, FireBlades } from '../gameplay/fireBlade';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
@@ -135,7 +136,7 @@ declare global {
     __unknownPlatformerDamagePlayer?: (damage?: number) => void;
     __unknownPlatformerSetPlayerPosition?: (x: number, y?: number) => void;
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
-    __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean}) => void;
+    __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
     __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy';cooldown?:boolean})=>void;
     advanceTime?: (ms: number) => Promise<void>;
@@ -1356,6 +1357,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameImage(this.load, backgroundKey, path);
       });
 
+      if(hasNewMobilityArt(selectedCharacterId))this.load.multiatlas('hero_mobility',`/characters/mobility-v2/${selectedCharacterId}.json`,'/characters/mobility-v2/');
       if (isZGod) {
         this.load.json('hero_equipment_meta', 'characters/z-god-v1/metadata.json');
         for (const power of availablePowers) for (const action of ['run','jump','idle','attack','crouch']) {
@@ -1754,13 +1756,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           return safeTeleportPoint(x,y,space,true)&&teleportPathClear(from,{x,y},space)?y:null;
         },
       });
-      if (useDrawnXGod || isZGod) mobility = new AirborneMoves(scene, {
+      if (useDrawnXGod || !isXGod) mobility = new AirborneMoves(scene, {
         player, enemies, projectiles, facing: () => facingDirection,
         canUse: () => !isRespawning && !isLevelClearing && !signature?.casting
           && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
         damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true, true),
-      }, isZGod ? 'zgod' : 'xgod');
+      }, selectedCharacterId);
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
         projectiles.getChildren().slice().forEach(child=>child.destroy());
@@ -1770,6 +1772,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             x,y:getPlatformStandY(x)??480,left:x-40,right:x+40});
           const enemy=enemies.getChildren().at(-1) as Phaser.Physics.Arcade.Sprite;
           enemy.setData('hp',options.hp??20).setData('maxHp',options.hp??20).setData('hurtUntil',scene.time.now+5000);
+          if(options.lift){
+            (enemy.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+            placeBossAt(enemy,enemy.x,enemy.y-options.lift);
+          }
           if(options.boss)enemy.setData('engaged',true);
           if(options.boss)enemy.setData('attackState',options.guarded?'tell':'recover').setData('moveState','recover')
             .setData('recoverUntil',scene.time.now+5000).setData('phaseState','recover');
@@ -1858,7 +1864,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (bossDefeated || player.x < level.endX - 1080) autoRunDirection = 1;
       const keyboardAxis=Number(cursors.right.isDown)-Number(cursors.left.isDown);
       const touchAxis=touch.axisX??(Number(Boolean(touch.right))-Number(Boolean(touch.left)));
-      const targetVelocity = isAutoRun ? playFeel.runSpeed * autoRunDirection : isCrouching ? 0 : playFeel.runSpeed*(keyboardAxis||touchAxis);
+      const targetVelocity = isCrouching ? 0 : isAutoRun ? playFeel.runSpeed * autoRunDirection : playFeel.runSpeed*(keyboardAxis||touchAxis);
       if (isAutoRun) facingDirection = autoRunDirection;
       if (moveRight) facingDirection = 1;
       if (moveLeft) facingDirection = -1;
@@ -1923,7 +1929,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const blinkPressed=Phaser.Input.Keyboard.JustDown(dashKey),recallPressed=Phaser.Input.Keyboard.JustDown(recallKey);
       const queuedBlink=performance.now()-blinkQueuedAt<160,queuedRecall=performance.now()-recallQueuedAt<160;
       blinkQueuedAt=recallQueuedAt=-9999;
-      if(selectedCharacterId==='teleportation_c'&&now>=emberUntil&&!signature?.casting){
+      if(selectedCharacterId==='teleportation_c'&&now>=emberUntil&&!signature?.casting&&!mobility?.busy&&!isCrouching){
         if(queuedRecall||recallPressed||recallInput&&!recallHeld)tryTeleport(scene,true,grounded);
       }
       const queuedSpecial=performance.now()-specialQueuedAt<250;
@@ -1937,7 +1943,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const blasterEquipped = equipment.active==='blaster'||equipment.active==='frost';
       const shootHeld = shootKey.isDown || Boolean(touch.shoot)
         || (blasterEquipped && (attackKey.isDown || Boolean(touch.attack)));
-      if (!signature?.casting && !mobility?.busy && blasterEquipped && shootHeld && !isCrouching && now >= attackVisualUntil && now - lastShotAt >= POWERUPS[equipment.active].cooldown) {
+      if (!signature?.casting && !mobility?.busy && blasterEquipped && shootHeld && now >= attackVisualUntil && now - lastShotAt >= POWERUPS[equipment.active].cooldown) {
         if (equipment.active==='frost'?fireFrostShot(scene):firePlayerShot(scene)) {
           lastShotAt = now;
           shotRecoilUntil = now + 180;
@@ -1948,7 +1954,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const queuedEquipmentAttack=(equipment.active==='ember'||equipment.active==='sword')&&performance.now()-equipmentAttackQueuedAt<200;
       equipmentAttackQueuedAt=-9999;
       const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot) || queuedEquipmentAttack);
-      if (!signature?.casting && !mobility?.busy && attackPressed && !isCrouching && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
+      if (!signature?.casting && !mobility?.busy && attackPressed && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,selectedCharacterId==='teleportation_c'?430:0)) {
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
         }else{
@@ -1966,7 +1972,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const attackTeleport=teleport.blinks+teleport.recalls;
         attackResolution='pending';
         scene.time.delayedCall(selectedCharacterId==='teleportation_c'?(blinkCounter?55:125):isXGod && useSideScrollXGodRun ? (hasFlameSword ? 172 : 140) : !isXGod ? 100 : 0, () => {
-          attackResolution=!player.active||isRespawning||isLevelClearing?'inactive':isCrouching?'crouched':equipment.active!==attackEquipment?'equipment_changed':now<=lastDamageAt?'damaged':selectedCharacterId==='teleportation_c'&&attackTeleport!==teleport.blinks+teleport.recalls?'teleported':'resolved';
+          attackResolution=!player.active||isRespawning||isLevelClearing?'inactive':equipment.active!==attackEquipment?'equipment_changed':now<=lastDamageAt?'damaged':selectedCharacterId==='teleportation_c'&&attackTeleport!==teleport.blinks+teleport.recalls?'teleported':'resolved';
           if(attackResolution==='resolved' && !mobility?.busy)performAttack(scene, combo,blinkCounter);
         });
         }
@@ -1979,8 +1985,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (platformSnapped) lastGroundedAt = now;
       updatePlayerVisual(scene, (grounded || platformSnapped) && !jumpedThisFrame, delta);
       signature?.present();
-      mobility?.present(Boolean(signature?.casting || xgodDamagePose?.active || now < attackVisualUntil || now<emberUntil),
-        Boolean(signature?.casting || xgodDamagePose?.active || now<emberUntil));
+      mobility?.present(Boolean(signature?.casting || xgodDamagePose?.active || !isCrouching&&now < attackVisualUntil || now<emberUntil),
+        Boolean(signature?.casting || xgodDamagePose?.active || now<emberUntil),
+        isCrouching?{equipment:equipment.active,firing:now<shotRecoilUntil||now<attackVisualUntil}:undefined);
       emberJets?.present(equipment.active==='ember'&&now<emberUntil,EMBER_DASH.duration-emberRemaining,emberDirection,
         Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active),Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active||mobility?.read().texture));
       if (xgodDamagePose?.active) {
@@ -2048,19 +2055,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function canStandUp() {
       const body = player.body as Phaser.Physics.Arcade.Body;
-      const top = player.y - (isZGod ? heroBodyHeight : 270) * player.scaleY;
+      const top = body.bottom - heroBodyHeight * player.scaleY;
       return !level.platforms.some(rect => rect.h > 56 && body.right > rect.x + 1 && body.left < rect.x + rect.w - 1
         && top < rect.y + rect.h && player.y > rect.y + 1);
     }
 
     function setCrouching(crouched: boolean, now: number) {
-      if (isZGod) {
+      if (!isXGod) {
         if (crouched === isCrouching || !crouched && !canStandUp()) return;
         const body = player.body as Phaser.Physics.Arcade.Body;
         const previousHeight = body.height;
         isCrouching = crouched;
-        const height = crouched ? 135 : heroBodyHeight;
-        body.setSize(heroBodyWidth,height,false).setOffset((player.width-heroBodyWidth)/2,480-height);
+        const height = crouched ? (isZGod?135:150) : heroBodyHeight;
+        const baseline=player.originY*player.height;
+        body.setSize(heroBodyWidth,height,false).setOffset((player.width-heroBodyWidth)/2,baseline-height);
         const shift = previousHeight-body.height;
         body.position.y += shift; body.prev.y += shift; body.prevFrame.y += shift; body.updateCenter();
         return;
@@ -2537,9 +2545,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body=player.body as Phaser.Physics.Arcade.Body;
       if(!isXGod){
         updatePlayerVisual(scene,isPlayerGrounded(body),0);
-        if(isPlayerGrounded(body))player.setTexture('hero_frost_attack',0);
+        if(!isCrouching&&isPlayerGrounded(body))player.setTexture('hero_frost_attack',0);
       }
-      const hand=heroAttachment(scene,'hand');
+      const hand=isCrouching?crouchMuzzle():heroAttachment(scene,'hand');
       const shot=projectiles.create(hand?.x??player.x+facingDirection*38,hand?.y??body.center.y,'equipment_frost') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       shot.setDisplaySize(32,28).setData('damage',1.5).setData('frostShot',true).setData('playerShotExpiresAt',scene.time.now+1300)
         .setDepth(22).setVelocityX(facingDirection*540).setAngularVelocity(facingDirection*210);
@@ -2917,7 +2925,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemies.getChildren().forEach((child) => {
         const enemy = child as Phaser.Physics.Arcade.Sprite;
         if (!enemy.active) return;
-        if(now<Number(enemy.getData('specialStunUntil')??0)){enemy.setVelocityX(0);return;}
+        if(now<Number(enemy.getData('specialStunUntil')??0)){
+          const pull=now<Number(enemy.getData('slamPullUntil')??0);
+          enemy.setVelocityX(pull?Phaser.Math.Clamp((Number(enemy.getData('slamPullX'))-enemy.x)*4,-180,180):0);return;
+        }
         const kind = enemy.getData("kind") as EnemyKind;
         if (enemy.y > WORLD_HEIGHT + 96) {
           enemy.setPosition(enemy.getData("spawnX") as number, enemy.getData("spawnY") as number);
@@ -3702,9 +3713,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body = player.body as Phaser.Physics.Arcade.Body;
       if(!isXGod){
         updatePlayerVisual(scene,isPlayerGrounded(body),0);
-        if(isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
+        if(!isCrouching&&isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
       }
-      if (equipment.active==='blaster' && isXGod && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
+      if (equipment.active==='blaster' && isXGod && !isCrouching && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
         // Releasing crouch and firing should use the raised barrel immediately.
         player.anims.stop();
         player.setTexture("runner_blaster-attack", useDrawnXGod ? 1 : 0);
@@ -3713,7 +3724,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const action = player.texture.key.replace("runner_", "");
       const attachmentSet=useDrawnXGod?'xgod_drawn_meta':action==='blaster-run'?'xgod_blaster_run_v3_meta':action==='blaster-jump'?'xgod_jump_v3_meta':'xgod_motion_v2_meta';
       const attachment = !hasFlameSword && scene.cache.json.get(attachmentSet)?.actions[action]?.attachments[Number(player.frame.name)];
-      const heldMuzzle=heroAttachment(scene,'muzzle');
+      const heldMuzzle=isCrouching?crouchMuzzle():heroAttachment(scene,'muzzle');
       const muzzleX = heldMuzzle?.x ?? (attachment?.muzzle
         ? player.x + facingDirection * (attachment.muzzle[0] - (useDrawnXGod?384:256)) * player.scaleX
         : player.x + facingDirection * (hasFlameSword ? 76 : 82));
@@ -3809,6 +3820,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }else if(jumpVisualAirborne){
           if(lastAirborneVelocity>180)landingVisualStartedAt=scene.time.now;
           jumpVisualAirborne=false;
+        }
+        if(!isZGod&&isCrouching){
+          player.anims.stop();player.setAngle(0).setAlpha(1);
+          body.setSize(heroBodyWidth,150,false).setOffset((player.width-heroBodyWidth)/2,player.originY*player.height-150);
+          return;
         }
         if (isZGod) {
           updateZGodVisual(scene, grounded, delta);
@@ -4128,6 +4144,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       body.setSize(96,270,false).setOffset((player.width-96)/2,210);
     }
 
+    function crouchMuzzle(){
+      const body=player.body as Phaser.Physics.Arcade.Body;
+      return {x:player.x+facingDirection*60,y:body.bottom-38};
+    }
+
     function heroAttachment(scene:Phaser.Scene,field:'hand'|'muzzle'){
       if(isXGod)return null;
       const match=/^hero_(blaster|frost)_(run|jump|idle|attack|crouch)$/.exec(player.texture.key);
@@ -4162,9 +4183,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(blinkStrike){damage+=1;teleport.counterUntil=0;teleport.strikes++;portalBurst(scene,player.x+facingDirection*50,player.y);}
       const hitRect = new Phaser.Geom.Rectangle(
         facingDirection > 0 ? player.x - 12 : player.x - attackRange + 12,
-        player.y - 142,
+        player.y - (isCrouching?75:142),
         attackRange,
-        172
+        isCrouching?90:172
       );
       const slash = scene.add.image(player.x + facingDirection * 66, player.y - 70, hasFlameSword?'fire_blade':"projectile_static",hasFlameSword?0:undefined)
         .setDepth(22)
@@ -4900,6 +4921,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       movement: {
         xgodMobility: useDrawnXGod ? mobility?.read() ?? null : null,
         zgodMobility: isZGod ? mobility?.read() ?? null : null,
+        heroMobility: mobility?.read() ?? null,
         turnSkidActive: isSkidding,
         skidTimeRemainingMs: Math.max(0, Math.round(skidUntil - latestSceneTime)),
         turnSkidsTriggered: turnSkidCount,

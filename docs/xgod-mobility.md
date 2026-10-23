@@ -16,8 +16,9 @@ available, independent of weapons and the X Breaker signature cooldown.
   and side contact can still hurt X God. Holding Down before jumping does not
   automatically start a bomb. Grounded Down still crouches.
 
-Flight, other characters, and the optional legacy/model X God art retain their
-existing movement. The original physics body stays in use during both moves;
+Flight and the optional legacy/model X God art retain their existing movement.
+Other current heroes share these controls with their own moves; see
+[full-roster mobility](roster-mobility-v2.md). The original physics body stays in use during both moves;
 the new animation renders in a separate anchored sprite.
 
 Generated source art and exact prompts are preserved in `art/xgod-mobility-v1`.
