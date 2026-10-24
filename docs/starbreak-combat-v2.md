@@ -1,5 +1,7 @@
 # Starbreak Run — milestone 2: combat
 
+Current encounter schedule and movement: [faster multidirectional waves](flight-pressure-v3.md). The older schedule and health values below are historical.
+
 Latest update: [destructible asteroids and ships](starbreak-destruction-v4.md) supersedes the older rock-cover and regular-gunship armor rules below. All regular ships now take cannon damage at any time; boss guard windows remain.
 
 Update: the [finished chapter](starbreak-finale-v3.md) now includes dedicated backgrounds, a final checkpoint, and the Void Pursuer. It replaces the last ordinary gunship wave with that closing encounter. The notes below record the approved second milestone's earlier six-wave layout.

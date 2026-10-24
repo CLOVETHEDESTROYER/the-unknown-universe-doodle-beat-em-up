@@ -38,7 +38,7 @@ export class AirborneMoves {
 
   constructor(private scene: Phaser.Scene, private hooks: Hooks, readonly hero: CharacterId) {
     this.actor = scene.add.sprite(0, 0, hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
-      .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:.72).setDepth(24).setVisible(false);
+      .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:hero==='killer_kai'?.88:.72).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }

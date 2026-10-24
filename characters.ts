@@ -78,12 +78,23 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
     rewardName: "Portal Core",
     rewardSubtitle: "Gone in a blink. Back in a strike.",
     stats: { strength: 70, speed: 92, defense: 64, spirit: 88 }
+  },
+  killer_kai: {
+    id: "killer_kai",
+    name: "Killer Kai",
+    subtitle: "Cyborg Cannoneer",
+    cardImage: "/characters/killer-kai-v1/card.webp",
+    hudColor: "cyan",
+    rewardName: "Thunder Core",
+    rewardSubtitle: "Punch the ground. Bring down an electrical storm.",
+    stats: { strength: 86, speed: 84, defense: 82, spirit: 88 }
   }
 };
 
 export const CHARACTER_IDS = Object.keys(CHARACTER_CONFIGS) as CharacterId[];
 
 export const isCharacterId = (value: string | null | undefined): value is CharacterId =>
+  value === "killer_kai" ||
   value === "zgod" ||
   value === "xgod" ||
   value === "barrett" ||

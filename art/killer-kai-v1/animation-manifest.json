@@ -1,0 +1,114 @@
+{
+  "movement": {
+    "frames": 16,
+    "logicalCell": [
+      384,
+      256
+    ],
+    "baseline": 240,
+    "sharedScale": 0.591715976331361,
+    "pages": [
+      {
+        "image": "movement-0.webp",
+        "width": 1024,
+        "height": 581
+      }
+    ]
+  },
+  "combat": {
+    "frames": 16,
+    "logicalCell": [
+      384,
+      256
+    ],
+    "baseline": 240,
+    "sharedScale": 0.6116207951070336,
+    "pages": [
+      {
+        "image": "combat-0.webp",
+        "width": 1024,
+        "height": 842
+      }
+    ]
+  },
+  "reactions": {
+    "frames": 16,
+    "logicalCell": [
+      384,
+      256
+    ],
+    "baseline": 240,
+    "sharedScale": 0.5763688760806917,
+    "pages": [
+      {
+        "image": "reactions-0.webp",
+        "width": 1024,
+        "height": 613
+      }
+    ]
+  },
+  "sword": {
+    "frames": 16,
+    "logicalCell": [
+      384,
+      256
+    ],
+    "baseline": 240,
+    "sharedScale": 0.6493506493506493,
+    "pages": [
+      {
+        "image": "sword-0.webp",
+        "width": 1024,
+        "height": 811
+      }
+    ]
+  },
+  "mobility": {
+    "frames": 16,
+    "logicalCell": [
+      256,
+      256
+    ],
+    "baseline": 220,
+    "sharedScale": 0.4788732394366197,
+    "pages": [
+      {
+        "image": "mobility-0.webp",
+        "width": 1024,
+        "height": 496
+      }
+    ]
+  },
+  "special": {
+    "frames": 6,
+    "logicalCell": [
+      256,
+      256
+    ],
+    "baseline": 220,
+    "sharedScale": 0.3648068669527897,
+    "pages": [
+      {
+        "image": "special-0.webp",
+        "width": 1024,
+        "height": 178
+      }
+    ]
+  },
+  "fx": {
+    "frames": 8,
+    "logicalCell": [
+      256,
+      256
+    ],
+    "baseline": 220,
+    "sharedScale": 0.42704626334519574,
+    "pages": [
+      {
+        "image": "fx-0.webp",
+        "width": 1024,
+        "height": 240
+      }
+    ]
+  }
+}

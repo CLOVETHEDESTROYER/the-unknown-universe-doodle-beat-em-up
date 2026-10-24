@@ -2,12 +2,13 @@ import Phaser from 'phaser';
 import type { CharacterId } from '../types';
 import { SIGNATURE_SPECIALS, beginSignature, createSignatureState, signatureFrame } from './signatureSpecials';
 import { playSfx } from '../audio/gameAudio';
+import {KaiThunderfall} from './kaiThunderfall';
 
 type Enemy=Phaser.Physics.Arcade.Sprite;
 interface Hooks {
   player:Enemy;enemies:Phaser.Physics.Arcade.Group;projectiles:Phaser.Physics.Arcade.Group;
   facing:()=>number;grounded:()=>boolean;canUse:()=>boolean;
-  clearLine:(enemy:Enemy)=>boolean;damage:(enemy:Enemy,amount:number)=>boolean;
+  clearLine:(enemy:Enemy)=>boolean;damage:(enemy:Enemy,amount:number,electric?:boolean)=>boolean;
   lockMovement:(until:number)=>void;launch:(vx:number,vy:number)=>void;
   landing:(enemy:Enemy|null,behind:boolean)=>{x:number;y:number;facing:number}|null;
   relocate:(to:{x:number;y:number;facing:number})=>void;
@@ -20,6 +21,7 @@ export class SignatureSpecialRuntime {
   private actor:Phaser.GameObjects.Sprite;
   private hud:Phaser.GameObjects.Text;
   private art:Phaser.GameObjects.Graphics;
+  private thunder:KaiThunderfall|null=null;
   private pillar:Phaser.GameObjects.Image|null=null;
   private zone:{x:number;y:number;until:number;nextTick:number}|null=null;
   private visited=new Set<Enemy>();
@@ -34,6 +36,8 @@ export class SignatureSpecialRuntime {
     this.actor=scene.add.sprite(0,0,'signature_special','0').setOrigin(.5,220/256)
       .setScale(.88).setDepth(24).setVisible(false);
     this.art=scene.add.graphics().setDepth(23);
+    if(hero==='killer_kai')this.thunder=new KaiThunderfall(scene,{enemies:hooks.enemies,projectiles:hooks.projectiles,
+      floor:hooks.floor,damage:(enemy,amount)=>{const hit=hooks.damage(enemy,amount,true);if(hit)this.state.hits++;return hit;}});
     if(hero==='ezra')this.pillar=scene.add.image(0,0,'signature_pillar','0').setOrigin(.5,248/256).setDepth(23).setVisible(false);
     this.hud=scene.add.text(24,108,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'22px',
       color:'#fff3d2',stroke:'#19182e',strokeThickness:4}).setScrollFactor(0).setDepth(82);
@@ -44,7 +48,7 @@ export class SignatureSpecialRuntime {
 
   trigger(){
     const now=this.scene.time.now;
-    if(!this.hooks.canUse()||(this.hero==='barrett'&&!this.hooks.grounded()))return false;
+    if(!this.hooks.canUse()||((this.hero==='barrett'||this.hero==='killer_kai')&&!this.hooks.grounded()))return false;
     // A failed destination search never consumes the player's cooldown.
     if((this.hero==='teleportation_c'||this.hero==='zgod')&&!this.findTarget()
       &&this.hero==='teleportation_c'&&!this.hooks.landing(null,true)){
@@ -52,11 +56,11 @@ export class SignatureSpecialRuntime {
     }
     if(!beginSignature(this.state,this.hero,now))return false;
     this.visited.clear();this.chainDone=false;this.lastHopAt=now;this.castDirection=this.hooks.facing();
-    this.hooks.lockMovement(now+SIGNATURE_SPECIALS[this.hero].windup);
+    this.hooks.lockMovement(this.hero==='killer_kai'?this.state.until:now+SIGNATURE_SPECIALS[this.hero].windup);
     this.hooks.player.setVelocityX(0);
     if(this.hero==='teleportation_c')this.state.invulnerableUntil=now+650;
     if(this.hero==='zgod')this.state.invulnerableUntil=this.state.until;
-    playSfx(this.hero==='teleportation_c'||this.hero==='zgod'?'teleport':'powerup', {pitch:this.hero==='barrett'?.75:1.1});
+    playSfx(this.hero==='killer_kai'?'slamCharge':this.hero==='teleportation_c'||this.hero==='zgod'?'teleport':'powerup', {pitch:this.hero==='barrett'?.75:1.1});
     return true;
   }
 
@@ -74,6 +78,7 @@ export class SignatureSpecialRuntime {
         this.hitArea(new Phaser.Geom.Rectangle(this.zone.x-55,this.zone.y-225,110,230),1.5);
       }
     }
+    this.thunder?.update(now);
     const readyIn=Math.max(0,this.state.readyAt-now);
     this.hud.setText(`X / SP: ${SIGNATURE_SPECIALS[this.hero].name.toUpperCase()} · ${readyIn?`${(readyIn/1000).toFixed(1)}s`:'READY'}`)
       .setColor(readyIn?'#d5c5df':'#fff1a3');
@@ -101,7 +106,7 @@ export class SignatureSpecialRuntime {
       if(!enemy.active||!this.hooks.clearLine(enemy))continue;
       const body=enemy.body as Phaser.Physics.Arcade.Body;
       if(!Phaser.Geom.Intersects.RectangleToRectangle(area,new Phaser.Geom.Rectangle(body.x,body.y,body.width,body.height)))continue;
-      if(this.hooks.damage(enemy,damage)){
+      if(this.hooks.damage(enemy,damage,this.hero==='killer_kai')){
         this.state.hits++;
         if(stun&&enemy.active){
           const boss=enemy.getData('kind')==='boss';
@@ -126,6 +131,10 @@ export class SignatureSpecialRuntime {
         }
       }
       this.effect={kind:'x',x:x+d*175,y:y-115,at:now};playSfx('swordSwing');
+    }else if(this.hero==='killer_kai'){
+      this.hitArea(new Phaser.Geom.Rectangle(x-115,y-110,230,120),3,350);
+      this.thunder?.start(x,y,now);
+      this.scene.cameras.main.shake(100,.0025);playSfx('stomp',{pitch:1.2,volume:.6});
     }else if(this.hero==='barrett'){
       this.hitArea(new Phaser.Geom.Rectangle(x-245,y-140,490,155),4,1100);
       this.effect={kind:'quake',x,y,at:now};this.scene.cameras.main.shake(150,.004);playSfx('stomp');
@@ -185,6 +194,17 @@ export class SignatureSpecialRuntime {
         .setAlpha(fade).setFlipX(Math.floor(now/110)%2===0);
       this.art.lineStyle(3,0xffe39c,.85*fade).strokeEllipse(x,y-2,116,20);
     }
+    if(this.hero==='killer_kai'&&this.casting){
+      const body=this.hooks.player.body as Phaser.Physics.Arcade.Body;
+      const elapsed=now-this.state.startedAt,charge=Math.min(1,elapsed/SIGNATURE_SPECIALS.killer_kai.windup);
+      if(elapsed<900){
+        this.art.lineStyle(2+charge*2,0x5be7ff,.55).strokeEllipse(body.center.x,body.bottom-3,48+charge*70,12+charge*12);
+        for(let n=0;n<3;n++){
+          const px=body.center.x+(n-1)*22,py=body.bottom-25-charge*40;
+          this.art.lineStyle(2,0xa7f5ff,.75).lineBetween(px-6,py+18,px+5,py+6).lineBetween(px+5,py+6,px-3,py-8);
+        }
+      }
+    }
     if(!this.effect)return;
     const age=now-this.effect.at;if(age>480){this.effect=null;return;}
     const {x,y,kind}=this.effect,p=age/480,alpha=1-p;
@@ -211,14 +231,15 @@ export class SignatureSpecialRuntime {
 
   read(){const now=this.scene.time.now;return {name:SIGNATURE_SPECIALS[this.hero].name,...this.state,
     active:this.casting,cooldownRemainingMs:Math.max(0,this.state.readyAt-now),
-    frame:this.actor.visible?Number(this.actor.frame.name):null,zone:this.zone?{...this.zone}:null};}
+    frame:this.actor.visible?Number(this.actor.frame.name):null,thunderfall:this.thunder?.read()??null,zone:this.zone?{...this.zone}:null};}
 
   cancel(restore=true){
+    this.thunder?.cancel();
     this.state.until=0;this.state.invulnerableUntil=0;this.zone=null;this.effect=null;
     this.actor.setVisible(false);this.art.clear();
     this.pillar?.setVisible(false);
     if(restore&&this.hiddenPlayer&&this.hooks.player.active)this.hooks.player.setVisible(true);
     this.hiddenPlayer=false;
   }
-  destroy(){if(!this.alive)return;this.cancel(false);this.alive=false;this.actor.destroy();this.art.destroy();this.pillar?.destroy();this.hud.destroy();}
+  destroy(){if(!this.alive)return;this.cancel(false);this.alive=false;this.actor.destroy();this.art.destroy();this.pillar?.destroy();this.thunder?.destroy();this.hud.destroy();}
 }

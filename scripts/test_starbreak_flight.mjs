@@ -13,6 +13,12 @@ page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
 const advance=async ms=>{await page.evaluate(ms=>window.advanceTime(ms),ms);if(errors.length)throw new Error(errors.join('\n'));};
 const shot=name=>page.screenshot({path:fileURLToPath(new URL(`${name}.png`,out))});
+async function steerTouch(y,pointerId){
+  const joystick=page.locator('[data-touch-joystick]'),box=await joystick.boundingBox();
+  const x=box.x+box.width/2,centerY=box.y+box.height/2;
+  await joystick.dispatchEvent('pointerdown',{pointerId,pointerType:'touch',button:0,buttons:1,clientX:x,clientY:centerY});
+  await joystick.dispatchEvent('pointermove',{pointerId,pointerType:'touch',buttons:1,clientX:x,clientY:centerY+y*box.height*.29});
+}
 async function boot(query=''){
   await page.goto(`${origin}/?autostart=1&level=5&capture=1&flightSeed=20261016&sword=1&swordUnlocked=1&dinio=1&doghost=1&teleportc=1${query}`);
   await page.waitForFunction(()=>window.render_game_to_text&&JSON.parse(window.render_game_to_text()).engine==='flight'&&JSON.parse(window.render_game_to_text()).player);
@@ -71,7 +77,7 @@ try{
   evidence.route={health:s.player.health,lives:s.player.lives,beacons:s.flight.beacons,impacts:s.ship.impacts,kills:s.combat.kills,shots:s.combat.shotsFired};
   assert(s.flight.beacons>=6);
   await page.locator('[data-touch-control="attack"]').dispatchEvent('pointerdown',{pointerId:90,pointerType:'touch',bubbles:true});
-  await page.locator('[data-touch-control="up"]').dispatchEvent('pointerdown',{pointerId:91,pointerType:'touch',bubbles:true});
+  await steerTouch(-1,91);
   await advance(2900);s=await read();assert.equal(s.flight.phase,'disembark');await shot('landing');
   await advance(2300);
   await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).level===6&&JSON.parse(window.render_game_to_text()).player?.grounded);
@@ -96,7 +102,9 @@ try{
   await advance(1300);s=await read();assert.equal(s.flight.phase,'flight');assert.equal(s.flight.checkpoint,0);assert.equal(s.ship.hull,100);
   evidence.damageAndRespawn=true;
 
-  await boot();await advance(32000);s=await read();
+  // The route above already proves normal checkpoint acquisition. Start just after
+  // that checkpoint for the retry case; idling through the harder waves can die early.
+  await boot('&weaponPreview=homing');await advance(100);s=await read();
   assert.equal(s.flight.checkpoint,6000);
   while((await read()).flight.phase==='flight'){
     await page.evaluate(()=>window.__unknownFlightDamageShip());
@@ -120,8 +128,8 @@ try{
   await page.setViewportSize({width:844,height:390});await boot('&character=barrett&unlockRoster=1');await advance(5000);
   assert.equal((await read()).selectedCharacter.id,'barrett');
   assert.equal(await page.locator('[data-touch-control="attack"]').count(),1);
-  const down=page.locator('[data-touch-control="down"]');
-  await down.dispatchEvent('pointerdown',{pointerId:8,pointerType:'touch',bubbles:true});await advance(200);
+  const down=page.locator('[data-touch-joystick]');
+  await steerTouch(1,8);await advance(200);
   assert((await read()).player.velocityY>200);
   await down.dispatchEvent('pointercancel',{pointerId:8,pointerType:'touch',bubbles:true});await advance(200);
   assert.equal((await read()).player.velocityY,0);await page.waitForTimeout(450);await shot('phone-flight');

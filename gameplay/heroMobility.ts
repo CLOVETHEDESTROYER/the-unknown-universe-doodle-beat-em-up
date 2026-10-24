@@ -1,6 +1,7 @@
 import type {CharacterId} from '../types';
 
 export const HERO_MOBILITY = {
+  killer_kai: {name:'Jet Slam',radius:220,height:150,direct:7,wave:5,stun:550,launch:320,color:0x57dcff},
   xgod: {name:'Butt Bomb',radius:180,height:125,direct:6,wave:4,stun:450,launch:280,color:0xffcb69},
   zgod: {name:'Starfall Ground Punch',radius:180,height:125,direct:6,wave:4,stun:450,launch:280,color:0xff8fe0},
   barrett: {name:'Bear Drop',radius:230,height:145,direct:8,wave:5,stun:750,launch:340,color:0xffbb72},

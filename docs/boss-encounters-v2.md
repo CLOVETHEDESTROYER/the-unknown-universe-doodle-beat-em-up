@@ -10,9 +10,9 @@ The campaign now has five bosses with distinct movement and attack patterns, com
 | 2 | Kilina's Daughter | Axe dash, aimed cannon, marked leap slam | Warned return dash, five cannon shots, low slam waves | 44 | 2.6 s; 2.2 s in phase two |
 | 3 | Cinder Colossus | Outward floor quake, bounding slam with landing waves, marked falling embers | Double quake, five ember lanes, faster bound | 48 | 2.8 s; 2.4 s in phase two |
 | 4 | Kilina | Ballistic hexes, marked rune pillars, evasive leap and low wisps | Five bolts, five rune lanes with two pulses, faster leap | 52 | 2.6–2.7 s; 2.2–2.3 s in phase two |
-| 6 | Void Regent | Marked blink then star burst, aimed star fan, shadow dash with fading echoes | Two five-star bursts; dash releases outward low waves | 56 | 2.6–2.7 s; 2.2–2.3 s in phase two |
+| 6 | Void Regent | Cross-arena teleport, repeated star fans, shadow dash, marked void rain | Double teleport with two seven-star bursts; triple fans, five rain lanes, active low dash waves | 84 | 2.6–3.0 s; 2.2–2.6 s in phase two |
 
-The Dragon's oversized painted flame cone is excluded from its individual-shot animation. Its mouth and neck recoil while the actual fireballs show where damage is possible. Cinder's heavy poses, root motion, leap arc, and impact shake give the giant weight. The Regent fades out and reappears at a marked destination before firing, and leaves short-lived echoes during its dash.
+The Dragon's oversized painted flame cone is excluded from its individual-shot animation. Its mouth and neck recoil while the actual fireballs show where damage is possible. Cinder's heavy poses, root motion, leap arc, and impact shake give the giant weight. The Regent vanishes through a marked portal and snaps to the opposite side of a wider arena in about 160ms. Phase two adds a second warned crossing. Portal rings, a fading departure echo and a brief arrival grace period make the instant move readable. See [the revised final fight](void-regent-v3.md).
 
 ## Shared fairness rules
 

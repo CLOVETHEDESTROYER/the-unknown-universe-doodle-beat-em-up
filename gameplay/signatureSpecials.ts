@@ -1,6 +1,8 @@
 import type { CharacterId } from '../types';
 
 export const SIGNATURE_SPECIALS = {
+  killer_kai: {name:'Thunderfall',cooldown:7000,windup:650,duration:1600,color:0x57dcff,
+    description:'Charge in a crouch, punch the ground, and call down three waves of electrical beams.'},
   xgod: {name:'X Breaker',cooldown:5500,windup:230,duration:650,color:0xffa43b,
     description:'Carve a fiery X through enemies and incoming shots.'},
   barrett: {name:'Bearquake',cooldown:6000,windup:260,duration:720,color:0xffc66b,

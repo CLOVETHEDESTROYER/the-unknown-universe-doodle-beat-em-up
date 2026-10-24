@@ -1,3 +1,4 @@
+import {regularEnemyHealth} from '../gameplay/enemyBalance';
 
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
@@ -305,6 +306,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     dashCooldownMultiplier: number;
     specialCooldownMs: number;
   }> = {
+    killer_kai: {speedMultiplier:1.05,damageTakenMultiplier:.9,attackDamageMultiplier:1.1,attackDurationMultiplier:1,attackReachBonus:10,dashCooldownMultiplier:.9,specialCooldownMs:1300},
     zgod: {
       speedMultiplier: 1.1, damageTakenMultiplier: 0, attackDamageMultiplier: 1000,
       attackDurationMultiplier: 1, attackReachBonus: 25, dashCooldownMultiplier: .8, specialCooldownMs: 1000
@@ -4001,7 +4003,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function getDifficultyScaledEnemyHp(baseHp: number) {
-      return Math.max(1, Math.round(baseHp * difficultyTuning.enemyHpMultiplier));
+      return regularEnemyHealth(Math.max(1, Math.round(baseHp * difficultyTuning.enemyHpMultiplier)));
     }
 
     function getDifficultyScaledBossHp(baseHp: number) {

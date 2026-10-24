@@ -219,13 +219,13 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
     souls: Number.isFinite(soulsParam) ? Math.max(0, soulsParam) : DEFAULT_STATS.souls,
     monstersDefeated: Number.isFinite(killsParam) ? Math.max(0, killsParam) : DEFAULT_STATS.monstersDefeated,
-    equipment:createLoadout(hasFlameSword?'sword':selectedCharacterId==='xgod'?'blaster':'hands'),
+    equipment:createLoadout(hasFlameSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
     swordUnlocked: swordUnlocked || hasFlameSword,
     hasFlameSword,
     swordDurability: hasFlameSword
@@ -266,7 +266,7 @@ const App: React.FC = () => {
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const [requestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
-  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod';
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
@@ -525,7 +525,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: targetLevel,
-      equipment:createLoadout(hasSword?'sword':selectedCharacterId==='xgod'?'blaster':'hands'),
+      equipment:createLoadout(hasSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
       score: 0,
       souls: targetLevel >= 2 ? 3 : 0,
       health: DEFAULT_STATS.maxHealth,
@@ -565,7 +565,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: currentLevel,
-      equipment:createLoadout(xGodPowered?'sword':characterId==='xgod'?'blaster':'hands'),
+      equipment:createLoadout(xGodPowered?'sword':characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands'),
       health: DEFAULT_STATS.maxHealth,
       lives: DEFAULT_STATS.maxLives,
       souls: currentLevel >= 2 ? 3 : 0,
@@ -588,7 +588,7 @@ const App: React.FC = () => {
   };
 
   const restartGame = () => {
-    setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'?'blaster':'hands') });
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -611,7 +611,8 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       selectedCharacterId: characterId,
-      characterPowerUnlocked: characterId === 'zgod'
+      characterPowerUnlocked: characterId === 'zgod',
+      equipment:createLoadout(characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands')
     });
     setIsPaused(false);
     setTitlePanel(null);
@@ -738,7 +739,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -883,7 +884,7 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
+              <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
                   const locked = characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
@@ -972,7 +973,7 @@ const App: React.FC = () => {
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
                 <p className="mb-3 text-base text-slate-700">Hold Down / S or joystick down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
               )}
-              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : 'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
+              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
               <button
                 onClick={togglePause}

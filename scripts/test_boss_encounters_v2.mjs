@@ -89,7 +89,7 @@ async function observeMove(level,phase) {
       await shot(`level${level}-phase${phase}-${b.move}-attack`); captured = true;
     }
     if(b.vulnerable) {
-      const baseDuration = ['furnace_quake','cinder_bound','ember_rain'].includes(b.move)?2800
+      const baseDuration = b.move==='blink_burst'?3000:['furnace_quake','cinder_bound','ember_rain','void_rain'].includes(b.move)?2800
         : ['low_breath','rune_bloom','shadow_dash'].includes(b.move)?2700:2600;
       assert.equal(b.recoveryDurationMs,baseDuration-(phase===2?400:0),'The entire longer counter window is granted');
       assert(b.recoveryRemainingMs>0 && b.recoveryRemainingMs<=b.recoveryDurationMs);
@@ -109,7 +109,8 @@ async function observeMove(level,phase) {
   if(b.move==='fire_volley' || b.move==='low_breath') assert.equal(maxShots,phase===2?4:3);
   if(b.move==='furnace_quake') { assert.equal(maxShots,phase===2?2:1); assert(patterns.has('quake')); }
   if(b.move==='ember_rain') {assert.equal(maxShots,phase===2?5:3);assert(patterns.has('falling_ember'));assert.deepEqual(b.markedXs,locked.markedXs);}
-  if(b.move==='star_fan' || b.move==='blink_burst') assert.equal(maxShots,phase===2?2:1);
+  if(b.move==='star_fan')assert.equal(maxShots,phase===2?3:2);
+  if(b.move==='blink_burst')assert.equal(maxShots,phase===2?2:1);
   if(b.move==='shadow_dash' && phase===2) assert(patterns.has('shadow_wave'));
   if(b.move==='witch_hex') { assert.equal(maxShots,phase===2?5:3); assert(patterns.has('curved_hex')); }
   if(b.move==='rune_bloom') { assert.equal(maxShots,phase===2?2:1); assert(patterns.has('rune_pillar')); assert.deepEqual(b.markedXs,locked.markedXs); }

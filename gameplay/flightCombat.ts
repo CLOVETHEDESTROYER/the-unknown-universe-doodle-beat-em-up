@@ -1,3 +1,4 @@
+import {regularEnemyHealth} from './enemyBalance';
 import type { DifficultyMode } from '../types';
 import { PURSUER_ID, PURSUER_START, startPursuer, stepPursuer } from './flightPursuer';
 import type { PursuerMove } from './flightPursuer';
@@ -5,13 +6,16 @@ import { FLIGHT_WEAPONS } from './flightWeapons';
 import type { FlightWeaponId } from './flightWeapons';
 
 export type EnemyKind='scout'|'interceptor'|'gunship'|'prism'|'pursuer';
-type EnemyPhase='enter'|'weave'|'tell'|'charge'|'recover'|'exit'|'attack'|'transition'|'dying';
+type EnemyPhase='incoming'|'enter'|'weave'|'tell'|'charge'|'recover'|'exit'|'attack'|'transition'|'dying';
+export type FlightEntry='front'|'above'|'below';
 export interface FlightEnemy {
   id:string;kind:EnemyKind;x:number;y:number;baseY:number;hp:number;maxHp:number;age:number;
   phase:EnemyPhase;phaseMs:number;aimX:number;aimY:number;startX:number;startY:number;
   move?:PursuerMove;phaseNumber?:number;attacks?:number;volley?:number;
   attackIndex?:number;launchY?:number;targetY?:number;safeY?:number;tellDurationMs?:number;
   hitUntil?:number;
+  entry?:FlightEntry;entryDelayMs?:number;stageX?:number;
+  chargeX?:number;chargeY?:number;
 }
 export interface FlightBolt {id:number;owner:'player'|'enemy';x:number;y:number;vx:number;vy:number;expires:number;damage:number;
   weapon?:FlightWeaponId;pierces?:number;hitIds?:string[];targetId?:string;sourceId?:string}
@@ -29,12 +33,20 @@ export interface FlightCombat {
 }
 export interface CombatHost {x:number;y:number;bank:number;clock:number;distance:number;checkpoint:number;hull:number;score:number;difficulty:DifficultyMode;phase:string;invincible?:boolean}
 type Host=CombatHost;
-export const FLIGHT_WAVES:{at:number;kind:EnemyKind;ys:number[];name:string}[]=[
+export const FLIGHT_WAVES:{at:number;kind:EnemyKind;ys:number[];name:string;entry?:FlightEntry}[]=[
   {at:650,kind:'scout',ys:[210,300,390],name:'SCOUT FORMATION — OPEN FIRE!'},
-  {at:3300,kind:'interceptor',ys:[205,425],name:'INTERCEPTORS — WATCH THE CHARGE'},
-  {at:6400,kind:'gunship',ys:[285],name:'HEAVY GUNSHIP — DODGE THE FAN'},
-  {at:9000,kind:'prism',ys:[240,390],name:'PRISM RAYS — DODGE THE THREE LASER LANES'},
-  {at:11650,kind:'interceptor',ys:[190,440],name:'INTERCEPTORS — LEAVE THE MARK'}
+  {at:1850,kind:'scout',ys:[215,325],entry:'above',name:'SCOUTS ABOVE — WATCH THE TOP EDGE'},
+  {at:3100,kind:'interceptor',ys:[215,410],name:'INTERCEPTORS — LEAVE THE MARK'},
+  {at:4200,kind:'gunship',ys:[365],entry:'below',name:'GUNSHIP BELOW — WATCH THE BOTTOM EDGE'},
+  {at:5350,kind:'scout',ys:[205,310,415],name:'SCOUT SWARM — KEEP MOVING'},
+  {at:6550,kind:'interceptor',ys:[200,335],entry:'above',name:'DIVE ATTACK — INTERCEPTORS ABOVE'},
+  {at:7700,kind:'prism',ys:[245,390],name:'PRISM RAYS — DODGE THE LASER LANES'},
+  {at:8900,kind:'scout',ys:[285,420],entry:'below',name:'SCOUTS BELOW — WATCH THE BOTTOM EDGE'},
+  {at:10050,kind:'gunship',ys:[255],entry:'above',name:'HEAVY GUNSHIP ABOVE — DODGE THE FAN'},
+  {at:11250,kind:'scout',ys:[205,310,415],name:'SCOUT SWARM — CLEAR A LANE'},
+  {at:12400,kind:'interceptor',ys:[285,420],entry:'below',name:'RISING INTERCEPTORS — LEAVE THE MARK'},
+  {at:13550,kind:'prism',ys:[230,365],entry:'above',name:'PRISM RAYS ABOVE — WATCH THE LASERS'},
+  {at:14650,kind:'scout',ys:[210,310,410],name:'LAST DEFENSE — PUSH THROUGH!'}
 ];
 export function createCombat():FlightCombat {
   return {enemies:[],bolts:[],effects:[],repairs:[],spawnedWaves:[],defeated:[],nextId:1,nextShotAt:0,
@@ -55,7 +67,98 @@ const effect=(c:FlightCombat,s:Host,kind:CombatEffect['kind'],x:number,y:number,
 };
 function phase(e:FlightEnemy,p:EnemyPhase,s:Host){
   e.phase=p;e.phaseMs=0;
-  if(p==='tell'){e.aimX=Math.min(s.x,e.x-180);e.aimY=s.y;e.startX=e.x;e.startY=e.y;}
+  if(p==='recover'){e.startX=e.x;e.startY=e.y;}
+  if(p==='weave')e.startY=e.y;
+  if(p==='tell'){
+    e.aimX=s.x;e.aimY=s.y;e.startX=e.x;e.startY=e.y;
+    // Commit the whole charge before the warning; never home in on a dodging pilot.
+    const a=Math.atan2(e.aimY-e.y,e.aimX-e.x),ux=Math.cos(a),uy=Math.sin(a);
+    const distance=Math.min(Math.hypot(e.aimX-e.x,e.aimY-e.y)+170,
+      ux>0?(1040-e.x)/ux:ux<0?(-110-e.x)/ux:Infinity,
+      uy>0?(495-e.y)/uy:uy<0?(120-e.y)/uy:Infinity);
+    // Clip travel along the ray so even an edge target stays on the warned path.
+    e.chargeX=e.x+ux*distance;e.chargeY=e.y+uy*distance;
+  }
+}
+export function flightChargeEnd(e:FlightEnemy){
+  return {x:e.chargeX??e.aimX-170,y:e.chargeY??e.aimY};
+}
+export function flightEnemyMuzzle(e:FlightEnemy){
+  const offset=e.kind==='pursuer'?102:e.kind==='gunship'?78:e.kind==='scout'?25:55;
+  return e.x+(e.kind!=='pursuer'&&e.aimX>e.x?offset:-offset);
+}
+function stepEntry(e:FlightEnemy,s:Host,dt:number){
+  if(e.phase==='incoming'){
+    if(e.phaseMs>=(e.entryDelayMs??950)){
+      e.startX=e.x;e.startY=e.y;phase(e,'enter',s);
+    }
+    return true;
+  }
+  if(e.phase!=='enter')return false;
+  if(e.entry&&e.entry!=='front'){
+    const t=Math.min(1,e.phaseMs/1250),ease=t*t*(3-2*t);
+    e.x=e.startX+((e.stageX??825)-e.startX)*ease;
+    e.y=e.startY+(e.baseY-e.startY)*ease;
+    if(t===1)phase(e,e.kind==='scout'?'weave':'tell',s);
+  }else{
+    const speed=e.kind==='scout'?185:e.kind==='gunship'?155:205;
+    e.x-=speed*dt;e.y=e.baseY+Math.sin(e.age/450)*30;
+    if(e.x<=(e.stageX??(e.kind==='prism'?825:835)))phase(e,e.kind==='scout'?'weave':'tell',s);
+  }
+  return true;
+}
+function stepRegularEnemy(e:FlightEnemy,s:Host,c:FlightCombat,dt:number){
+  if(stepEntry(e,s,dt))return;
+  const muzzle=()=>flightEnemyMuzzle(e);
+  const emit=(x:number,y:number,a:number,speed:number,damage:number)=>{
+    const vx=Math.cos(a)*speed,vy=Math.sin(a)*speed;
+    c.bolts.push({id:c.nextId++,owner:'enemy',x,y,vx:Math.abs(vx)<1e-9?0:vx,vy:Math.abs(vy)<1e-9?0:vy,expires:s.clock+3100,damage});c.enemyShots++;
+  };
+  if(e.kind==='scout'){
+    e.x-=175*dt;
+    const target=Math.max(150,Math.min(470,e.baseY+Math.sin(e.age/360+e.baseY)*60));
+    const settle=e.phase==='weave'?Math.min(1,e.phaseMs/350):1;
+    e.y=e.startY+(target-e.startY)*settle;
+    if(e.phase==='weave'&&e.phaseMs>=900&&e.x>120)phase(e,'tell',s);
+    else if(e.phase==='tell'&&e.phaseMs>=650){
+      const a=Math.atan2(e.aimY-e.y,e.aimX-muzzle());
+      for(const spread of [0,Math.floor(e.age/1800)%2?.16:-.16])emit(muzzle(),e.y,a+spread,290,9);
+      phase(e,'attack',s);
+    }else if(e.phase==='attack'&&e.phaseMs>=220)phase(e,'recover',s);
+    else if(e.phase==='recover'&&e.phaseMs>=500)phase(e,'weave',s);
+    return;
+  }
+  if(e.kind==='interceptor'){
+    if(e.phase==='tell'&&e.phaseMs>=(s.difficulty==='EASY'?1000:850))phase(e,'charge',s);
+    if(e.phase==='charge'){
+      const t=Math.min(1,e.phaseMs/950),end=flightChargeEnd(e);
+      e.x=e.startX+(end.x-e.startX)*t;e.y=e.startY+(end.y-e.startY)*t;
+      if(t===1)phase(e,'exit',s);
+    }else if(e.phase==='exit')e.x-=600*dt;
+    return;
+  }
+  // Heavy ships reposition in both axes while reloading. Their warning/attack stays fixed.
+  if(e.phase==='recover'){
+    const t=Math.min(1,e.phaseMs/450),ease=t*t*(3-2*t);
+    e.x=e.startX+((e.stageX??825)+Math.sin(e.age/620)*65-e.startX)*ease;
+    e.y=e.startY+(Math.max(155,Math.min(465,e.baseY+Math.sin(e.age/470)*65))-e.startY)*ease;
+    if(e.phaseMs>=(e.kind==='prism'?1050:1250))phase(e,e.age>10000?'exit':'tell',s);
+  }else if(e.phase==='exit')e.x-=280*dt;
+  if(e.kind==='prism'){
+    if(e.phase==='tell'&&e.phaseMs>=850){e.volley=0;phase(e,'attack',s);}
+    else if(e.phase==='attack'){
+      const volley=e.volley??0;
+      if(volley<3&&e.phaseMs>=volley*200){
+        const y=Math.max(145,Math.min(475,e.aimY+[-65,0,65][volley]));
+        emit(muzzle(),y,e.aimX>e.x?0:Math.PI,380,11);e.volley=volley+1;
+      }
+      if(e.phaseMs>=650)phase(e,'recover',s);
+    }
+  }else if(e.phase==='tell'&&e.phaseMs>=1000){
+    const a=Math.atan2(e.aimY-e.y,e.aimX-muzzle());
+    for(const spread of [-.18,0,.18])emit(muzzle(),e.y,a+spread,330,s.difficulty==='EASY'?12:s.difficulty==='HARD'?16:20);
+    phase(e,'recover',s);
+  }
 }
 function fireWeapon(s:Host,c:FlightCombat){
   const def=FLIGHT_WEAPONS[c.weapon],muzzles=shipMuzzles(s),a=s.bank*Math.PI/180;
@@ -95,13 +198,17 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
   if(s.phase!=='flight')return;
   const dt=ms/1000;
   if(s.distance>=PURSUER_START&&!c.finaleStarted){clearCombat(c);startPursuer(s,c);}
-  for(const [waveId,w] of FLIGHT_WAVES.entries()){
+  if(!c.finaleStarted)for(const [waveId,w] of FLIGHT_WAVES.entries()){
     if(s.distance<w.at||c.spawnedWaves.includes(waveId))continue;
     c.spawnedWaves.push(waveId);c.waveName=w.name;c.waveNoticeUntil=s.clock+2200;
     w.ys.forEach((y,i)=>{
       const id=`${waveId}:${i}`;if(c.defeated.includes(id))return;
-      const hp=w.kind==='scout'?2:w.kind==='interceptor'?4:w.kind==='prism'?6:s.difficulty==='EASY'?8:s.difficulty==='HARD'?10:12;
-      c.enemies.push({id,kind:w.kind,x:1110+i*125,y,baseY:y,hp,maxHp:hp,age:0,phase:'enter',phaseMs:0,aimX:0,aimY:0,startX:0,startY:0});
+      const hp=regularEnemyHealth(w.kind==='scout'?3:w.kind==='interceptor'?5:w.kind==='prism'?7:s.difficulty==='EASY'?10:s.difficulty==='HARD'?12:14);
+      const entry=w.entry??'front',vertical=entry!=='front',stageX=vertical?730+i*155:825;
+      const x=vertical?stageX+85:1110+i*125,startY=entry==='above'?60:entry==='below'?560:y;
+      c.enemies.push({id,kind:w.kind,x,y:startY,baseY:y,hp,maxHp:hp,age:0,
+        phase:vertical?'incoming':'enter',phaseMs:0,aimX:0,aimY:0,startX:x,startY,
+        entry,entryDelayMs:950+i*180,stageX});
     });
   }
   if(fire&&s.clock>=c.nextShotAt){
@@ -110,59 +217,9 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
   for(const e of c.enemies){
     e.age+=ms;e.phaseMs+=ms;
     if(e.kind==='pursuer')stepPursuer(s,c,e,ms,(kind,x,y)=>effect(c,s,kind,x,y));
-    else if(e.kind==='prism'){
-      if(e.phase==='enter'){
-        e.x-=150*dt;e.y=e.baseY+Math.sin(e.age/430)*32;
-        if(e.x<=825)phase(e,'tell',s);
-      }else if(e.phase==='tell'){
-        // Aim is committed for all three pulses; no tracking after the warning.
-        if(e.phaseMs>=850){e.volley=0;phase(e,'attack',s);}
-      }else if(e.phase==='attack'){
-        const volley=e.volley??0;
-        if(volley<3&&e.phaseMs>=volley*200){
-          const y=Math.max(145,Math.min(475,e.aimY+[-65,0,65][volley]));
-          c.bolts.push({id:c.nextId++,owner:'enemy',x:e.x-70,y,vx:-360,vy:0,expires:s.clock+2900,damage:11});
-          c.enemyShots++;e.volley=volley+1;
-        }
-        if(e.phaseMs>=650)phase(e,'recover',s);
-      }else if(e.phase==='recover'){
-        e.y=e.baseY+Math.sin(e.age/450)*38;
-        if(e.phaseMs>=1400)phase(e,e.age>9500?'exit':'tell',s);
-      }else if(e.phase==='exit')e.x-=270*dt;
-    }
-    else if(e.kind==='scout'){
-      e.x-=135*dt;e.y=e.baseY+Math.sin(e.age/420+e.baseY)*26;
-      if(e.phase==='enter')phase(e,'weave',s);
-      if(e.phase==='weave'&&e.phaseMs>=1400&&e.x>200)phase(e,'tell',s);
-      else if(e.phase==='tell'&&e.phaseMs>=650){
-        const angle=Math.atan2(e.aimY-e.y,e.aimX-e.x);
-        c.bolts.push({id:c.nextId++,owner:'enemy',x:e.x-25,y:e.y,vx:Math.cos(angle)*250,vy:Math.sin(angle)*250,expires:s.clock+2600,damage:9});
-        c.enemyShots++;phase(e,'attack',s);
-      }else if(e.phase==='attack'&&e.phaseMs>=220)phase(e,'recover',s);
-      else if(e.phase==='recover'&&e.phaseMs>=600)phase(e,'weave',s);
-    }else if(e.phase==='enter'){
-      e.x-=(e.kind==='gunship'?110:155)*dt;
-      if(e.x<=835)phase(e,'tell',s);
-    }else if(e.kind==='interceptor'){
-      if(e.phase==='tell'&&e.phaseMs>= (s.difficulty==='EASY'?1000:850))phase(e,'charge',s);
-      if(e.phase==='charge'){
-        const t=Math.min(1,e.phaseMs/1050);
-        e.x=e.startX+(e.aimX-170-e.startX)*t;
-        e.y=e.startY+(e.aimY-e.startY)*t;
-        if(t===1)phase(e,'exit',s);
-      }else if(e.phase==='exit')e.x-=600*dt;
-    }else if(e.phase==='tell'&&e.phaseMs>=1000){
-      const a=Math.atan2(e.aimY-e.y,e.aimX-(e.x-78));
-      for(const spread of [-.15,0,.15]){
-        c.bolts.push({id:c.nextId++,owner:'enemy',x:e.x-78,y:e.y,vx:Math.cos(a+spread)*310,vy:Math.sin(a+spread)*310,
-          expires:s.clock+3100,damage:s.difficulty==='EASY'?12:s.difficulty==='HARD'?16:20});c.enemyShots++;
-      }
-      phase(e,'recover',s);
-    }else if(e.phase==='recover'&&e.phaseMs>=1750){
-      phase(e,e.age>8500?'exit':'tell',s);
-    }else if(e.phase==='exit')e.x-=240*dt;
+    else stepRegularEnemy(e,s,c,dt);
     const halfW=e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='prism'?68:e.kind==='interceptor'?48:29,halfH=e.kind==='pursuer'?37:e.kind==='gunship'?30:e.kind==='prism'?25:21;
-    if(e.phase!=='dying'&&!(e.kind==='pursuer'&&e.phase==='recover')&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
+    if(e.phase!=='incoming'&&e.phase!=='dying'&&!(e.kind==='pursuer'&&e.phase==='recover')&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
     if(s.phase!=='flight'){clearCombat(c);return;}
   }
   for(const b of c.bolts){
