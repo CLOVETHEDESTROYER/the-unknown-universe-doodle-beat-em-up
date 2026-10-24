@@ -1,0 +1,56 @@
+{
+  "mode": "built-in image_gen",
+  "status": "first static cutscene art pass",
+  "specs": [
+    {
+      "id": "01-earthior",
+      "title": "Earthior, before the impact",
+      "caption": [
+        "Before the meteor, Earthior was home.",
+        "School, friends... and homework to finish."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/school-rooftop-panorama.png"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: a single static narrative illustration for a classic RPG / arcade-fighting-game ending screen in The Unknown Universe. Same hand-drawn bold black ink outlines, textured colored-pencil/crayon shading, expressive short cartoon proportions as the game's approved art. Rich, readable scene illustration, not pixel art, not a sprite strip, not a trading card, not a UI mockup. Wide landscape 16:9 composition. Keep all faces, hands and story-critical action inside the middle 80% horizontally and above the bottom 22%, which will receive a separate game caption overlay. Paint the whole canvas including that lower quiet background area; do not draw a caption box. Absolutely no words, letters, labels, logos, watermarks, borders or panel divisions. Image 1 is a CHARACTER IDENTITY AND MEDIUM REFERENCE ONLY; ignore all trading-card text, layout and weapons. Image 2 is a pencil-texture/environment style reference only. Transform the reference hero into his PRE-MUTATION ordinary boy self: same short proportions, pale face, WHITE short-sleeve shirt with yellow X-eyed smiley emblem, ORANGE cargo trousers with side pockets, black-and-white sneakers with lime accents. Before the mutation his hair is natural chestnut BROWN and his eyes are simple NORMAL round cartoon eyes, NOT black X marks. No sword, no gun, no glowing powers. A warm late-afternoon school dismissal on Earthior: the boy in a three-quarter medium-full view shows his folded math worksheet to a parent whose hand and shoulder enter the edge of the composition, keeping the parent's face outside the frame. Two small school friends wave goodbye in the background. Pinkish school buildings, trees, a turquoise sky with yellow pencil clouds. The boy's face, brown hair, white shirt and orange cargo outfit are clear and instantly readable. Mood: ordinary happiness and belonging, unhurried, emotionally sincere. Give the boy slightly oversized expressive hands and a friendly simple mouth consistent with his game art. One coherent scene, no montage."
+    },
+    {
+      "id": "02-impact",
+      "title": "The sky tears open",
+      "caption": [
+        "Then a meteor tore through Earthior.",
+        "The impact ripped open dimensional time."
+      ],
+      "references": [],
+      "prompt": "Use case: illustration-story. Asset type: a single static narrative illustration for a classic RPG / arcade-fighting-game ending screen in The Unknown Universe. Same hand-drawn bold black ink outlines, textured colored-pencil/crayon shading, expressive short cartoon proportions as the game's approved art. Rich, readable scene illustration, not pixel art, not a sprite strip, not a trading card, not a UI mockup. Wide landscape 16:9 composition. Keep all faces, hands and story-critical action inside the middle 80% horizontally and above the bottom 22%, which will receive a separate game caption overlay. Paint the whole canvas including that lower quiet background area; do not draw a caption box. Absolutely no words, letters, labels, logos, watermarks, borders or panel divisions. A cinematic distant view of EARTHIOR, a blue-green inhabited planet with a thin turquoise atmosphere, as a massive jagged dark meteor strikes its curved horizon. The meteor has a faint small broken GOLD CIRCLE engraved into its rocky surface, a simple fictional faction mark without any lettering. The impact creates a brilliant yellow-white contact point and a huge jagged VIOLET dimensional tear bending starlight and pulling small fragments of land upward. The meteor and the curved planet dominate the upper two-thirds, dramatic sweeping diagonal composition, indigo space and violet rift contrasting gold/orange impact, crayon texture and bold imperfect ink contours remain visible at game-screen size. Cosmic disaster conveyed from far away, NO people, no bodies, no graphic violence. The planet is recognizable beneath the rupture, emotionally tragic and mysterious, not a realistic NASA photograph. Do not fill the whole image with flames; retain clear silhouettes of the meteor, planet and rip in space."
+    },
+    {
+      "id": "03-alley-fire",
+      "title": "A strange alley",
+      "caption": [
+        "I woke in a strange alley.",
+        "A monster's fire should have been the end."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/boss-deaths-v1/dark_dragon-seed.png",
+        "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-c8df689b-d830-4e17-b1f0-5dfcf8f5226f.png"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: a single static narrative illustration for a classic RPG / arcade-fighting-game ending screen in The Unknown Universe. Same hand-drawn bold black ink outlines, textured colored-pencil/crayon shading, expressive short cartoon proportions as the game's approved art. Rich, readable scene illustration, not pixel art, not a sprite strip, not a trading card, not a UI mockup. Wide landscape 16:9 composition. Keep all faces, hands and story-critical action inside the middle 80% horizontally and above the bottom 22%, which will receive a separate game caption overlay. Paint the whole canvas including that lower quiet background area; do not draw a caption box. Absolutely no words, letters, labels, logos, watermarks, borders or panel divisions. Image 1 is the hero's identity and drawing-style reference ONLY, ignore card layout, labels and weapons. Image 2 is Dark Dragon's exact creature reference. A story scene in the Unknown Universe's strange purple-brick school alley: the same PRE-MUTATION ordinary boy has natural chestnut BROWN spiky hair and NORMAL round cartoon eyes, pale face, white yellow-smiley T-shirt, orange cargo trousers and black/white/lime sneakers. No weapons. On the left half he braces himself, startled but alert, full body clearly readable. On the right the huge DARK GREEN scaled dragon HEAD AND LONG NECK rises from shadow; preserve the dragon reference's swept black horns, gray-green muzzle, green scales and spines. Do NOT invent visible dragon arms, legs, wings or a complete torso. The head exhales a sweeping golden-orange OTHERWORLDLY flame toward the boy, curling around him like bright ribbons so his silhouette and startled expression remain visible. It is the instant of magical transformation beginning, with no burn injuries, no gore, no charred skin or clothing and no realistic suffering. Violet dimensional light leaks through broken bricks behind the boy. Tall narrow alley with paper scraps and impossible tilted school architecture, strong warm/cool contrast, hand-drawn game palette. Drama and surprise, suitable for the game's playful cartoon adventure. Keep his hair still brown and the dragon's face green; reserve fully lime hair and X eyes for the following shot. Image 3 is the pre-mutation school scene from the previous screen: preserve that exact brown-haired boy's face, age, body and clothing. The school backpack can lie dropped on the alley floor, not obscure him. Both alley illustrations use purple bricks, a bent drainpipe, a high broken school window and a violet rift glow."
+    },
+    {
+      "id": "04-transformation",
+      "title": "The fire changed me",
+      "caption": [
+        "But that fire changed me.",
+        "I was still here—and nothing would be the same."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/xgod-drawn-v1/approved-drawn-seed.png"
+      ],
+      "prompt": "Use case: illustration-story. Asset type: a single static narrative illustration for a classic RPG / arcade-fighting-game ending screen in The Unknown Universe. Same hand-drawn bold black ink outlines, textured colored-pencil/crayon shading, expressive short cartoon proportions as the game's approved art. Rich, readable scene illustration, not pixel art, not a sprite strip, not a trading card, not a UI mockup. Wide landscape 16:9 composition. Keep all faces, hands and story-critical action inside the middle 80% horizontally and above the bottom 22%, which will receive a separate game caption overlay. Paint the whole canvas including that lower quiet background area; do not draw a caption box. Absolutely no words, letters, labels, logos, watermarks, borders or panel divisions. Both input images are CHARACTER IDENTITY REFERENCES ONLY. Ignore trading-card layout, labels, gun and sword. A single powerful aftermath scene in the same strange purple-brick alley: X GOD now has his EXACT approved post-mutation appearance: swept jagged lime-yellow hair, a pale simple cartoon face with TWO BLACK X EYES, small mouth, white short-sleeved T-shirt with yellow X-eyed smile emblem, ORANGE cargo trousers with side pockets, black-and-white sneakers with lime trim, youthful short cartoon proportions, not an adult muscle hero. He is centered in a three-quarter medium-full view, staring with astonishment at his intact hands. A SMALL warm orange flame floats above one palm; the other hand has a subtle icy blue elemental glimmer, suggesting potential rather than a mastered giant weapon. No sword, no gun, no armor, no scars. The same face and outfit as the references, completely recognizable. Faint dying gold embers and violet dimensional light, distant dragon shadow slipping away above the rooftops, but no second foreground character. His expression and body language say 'I survived, but I have changed.' White shirt and orange pants remain clearly visible and intact. Mood: wonder, vulnerability and newly awakened power, not smug triumph. Bold ink and textured colored pencils, clean readable focal silhouette. Quiet lower background for separate captions. This is the same alley as the previous story screen: purple bricks, a bent drainpipe, a high broken school window and a violet rift glow. His earlier school backpack has been dropped outside this close composition."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import TouchControls from "./components/TouchControls";
+import RosterUnlockPad from "./components/RosterUnlockPad";
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
@@ -10,6 +11,8 @@ import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
+import CutscenePlayer from './components/CutscenePlayer';
+import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
 const MonsterIdeator = lazy(() => import("./components/MonsterIdeator"));
@@ -19,7 +22,7 @@ const loadLegacy = () => import('./components/GameEngine');
 const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
-type AppPhase = "start" | "characterSelect" | "intro" | "game";
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game";
 type TitlePanel = "options" | "credits" | null;
 
 const LEVEL_MUSIC: Partial<Record<number, string>> = {
@@ -253,6 +256,8 @@ const App: React.FC = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
+  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
+  const storyTransitionRef = React.useRef(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
   const [isIntroExiting, setIsIntroExiting] = useState(false);
@@ -341,14 +346,18 @@ const App: React.FC = () => {
     };
   }, [appPhase, loadingProgress, useLegacyBrawler]);
 
+  const unlockRoster = React.useCallback(() => {
+    try { window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true"); } catch { /* Keep the roster unlocked for this session. */ }
+    setIsRosterUnlocked(true);
+  }, []);
+
   useEffect(() => {
     if (!stats.isVictory || selectedCharacterId !== "xgod" || typeof window === "undefined") {
       return;
     }
 
-    try { window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true"); } catch { /* Keep the roster unlocked for this session. */ }
-    setIsRosterUnlocked(true);
-  }, [selectedCharacterId, stats.isVictory]);
+    unlockRoster();
+  }, [selectedCharacterId, stats.isVictory, unlockRoster]);
 
   useEffect(() => {
     if (appPhase !== "start") {
@@ -407,6 +416,8 @@ const App: React.FC = () => {
     const musicSrc =
       appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
+        : appPhase === "story"
+          ? LEVEL_MUSIC[storyChapter === 'level2' ? 2 : 1]
         : appPhase === "intro"
           ? LEVEL_MUSIC[1]
           : appPhase === "game" && !useLegacyBrawler && bossTrack && stats.activeBossId === bossTrack.bossId
@@ -472,7 +483,7 @@ const App: React.FC = () => {
       window.removeEventListener("pointerdown", unlockPlayback);
       window.removeEventListener("keydown", unlockPlayback);
     };
-  }, [appPhase, gameSuspended, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
+  }, [appPhase, storyChapter, gameSuspended, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
 
   useEffect(() => {
     return () => {
@@ -484,6 +495,17 @@ const App: React.FC = () => {
   }, []);
 
   const handleStatsUpdate = (newStats: Partial<GameStats>) => {
+    if (storyTransitionRef.current) return;
+    const exitStory = LEVEL_EXIT_STORIES[stats.level];
+    if (!useLegacyBrawler && appPhase === 'game' && exitStory && newStats.level === stats.level + 1) {
+      // The engine reports its final rewards and equipment in this same snapshot.
+      // Keep that snapshot, release the old renderer, then mount the next level
+      // only after Continue/Skip. Never rebuild the loadout from defaults here.
+      storyTransitionRef.current = true;
+      setStoryChapter(exitStory);
+      setIsPaused(false);
+      setAppPhase('story');
+    }
     setStats((previous) => {
       const updated = { ...previous, ...newStats };
       if (updated.isVictory) {
@@ -511,6 +533,8 @@ const App: React.FC = () => {
   };
 
   const jumpToLevelForTesting = (level: number) => {
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
     const targetLevel = clamp(level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
     const hasSword = targetLevel >= 2;
     const hasShield = targetLevel >= 3;
@@ -549,6 +573,8 @@ const App: React.FC = () => {
   };
 
   const testCharacterMode = (characterId: CharacterId, powered: boolean) => {
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
     const currentLevel = clamp(stats.level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
     const hasShield = currentLevel >= 3;
     const hasDinio = currentLevel >= 2;
@@ -588,6 +614,8 @@ const App: React.FC = () => {
   };
 
   const restartGame = () => {
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
     setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
@@ -616,7 +644,17 @@ const App: React.FC = () => {
     });
     setIsPaused(false);
     setTitlePanel(null);
-    setAppPhase("intro");
+    const legacyRun = requestedLegacyBrawler && characterId !== 'zgod' && characterId !== 'killer_kai';
+    storyTransitionRef.current = !legacyRun;
+    setStoryChapter(legacyRun ? null : 'prologue');
+    setAppPhase(legacyRun ? 'intro' : 'story');
+  };
+
+  const completeStory = () => {
+    storyTransitionRef.current = false;
+    setIsPaused(false);
+    setAppPhase(storyChapter === 'prologue' ? 'intro' : 'game');
+    setStoryChapter(null);
   };
 
   const handleSpriteUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -644,7 +682,7 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-        {appPhase !== "start" && appPhase !== "characterSelect" && (
+        {(appPhase === 'intro' || appPhase === 'game') && (
           <Suspense fallback={null}>
           {useLegacyBrawler ? (
             <GameEngine
@@ -689,6 +727,7 @@ const App: React.FC = () => {
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
             initialLives={stats.lives}
+            initialHealth={stats.health}
             initialEquipment={stats.equipment}
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
@@ -867,7 +906,7 @@ const App: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_12%,rgba(124,58,237,0.36)_0%,rgba(15,23,42,0.92)_42%,#020617_100%)]" />
             <div className="character-select-content relative z-10 flex min-h-full w-full max-w-7xl shrink-0 flex-col justify-start py-3 md:justify-center">
               <div className="character-select-header mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
-                <div>
+                <div className="character-select-copy">
                   <h1 id="character-select-title" className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
                   <p className="character-select-description mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
                     {isRosterUnlocked
@@ -875,6 +914,7 @@ const App: React.FC = () => {
                       : "X God and Z-God are ready. Beat the game with X God to unlock the other heroes."}
                   </p>
                 </div>
+                <RosterUnlockPad unlocked={isRosterUnlocked} onUnlock={unlockRoster} />
                 <button
                   type="button"
                   onClick={() => setAppPhase("start")}
@@ -894,6 +934,7 @@ const App: React.FC = () => {
                       type="button"
                       disabled={locked}
                       data-character-id={character.id}
+                      autoFocus={character.id === selectedCharacterId}
                       aria-label={`${character.name}: ${locked ? 'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
                       onClick={() => beginRunWithCharacter(character.id)}
                       className={`character-card group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
@@ -930,6 +971,10 @@ const App: React.FC = () => {
               <p className="character-scroll-hint" aria-hidden="true">Swipe to browse heroes → · Tap SELECT to play</p>
             </div>
           </div>
+        )}
+
+        {appPhase === 'story' && storyChapter && (
+          <CutscenePlayer key={storyChapter} chapter={STORY_CHAPTERS[storyChapter]} resumeStats={stats} onComplete={completeStory} />
         )}
 
         {appPhase === "intro" && (

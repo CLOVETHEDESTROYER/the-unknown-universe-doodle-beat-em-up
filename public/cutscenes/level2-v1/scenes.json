@@ -1,0 +1,46 @@
+[
+  {
+    "id": "l2-01-the-registry",
+    "title": "The sealed registry",
+    "speaker": "X GOD",
+    "caption": [
+      "The Daughter's seal was broken.",
+      "Inside: a ledger of harvested worlds."
+    ],
+    "alt": "X and his schoolmate Barrett uncover a chained registry inside the moonlit mausoleum.",
+    "image": "/cutscenes/level2-v1/l2-01-the-registry.png"
+  },
+  {
+    "id": "l2-02-earthior",
+    "title": "Earthior on the page",
+    "speaker": "X GOD",
+    "caption": [
+      "Earthior. Marked: extracted.",
+      "Ours wasn't the only world they'd taken."
+    ],
+    "alt": "X points to Earthior's entry among several worlds recorded in a ledger of resource extraction.",
+    "image": "/cutscenes/level2-v1/l2-02-earthior.png"
+  },
+  {
+    "id": "l2-03-a-familiar-voice",
+    "title": "A familiar voice",
+    "speaker": "NICO · RADIO",
+    "caption": [
+      "X? It's Nico! That tag's from the Furnace.",
+      "Their launch records should still be there."
+    ],
+    "alt": "X recognizes his schoolmate Nico's voice on Barrett's radio beside a recovered Furnace shipment tag.",
+    "image": "/cutscenes/level2-v1/l2-03-a-familiar-voice.png"
+  },
+  {
+    "id": "l2-04-toward-the-furnace",
+    "title": "Toward the Furnace",
+    "speaker": "X GOD",
+    "caption": [
+      "They didn't just take my world.",
+      "The Furnace might tell us who did."
+    ],
+    "alt": "X secures the shipment clue in his folded worksheet as Barrett watches the distant Furnace beyond the Graveyard.",
+    "image": "/cutscenes/level2-v1/l2-04-toward-the-furnace.png"
+  }
+]

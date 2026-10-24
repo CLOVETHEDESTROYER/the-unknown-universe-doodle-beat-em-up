@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "l1-01-flame-sword",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-2612be7e-9b1b-4d5f-a54d-59f3ffdea78d.png",
+      "archived_source": "art/cutscenes/level1-v1/l1-01-flame-sword-source.png",
+      "runtime_image": "public/cutscenes/level1-v1/l1-01-flame-sword.png"
+    },
+    {
+      "id": "l1-02-the-mark",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-113711d2-bcf4-4fa4-b317-8db8bba5e64a.png",
+      "archived_source": "art/cutscenes/level1-v1/l1-02-the-mark-source.png",
+      "runtime_image": "public/cutscenes/level1-v1/l1-02-the-mark.png"
+    },
+    {
+      "id": "l1-03-schoolmate",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-14a5660e-380c-4a88-b8f0-ecc3f25bc3c3.png",
+      "archived_source": "art/cutscenes/level1-v1/l1-03-schoolmate-source.png",
+      "runtime_image": "public/cutscenes/level1-v1/l1-03-schoolmate.png"
+    },
+    {
+      "id": "l1-04-graveyard-road",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-e8309916-a351-4a47-b3d2-cacb0f7f2bb5.png",
+      "archived_source": "art/cutscenes/level1-v1/l1-04-graveyard-road-source.png",
+      "runtime_image": "public/cutscenes/level1-v1/l1-04-graveyard-road.png"
+    }
+  ]
+}

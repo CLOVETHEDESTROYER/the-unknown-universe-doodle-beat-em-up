@@ -36,6 +36,7 @@ interface PlatformerGameEngineProps {
   initialEquipment?: PowerupLoadout;
   isPaused: boolean;
   initialLives?: number;
+  initialHealth?: number;
   currentLevel: number;
   difficulty: DifficultyMode;
   selectedCharacterId: CharacterId;
@@ -924,6 +925,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   initialEquipment,
   isPaused,
   initialLives = 3,
+  initialHealth = 100,
   currentLevel,
   difficulty,
   selectedCharacterId,
@@ -1084,7 +1086,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let allyAssistAt=0,allyReturnAt=0,allyAssistKind:'none'|'intercept'|'strike'='none',allyIntercepts=0,allyStrikes=0;
     let crouchKey: Phaser.Input.Keyboard.Key;
     let hitStopActive = false;
-    let playerHealth = 100;
+    let playerHealth = isZGod ? 100 : Phaser.Math.Clamp(initialHealth, 1, 100);
     let playerLives = initialLives;
     let currentScore = initialScore;
     let currentSouls = initialSouls;

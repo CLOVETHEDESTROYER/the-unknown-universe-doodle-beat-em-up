@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Unknown Universe — Opening Story Art</title>
+  <style>
+    :root { color-scheme: dark; --paper:#fff3d7; --gold:#f8d578; --ink:#090c1c; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:100%; min-height:100%; background:#000; }
+    body { display:grid; place-items:center; min-height:100dvh; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); font-family:"Courier New",monospace; }
+    main { position:relative; width:min(100%,calc(100dvh * 16 / 9)); aspect-ratio:16/9; overflow:hidden; background:var(--ink); }
+    .art { display:block; width:100%; height:100%; object-fit:cover; object-position:center; cursor:pointer; }
+    .chapter { position:absolute; left:3%; top:3%; margin:0; color:var(--paper); font-size:clamp(10px,1.2vw,16px); font-weight:bold; letter-spacing:.12em; text-shadow:0 2px 2px #000,1px 0 2px #000; pointer-events:none; }
+    .dialogue { position:absolute; bottom:0; left:0; width:100%; min-height:24%; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:clamp(8px,1.5vw,20px) clamp(12px,2.5vw,34px); background:#090c1cf5; border-top:3px solid var(--paper); box-shadow:0 -3px 0 #0009; }
+    .speaker { margin:0 0 6px; font-weight:bold; color:var(--gold); font-size:clamp(10px,1.1vw,15px); letter-spacing:.15em; }
+    .caption { margin:0; color:var(--paper); font-size:clamp(15px,1.85vw,26px); line-height:1.4; font-weight:bold; }
+    .caption span { display:block; }
+    nav { display:flex; flex-direction:column; gap:8px; align-items:center; }
+    .buttons { display:flex; gap:6px; }
+    button { min-width:44px; min-height:44px; border:1px solid #f8d57899; background:#1d2342; color:var(--paper); font:700 clamp(11px,1.2vw,16px) "Courier New",monospace; padding:6px 10px; cursor:pointer; touch-action:manipulation; }
+    button:hover,button:focus-visible { background:#394066; border-color:var(--gold); outline:2px solid var(--gold); outline-offset:2px; }
+    button:active { background:#5b4c30; }
+    button:disabled { opacity:.35; cursor:default; outline:0; }
+    .counter { color:#bbb8c7; font-size:clamp(10px,1vw,14px); }
+    .load-status { position:absolute; inset:0; display:grid; place-items:center; background:var(--ink); color:var(--paper); font-size:18px; z-index:2; padding:24px; text-align:center; }
+    .load-status[hidden] { display:none; }
+    @media (max-width:600px) and (orientation:portrait) {
+      main { aspect-ratio:auto; display:grid; grid-template-rows:auto auto; }
+      .art { height:auto; aspect-ratio:16/9; object-fit:contain; }
+      .dialogue { position:relative; gap:8px; min-height:0; padding:12px; grid-template-columns:1fr; }
+      .caption { font-size:16px; }
+      nav { flex-direction:row; justify-content:space-between; }
+      .counter { order:-1; }
+    }
+  </style>
+</head>
+<body>
+  <main aria-label="Opening story art preview" aria-busy="true">
+    <img class="art" alt="" draggable="false">
+    <p class="chapter">THE UNKNOWN UNIVERSE · PROLOGUE</p>
+    <section class="dialogue" aria-label="Story caption">
+      <div aria-live="polite" aria-atomic="true">
+        <p class="speaker">X GOD</p>
+        <p class="caption"></p>
+      </div>
+      <nav aria-label="Story navigation">
+        <div class="buttons">
+          <button id="previous" type="button" aria-label="Previous story image">◀</button>
+          <button id="next" type="button" aria-label="Next story image">NEXT ▶</button>
+        </div>
+        <span class="counter" aria-label="Story position"></span>
+      </nav>
+    </section>
+    <div class="load-status" role="status">Opening story…</div>
+  </main>
+  <script type="module">
+    const stage=document.querySelector('main'),art=document.querySelector('.art'),caption=document.querySelector('.caption');
+    const previous=document.querySelector('#previous'),next=document.querySelector('#next'),counter=document.querySelector('.counter'),status=document.querySelector('.load-status');
+    let scenes=[],index=0,request=0;
+    const params=new URLSearchParams(location.search),levelOne=params.get('chapter')==='level1',levelTwo=params.get('chapter')==='level2',expanded=!levelOne&&!levelTwo&&params.get('edition')==='expanded';
+    if(levelOne||levelTwo){
+      stage.setAttribute('aria-label',`${levelTwo?'After the Graveyard':'After The Scratch'} story art preview`);
+      document.querySelector('.chapter').textContent=`THE UNKNOWN UNIVERSE · ${levelTwo?'AFTER THE GRAVEYARD':'AFTER THE SCRATCH'}`;
+    }
+    window.render_game_to_text=()=>JSON.stringify({mode:'cutscene-art-preview',chapter:levelTwo?'level2':levelOne?'level1':'prologue',scene:stage.dataset.scene??null,index,total:scenes.length,
+      speaker:document.querySelector('.speaker').textContent,
+      caption:[...caption.children].map(line=>line.textContent),busy:stage.getAttribute('aria-busy')==='true',
+      image:{src:art.getAttribute('src'),alt:art.alt,loaded:art.complete&&art.naturalWidth>0}});
+    const requested=Number(params.get('frame'));
+    async function show(target){
+      index=(target+scenes.length)%scenes.length;
+      const scene=scenes[index],id=++request;
+      stage.setAttribute('aria-busy','true');status.textContent='Opening story…';status.hidden=false;
+      previous.disabled=index===0;next.textContent=index===scenes.length-1?'REPLAY ↻':'NEXT ▶';
+      next.setAttribute('aria-label',index===scenes.length-1?'Replay story':'Next story image');
+      try{
+        const image=new Image();image.src=new URL(scene.image,location.href).href;await image.decode();
+        if(id!==request)return;
+        art.src=image.src;art.alt=scene.alt;
+        document.querySelector('.speaker').textContent=scene.speaker||'X GOD';
+        caption.replaceChildren(...scene.caption.map(line=>{const span=document.createElement('span');span.textContent=line;return span;}));
+        counter.textContent=`${String(index+1).padStart(2,'0')} / ${String(scenes.length).padStart(2,'0')}`;
+        document.title=`${scene.title} — The Unknown Universe`;
+        stage.dataset.scene=scene.id;stage.setAttribute('aria-busy','false');status.hidden=true;
+      }catch{
+        if(id!==request)return;stage.setAttribute('aria-busy','false');status.textContent="This image couldn't load. Use Next to try another screen.";status.style.pointerEvents='none';
+      }
+    }
+    previous.addEventListener('click',()=>{if(index>0)void show(index-1);});
+    next.addEventListener('click',()=>void show(index+1));
+    art.addEventListener('click',()=>void show(index+1));
+    window.addEventListener('keydown',event=>{
+      if(event.repeat||event.altKey||event.ctrlKey||event.metaKey)return;
+      if(event.target.closest?.('button')&&['Enter',' '].includes(event.key))return;
+      if(['ArrowRight','Enter',' '].includes(event.key)){event.preventDefault();void show(index+1);}
+      if(event.key==='ArrowLeft'){event.preventDefault();if(index>0)void show(index-1);}
+    });
+    try{
+      const response=await fetch(levelTwo?'../level2-v1/scenes.json':levelOne?'../level1-v1/scenes.json':expanded?'../prologue-v2/scenes.json':'scenes.json');if(!response.ok)throw Error();
+      scenes=await response.json();if(!scenes.length)throw Error();
+      await show(Number.isInteger(requested)&&requested>=0&&requested<scenes.length?requested:0);
+    }catch{stage.setAttribute('aria-busy','false');status.textContent="The story couldn't open. Please reload to try again.";}
+  </script>
+</body>
+</html>

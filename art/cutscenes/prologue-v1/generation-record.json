@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "01-earthior",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-c8df689b-d830-4e17-b1f0-5dfcf8f5226f.png",
+      "archived_source": "art/cutscenes/prologue-v1/01-earthior-source.png",
+      "runtime_image": "public/cutscenes/prologue-v1/01-earthior.png"
+    },
+    {
+      "id": "02-impact",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-3bbf9e23-10b6-46c7-8140-cbb8bd02a3b9.png",
+      "archived_source": "art/cutscenes/prologue-v1/02-impact-source.png",
+      "runtime_image": "public/cutscenes/prologue-v1/02-impact.png"
+    },
+    {
+      "id": "03-alley-fire",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-56af362f-8905-4be9-96f9-f3fcf3fe4933.png",
+      "archived_source": "art/cutscenes/prologue-v1/03-alley-fire-source.png",
+      "runtime_image": "public/cutscenes/prologue-v1/03-alley-fire.png"
+    },
+    {
+      "id": "04-transformation",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-104bb4ae-58d5-43d1-8a60-e8c48370a775.png",
+      "archived_source": "art/cutscenes/prologue-v1/04-transformation-source.png",
+      "runtime_image": "public/cutscenes/prologue-v1/04-transformation.png"
+    }
+  ]
+}

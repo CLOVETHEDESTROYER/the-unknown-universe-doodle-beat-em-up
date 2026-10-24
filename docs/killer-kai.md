@@ -2,7 +2,8 @@
 
 Kai is a pale-skinned, curly-haired cyborg with an integrated cyan arm cannon.
 His approved ink-and-colored-pencil design is preserved in `art/killer-kai-v1`.
-He joins the unlockable roster under the existing rule: finish the game as X God.
+He joins the unlockable roster by finishing the game as X God, or by entering
+the [secret direction code](roster-unlock-code.md) on character select.
 For local review, open `/?autostart=1&unlockRoster=1&character=killer_kai`.
 
 ## Controls and abilities
