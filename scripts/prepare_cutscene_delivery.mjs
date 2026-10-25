@@ -5,7 +5,9 @@ import {fileURLToPath} from 'node:url';
 
 // Delivery-only resampling/encoding. Originals and creative artwork stay intact.
 const root=fileURLToPath(new URL('../',import.meta.url));
-const manifests=['prologue-v2','level1-v1','level2-v1'];
+const requested=process.argv.slice(2);
+const manifests=requested.length?requested:['prologue-v2','level1-v1','level2-v1','level3-v1','level4-v1','level5-v1','level6-v1'];
+if(manifests.some(chapter=>!['prologue-v2','level1-v1','level2-v1','level3-v1','level4-v1','level5-v1','level6-v1'].includes(chapter)))throw Error('Unknown cutscene chapter');
 const images=new Set();
 for(const chapter of manifests){
   const scenes=JSON.parse(await fs.readFile(path.join(root,'public/cutscenes',chapter,'scenes.json'),'utf8'));

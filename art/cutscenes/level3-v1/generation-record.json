@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "l3-01-schoolmates-in-the-furnace",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-95120adf-8081-4550-b4bf-e2f6ff2ccda2.png",
+      "archived_source": "art/cutscenes/level3-v1/l3-01-schoolmates-in-the-furnace-source.png",
+      "runtime_image": "public/cutscenes/level3-v1/l3-01-schoolmates-in-the-furnace.png"
+    },
+    {
+      "id": "l3-02-the-launch-log",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-b9711b23-ac2d-47ed-ac34-eeacff156697.png",
+      "archived_source": "art/cutscenes/level3-v1/l3-02-the-launch-log-source.png",
+      "runtime_image": "public/cutscenes/level3-v1/l3-02-the-launch-log.png"
+    },
+    {
+      "id": "l3-03-the-name",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-1bf3b5a5-71e0-466e-9375-26174db7ced4.png",
+      "archived_source": "art/cutscenes/level3-v1/l3-03-the-name-source.png",
+      "runtime_image": "public/cutscenes/level3-v1/l3-03-the-name.png"
+    },
+    {
+      "id": "l3-04-the-next-target",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-154f4702-3d82-41c5-90bd-2281a26ca9ea.png",
+      "archived_source": "art/cutscenes/level3-v1/l3-04-the-next-target-source.png",
+      "runtime_image": "public/cutscenes/level3-v1/l3-04-the-next-target.png"
+    }
+  ]
+}

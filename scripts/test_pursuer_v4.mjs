@@ -82,6 +82,7 @@ try{
  s=await read();assert(s.flight.finaleDefeated);assert.equal(s.combat.kills,1);assert(s.combat.enemyShots>100);
  evidence.patterns=[...seen];evidence.openings=openings;evidence.fight={hull:s.ship.hull,shots:s.combat.enemyShots,kills:s.combat.kills};
  await shot('cleared-approach');await advance(8000);assert(['landing','disembark'].includes((await read()).flight.phase));await advance(5000);
+ await page.getByRole('button',{name:'Skip story',exact:true}).click();
  await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).level===6&&JSON.parse(window.render_game_to_text()).player?.grounded);assert.equal((await read()).player.lives,3);evidence.landing=true;
 
  // Real steering reaches a committed barrage lane before the first wall arrives.

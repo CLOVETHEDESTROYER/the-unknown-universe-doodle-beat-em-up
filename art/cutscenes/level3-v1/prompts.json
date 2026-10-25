@@ -1,0 +1,70 @@
+{
+  "mode": "built-in ImageGen",
+  "useCase": "illustration-story",
+  "scenes": [
+    {
+      "id": "l3-01-schoolmates-in-the-furnace",
+      "title": "Schoolmates in the Furnace",
+      "speaker": "EZRA",
+      "caption": [
+        "X! Kai! You made it too!",
+        "Help me get them clear of the machinery."
+      ],
+      "alt": "X, Kai and their schoolmate Ezra help small local workers out of the cooling Furnace.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/killer-kai-v1/seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/ezra-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/boss-deaths-v1/ink_behemoth-seed.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 is KILLER KAI: curly dark brown hair, pale boy face, cobalt-blue and silver cyborg armor, cyan chest core, ONE cylindrical blaster forearm, other hand normal robotic fingers. Image3 is EZRA: fiery orange/yellow hair, glowing amber skin with lava cracks, black sleeveless torn shirt and dark brown trousers, belt, brown boots. They are X's SURVIVING EARTHIOR SCHOOL FRIENDS recognizing each other with relief, not native workers or captive servants. Wide shot of a cooling orange-and-purple industrial Furnace hall AFTER the Colossus fight: behind an inert pile of black basalt plates with dim cracks matching Image4, machinery falls quiet. Foreground Ezra braces an ordinary open iron door while two small friendly green round-bodied local worker creatures hurry through safely. X offers one worker his hand, Kai stands at X's side looking warmly toward Ezra. Three schoolmates, two simple creature workers only. No one kneels enslaved; they are helping by kindness, no chains on anyone. Cooling iron pipes, violet shadows, orange lamps, clear safe doorway. The Colossus is broken inert stone in BACKGROUND, no alive boss or post-death speech. Compose all faces and the hand helping the creature high in the image. No readable text."
+    },
+    {
+      "id": "l3-02-the-launch-log",
+      "title": "The launch log",
+      "speaker": "KILLER KAI",
+      "caption": [
+        "I can read the launch logs.",
+        "This is the meteor that hit Earthior."
+      ],
+      "alt": "Kai accesses a surviving Furnace terminal while X recognizes the marked meteor in its launch record.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/killer-kai-v1/seed.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 locks KAI's exact curly brown hair, pale youthful cyborg face, blue/silver armor, round cyan chest core, one arm cannon and other robotic hand. Medium close-up of X and Kai as friendly peers in the cooling Furnace control nook. Kai rests the muzzle-end of his cannon forearm gently against a round cyan terminal socket as an interface, no firing or destructive blast. His other finger indicates a glass terminal screen showing ONE black meteor with a simple BROKEN GOLD CIRCULAR BAND, a curved violet path to a small blue-green planet, and resource tally lines. The dark meteor's gold-ring design follows the known shipping seal shape; not a fancy new rune. X studies it with dawning recognition, worksheet in his free hand. Screens contain pictograms/diagrams, NO readable text yet. Warm orange furnace pipes through a window contrast with cyan evidence display. Keep the meteor, their faces and cannon/socket interaction above bottom28%. Only X and Kai visible; no random classmate or native mentor."
+    },
+    {
+      "id": "l3-03-the-name",
+      "title": "The name behind the order",
+      "speaker": "X GOD",
+      "caption": [
+        "Void Regent. He signed the order.",
+        "Now I have your name."
+      ],
+      "alt": "X reads Void Regent's authorization on the recovered Earthior launch record.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/killer-kai-v1/seed.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 supplies Kai identity only for a SMALL partial blue armored shoulder/curly-haired head in background if needed; primary is a dramatic close-up on X's youthful X-eyed face on left and a surviving control-terminal plate on right. The terminal displays exactly TWO legible lines of bold handwritten industrial lettering: 'VOID REGENT' above 'EARTHIOR'. Spell those exactly. Under them show a stamped check mark and a gold meteor-ring seal beside a simple trajectory diagram. No more words, no villain portrait, no death list or parental names. Orange glow from cooling machinery and cool cyan screen reflect on X's pale face; he rests the folded scorched math worksheet against the console. His expression is focused hurt and resolve, not a cruel manic grin. The important name, EARTHIOR heading, seal and face all high enough to remain fully above bottom28%. This reveals the actual named culprit with a readable simple screen, not a wall of exposition. Two characters maximum, no panels."
+    },
+    {
+      "id": "l3-04-the-next-target",
+      "title": "The next target",
+      "speaker": "TELEPORTATION C",
+      "caption": [
+        "Witchwood is marked for the next strike.",
+        "Kilina's charts may show his world."
+      ],
+      "alt": "Teleportation C and Kai share a recovered route chart with X, pointing toward Witchwood.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/killer-kai-v1/seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/teleportation_c-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 is exact Kai, Image3 is exact TELEPORTATION C: ONE youthful black pencil-shaded shadow schoolmate, spiky black hair silhouette, large white eyes, a single WHITE C on chest, thin violet edge glow. He is the SAME individual in playable and ally roles: depict him ONCE, never a second C companion. Image4 supplies the purple forest/observatory destination. At the Furnace outer doorway X, Kai and C gather over a paper route chart held at waist/chest level. C points with one shadow finger to a red marked target symbol on a drawing of purple trees and an observatory. Kai has decoded the record, X recognizes the danger. In distance beyond orange industrial roofline is the violet wooded ridge with broken arches and an observatory matching Image4. Shared schoolmate familiarity and urgency, no teleport gate or forced recruitment, no creature helpers required. One X, one Kai, one C, no other people. Keep chart and faces high. The chart has forest drawing, coordinates as abstract dots, no words or long numbers. Their destination is Witchwood on THIS refuge world, NOT a new planet. No weapons posed at each other."
+    }
+  ]
+}

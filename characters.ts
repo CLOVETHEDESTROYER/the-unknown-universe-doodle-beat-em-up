@@ -83,7 +83,7 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
     id: "killer_kai",
     name: "Killer Kai",
     subtitle: "Cyborg Cannoneer",
-    cardImage: "/characters/killer-kai-v1/card.webp",
+    cardImage: "/cards/killer-kai-card-v2.webp",
     hudColor: "cyan",
     rewardName: "Thunder Core",
     rewardSubtitle: "Punch the ground. Bring down an electrical storm.",

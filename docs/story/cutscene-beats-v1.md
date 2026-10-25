@@ -8,7 +8,7 @@ Follow-up coverage and continuity: [production map](production-map-v1.md). The e
 
 Latest creator facts: [schoolmates, local helpers and the parents' unresolved fate](creator-canon.md). Every playable hero is an Earthior schoolmate who survived transportation. C is both playable and an ally; the other helpers are local creatures drawn to X's kind heart. Possible future parent captivity on a dark planet is not a current-game reveal.
 
-The six current levels are retained. Plan **seven core scenes**: a prologue and one scene after each level. A short pre-Regent confrontation is recommended as an optional eighth scene. The opening and first two endings are now illustrated and integrated; [runtime notes](campaign-cutscenes-v1.md) describe the working campaign handoff. Later scenes remain writing proposals.
+The six current levels are retained. Plan **seven core scenes**: a prologue and one scene after each level. A short pre-Regent confrontation is recommended as an optional eighth scene. The opening and Level 1–6 endings are now illustrated and integrated; [runtime notes](campaign-cutscenes-v1.md) describe the working campaign handoff. The optional pre-Regent confrontation remains a writing proposal.
 
 ## Format to build toward
 
@@ -61,10 +61,10 @@ New information: this was repeated, organized exploitation. New objective: reach
 
 Four panels; approximately 20 seconds. Teleportation C is a schoolmate already encountered as an ally during this chapter; Kai and Ezra's appearance is another reunion with surviving Earthior pupils. No former-native or forced-service backstory is assumed.
 
-1. **The furnace stops:** the Cinder Colossus's defeated shell dims. Ezra helps workers out of the cooling machinery; C marks a safe local exit.
-2. **Recovered evidence:** Kai connects his cannon-arm interface to an undamaged logging terminal. The screen shows the meteor's path and the launch order.
-3. **The answer:** the authorization resolves: **VOID REGENT — EARTHIOR EXTRACTION APPROVED**. X: “Now I have your name.” Hold on his face rather than filling the screen with exposition.
-4. **The next target:** another route flashes on the terminal: Witchwood. C: “Kilina charts his crossings.” Kai: “And he's marked her home for collection.”
+1. **The furnace stops:** the Cinder Colossus's defeated shell dims. Ezra holds an open exit while X helps local creature workers and Kai recognizes their friend. Ezra: “X! Kai! You made it too! Help me get them clear of the machinery.”
+2. **Recovered evidence:** Kai connects his cannon-arm interface to an undamaged logging terminal. The screen shows the marked meteor and launch path. “I can read the launch logs. This is the meteor that hit Earthior.”
+3. **The answer:** the authorization resolves with the two prop headings **VOID REGENT / EARTHIOR** and an approval mark. X: “Void Regent. He signed the order. Now I have your name.” Faces/evidence carry the reveal instead of a screen of exposition.
+4. **The next target:** C shares Kai's recovered chart, with a visible Witchwood target. “Witchwood is marked for the next strike. Kilina's charts may show his world.” C appears once; the chart supplies information without granting an uncollected companion/teleport ability.
 
 New information: the Regent ordered it, and the machine is still operating. New objective: obtain the Dread Planet route at Kilina's sanctuary. X recognizes a repeated coordinate pattern; Kai does the technical decoding.
 
@@ -72,10 +72,10 @@ New information: the Regent ordered it, and the machine is still operating. New 
 
 Four panels; approximately 22 seconds. The observatory records survive Kilina's actual defeat.
 
-1. **The broken bargain:** the observatory projects Kilina's contract and the same Witchwood target coordinates. The Court never intended to honor its promise of protection.
-2. **The route:** C extracts the sealed interplanetary coordinates. Nico reports that the transport is fueled. This supplies the actual transition into Starbreak Run.
-3. **The familiar light:** a small stellar flare appears beside the sanctuary. Z-God steps out under her own power. X freezes. Z: “I kept looking for you.”
-4. **Reunion and boarding:** the siblings hold each other, then face the transport. X: “I was afraid I'd never see you again.” Z: “I'm here.” Leave a quiet beat before the engines start. His earlier reunions with other schoolmates remain meaningful.
+1. **The broken bargain:** X and C examine the contract and the same Witchwood target coordinates. X: “Kilina was promised protection. Her own home was marked for extraction.” No defeated-boss speech is required.
+2. **The route:** C shares the recovered interplanetary chart. “The charts lead to Dread Planet. Nico has a ship ready for you.” The actual white/orange/lime Starbreak craft waits outside, providing physical travel rather than a required companion teleport.
+3. **The familiar light:** a small stellar flare fades beside the sanctuary as Z-God arrives safely under her own power. Z: “X! I kept looking for you. I'm right here.” Her exact power origin is not established here.
+4. **Reunion and boarding:** the siblings embrace beside the two-seat ship. X: “I was afraid I'd never see you again. Together. Whatever comes next.” Leave a quiet beat before engines start; previous schoolmate reunions remain meaningful. Actual flight boarding/launch follows Continue.
 
 New information: his sister survived and has changed too. New objective: reach Dread Planet together. Her entrance is powerful and safe, never a scene of her needing rescue. Do not use this reunion to imply that the rest of Earthior has been restored.
 
@@ -83,10 +83,10 @@ New information: his sister survived and has changed too. New objective: reach D
 
 Four panels; approximately 16 seconds. Begin after the Pursuer's current wreck sequence, then use the established landing/disembark transition.
 
-1. **The corridor clears:** the Pursuer breaks apart behind the transport. Dread Planet fills the window; gilded cities stand against damaged skies.
-2. **What paid for it:** Kai projects recovered cargo manifests over the view of the planet. Gold shipments marked EARTHIOR line up with the city's shining structures.
-3. **Urgency:** a black-box warning shows the meteor weapon being armed for the Witchwood coordinates found in the Furnace. Nico: “He's sending another one.” X closes the manifest.
-4. **Touchdown:** X and the crew face the distant launch structure. “Then this is the last.” Hand control back at the normal Level 6 start.
+1. **The corridor clears:** the Pursuer's wreck is inert behind the Starbreak craft; Dread Planet fills the view. X: “The Pursuer fell behind us. Dread Planet filled the sky.” The actual wreck/landing/disembark have completed before the story opens.
+2. **What paid for it:** X and Z compare an EARTHIOR cargo slip with the gold city. Kai over radio: “Earthior's gold. Their towers. They built this place from stolen worlds.” Other classmates help remotely rather than being crammed into the two-seat cockpit.
+3. **Urgency:** the warning shows a meteor arming for the SAME Witchwood coordinates. Nico over radio: “He's arming another meteor. The target is still Witchwood.” No parents' location or unrelated third meteor plot is added.
+4. **Touchdown:** X and Z face the distant launch structure from the landing path. X: “Then we stop it at the source. No more worlds. No more meteors.” Continue hands control back at the normal Level 6 start with the saved run state.
 
 New information: the stolen resources built the Regent's power; the strike that threatens the refuge world is now imminent. New objective: reach the controls and the Regent. Witchwood is the breach site on the first four chapters' world, not a new planet or a separate third meteor subplot.
 
@@ -102,7 +102,7 @@ Purpose: let the antagonist reveal his indifference in his own voice. Keep this 
 
 ## C06 — After Dread Planet: What Remains
 
-Six panels; approximately 30 seconds. Start after the real final-boss defeat. No resurrection or secret superior villain.
+Six panels, now illustrated and integrated; approximately 30 seconds. Start after the real final-boss defeat and exit. No resurrection or secret superior villain.
 
 | Panel | Visual action | Draft words / sound |
 | --- | --- | --- |
@@ -123,4 +123,4 @@ Resolution: the culprit is defeated, the next launch is prevented, and X chooses
 4. Board C02–C05 and the ending using approved designs; avoid panels that require defeated bosses to reverse their existing death animations.
 5. Prototype one short mobile cutscene before producing all final art. Check tap/Skip, safe areas, captions, loading cost, replay and level-state handoff on actual phones.
 
-The initial writing pass produced no art or runtime. Subsequent passes now supply 14 finished screens and a campaign player for C00–C02. C03 onward, voiced lines, a replay menu and the optional confrontation remain future production work.
+The initial writing pass produced no art or runtime. Subsequent passes now supply all 32 finished screens and a campaign player for C00–C06. Voiced lines, a replay menu and the optional confrontation remain future production work.

@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "l4-01-a-broken-promise",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-df52b28a-1298-4321-8f0c-594b2001a970.png",
+      "archived_source": "art/cutscenes/level4-v1/l4-01-a-broken-promise-source.png",
+      "runtime_image": "public/cutscenes/level4-v1/l4-01-a-broken-promise.png"
+    },
+    {
+      "id": "l4-02-the-star-route",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-dc3ee593-ebd0-4162-8acd-0e1fcf585f2f.png",
+      "archived_source": "art/cutscenes/level4-v1/l4-02-the-star-route-source.png",
+      "runtime_image": "public/cutscenes/level4-v1/l4-02-the-star-route.png"
+    },
+    {
+      "id": "l4-03-the-familiar-light",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-c53359f4-f0fa-4d81-95aa-f18822c4bca6.png",
+      "archived_source": "art/cutscenes/level4-v1/l4-03-the-familiar-light-source.png",
+      "runtime_image": "public/cutscenes/level4-v1/l4-03-the-familiar-light.png"
+    },
+    {
+      "id": "l4-04-still-here",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-bd86fb2c-4161-42a8-a828-b97943704e52.png",
+      "archived_source": "art/cutscenes/level4-v1/l4-04-still-here-source.png",
+      "runtime_image": "public/cutscenes/level4-v1/l4-04-still-here.png"
+    }
+  ]
+}

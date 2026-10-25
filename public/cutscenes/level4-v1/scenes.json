@@ -1,0 +1,46 @@
+[
+  {
+    "id": "l4-01-a-broken-promise",
+    "title": "A broken promise",
+    "speaker": "X GOD",
+    "caption": [
+      "Kilina was promised protection.",
+      "Her own home was marked for extraction."
+    ],
+    "alt": "X finds Witchwood's coordinates targeted on Kilina's surviving observatory records.",
+    "image": "/cutscenes/level4-v1/l4-01-a-broken-promise.png"
+  },
+  {
+    "id": "l4-02-the-star-route",
+    "title": "The route to Dread Planet",
+    "speaker": "TELEPORTATION C",
+    "caption": [
+      "The charts lead to Dread Planet.",
+      "Nico has a ship ready for you."
+    ],
+    "alt": "C shares the recovered interplanetary route with X as Nico's prepared Starbreak ship waits outside Witchwood.",
+    "image": "/cutscenes/level4-v1/l4-02-the-star-route.png"
+  },
+  {
+    "id": "l4-03-the-familiar-light",
+    "title": "A familiar light",
+    "speaker": "Z-GOD",
+    "caption": [
+      "X! I kept looking for you.",
+      "I'm right here."
+    ],
+    "alt": "Z-God steps confidently from a small stellar flare as X recognizes his surviving little sister.",
+    "image": "/cutscenes/level4-v1/l4-03-the-familiar-light.png"
+  },
+  {
+    "id": "l4-04-still-here",
+    "title": "Still here",
+    "speaker": "X GOD",
+    "caption": [
+      "I was afraid I'd never see you again.",
+      "Together. Whatever comes next."
+    ],
+    "alt": "X and Z-God share a relieved sibling embrace beside the ready Starbreak ship.",
+    "image": "/cutscenes/level4-v1/l4-04-still-here.png"
+  }
+]

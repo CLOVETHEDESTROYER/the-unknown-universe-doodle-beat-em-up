@@ -1,0 +1,46 @@
+[
+  {
+    "id": "l3-01-schoolmates-in-the-furnace",
+    "title": "Schoolmates in the Furnace",
+    "speaker": "EZRA",
+    "caption": [
+      "X! Kai! You made it too!",
+      "Help me get them clear of the machinery."
+    ],
+    "alt": "X, Kai and their schoolmate Ezra help small local workers out of the cooling Furnace.",
+    "image": "/cutscenes/level3-v1/l3-01-schoolmates-in-the-furnace.png"
+  },
+  {
+    "id": "l3-02-the-launch-log",
+    "title": "The launch log",
+    "speaker": "KILLER KAI",
+    "caption": [
+      "I can read the launch logs.",
+      "This is the meteor that hit Earthior."
+    ],
+    "alt": "Kai accesses a surviving Furnace terminal while X recognizes the marked meteor in its launch record.",
+    "image": "/cutscenes/level3-v1/l3-02-the-launch-log.png"
+  },
+  {
+    "id": "l3-03-the-name",
+    "title": "The name behind the order",
+    "speaker": "X GOD",
+    "caption": [
+      "Void Regent. He signed the order.",
+      "Now I have your name."
+    ],
+    "alt": "X reads Void Regent's authorization on the recovered Earthior launch record.",
+    "image": "/cutscenes/level3-v1/l3-03-the-name.png"
+  },
+  {
+    "id": "l3-04-the-next-target",
+    "title": "The next target",
+    "speaker": "TELEPORTATION C",
+    "caption": [
+      "Witchwood is marked for the next strike.",
+      "Kilina's charts may show his world."
+    ],
+    "alt": "Teleportation C and Kai share a recovered route chart with X, pointing toward Witchwood.",
+    "image": "/cutscenes/level3-v1/l3-04-the-next-target-safe-v2.png"
+  }
+]

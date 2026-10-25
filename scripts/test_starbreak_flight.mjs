@@ -80,6 +80,7 @@ try{
   await steerTouch(-1,91);
   await advance(2900);s=await read();assert.equal(s.flight.phase,'disembark');await shot('landing');
   await advance(2300);
+  await page.getByRole('button',{name:'Skip story',exact:true}).click();
   await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).level===6&&JSON.parse(window.render_game_to_text()).player?.grounded);
   s=await read();assert(s.enemies.some(e=>e.bossId==='void_regent'));assert(s.powerups.hasFlameSword);
   assert(!s.touchControls.up&&!s.touchControls.attack,'Landing clears held flight inputs before platforming');

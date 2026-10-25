@@ -1,0 +1,128 @@
+{
+  "mode": "built-in ImageGen",
+  "useCase": "illustration-story",
+  "scenes": [
+    {
+      "id": "l6-01-the-crown-falls",
+      "title": "The crown falls",
+      "speaker": "X GOD",
+      "caption": [
+        "The Regent fell.",
+        "But his weapon was still awake."
+      ],
+      "alt": "The defeated Regent's broken crown lies on violet stone while a meteor launcher still glows red.",
+      "refs": [
+        "art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "art/boss-deaths-v1/void_regent-seed.png"
+      ],
+      "detail": "Reference2 is Void Regent identity ONLY: purple spiked black armor gold trim and crown. AFTER his real defeat, close low view of his recognizable broken gold/purple crown and an inert cracked purple gauntlet on violet basalt floor at left; no standing villain, no body or person necessary. In upper right background the established enormous black meteor remains clamped in tall mechanical launch cradle with glowing RED vertical power conduit and red circular launch indicator, violet ruined arches and red moon. Fallen crown is clear upper-left focal point, still-armed launcher upper-right. Silence after battle but ongoing danger. Do not depict a new fight or exploding meteor.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Reference2 is Void Regent identity ONLY: purple spiked black armor gold trim and crown. AFTER his real defeat, close low view of his recognizable broken gold/purple crown and an inert cracked purple gauntlet on violet basalt floor at left; no standing villain, no body or person necessary. In upper right background the established enormous black meteor remains clamped in tall mechanical launch cradle with glowing RED vertical power conduit and red circular launch indicator, violet ruined arches and red moon. Fallen crown is clear upper-left focal point, still-armed launcher upper-right. Silence after battle but ongoing danger. Do not depict a new fight or exploding meteor.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/boss-deaths-v1/void_regent-seed.png"
+      ]
+    },
+    {
+      "id": "l6-02-earthior-wasnt-yours",
+      "title": "Earthior wasn't yours",
+      "speaker": "X GOD",
+      "caption": [
+        "Earthior wasn't yours to spend.",
+        "And you don't get the next world."
+      ],
+      "alt": "X turns from the fallen crown toward the launch controls, holding his scorched worksheet.",
+      "refs": [
+        "art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "art/cutscenes/prologue-v1/01-earthior-source.png"
+      ],
+      "detail": "Reference2 shows ONLY original folded math worksheet prop, NOT pre-transformation brown-haired boy or school background. Medium shot transformed lime-haired X, thoughtful resolute not gloating, turns away from fallen purple/gold crown far left toward upper-right amber/red weapon controls. His hands and face in upper-half; one hand holds his small folded scorched math worksheet with simple triangle/fraction pencil marks, other reaches for large emergency lever. No legible words. Behind controls red launch indicator and distant inert black meteor held in cradle. No sword needed: his choice is to stop the machine and protect others.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Reference2 shows ONLY original folded math worksheet prop, NOT pre-transformation brown-haired boy or school background. Medium shot transformed lime-haired X, thoughtful resolute not gloating, turns away from fallen purple/gold crown far left toward upper-right amber/red weapon controls. His hands and face in upper-half; one hand holds his small folded scorched math worksheet with simple triangle/fraction pencil marks, other reaches for large emergency lever. No legible words. Behind controls red launch indicator and distant inert black meteor held in cradle. No sword needed: his choice is to stop the machine and protect others.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/01-earthior-source.png"
+      ]
+    },
+    {
+      "id": "l6-03-friends-answer",
+      "title": "Friends answer",
+      "speaker": "KILLER KAI · RADIO",
+      "caption": [
+        "I've found the feed. C has a way out.",
+        "We're getting everyone clear."
+      ],
+      "alt": "Kai traces the launch circuit over radio while C opens an evacuation path.",
+      "refs": [
+        "art/cutscenes/level3-v1/l3-02-the-launch-log-source.png",
+        "art/killer-kai-v1/seed.png",
+        "public/cards/teleportation-c-card.png"
+      ],
+      "detail": "Reference1 style/environment continuity only, reference2 EXACT Kai: pale youthful curly dark brown-haired cyborg blue/silver armor cyan core, ONE arm cannon and other robotic hand. Reference3 EXACT C: small black hooded shadow schoolmate, white eyes, gold C on torso, purple portal magic. Show Kai at a remote battered radio console in a foreground left alcove tracing a glowing CYAN circuit schematic with his robotic finger, ONE cannon lowered. In the distant upper right courtyard ONE C opens ONE round violet evacuation portal for three small kind local creatures, no duplicates of C, no other named heroes. Radio/routing evidence visually connects the friends from separated locations without cramped spaceship. No text on diagram, use lines and disconnect symbol. No Earthior relatives or newly invented human schoolmate.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Reference1 style/environment continuity only, reference2 EXACT Kai: pale youthful curly dark brown-haired cyborg blue/silver armor cyan core, ONE arm cannon and other robotic hand. Reference3 EXACT C: small black hooded shadow schoolmate, white eyes, ivory C on torso, purple portal magic. Show Kai at a remote battered radio console in a foreground left alcove tracing a glowing CYAN circuit schematic with his robotic finger, ONE cannon lowered. In the distant upper right courtyard ONE C opens ONE round violet evacuation portal for three small kind local creatures, no duplicates of C, no other named heroes. Radio/routing evidence visually connects the friends from separated locations without cramped spaceship. No text on diagram, use lines and disconnect symbol. No Earthior relatives or newly invented human schoolmate.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level3-v1/l3-02-the-launch-log-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/killer-kai-v1/seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/teleportation-c-card.png"
+      ]
+    },
+    {
+      "id": "l6-04-ive-got-it",
+      "title": "I've got it",
+      "speaker": "Z-GOD",
+      "caption": [
+        "Keep moving.",
+        "I've got it."
+      ],
+      "alt": "Z-God casually supports a huge broken arch so local creatures can escape while X cuts the weapon's elemental feed.",
+      "refs": [
+        "art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "art/signature-specials-v1/zgod-seed.png"
+      ],
+      "detail": "Wide heroic rescue, reference2 is exact Z-God. At center upper-half small smiling Z holds an ENORMOUS fractured violet stone arch overhead with ONE relaxed raised hand, perfectly effortless: upright stance, no sweat, injury, trembling, strain or need for rescue. Three friendly small local creatures walk safely under arch toward upper-left safe opening, never falling into danger. At right X operates a large disconnect lever beside a glowing red-orange elemental conduit; white/yellow shirt, orange pants visible. No need for sword, no equipment grant. Violet basalt industrial courtyard, red moons, broken resource pipes. Strong warm pink starlight around Z, visually youngest but overwhelmingly strongest. Major faces, arch support hand and lever above caption zone.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Wide heroic rescue, reference2 is exact Z-God. At center upper-half small smiling Z holds an ENORMOUS fractured violet stone arch overhead with ONE relaxed raised hand, perfectly effortless: upright stance, no sweat, injury, trembling, strain or need for rescue. Three friendly small local creatures walk safely under arch toward upper-left safe opening, never falling into danger. At right X operates a large disconnect lever beside a glowing red-orange elemental conduit; white/yellow shirt, orange pants visible. No need for sword, no equipment grant. Violet basalt industrial courtyard, red moons, broken resource pipes. Strong warm pink starlight around Z, visually youngest but overwhelmingly strongest. Major faces, arch support hand and lever above caption zone.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png"
+      ]
+    },
+    {
+      "id": "l6-05-no-more-meteors",
+      "title": "No more meteors",
+      "speaker": "X GOD",
+      "caption": [
+        "The launch went dark.",
+        "This world would get its tomorrow."
+      ],
+      "alt": "The meteor weapon shuts down, leaving the unlaunched meteor secured in its cradle.",
+      "refs": [
+        "art/cutscenes/level5-v1/l5-04-at-the-source-source.png"
+      ],
+      "detail": "Exterior wide view SAME launch weapon from reference: huge black meteor tightly secured in gold mechanical cradle between ruined purple arches. The threatening vertical red beam has GONE OUT; power coils now dark gray, formerly red ring now unlit and visibly broken circuit, scattered dying orange sparks. No active colored beam or explosion, no meteor launched. Violet sky begins to lighten gently at horizon, red moons fading. X and Z are small safely side-by-side silhouettes at upper-left viewing platform, recognizable lime hair and pink bow, no fear or strain. Clearly stop machinery rather than destroy a planet or restore Earthior. Peaceful pause, focus on secured inert meteor and dark launch indicator above caption zone.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Exterior wide view SAME launch weapon from reference: huge black meteor tightly secured in gold mechanical cradle between ruined purple arches. The threatening vertical red beam has GONE OUT; power coils now dark gray, formerly red ring now unlit and visibly broken circuit, scattered dying orange sparks. No active colored beam or explosion, no meteor launched. Violet sky begins to lighten gently at horizon, red moons fading. X and Z are small safely side-by-side silhouettes at upper-left viewing platform, recognizable lime hair and pink bow, no fear or strain. Clearly stop machinery rather than destroy a planet or restore Earthior. Peaceful pause, focus on secured inert meteor and dark launch indicator above caption zone.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level5-v1/l5-04-at-the-source-source.png"
+      ]
+    },
+    {
+      "id": "l6-06-what-remains",
+      "title": "What remains",
+      "speaker": "X GOD",
+      "caption": [
+        "They took my world.",
+        "They don't get the next one."
+      ],
+      "alt": "At dawn X draws a route to more survivors on the back of his scorched worksheet, with Z-God beside him.",
+      "refs": [
+        "art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "art/cutscenes/prologue-v1/01-earthior-source.png",
+        "art/signature-specials-v1/zgod-seed.png"
+      ],
+      "detail": "Quiet hopeful dawn refuge on Dread Planet, violet stone terraces and warm gold sunrise over alien distant spires, NOT restored Earthior or Earth school. Medium intimate view X sits at rough stone table and draws simple route lines to several little shelter symbols on the BACK of his folded scorch-edged school math worksheet; a small corner folded over reveals original triangle/fraction marks. Keep paper and his drawing hand near upper center, unmistakably small worksheet not notebook or magical map. Z-God sits close at his side with pink bow/sweater, relaxed warm smile. TWO kind local creatures rest nearby; other classmates are OFFSCREEN connecting by small radio with cyan light, avoid inaccurate ensemble. Family fate remains unknown: no parents, portraits, graves, reunion promises. Expression mixes loss and purpose, no revenge gloating. No sword/powerup required. Faces and worksheet above lower28%.",
+      "prompt": "Use case: illustration-story. Create ONE finished static RPG story illustration, landscape 16:9 1672x941, bold imperfect black ink outlines, saturated colored pencil/crayon paper texture, match approved first image's exact style. No panels, captions, lettering, border or watermark. Reserve bottom 28% as quiet scenery for editable captions: ALL faces, key hands, props and evidence in upper 70%. X GOD is a youthful pale boy, lime spiky hair, TWO black X eyes, white yellow X-smiley shirt, orange cargo pants, black/white/lime sneakers. Z-GOD is his younger brown-haired sister, big pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings, pink sneakers; invincible, healthy, strongest. No parents, family-fate clues, Earthior restored, superior villain, gore or resurrection. Weapons set aside unless specified; no new power origin. Quiet hopeful dawn refuge on Dread Planet, violet stone terraces and warm gold sunrise over alien distant spires, NOT restored Earthior or Earth school. Medium intimate view X sits at rough stone table and draws simple route lines to several little shelter symbols on the BACK of his folded scorch-edged school math worksheet; a small corner folded over reveals original triangle/fraction marks. Keep paper and his drawing hand near upper center, unmistakably small worksheet not notebook or magical map. Z-God sits close at his side with pink bow/sweater, relaxed warm smile. TWO kind local creatures rest nearby; other classmates are OFFSCREEN connecting by small radio with cyan light, avoid inaccurate ensemble. Family fate remains unknown: no parents, portraits, graves, reunion promises. Expression mixes loss and purpose, no revenge gloating. No sword/powerup required. Faces and worksheet above lower28%.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/01-earthior-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png"
+      ]
+    }
+  ]
+}

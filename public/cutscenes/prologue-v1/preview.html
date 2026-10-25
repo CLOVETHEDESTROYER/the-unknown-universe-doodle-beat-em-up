@@ -58,12 +58,22 @@
     const stage=document.querySelector('main'),art=document.querySelector('.art'),caption=document.querySelector('.caption');
     const previous=document.querySelector('#previous'),next=document.querySelector('#next'),counter=document.querySelector('.counter'),status=document.querySelector('.load-status');
     let scenes=[],index=0,request=0;
-    const params=new URLSearchParams(location.search),levelOne=params.get('chapter')==='level1',levelTwo=params.get('chapter')==='level2',expanded=!levelOne&&!levelTwo&&params.get('edition')==='expanded';
-    if(levelOne||levelTwo){
-      stage.setAttribute('aria-label',`${levelTwo?'After the Graveyard':'After The Scratch'} story art preview`);
-      document.querySelector('.chapter').textContent=`THE UNKNOWN UNIVERSE · ${levelTwo?'AFTER THE GRAVEYARD':'AFTER THE SCRATCH'}`;
+    const params=new URLSearchParams(location.search);
+    const chapters={
+      level1:{title:'AFTER THE SCRATCH',manifest:'../level1-v1/scenes.json'},
+      level2:{title:'AFTER THE GRAVEYARD',manifest:'../level2-v1/scenes.json'},
+      level3:{title:'AFTER THE FURNACE',manifest:'../level3-v1/scenes.json'},
+      level4:{title:'AFTER WITCHWOOD',manifest:'../level4-v1/scenes.json'},
+      level5:{title:'AFTER STARBREAK RUN',manifest:'../level5-v1/scenes.json'},
+      level6:{title:'WHAT REMAINS',manifest:'../level6-v1/scenes.json'}
+    };
+    const chapter=Object.hasOwn(chapters,params.get('chapter'))?params.get('chapter'):null;
+    const selected=chapter?chapters[chapter]:null,expanded=!selected&&params.get('edition')==='expanded';
+    if(selected){
+      stage.setAttribute('aria-label',`${selected.title} story art preview`);
+      document.querySelector('.chapter').textContent=`THE UNKNOWN UNIVERSE · ${selected.title}`;
     }
-    window.render_game_to_text=()=>JSON.stringify({mode:'cutscene-art-preview',chapter:levelTwo?'level2':levelOne?'level1':'prologue',scene:stage.dataset.scene??null,index,total:scenes.length,
+    window.render_game_to_text=()=>JSON.stringify({mode:'cutscene-art-preview',chapter:chapter||'prologue',scene:stage.dataset.scene??null,index,total:scenes.length,
       speaker:document.querySelector('.speaker').textContent,
       caption:[...caption.children].map(line=>line.textContent),busy:stage.getAttribute('aria-busy')==='true',
       image:{src:art.getAttribute('src'),alt:art.alt,loaded:art.complete&&art.naturalWidth>0}});
@@ -97,7 +107,7 @@
       if(event.key==='ArrowLeft'){event.preventDefault();if(index>0)void show(index-1);}
     });
     try{
-      const response=await fetch(levelTwo?'../level2-v1/scenes.json':levelOne?'../level1-v1/scenes.json':expanded?'../prologue-v2/scenes.json':'scenes.json');if(!response.ok)throw Error();
+      const response=await fetch(selected?selected.manifest:expanded?'../prologue-v2/scenes.json':'scenes.json');if(!response.ok)throw Error();
       scenes=await response.json();if(!scenes.length)throw Error();
       await show(Number.isInteger(requested)&&requested>=0&&requested<scenes.length?requested:0);
     }catch{stage.setAttribute('aria-busy','false');status.textContent="The story couldn't open. Please reload to try again.";}

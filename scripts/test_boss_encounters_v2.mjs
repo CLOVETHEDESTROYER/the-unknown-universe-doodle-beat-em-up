@@ -181,10 +181,14 @@ try {
     await place(s.progress.levelEndX,level===1?480:520);
     await wait(s=>s.mode==='transition');
     if(level===4) {
+      await page.getByRole('button',{name:'Skip story',exact:true}).click();
       await wait(s=>s.level===5 && s.engine==='flight' && s.player);
       assert.equal(await page.getByRole('heading',{name:'Universe Saved',exact:true}).count(),0,'Kilina is not the campaign finale');
     }
-    if(level===6) await page.getByRole('heading',{name:'Universe Saved',exact:true}).waitFor({state:'visible'});
+    if(level===6) {
+      await page.getByRole('button',{name:'Skip story',exact:true}).click();
+      await page.getByRole('heading',{name:'Universe Saved',exact:true}).waitFor({state:'visible'});
+    }
     evidence[level]={guarded,phaseOne,phaseTwo,defeat:true,exit:true};
     await fs.writeFile(new URL(`level${level}-results.json`,output),JSON.stringify({evidence:evidence[level],errors},null,2));
     console.log(JSON.stringify({level,passed:true,checks:['guard','movement','threeMoves','phaseOneCounters','phaseTransition','phaseTwoPatterns','phone','defeat','exit']}));

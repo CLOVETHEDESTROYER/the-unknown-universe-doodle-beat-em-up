@@ -14,6 +14,7 @@ import { shipDeathPose } from '../gameplay/flightDeath';
 import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWindow } from '../gameplay/bossPresentation';
 import { playSfx } from '../audio/gameAudio';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
+import {HeroCelebration,loadHeroCelebrationAssets,FLIGHT_VICTORY_START,HERO_VICTORY_DURATION} from '../gameplay/heroCelebration';
 
 interface Props {
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
@@ -62,6 +63,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
+    let flightVictory:HeroCelebration|null=null,flightVictoryStarted=false;
     let audioShots=0,audioEnemyShots=0,audioImpacts=0,audioDeathId:number|null=null,audioPickups=0,audioBeacons=0;
     const heardEffects=new Set<number>();
     let ship:Phaser.GameObjects.Container,exhaust:Phaser.GameObjects.Graphics;
@@ -100,6 +102,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     function tick(ms:number){
       if(!ready || disposed || paused.current)return;
       stepFlight(state,ms,input());
+      updateFlightCelebration();
       if(params.get('shipDeathPreview')==='1'&&!deathPreviewTriggered&&input().fire&&state.phase==='flight'){
         deathPreviewTriggered=damageShip(state,100);
       }
@@ -138,8 +141,19 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       // Keep only live effect IDs; simulation IDs are never reused on checkpoint retries.
       const live=new Set(state.combat.effects.map(fx=>fx.id));for(const id of heardEffects)if(!live.has(id))heardEffects.delete(id);
     }
+    function updateFlightCelebration(){
+      if(!flightVictory)return;
+      const x=650+210*FLIGHT_VICTORY_START/1800;
+      if(state.phase==='disembark'&&state.phaseMs>=FLIGHT_VICTORY_START){
+        if(!flightVictoryStarted){flightVictoryStarted=true;flightVictory.start('victory',x,492,1);}
+        flightVictory.seek(state.phaseMs-FLIGHT_VICTORY_START,x,492,1);
+      }else if(state.phase==='complete'&&flightVictoryStarted){
+        flightVictory.seek(HERO_VICTORY_DURATION,x,492,1);
+      }
+    }
     function draw(){
       if(!ready || disposed)return;
+      updateFlightCelebration();
       const flying=state.phase==='flight';
       const ending=['landing','disembark','complete'].includes(state.phase);
       const departure=state.phase==='boarding'?0:state.phase==='launch'?state.phaseMs/1900*.3:Math.min(1,.3+state.distance/1800);
@@ -177,12 +191,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         exhaust.fillStyle(0xea6c32,.8).fillTriangle(-86,-9,-86,9,-112-flame,0);
         exhaust.fillStyle(0xffe39a,.95).fillTriangle(-87,-5,-87,5,-105-flame*.6,0);
       }
-      walker.setVisible(state.phase==='boarding'||state.phase==='disembark');
+      walker.setVisible(state.phase==='boarding'||state.phase==='disembark'&&state.phaseMs<FLIGHT_VICTORY_START);
       if(state.phase==='boarding'){
         const t=Phaser.Math.Clamp(state.phaseMs/2000,0,1);
         walker.setPosition(120+280*t,492-Math.max(0,t-.8)*160).setAlpha(t>.85?(1-t)/.15:1).setFlipX(false);
       }else if(state.phase==='disembark'){
-        const t=Phaser.Math.Clamp(state.phaseMs/1800,0,1);
+        const t=Phaser.Math.Clamp(Math.min(state.phaseMs,FLIGHT_VICTORY_START)/1800,0,1);
         walker.setPosition(650+210*t,lerp(456,492,Math.min(1,t*4))).setAlpha(Math.min(1,t*6)).setFlipX(false);
       }
       const boss=state.combat.enemies.find(e=>e.kind==='pursuer');
@@ -486,6 +500,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
       scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:viewport.width,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
+        loadHeroCelebrationAssets(this.load,selectedCharacterId);
         trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
@@ -528,6 +543,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
         this.anims.create({key:'flight_board_walk',frames:this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
         walker.play('flight_board_walk');
+        flightVictory=new HeroCelebration(this,selectedCharacterId);
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};
         title=this.add.text(24,72,'STARBREAK RUN',textStyle).setDepth(30);
         hint=this.add.text(24,107,'',{...textStyle,fontSize:'19px',strokeThickness:4}).setDepth(30);
@@ -574,6 +590,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       obstacles:state.rocks.filter(r=>r.hp>0&&rockX(r,state.clock,state.distance)>-150&&rockX(r,state.clock,state.distance)<1350).map(r=>({id:r.id,x:Math.round(rockX(r,state.clock,state.distance)),y:Math.round(rockY(r,state.clock)),radius:r.radius,hp:r.hp,maxHp:r.maxHp})),
       beacons:FLIGHT_BEACONS.map((b,id)=>({...b,id,x:b.distance-state.distance,collected:state.collected.includes(id)})),
       powerups:{swordUnlocked:initialStats.swordUnlocked,hasFlameSword:initialStats.hasFlameSword,swordDurability:initialStats.swordDurability,gravityCoreUnlocked:initialStats.gravityCoreUnlocked},
+      celebration:flightVictory?.read(),
       companionsOnboard:{dinio:initialStats.hasDinio,doghost:initialStats.hasDoghost,teleportationC:initialStats.hasTeleportationC},touchControls:window.__unknownUniverseTouchControls??{},
       combat:{shotsFired:state.combat.shotsFired,hits:state.combat.hits,guardedHits:state.combat.guardedHits,rockBlocks:state.combat.rockBlocks,kills:state.combat.defeated.length,
         asteroidHits:state.combat.rockHits,asteroidsDestroyed:state.combat.rocksDestroyed,visibleDebris:[...debris.values()].reduce((n,shards)=>n+shards.length,0),
@@ -620,6 +637,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       window.removeEventListener('keydown',toggle);
       window.__unknownFlightDamageShip=undefined;window.__unknownFlightSetShipPosition=undefined;
       window.__unknownFlightEnemyTest=undefined;
+      flightVictory?.destroy();flightVictory=null;
       if(window.render_game_to_text===read)window.render_game_to_text=()=>JSON.stringify({engine:'flight',mode:'remounting',level:FLIGHT_LEVEL,player:null});
       game.destroy(true);
     };

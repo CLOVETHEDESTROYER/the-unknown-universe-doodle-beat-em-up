@@ -1,0 +1,72 @@
+{
+  "mode": "built-in ImageGen",
+  "useCase": "illustration-story",
+  "scenes": [
+    {
+      "id": "l4-01-a-broken-promise",
+      "title": "A broken promise",
+      "speaker": "X GOD",
+      "caption": [
+        "Kilina was promised protection.",
+        "Her own home was marked for extraction."
+      ],
+      "alt": "X finds Witchwood's coordinates targeted on Kilina's surviving observatory records.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/teleportation_c-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 locks TELEPORTATION C's ONE black shadow schoolmate silhouette, white eyes, white chest C, violet rim. Image3 supplies Witchwood's rose-purple trees, ruined arches and pointed observatory. Inside Kilina's stone observatory AFTER her actual defeat, with no boss or body visible: X and C examine an aged contract scroll on a round brass star-chart table. Behind the scroll, an intact glass star map shows a drawing of the SAME purple Witchwood forest and observatory, with a red target marker and the broken GOLD CIRCLE shipping emblem. A broken wax protection seal lies on table. An ominous contradiction between promised protection and targeted home, conveyed by pictures; no readable writing, no explanatory arrows. X holds his folded scorched math worksheet as a personal keepsake, C points to the matching chart coordinates without projecting a portal. Both are familiar schoolmates, not native experts or strangers. Cool violet moonlight, small amber lamps, burgundy vines around arched windows. Keep chart target, faces, scroll above bottom28%."
+    },
+    {
+      "id": "l4-02-the-star-route",
+      "title": "The route to Dread Planet",
+      "speaker": "TELEPORTATION C",
+      "caption": [
+        "The charts lead to Dread Planet.",
+        "Nico has a ship ready for you."
+      ],
+      "alt": "C shares the recovered interplanetary route with X as Nico's prepared Starbreak ship waits outside Witchwood.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/teleportation_c-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 is the single exact shadow schoolmate C, white eyes and one white C chest; Image3 Witchwood architecture; Image4 is the EXACT ready spacecraft: compact white/cream fuselage, orange pointed nose and orange trim, lime-green wings/tail, BLUE bubble cockpit, rear gray engine, no redesign into giant transport. In the observatory doorway, X and C hold a small portable brass-and-paper star chart at chest height; a violet route links their purple wooded world to a distant dark violet planet encircled by a tiny gold city silhouette. A radio on the table implies Nico's report, but Nico is OFFSCREEN and no new people appear. Through the archway the SAME small white/orange/lime Starbreak ship waits on a stone clearing, blue canopy open, two youthful seats plausible. This gives actual navigation data and physical ship travel, NOT C teleporting a whole crew interplanetary or granting an uncollected companion ability. Stars and pink-purple trees, hopeful urgency. No readable words or named coordinate numbers. Chart, faces, identifiable ship upper3/4."
+    },
+    {
+      "id": "l4-03-the-familiar-light",
+      "title": "A familiar light",
+      "speaker": "Z-GOD",
+      "caption": [
+        "X! I kept looking for you.",
+        "I'm right here."
+      ],
+      "alt": "Z-God steps confidently from a small stellar flare as X recognizes his surviving little sister.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 is Z-GOD's exact identity: younger girl, shoulder-length BROWN hair and LARGE PINK BOW on her head, pink long-sleeve sweater with ONE YELLOW STAR, darker pink pleated skirt, violet leggings, pink/white high-top sneakers, big warm brown eyes and rosy cheeks. She is X's LITTLE SISTER, also a surviving schoolmate, the strongest INVINCIBLE character; NEVER injured, rescued, restrained, exhausted or frightened. Outside the Witchwood observatory at violet dusk, a small gentle STELLAR FLARE of white-gold/pink sparks fades behind her as she confidently steps toward X. It is her arrival under her own power, not a demon summoning or captor's prison. X at left turns toward her, surprise softening into relieved recognition; no tears of defeat or new powers for him. She smiles warmly, hands free and strong posture. They already know each other, not strangers. Only the two siblings, no parents or new family-fate clue, no helpers. Pink trees and ruined pointed arches reflect Image3, faces and star motif above bottom28%. No words, no comic effects text."
+    },
+    {
+      "id": "l4-04-still-here",
+      "title": "Still here",
+      "speaker": "X GOD",
+      "caption": [
+        "I was afraid I'd never see you again.",
+        "Together. Whatever comes next."
+      ],
+      "alt": "X and Z-God share a relieved sibling embrace beside the ready Starbreak ship.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 is exact Z-GOD: brown hair/pink bow, pink yellow-star sweater, pink pleated skirt, violet leggings, pink/white sneakers. Image3 exact two-seat white-orange-lime Starbreak craft with blue bubble canopy; Image4 purple Witchwood trees and observatory. A quiet emotional FULL SINGLE scene after the reunion: X kneels slightly so his younger sister Z can hug him at shoulder height, both smiling in relief, her arms confidently around him and his hands gentle, believable anatomy. Both remain healthy, Z is safe and invincible, this is a voluntary sibling embrace, not rescue/collapse. In background, the small familiar Starbreak ship waits with an open blue cockpit on a stone clearing under stars, warm engine standby glow. Leave a sense of taking a quiet breath before flight, hopeful family reunion without implying parents survived or died. Only X and Z visible; no other schoolmates crammed into a tiny ship, no ghost parents. Faces, hugging arms, star emblem and open ship cockpit all above bottom28%, no baked caption, UI, writing or weapons."
+    }
+  ]
+}

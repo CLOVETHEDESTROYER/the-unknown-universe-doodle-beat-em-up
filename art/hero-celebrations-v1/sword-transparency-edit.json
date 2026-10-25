@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen edit",
+  "prompt": "Edit this sprite sheet ONLY to remove its unwanted colored background haze. Keep all SIX existing X God poses and flame swords unchanged, same 3 columns by 2 rows, 1536x1024, same positions, facing, pencil/ink style, costume, anatomy and complete weapon shapes. REQUIRED: every area outside the exact character and sword silhouettes must be FULLY transparent alpha=0. Remove ALL green/brown/orange/gray background gradients, glows, haze, shadows and washes between and around the six actors. Retain colored flames that are directly hugging each sword blade, but no wide detached halo or soft backdrop. Empty space must be real transparent pixels, not black/white/checkerboard painted in. Do not add anything, do not change/crop/duplicate any pose, do not move a pose to another cell. This is a game-ready transparent cutout spritesheet, not a poster.",
+  "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-8d4a17a7-0fac-4a5a-8240-76a5fd3f4cca.png",
+  "archived_source": "art/hero-celebrations-v1/xgod-sword-source.png"
+}

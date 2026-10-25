@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen edit",
+  "sources": [
+    {
+      "id": "l3-04-the-next-target",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-37437ec0-7818-40b3-a2b2-f1d487b377cf.png",
+      "archived_source": "art/cutscenes/level3-v1/l3-04-the-next-target-safe-v2-source.png",
+      "runtime_image": "public/cutscenes/level3-v1/l3-04-the-next-target-safe-v2.png"
+    }
+  ]
+}

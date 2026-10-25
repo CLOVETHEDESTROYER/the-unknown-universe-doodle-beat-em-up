@@ -1,6 +1,6 @@
 # Story image production map
 
-Status: the opening and the first two level endings are illustrated and connected to the campaign. The creator confirmed that **X God's parents' fate stays unknown for now**. This map tracks coverage; it does not approve every proposed story name. See [runtime and verification notes](campaign-cutscenes-v1.md).
+Status: the opening and Level 1–6 endings are illustrated and connected to the campaign. The creator confirmed that **X God's parents' fate stays unknown for now**. This map tracks coverage; it does not approve every proposed story name. See [runtime and verification notes](campaign-cutscenes-v1.md).
 
 Creator update: all playable heroes are surviving Earthior schoolmates; C is also an ally, while the other helpers are kind local creatures. Parents remain unknown during the journey; an ending/later reveal is undecided and may never happen. Their possible dark-planet rescue is not established. See [creator canon](creator-canon.md).
 
@@ -36,13 +36,13 @@ These counts are storyboard beats, not a requirement to generate every close-up 
 | Opening | 6 | Illustrated and integrated | How did X arrive and change? | Follow the Dragon onto The Scratch's rooftops. |
 | After Level 1 | 4 | Illustrated and integrated: reward, clue, schoolmate reunion and departure | Are the meteor and Dragon connected? | Barrett's observed shipment leads to the Graveyard. |
 | After Level 2 | 4 | Illustrated and integrated: registry, Earthior, Nico's radio call, departure | Was Earthior the only world taken? | Shipment evidence points to the Furnace. |
-| After Level 3 | 4 | Written plan | Who authorized the strike? | Void Regent's name and the Witchwood target coordinates. |
-| After Level 4 | 4 | Written plan | How does X reach the Regent, and did his sister survive? | Reunion with Z-God, coordinates and boarding the ship. |
-| After Level 5 | 4 | Written plan | How soon will it happen again? | The same next strike is being armed; land on Dread Planet. |
+| After Level 3 | 4 | Illustrated and integrated: schoolmates, launch log, name, next target | Who authorized the strike? | Void Regent's name and the Witchwood target coordinates. |
+| After Level 4 | 4 | Illustrated and integrated: broken promise, star route, sister's arrival, embrace | How does X reach the Regent, and did his sister survive? | Reunion with Z-God, coordinates and boarding the ship. |
+| After Level 5 | 4 | Illustrated and integrated: cleared approach, cargo evidence, warning, arrival | How soon will it happen again? | The same next strike is being armed; land on Dread Planet. |
 | Before Regent | 3 optional | Written plan | What kind of person ordered this? | Direct personal confrontation before the fight. |
-| After Level 6 | 6 | Written plan | What does X do with victory and his strength? | Stop the weapon and protect survivors; Earthior stays lost. |
+| After Level 6 | 6 | Illustrated and integrated | What does X do with victory and his strength? | Stop the weapon and protect survivors; Earthior stays lost. |
 
-Total: **32 core beats**, plus **3 optional confrontation beats**. The six-image opening and two four-image endings now cover **14 core beats**, leaving 18 to illustrate or cover through considered reuse.
+Total: **32 core beats**, plus **3 optional confrontation beats**. The six-image opening, five four-image endings and six-image finale cover **all 32 core beats**. The optional three-panel pre-fight confrontation remains a written plan.
 
 ## Illustrated: the Level 1 ending
 
@@ -64,14 +64,22 @@ The set uses the established Flame Sword, Barrett, X God, Dragon and meteor-mark
 
 Sources, prompts and continuity details: [Level 2 artwork](../../art/cutscenes/level2-v1/README.md). The new campaign player uses optimized WebP delivery, readable captions, Back/Next, Skip and image retry, then resumes the preserved run snapshot after each completed chapter.
 
-## Next image batch: the Furnace ending
+## Illustrated and integrated: Furnace through Starbreak Run
 
-Show the cooling Colossus, schoolmate reunions, the first recovered launch authorization naming Void Regent, and the Witchwood target coordinates. Avoid native/forced-service histories for Kai, Ezra and C, duplicate C when he is playable, or certainty about the parents' location. This next batch is written but not illustrated or integrated yet.
+- [Furnace artwork](../../art/cutscenes/level3-v1/README.md): X and Kai recognize Ezra helping local workers; Kai reads the launch log; Void Regent's name supplies the culprit; C shares the next target. One targeted map revision keeps the red marker visible above phone captions. Original source and edit provenance are preserved.
+- [Witchwood artwork](../../art/cutscenes/level4-v1/README.md): Kilina's broken promise, recovered coordinates, Z-God's safe arrival under her own power, and a sibling embrace beside the actual two-seat Starbreak ship. No rescue, weakened Z-God or parent reveal.
+- [Starbreak artwork](../../art/cutscenes/level5-v1/README.md): cleared approach after the real Pursuer wreck; Earthior cargo evidence; the same Witchwood coordinates on a new-launch warning; arrival on Dread Planet after actual landing/disembark. Kai/Nico contribute over radio; only X/Z occupy the small cockpit.
+
+These are X God's narrated scenes; optional ally flags, equipment and selected gameplay hero stay unchanged. C appears once in a scene, not once as playable and again as ally. Later destinations mount only after Continue/Skip, with chapter-appropriate existing level music and preserved run data.
+
+## Illustrated and integrated: the final victory
+
+Follow the real Void Regent defeat with the weapon shutdown and survivor protection. Give Z-God the effortless large-scale rescue beat that fits her established strength. Preserve Earthior's loss and the parents' unanswered fate; no new superior villain or automatic dark-planet rescue reveal. The six new panels follow the real defeat, celebration and final exit. Continue/Skip leads to the saved victory summary without mounting another level. Sources and prompts: [finale art record](../../art/cutscenes/level6-v1/README.md). The optional three-panel pre-fight confrontation remains unillustrated.
 
 ## Gaps to resolve before later batches
 
 - **Initial Ink Blaster:** the game starts X with one, while the origin art correctly shows no weapon before mutation. A pickup/handoff or brief visual explanation during the first chapter can bridge this without giving him the Flame Sword early.
-- **Z-God:** the opening now establishes X's missing sister through his unanswered call. Her reunion and proposed stellar-rupture origin still need a later clue before final art. She stays the strongest and invincible; do not manufacture a weakness to make another character necessary.
+- **Z-God:** the opening establishes his missing sister and the Witchwood ending now supplies her reunion. Her exact power origin is still unspecified; a small stellar arrival does not establish a forced or pre-arrival transformation history. She stays the strongest and invincible; do not manufacture a weakness to make another character necessary.
 - **Schoolmate reunions:** Barrett, Nico, Ezra, Kai and C already knew X on Earthior and survived the transportation. Establish their shared history, separated arrival and how they reconnect. Do not invent native origins, other destroyed home planets or forced-service histories. Z is also his sister; exact ages/grades remain unspecified.
 - **Local helpers:** Dinio, Doghost and other creature helpers recognize X's kind heart and choose to help because they are kind too. Do not make them schoolmates or dead relatives/pets. C is the explicit playable-schoolmate/ally crossover and remains one person.
 - **Optional pickups:** clues and transitions must work without Dinio, Doghost or C being collected. Prepare a physical-clue or recorded-message alternative for indispensable information.
@@ -83,4 +91,4 @@ Show the cooling Colossus, schoolmate reunions, the first recovered launch autho
 
 Before generation, confirm the scene's position, speaker, emotional beat, clue and exit objective. Supply approved references for every recurring person, prop and location. After generation, inspect those details and the actual image-plus-caption composition on phone and tablet; do not approve based only on the raw image.
 
-Keep original outputs, prompts and editable captions. Generate in sequence-sized batches. The opening and first two endings now exercise the in-game handoff, Skip, caption controls, retry and optimized image delivery. A chapter replay menu, later art and final pacing remain follow-up work. The HTML previews remain separate art-review tools.
+Keep original outputs, prompts and editable captions. Generate in sequence-sized batches. The opening and Level 1–6 endings exercise the in-game handoff, Skip, caption controls, retry and optimized image delivery across ground and flight renderers. A chapter replay menu, optional confrontation art and final pacing remain follow-up work. The HTML previews remain separate art-review tools.
