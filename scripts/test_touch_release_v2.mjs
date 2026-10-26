@@ -8,13 +8,13 @@ try{
  await page.goto(`${origin}/?autostart=1&capture=1&level=3&character=xgod`);
  await page.waitForFunction(()=>window.render_game_to_text&&JSON.parse(window.render_game_to_text()).player?.grounded,{},{timeout:60000});
  await page.evaluate(()=>window.__unknownPlatformerSpecialTest({offsets:[]}));
- const stick=page.locator('[data-touch-joystick]'),r=await stick.boundingBox(),x=r.x+r.width/2,y=r.y+r.height/2;
+ const stick=page.locator('[data-touch-dpad]'),r=await stick.boundingBox(),x=r.x+r.width/2,y=r.y+r.height/2;
  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+55,y);assert((await state()).axisX>0);
  // Browser delivers release to the window while the joystick never receives its own pointerup.
  await page.evaluate(()=>window.dispatchEvent(new PointerEvent('pointerup',{pointerId:1,pointerType:'mouse',buttons:0})));
- assert.equal((await state()).axisX,0);assert.equal(await stick.getAttribute('data-active'),null);await page.mouse.up();
+ assert.equal((await state()).axisX,0);assert.equal(await stick.locator('[data-pressed]').count(),0);await page.mouse.up();
  await page.evaluate(()=>{
-  const joy=document.querySelector('[data-touch-joystick]'),button=document.querySelector('[data-touch-control="attack"]'),r=joy.getBoundingClientRect();
+  const joy=document.querySelector('[data-touch-dpad]'),button=document.querySelector('[data-touch-control="attack"]'),r=joy.getBoundingClientRect();
   joy.dispatchEvent(new PointerEvent('pointerdown',{pointerId:41,pointerType:'touch',button:0,buttons:1,bubbles:true,clientX:r.x+r.width/2,clientY:r.y+r.height/2}));
   joy.dispatchEvent(new PointerEvent('pointermove',{pointerId:41,pointerType:'touch',buttons:1,bubbles:true,clientX:r.x+r.width/2+55,clientY:r.y+r.height/2}));
   button.dispatchEvent(new PointerEvent('pointerdown',{pointerId:42,pointerType:'touch',button:0,buttons:1,bubbles:true}));
@@ -28,7 +28,7 @@ try{
  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-55,y);assert((await state()).left);
  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));assert.equal((await state()).axisX,0);await page.mouse.up();
  const buttons=await page.locator('.touch-actions [data-touch-control]').evaluateAll(nodes=>nodes.map(n=>({control:n.dataset.touchControl,label:n.textContent,blur:getComputedStyle(n).backdropFilter,width:n.getBoundingClientRect().width})));
- assert(!buttons.some(b=>b.control==='shoot'));assert(buttons.every(b=>b.width>=88));assert(buttons.every(b=>b.blur==='none'||b.blur===''));
+ assert(!buttons.some(b=>b.control==='shoot'));assert(buttons.every(b=>b.width>=58));assert(buttons.every(b=>b.blur==='none'||b.blur===''));
  await page.screenshot({path:new URL('iphone15.png',out).pathname.replace(/^\/([A-Z]:)/,'$1')});
  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,engine,missedPointerup:true,independentThumbs:true,nativeTouchEnd:true,pageHide:true,buttons,errors}));
 }finally{await browser.close();}

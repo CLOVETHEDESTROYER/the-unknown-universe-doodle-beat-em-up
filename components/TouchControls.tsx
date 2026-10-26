@@ -21,10 +21,13 @@ const setControl = (key: TouchControlKey, value: boolean, pointerId: number) => 
     }
   }
 
-  window.__unknownUniverseTouchControls = {
+  const next = {
     ...window.__unknownUniverseTouchControls,
     [key]: value || [...activePointers.values()].some((keys) => keys.has(key))
   };
+  next.axisX = Number(Boolean(next.right)) - Number(Boolean(next.left));
+  next.axisY = Number(Boolean(next.down)) - Number(Boolean(next.up));
+  window.__unknownUniverseTouchControls = next;
 };
 
 const releasePointer = (pointerId: number) => {
@@ -34,7 +37,7 @@ const releasePointer = (pointerId: number) => {
   for (const key of pointerKeys ?? []) {
     setControl(key, false, pointerId);
   }
-  // A missed capture release must clear analog axes as well as digital buttons.
+  // Notify the D-pad and action buttons even when their own release was missed.
   window.dispatchEvent(new CustomEvent('unknown-universe:pointer-release', {detail:pointerId}));
 };
 
@@ -49,80 +52,71 @@ const resetControls = () => {
   window.dispatchEvent(new Event('unknown-universe:controls-reset'));
 };
 
-/** Pointer capture keeps steering when a thumb slides outside the base. */
-const TouchJoystick: React.FC<{ platformer: boolean; canDown: boolean }> = ({ platformer, canDown }) => {
+/** Captured thumb slides between directions; each action thumb remains independent. */
+const TouchDpad: React.FC<{ platformer: boolean; canDown: boolean; downLabel: string }> = ({ platformer, canDown, downLabel }) => {
   const base = useRef<HTMLDivElement>(null);
-  const knob = useRef<HTMLSpanElement>(null);
   const pointer = useRef<number | null>(null);
-  const geometry = useRef<{x:number;y:number;travel:number}|null>(null);
-  const nativeTouch = useRef<number|null>(null);
-  const neutral = () => {
-    const previous=pointer.current;
-    pointer.current = null;
-    geometry.current=null;nativeTouch.current=null;
-    if (previous !== null) releasePointer(previous);
-    if (window.__unknownUniverseTouchControls) {
-      window.__unknownUniverseTouchControls.axisX = 0;
-      window.__unknownUniverseTouchControls.axisY = 0;
+  const nativeTouch = useRef<number | null>(null);
+  const geometry = useRef<DOMRect | null>(null);
+  const paint = () => {
+    const controls = window.__unknownUniverseTouchControls;
+    for (const node of base.current?.querySelectorAll<HTMLElement>('[data-touch-control]') ?? []) {
+      node.toggleAttribute('data-pressed', Boolean(controls?.[node.dataset.touchControl as TouchControlKey]));
     }
-    base.current?.removeAttribute('data-active');
-    if (knob.current) knob.current.style.transform = 'translate(-50%, -50%)';
+  };
+  const neutral = () => {
+    const previous = pointer.current;
+    pointer.current = null; nativeTouch.current = null; geometry.current = null;
+    if (previous !== null) releasePointer(previous);
+    paint();
   };
   useEffect(() => {
-    const released=(event:Event)=>{if((event as CustomEvent<number>).detail===pointer.current)neutral();};
-    const touchEnded=(event:TouchEvent)=>{if([...event.changedTouches].some(t=>t.identifier===nativeTouch.current))neutral();};
+    const released = (event: Event) => {if ((event as CustomEvent<number>).detail === pointer.current) neutral();};
+    const ended = (event: TouchEvent) => {if ([...event.changedTouches].some(t => t.identifier === nativeTouch.current)) neutral();};
     window.addEventListener('unknown-universe:controls-reset', neutral);
-    window.addEventListener('unknown-universe:pointer-release',released);
-    window.addEventListener('touchend',touchEnded,true);window.addEventListener('touchcancel',touchEnded,true);
+    window.addEventListener('unknown-universe:pointer-release', released);
+    window.addEventListener('touchend', ended, true); window.addEventListener('touchcancel', ended, true);
     return () => {
       window.removeEventListener('unknown-universe:controls-reset', neutral);
-      window.removeEventListener('unknown-universe:pointer-release',released);
-      window.removeEventListener('touchend',touchEnded,true);window.removeEventListener('touchcancel',touchEnded,true);neutral();
+      window.removeEventListener('unknown-universe:pointer-release', released);
+      window.removeEventListener('touchend', ended, true); window.removeEventListener('touchcancel', ended, true);
+      neutral();
     };
   }, []);
   const steer = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (pointer.current !== event.pointerId) return;
-    if(event.pointerType==='mouse'&&event.buttons===0){neutral();return;}
+    if (pointer.current !== event.pointerId || !geometry.current) return;
+    if (event.pointerType === 'mouse' && event.buttons === 0) {neutral(); return;}
     event.preventDefault();
-    const rect = geometry.current;if(!rect)return;
-    const travel=rect.travel;
-    const dx = (event.clientX - rect.x) / travel;
-    const dy = (event.clientY - rect.y) / travel;
-    const distance = Math.hypot(dx, dy), scale = Math.max(1, distance);
-    const x = dx / scale, y = dy / scale;
-    const axis = (value: number) => Math.abs(value) <= .14 ? 0 : Math.sign(value) * Math.pow((Math.abs(value) - .14) / .86,.85);
-    const axisX = axis(x), axisY = axis(y);
-    setControl('left', axisX < 0, event.pointerId);
-    setControl('right', axisX > 0, event.pointerId);
-    setControl('up', !platformer && axisY < 0, event.pointerId);
-    const down = (!platformer || canDown) && axisY > .72 && (!platformer || Math.abs(axisX) < .35);
+    const rect = geometry.current;
+    const x = (event.clientX - rect.left) / rect.width - .5;
+    const y = (event.clientY - rect.top) / rect.height - .5;
+    const next = {left: x < -1/6, right: x > 1/6, up: y < -1/6, down: (!platformer || canDown) && y > 1/6};
+    const wasUp = Boolean(window.__unknownUniverseTouchControls?.up);
     const wasDown = Boolean(window.__unknownUniverseTouchControls?.down);
-    setControl('down', down, event.pointerId);
-    window.__unknownUniverseTouchControls = { ...window.__unknownUniverseTouchControls, axisX, axisY: platformer ? 0 : axisY };
-    if (platformer && down && !wasDown) window.dispatchEvent(new Event('unknown-universe:down'));
-    if (knob.current) knob.current.style.transform = `translate(calc(-50% + ${x * travel}px), calc(-50% + ${y * travel}px))`;
+    for (const key of ['left','right','up','down'] as const) setControl(key, next[key], event.pointerId);
+    if (platformer && next.up && !wasUp) window.dispatchEvent(new Event('unknown-universe:jump'));
+    if (platformer && next.down && !wasDown) window.dispatchEvent(new Event('unknown-universe:down'));
+    paint();
   };
-  return <div ref={base} role="group" aria-label={platformer ? 'Movement joystick: left, right and down' : 'Movement joystick: steer in any direction'}
-    data-touch-joystick className="touch-joystick pointer-events-auto select-none"
+  return <div ref={base} role="group" aria-label="Movement D-pad" data-touch-dpad className="touch-dpad pointer-events-auto select-none"
     onContextMenu={event => event.preventDefault()}
-    onTouchStart={event=>{nativeTouch.current=event.changedTouches[0]?.identifier??null;}}
+    onTouchStart={event => {nativeTouch.current = event.changedTouches[0]?.identifier ?? null;}}
     onPointerDown={event => {
       if (pointer.current !== null || event.button !== 0) return;
-      pointer.current = event.pointerId;
-      pointerKinds.set(event.pointerId,event.pointerType);
-      const rect=event.currentTarget.getBoundingClientRect(),travel=rect.width*.29;
-      const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
-      geometry.current={x:cx+Math.max(-travel*.35,Math.min(travel*.35,event.clientX-cx)),y:cy+Math.max(-travel*.35,Math.min(travel*.35,event.clientY-cy)),travel};
-      try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Synthetic events lack capture. */ }
-      event.currentTarget.setAttribute('data-active', 'true');
+      pointer.current = event.pointerId; geometry.current = event.currentTarget.getBoundingClientRect();
+      pointerKinds.set(event.pointerId, event.pointerType);
+      try {event.currentTarget.setPointerCapture(event.pointerId);} catch { /* Synthetic events lack capture. */ }
       steer(event);
     }}
     onPointerMove={steer}
-    onPointerUp={event => { if (pointer.current === event.pointerId) neutral(); }}
-    onPointerCancel={event => { if (pointer.current === event.pointerId) neutral(); }}
-    onLostPointerCapture={event => { if (pointer.current === event.pointerId) neutral(); }}>
-    <span className="touch-joystick-guide" aria-hidden="true">✥</span>
-    <span ref={knob} className="touch-joystick-knob" aria-hidden="true" />
+    onPointerUp={event => {if (pointer.current === event.pointerId) neutral();}}
+    onPointerCancel={event => {if (pointer.current === event.pointerId) neutral();}}
+    onLostPointerCapture={event => {if (pointer.current === event.pointerId) neutral();}}>
+    <span className="touch-dpad-center" aria-hidden="true" />
+    {(['up','left','right','down'] as const).map((direction) => <span key={direction} data-touch-control={direction}
+      className={`touch-dpad-key touch-dpad-${direction}`} aria-label={direction === 'up' ? platformer ? 'Jump' : 'Steer up' : direction === 'down' ? platformer ? downLabel : 'Steer down' : `Move ${direction}`}>
+      {{up:'▲\uFE0E',left:'◀\uFE0E',right:'▶\uFE0E',down:'▼\uFE0E'}[direction]}
+    </span>)}
   </div>;
 };
 
@@ -238,7 +232,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
       {isPlatformer && autoRun ? (
         airborneMoves ? <div className="pointer-events-auto"><TouchButton control="down" label="v" accessibleLabel={downLabel} compact /></div> : <div className="w-10" aria-hidden="true" />
       ) : (
-        <TouchJoystick platformer={isPlatformer} canDown={starControls || canCrouch} />
+        <TouchDpad platformer={isPlatformer} canDown={starControls || canCrouch} downLabel={downLabel} />
       )}
 
       {flightMode && <div className="touch-actions pointer-events-auto mb-1">

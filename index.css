@@ -257,40 +257,27 @@ canvas {
   padding: 0 max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 .touch-controls[aria-hidden="true"] { visibility: hidden; }
-.touch-joystick {
-  width: var(--stick-size);
-  height: var(--stick-size);
+.touch-dpad {
+  --dpad-key: calc(var(--stick-size) / 3);
+  display: grid;
+  grid-template: repeat(3, var(--dpad-key)) / repeat(3, var(--dpad-key));
+  width: var(--stick-size); height: var(--stick-size);
   flex: 0 0 var(--stick-size);
-  position: relative;
-  border: 3px solid #f5edcfb8;
-  border-radius: 50%;
-  background: radial-gradient(circle, #c4b5fd1a 0 49%, #11182769 50%);
-  box-shadow: inset 0 0 0 9px #ffffff0a, 0 5px 18px #0004;
-  touch-action: none;
-  -webkit-user-select: none;
+  touch-action: none; -webkit-user-select: none;
+  filter: drop-shadow(0 4px 5px #0008);
 }
-.touch-joystick-guide {
-  position: absolute;
-  inset: 9px;
-  border: 1px dashed #ffffff55;
-  border-radius: 50%;
-  text-align: center;
-  color: #ffffff77;
-  font-size: 30px;
+.touch-dpad-key, .touch-dpad-center {
+  display: grid; place-items: center;
+  border: 2px solid #e9ddff; background: #30234c;
+  color: #fff6db; font-size: 24px; line-height: 1;
+  touch-action: none; user-select: none;
 }
-.touch-joystick-knob {
-  will-change: transform;
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 47%; height: 47%;
-  transform: translate(-50%, -50%);
-  border: 3px solid #fff4d5;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 25%, #a78bfa, #5b4594 65%, #342c51);
-  box-shadow: 0 4px 10px #0006, inset 0 0 0 5px #ffffff15;
-  pointer-events: none;
-}
-.touch-joystick[data-active] { border-color: #e9d5ff; background-color: #a78bfa29; }
+.touch-dpad-center { grid-area: 2 / 2; border-color: #55416f; background: #55416f; }
+.touch-dpad-up { grid-area: 1 / 2; border-radius: 10px 10px 0 0; border-bottom: 0; }
+.touch-dpad-left { grid-area: 2 / 1; border-radius: 10px 0 0 10px; border-right: 0; }
+.touch-dpad-right { grid-area: 2 / 3; border-radius: 0 10px 10px 0; border-left: 0; }
+.touch-dpad-down { grid-area: 3 / 2; border-radius: 0 0 10px 10px; border-top: 0; }
+.touch-dpad-key[data-pressed] { background: #8754c7; color: #fff6a9; box-shadow: inset 0 0 0 3px #ffedaa; }
 .touch-controls .touch-actions {
   display: grid;
   grid-template-columns: repeat(2, var(--thumb-size));
@@ -357,6 +344,27 @@ canvas {
     --stick-size: 164px;
   }
 }
+
+/* Phone controls live in side rails, outside the canvas, including at spawn. */
+@media (orientation: landscape) and (max-height: 599px) {
+  .game-app-shell[data-mobile="true"] {
+    --control-rail: 146px;
+    --control-left: calc(var(--control-rail) + env(safe-area-inset-left));
+    --control-right: calc(var(--control-rail) + env(safe-area-inset-right));
+  }
+  .game-app-shell[data-mobile="true"] .unknown-universe-game {
+    inset: 36px var(--control-right) 0 var(--control-left);
+  }
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --stick-size: 132px;
+    --thumb-size: 58px;
+    --thumb-gap: 8px;
+    padding: 0 calc(env(safe-area-inset-right) + 10px) max(12px, env(safe-area-inset-bottom)) calc(env(safe-area-inset-left) + 7px);
+  }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-control { font-size: 18px; }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-dpad-key { font-size: 24px; }
+}
+
 
 .phone-portrait-rotate {
   display: none;

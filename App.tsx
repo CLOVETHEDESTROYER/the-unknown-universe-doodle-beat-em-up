@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
+import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import UIOverlay from "./components/UIOverlay";
@@ -251,6 +252,13 @@ const getInitialStats = (): GameStats => {
 };
 
 const App: React.FC = () => {
+  // Read once at startup; engine snapshots drive writes without per-frame polling.
+  const [savedCampaign, setSavedCampaign] = useState(() => readCampaignSave(DEFAULT_STATS));
+  const [saveError, setSaveError] = useState('');
+  const [campaignActive, setCampaignActive] = useState(false);
+  const [restoreCheckpoint, setRestoreCheckpoint] = useState<GameStats['campaignCheckpoint']>();
+  const [runId, setRunId] = useState(0);
+  const [confirmNewRun, setConfirmNewRun] = useState(false);
   const [stats, setStats] = useState<GameStats>(getInitialStats);
   const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
@@ -270,7 +278,7 @@ const App: React.FC = () => {
   const [isIdeatorCollapsed, setIsIdeatorCollapsed] = useState(false);
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
-  const [requestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
+  const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
   const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
@@ -384,14 +392,14 @@ const App: React.FC = () => {
         return;
       }
 
-      if (titlePanel) {
+      if (titlePanel || confirmNewRun) {
         return;
       }
 
       const key = event.key.toLowerCase();
       if (key === "enter" || key === " " || key === "s") {
         event.preventDefault();
-        setAppPhase("characterSelect");
+        if (savedCampaign) continueCampaign(); else startGameFromTitle();
       }
     };
 
@@ -399,7 +407,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleStartShortcut);
     };
-  }, [appPhase, titlePanel]);
+  }, [appPhase, titlePanel, savedCampaign, confirmNewRun]);
 
   useEffect(() => {
     const handleFullscreenToggle = (event: KeyboardEvent) => {
@@ -531,6 +539,40 @@ const App: React.FC = () => {
     });
   };
 
+  const persistCampaign = React.useCallback(() => {
+    if (!campaignActive || useLegacyBrawler || playerSprite || stats.isDying || stats.health <= 0 || stats.lives <= 0 || stats.isGameOver || stats.isVictory) return false;
+    const save: CampaignSave = {version:1,savedAt:Date.now(),difficulty,stats:{...stats,activeBossId:null},story:appPhase === 'story' ? storyChapter : null};
+    if (!writeCampaignSave(save)) {setSaveError('Saving is unavailable in this browser. Keep playing, or enable browser storage and try again.');return false;}
+    setSavedCampaign(save); setSaveError(''); return true;
+  }, [campaignActive,useLegacyBrawler,playerSprite,stats,difficulty,appPhase,storyChapter]);
+
+  useEffect(() => {
+    if (!campaignActive || !['game','intro','story'].includes(appPhase)) return;
+    if (stats.isVictory) {
+      try {localStorage.removeItem(CAMPAIGN_SAVE_KEY);setSavedCampaign(null);} catch {setSaveError('Could not clear the completed campaign save.');}
+      return;
+    }
+    persistCampaign();
+  }, [persistCampaign]);
+
+  const continueCampaign = () => {
+    const save = readCampaignSave(DEFAULT_STATS);
+    if (!save) {setSavedCampaign(null);setSaveError('That save could not be loaded. You can start a new game.');return;}
+    // A title opened with preview parameters must restore the real campaign unchanged.
+    window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    setRequestedLegacyBrawler(false);
+    setSelectedCharacterId(save.stats.selectedCharacterId);setDifficulty(save.difficulty);
+    setStats(save.stats);setRestoreCheckpoint(save.stats.campaignCheckpoint);setRunId(n=>n+1);
+    setPlayerSprite(null);setIsPaused(false);setTitlePanel(null);setConfirmNewRun(false);
+    setCampaignActive(true);setSaveError('');
+    storyTransitionRef.current=!!save.story;setStoryChapter(save.story);setAppPhase(save.story?'story':'game');
+  };
+
+  const saveAndQuit = () => {
+    if (!persistCampaign()) {if (stats.isDying || stats.health <= 0) setSaveError('Wait for your hero to respawn before saving and quitting.');return;}
+    setCampaignActive(false);setIsPaused(false);setAppPhase('start');
+  };
+
   const togglePause = () => {
     if (appPhase !== "game") {
       return;
@@ -544,6 +586,7 @@ const App: React.FC = () => {
   };
 
   const jumpToLevelForTesting = (level: number) => {
+    setCampaignActive(false);
     storyTransitionRef.current = false;
     setStoryChapter(null);
     const targetLevel = clamp(level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
@@ -584,6 +627,7 @@ const App: React.FC = () => {
   };
 
   const testCharacterMode = (characterId: CharacterId, powered: boolean) => {
+    setCampaignActive(false);
     storyTransitionRef.current = false;
     setStoryChapter(null);
     const currentLevel = clamp(stats.level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
@@ -625,6 +669,7 @@ const App: React.FC = () => {
   };
 
   const restartGame = () => {
+    setCampaignActive(false);setRestoreCheckpoint(undefined);
     storyTransitionRef.current = false;
     setStoryChapter(null);
     setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
@@ -635,6 +680,8 @@ const App: React.FC = () => {
   };
 
   const startGameFromTitle = () => {
+    if (savedCampaign && !confirmNewRun) {setConfirmNewRun(true);return;}
+    setConfirmNewRun(false);
     setIsPaused(false);
     setTitlePanel(null);
     setAppPhase("characterSelect");
@@ -646,6 +693,8 @@ const App: React.FC = () => {
       return;
     }
 
+    setRestoreCheckpoint(undefined);setRunId(n=>n+1);
+    setCampaignActive(!requestedLegacyBrawler && !window.location.search && !playerSprite);
     setSelectedCharacterId(characterId);
     setStats({
       ...DEFAULT_STATS,
@@ -724,7 +773,7 @@ const App: React.FC = () => {
             />
           ) : stats.level === FLIGHT_LEVEL ? (
             <FlightGameEngine
-              key={`flight-${selectedCharacterId}-${difficulty}`}
+              key={`flight-${selectedCharacterId}-${difficulty}-${runId}`}
               isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
               selectedCharacterId={selectedCharacterId}
               difficulty={difficulty}
@@ -734,11 +783,12 @@ const App: React.FC = () => {
             />
           ) : (
             <PlatformerGameEngine
-              key={`platformer-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
+              key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
             initialLives={stats.lives}
             initialHealth={stats.health}
+            initialCheckpoint={restoreCheckpoint}
             initialEquipment={stats.equipment}
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
@@ -821,6 +871,11 @@ const App: React.FC = () => {
                   Mode: {difficulty}
                 </div>
 
+                {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
+                  {savedCampaign && <><button id="continue-game-button" onClick={continueCampaign} className="rounded-full border-2 border-slate-900 bg-emerald-400 px-6 py-1 text-xl font-bold text-slate-950 sm:text-2xl">Continue Game</button>
+                  <p className="text-xs sm:text-base">{CHARACTER_CONFIGS[savedCampaign.stats.selectedCharacterId].name} · Level {savedCampaign.stats.level} · {savedCampaign.difficulty} · {savedCampaign.stats.campaignCheckpoint?.level === savedCampaign.stats.level && savedCampaign.stats.campaignCheckpoint.index >= 0 ? `Checkpoint ${savedCampaign.stats.campaignCheckpoint.index+1}` : savedCampaign.stats.flightSave?.checkpoint ? 'Flight checkpoint' : 'Chapter start'}</p></>}
+                  {saveError && <p role="alert">{saveError}</p>}
+                </div>}
                 <div className="absolute left-[12.2%] right-[12.2%] top-[74.5%] grid h-[19%] grid-cols-3 gap-[2.4%]">
                   <button
                     type="button"
@@ -851,6 +906,13 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {confirmNewRun && <div role="dialog" aria-modal="true" aria-label="Start a new campaign" className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 p-4">
+              <div className="max-w-sm rounded-2xl bg-white p-5 text-center text-slate-900">
+                <h2 className="text-2xl font-bold">Start a new campaign?</h2><p className="my-3">Your current save will be replaced when you choose a hero.</p>
+                <button onClick={startGameFromTitle} className="m-2 rounded-xl bg-violet-700 px-4 py-2 text-white">Choose a hero</button>
+                <button onClick={()=>setConfirmNewRun(false)} className="m-2 rounded-xl border px-4 py-2">Keep my save</button>
+              </div>
+            </div>}
             {titlePanel && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
                 <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
@@ -1015,19 +1077,23 @@ const App: React.FC = () => {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm pointer-events-auto">
             <div className="pause-dialog mx-3 max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-slate-800 bg-white p-4 text-center font-['Gochi_Hand'] shadow-2xl md:p-8">
               <h2 className="mb-3 text-4xl font-bold text-slate-800 md:text-5xl">Game Paused</h2>
+              {campaignActive && !useLegacyBrawler && !playerSprite && <div className="mb-3">
+                <button onClick={saveAndQuit} className="rounded-full border-2 border-slate-800 bg-emerald-600 px-6 py-2 text-xl text-white">Save &amp; Quit</button>
+                <p role="status" className="mt-2 text-sm text-slate-600">{saveError || 'Autosaved in this browser. Continue returns to your last checkpoint; enemies reset.'}</p>
+              </div>}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
                 && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
                 && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → butt bomb.<br />You can also pull the joystick down or press Down / S while airborne to slam.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → butt bomb.<br />You can also press D-pad Down or press Down / S while airborne to slam.</p>
               )}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'zgod' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → ground punch.<br />You can also pull the joystick down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → ground punch.<br />You can also press D-pad Down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
               )}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && hasNewMobilityArt(selectedCharacterId) && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → {HERO_MOBILITY[selectedCharacterId].name}.<br />Down / S or joystick down also triggers the slam in midair.</p>
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → {HERO_MOBILITY[selectedCharacterId].name}.<br />Down / S or D-pad Down also triggers the slam in midair.</p>
               )}
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
-                <p className="mb-3 text-base text-slate-700">Hold Down / S or joystick down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
+                <p className="mb-3 text-base text-slate-700">Hold Down / S or D-pad Down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
@@ -1037,6 +1103,7 @@ const App: React.FC = () => {
               >
                 Resume Playing
               </button>
+
             </div>
           </div>
         )}

@@ -38,6 +38,7 @@ interface PlatformerGameEngineProps {
   isPaused: boolean;
   initialLives?: number;
   initialHealth?: number;
+  initialCheckpoint?: GameStats["campaignCheckpoint"];
   currentLevel: number;
   difficulty: DifficultyMode;
   selectedCharacterId: CharacterId;
@@ -927,6 +928,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   isPaused,
   initialLives = 3,
   initialHealth = 100,
+  initialCheckpoint,
   currentLevel,
   difficulty,
   selectedCharacterId,
@@ -1093,7 +1095,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let currentSouls = initialSouls;
     let currentKills = initialMonstersDefeated;
     let checkpoint = { x: level.spawn.x, y: getPlatformStandY(level.spawn.x) ?? level.spawn.y };
-    let checkpointIndex = -1;
+    let checkpointIndex = initialCheckpoint?.level === currentLevel && Number.isInteger(initialCheckpoint.index)
+      && initialCheckpoint.index >= 0 && initialCheckpoint.index < level.checkpoints.length ? initialCheckpoint.index : -1;
+    if (checkpointIndex >= 0) {
+      const point = level.checkpoints[checkpointIndex];
+      checkpoint = { x: point.x, y: getPlatformStandY(point.x) ?? point.y };
+    }
     let lastGroundedAt = 0;
     let jumpBufferedAt = -9999;
     let jumpWasHeld = false;
@@ -1174,6 +1181,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       onStatsUpdateRef.current({
         isDying: (!isXGod || useDrawnXGod) && isRespawning,
         activeBossId,
+        campaignCheckpoint: {level: currentLevel, index: checkpointIndex},
         score: currentScore,
         souls: currentSouls,
         monstersDefeated: currentKills,
@@ -2515,6 +2523,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function addCheckpoint(scene: Phaser.Scene, x: number, y: number, index: number) {
       const flag = checkpoints.create(x, y, "checkpoint_flag") as Phaser.Types.Physics.Arcade.SpriteWithStaticBody;
       flag.setData("index", index).setDepth(8);
+      if (index <= checkpointIndex) flag.setTint(0x34d399);
       flag.setDisplaySize(58, 82).refreshBody();
       flag.body.setSize(42, 74).setOffset(8, 6);
     }

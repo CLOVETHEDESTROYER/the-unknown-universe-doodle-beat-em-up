@@ -34,7 +34,15 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 - Teleportation C: X to blink; R or Down+X to return to a valid anchor.
 - Flight: arrows to steer; Space/C to fire.
 - P: pause. Options and Pause contain separate music/effects volume and mute controls.
-- Touch controls support phones/tablets; use landscape orientation.
+- Touch controls support phones/tablets; use landscape orientation. Slide your thumb across the D-pad to move or steer (diagonals supported). Up also jumps on ground stages; Down crouches or triggers an airborne slam. Phone controls sit in side rails outside the playfield so the hero stays visible.
+
+## Save and Continue
+
+Normal campaigns autosave to this browser as progress changes. Use **P → Save & Quit** to return to the title, then **Continue Game** (or Enter) to resume your hero, difficulty, health, lives, score, equipment, companions and last activated checkpoint. Story chapters between levels resume too. Enemies and hazards reset when loading; this is a checkpoint save rather than a frozen scene.
+
+There is one campaign slot per browser/site. Choosing a new hero after confirming a new campaign replaces it. Completing the campaign clears it; death/game over keeps the last healthy save. Clearing browser data removes the save, and saves do not sync between devices. Query-string preview/test runs, the legacy brawler and custom uploaded sprites do not autosave. Storage errors are shown in the pause menu, and Save & Quit keeps you in-game if saving fails.
+
+Save regression: `node scripts/test_campaign_save_v1.mjs` with a running dev server (`GAME_TEST_URL` defaults to `http://127.0.0.1:4383`).
 
 ## Development and assets
 

@@ -39,8 +39,18 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const params=new URLSearchParams(window.location.search);
     const seedText=params.get('flightSeed');
     const seed=seedText!==null&&/^\d+$/.test(seedText)?Number(seedText)>>>0:undefined;
-    const state=createFlight(initialStats.lives,initialStats.score,difficulty,seed);
+    const state=createFlight(initialStats.lives,initialStats.score,difficulty,initialStats.flightSave?.seed ?? seed);
     state.invincible=selectedCharacterId==='zgod';
+    const saved=initialStats.flightSave;
+    if(saved){
+      state.checkpoint=state.distance=state.travel=saved.checkpoint;
+      state.hull=initialStats.health;
+      state.checkpointWeapon=state.combat.weapon=saved.weapon;
+      state.weaponHits=saved.hits;
+      state.collectedWeapons=[...saved.collectedWeapons];state.checkpointWeapons=[...saved.collectedWeapons];
+      state.collected=[...saved.collected];
+      if(saved.checkpoint>0){state.phase='flight';state.x=240;state.y=295;state.invulnerableUntil=2500;resetCombat(state.combat,saved.checkpoint);state.combat.weapon=saved.weapon;}
+    }
     if(params.get('flightFinale')==='1'){
       state.phase='flight';state.distance=state.travel=state.checkpoint=PURSUER_CHECKPOINT;
       state.x=240;state.y=295;state.invulnerableUntil=2500;resetCombat(state.combat,state.checkpoint);
@@ -93,10 +103,11 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         fire:Boolean(keys?.fire.isDown||keys?.alternate.isDown||touch.attack||touch.shoot)};
     };
     function sync(){
-      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}`;
+      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}`;
       if(signature===lastSync)return;
       lastSync=signature;
-      callbacks.current.onStatsUpdate({health:state.hull,lives:state.lives,score:state.score,
+      callbacks.current.onStatsUpdate({isDying:state.phase==='respawn'||state.phase==='dying',
+        flightSave:{checkpoint:state.checkpoint,weapon:state.combat.weapon,hits:state.weaponHits,collectedWeapons:[...state.collectedWeapons],collected:[...state.collected],seed:state.asteroidSeed},health:state.hull,lives:state.lives,score:state.score,
         monstersDefeated:initialStats.monstersDefeated+state.combat.defeated.length,isGameOver:state.phase==='gameover'});
     }
     function tick(ms:number){
