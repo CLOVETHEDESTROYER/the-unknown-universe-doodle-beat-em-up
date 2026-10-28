@@ -1,0 +1,12 @@
+{
+  "frameSize": 640,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sourceScale": 0.7,
+  "sources": {
+    "walk": "cinder_colossus_idle_v1.png",
+    "attack": "cinder_colossus_attack_v1.png"
+  }
+}

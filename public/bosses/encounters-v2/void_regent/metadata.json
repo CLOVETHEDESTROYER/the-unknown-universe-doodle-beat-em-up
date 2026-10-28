@@ -1,0 +1,12 @@
+{
+  "frameSize": 640,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sourceScale": 0.75,
+  "sources": {
+    "walk": "void_regent_walk_v3.png",
+    "attack": "void_regent_attack_v3.png"
+  }
+}

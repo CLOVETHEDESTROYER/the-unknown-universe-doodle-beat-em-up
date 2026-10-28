@@ -1,21 +1,45 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import GameEngine from "./components/GameEngine";
+import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
+import RosterUnlockPad from "./components/RosterUnlockPad";
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
+import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
+import { createLoadout } from './gameplay/powerups';
+import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
+import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
+import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
+import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
+import SoundControls from './components/SoundControls';
+import CutscenePlayer from './components/CutscenePlayer';
+import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
+import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
 const MonsterIdeator = lazy(() => import("./components/MonsterIdeator"));
-type AppPhase = "start" | "characterSelect" | "intro" | "game";
+const loadPlatformer = () => import('./components/PlatformerGameEngine');
+const loadFlight = () => import('./components/FlightGameEngine');
+const loadLegacy = () => import('./components/GameEngine');
+const PlatformerGameEngine = lazy(loadPlatformer);
+const FlightGameEngine = lazy(loadFlight);
+const GameEngine = lazy(loadLegacy);
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game";
 type TitlePanel = "options" | "credits" | null;
 
 const LEVEL_MUSIC: Partial<Record<number, string>> = {
   1: "/TheUnknownUniverseTheme.mp3",
   2: "/GraveYardDread.mp3",
   3: "/CaveDripLogic.mp3",
-  4: "/CaveDripLogic.mp3"
+  4: "/GraveYardDread.mp3",
+  5: "/audio/music/starbreak-overdrive.mp3",
+  6: "/CaveDripLogic.mp3"
 };
 const START_SCREEN_MUSIC = "/GfunkAllStars.mp3";
+const BOSS_MUSIC: Partial<Record<number, { bossId: string; src: string }>> = {
+  1: { bossId: "dark_dragon", src: "/audio/music/dark-dragon-dragons-breath.mp3" },
+  2: { bossId: "killinas_daughter", src: "/audio/music/killinas-daughter-the-brooding-collosus.mp3" },
+  3: { bossId: "ink_behemoth", src: "/audio/music/cinder-colossus-heart-of-the-furnace.mp3" }
+};
 const LEVEL_ONE_INTRO_IMAGE = "/Level1Intro.png";
 const START_SCREEN_IMAGE = "/GameStartScreen.png";
 const DEFAULT_DIFFICULTY: DifficultyMode = "EASY";
@@ -42,6 +66,8 @@ const DIFFICULTY_OPTIONS: Array<{
 ];
 
 const DEFAULT_STATS: GameStats = {
+  isDying: false,
+  activeBossId: null,
   score: 0,
   souls: 0,
   monstersDefeated: 0,
@@ -55,7 +81,7 @@ const DEFAULT_STATS: GameStats = {
   swordUnlocked: false,
   hasFlameSword: false,
   swordDurability: 0,
-  maxSwordDurability: 2,
+  maxSwordDurability: 3,
   shieldUnlocked: false,
   inkShieldReady: false,
   dinioUnlocked: false,
@@ -78,7 +104,8 @@ const isRosterUnlockedFromStorage = () => {
     return false;
   }
 
-  return window.localStorage.getItem(ROSTER_UNLOCK_STORAGE_KEY) === "true";
+  try { return window.localStorage.getItem(ROSTER_UNLOCK_STORAGE_KEY) === "true"; }
+  catch { return false; }
 };
 
 const isRosterUnlockBypassed = () => {
@@ -101,7 +128,7 @@ const getInitialCharacterId = (): CharacterId => {
     return "xgod";
   }
 
-  if (requested === "xgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
+  if (requested === "xgod" || requested === "zgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
     return requested;
   }
 
@@ -137,6 +164,24 @@ const shouldUseLegacyDesktopControls = () => {
   return readBooleanQuery(params.get("desktopControls")) || readBooleanQuery(params.get("legacyDesktop"));
 };
 
+const shouldUseLegacyBrawler = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return readBooleanQuery(params.get("legacyBrawler"));
+};
+
+const shouldUseAutoRun = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return readBooleanQuery(params.get("autoRun")) && !readBooleanQuery(params.get("manualRun"));
+};
+
 const getInitialDifficulty = (): DifficultyMode => {
   if (typeof window === "undefined") {
     return DEFAULT_DIFFICULTY;
@@ -170,7 +215,7 @@ const getInitialStats = (): GameStats => {
   const gravityCoreUnlocked = readBooleanQuery(params.get("gravityCoreUnlocked")) || readBooleanQuery(params.get("gravityCore"));
   const gravityCoreChargesParam = Number.parseInt(params.get("gravityCoreCharges") ?? "", 10);
   const selectedCharacterId = getInitialCharacterId();
-  const characterPowerUnlocked = readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
+  const characterPowerUnlocked = selectedCharacterId === 'zgod' || readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
   const inkShieldReadyParam = params.get("shieldReady");
   const swordDurabilityParam = Number.parseInt(params.get("swordDurability") ?? "", 10);
   const maxSwordDurabilityParam = Number.parseInt(params.get("maxSwordDurability") ?? "", 10);
@@ -178,12 +223,13 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, 4) : DEFAULT_STATS.level,
-    health: Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
     souls: Number.isFinite(soulsParam) ? Math.max(0, soulsParam) : DEFAULT_STATS.souls,
     monstersDefeated: Number.isFinite(killsParam) ? Math.max(0, killsParam) : DEFAULT_STATS.monstersDefeated,
+    equipment:createLoadout(hasFlameSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
     swordUnlocked: swordUnlocked || hasFlameSword,
     hasFlameSword,
     swordDurability: hasFlameSword
@@ -206,49 +252,130 @@ const getInitialStats = (): GameStats => {
 };
 
 const App: React.FC = () => {
+  // Read once at startup; engine snapshots drive writes without per-frame polling.
+  const [savedCampaign, setSavedCampaign] = useState(() => readCampaignSave(DEFAULT_STATS));
+  const [saveError, setSaveError] = useState('');
+  const [campaignActive, setCampaignActive] = useState(false);
+  const [restoreCheckpoint, setRestoreCheckpoint] = useState<GameStats['campaignCheckpoint']>();
+  const [runId, setRunId] = useState(0);
+  const [confirmNewRun, setConfirmNewRun] = useState(false);
   const [stats, setStats] = useState<GameStats>(getInitialStats);
   const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
+  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
+  const storyTransitionRef = React.useRef(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
   const [isIntroExiting, setIsIntroExiting] = useState(false);
+  const introStartedRef = React.useRef(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [mobileGraphics] = useState(isMobileGraphicsEnabled);
+  const [portraitPhone, setPortraitPhone] = useState(() => mobileGraphics && window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+  const [graphicsLost, setGraphicsLost] = useState(false);
+  const gameSuspended = isPaused || portraitPhone || graphicsLost;
   const [isIdeatorCollapsed, setIsIdeatorCollapsed] = useState(false);
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
+  const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai';
+  const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
+  const [audioSettings,setAudioSettings]=useState(getAudioSettings);
+  useEffect(() => {
+    const update = (event: Event) => setLoadingProgress((event as CustomEvent<number>).detail);
+    window.addEventListener(GAME_LOADING_EVENT, update);
+    return () => window.removeEventListener(GAME_LOADING_EVENT, update);
+  }, []);
+  useEffect(() => { setLoadingProgress(0); }, [stats.level, selectedCharacterId, difficulty, playerSprite]);
+  useEffect(() => {
+    if (appPhase !== 'characterSelect') return;
+    const load = useLegacyBrawler ? loadLegacy : stats.level === FLIGHT_LEVEL ? loadFlight : loadPlatformer;
+    void load().catch(() => { /* React.lazy handles a later import failure. */ });
+  }, [appPhase, useLegacyBrawler, stats.level]);
+  useEffect(()=>{
+    const removeAudio=installGameAudio(),removeDebug=installAudioDebug();
+    const unsubscribe=subscribeAudioSettings(()=>setAudioSettings(getAudioSettings()));
+    return ()=>{unsubscribe();removeDebug();removeAudio();};
+  },[]);
+  useEffect(()=>{setEffectsPaused(appPhase!=='game'||gameSuspended);},[appPhase,gameSuspended]);
+
+  useEffect(() => {
+    let frame = 0;
+    const fitViewport = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const height = window.visualViewport?.height ?? window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+        setPortraitPhone(mobileGraphics && window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+      });
+    };
+    const backgrounded = () => { if (document.hidden) setIsPaused(true); };
+    const graphicsInterrupted = () => setGraphicsLost(true);
+    fitViewport();
+    window.addEventListener('resize', fitViewport);
+    window.visualViewport?.addEventListener('resize', fitViewport);
+    document.addEventListener('visibilitychange', backgrounded);
+    window.addEventListener('unknown-universe:graphics-lost', graphicsInterrupted);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', fitViewport);
+      window.visualViewport?.removeEventListener('resize', fitViewport);
+      document.removeEventListener('visibilitychange', backgrounded);
+      window.removeEventListener('unknown-universe:graphics-lost', graphicsInterrupted);
+    };
+  }, [mobileGraphics]);
 
   useEffect(() => {
     if (appPhase !== "intro") {
+      introStartedRef.current = 0;
       setIsIntroExiting(false);
       return;
     }
 
+    if (!introStartedRef.current) introStartedRef.current = performance.now();
+    if (!useLegacyBrawler && loadingProgress < 1) return;
+    const remaining = Math.max(0, (useLegacyBrawler ? 3200 : 1200) - (performance.now() - introStartedRef.current));
+
     const beginExitTimer = window.setTimeout(() => {
       setIsIntroExiting(true);
-    }, 3200);
+    }, remaining);
 
     const finishIntroTimer = window.setTimeout(() => {
       setAppPhase("game");
       setIsIntroExiting(false);
-    }, 4000);
+    }, remaining + 800);
 
     return () => {
       window.clearTimeout(beginExitTimer);
       window.clearTimeout(finishIntroTimer);
     };
-  }, [appPhase]);
+  }, [appPhase, loadingProgress, useLegacyBrawler]);
+
+  const unlockRoster = React.useCallback(() => {
+    try { window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true"); } catch { /* Keep the roster unlocked for this session. */ }
+    setIsRosterUnlocked(true);
+  }, []);
 
   useEffect(() => {
     if (!stats.isVictory || selectedCharacterId !== "xgod" || typeof window === "undefined") {
       return;
     }
 
-    window.localStorage.setItem(ROSTER_UNLOCK_STORAGE_KEY, "true");
-    setIsRosterUnlocked(true);
-  }, [selectedCharacterId, stats.isVictory]);
+    unlockRoster();
+  }, [selectedCharacterId, stats.isVictory, unlockRoster]);
+
+  useEffect(() => {
+    if (appPhase !== 'game' || !stats.isVictory) return;
+    // The completed renderer stays released after the finale; expose the saved
+    // result without mounting a fresh final-level scene behind the summary.
+    const previous = window.render_game_to_text;
+    const render = () => JSON.stringify({mode:'victory', selectedCharacterId, stats});
+    window.render_game_to_text = render;
+    return () => {if (window.render_game_to_text === render) window.render_game_to_text = previous;};
+  }, [appPhase, selectedCharacterId, stats]);
 
   useEffect(() => {
     if (appPhase !== "start") {
@@ -265,14 +392,14 @@ const App: React.FC = () => {
         return;
       }
 
-      if (titlePanel) {
+      if (titlePanel || confirmNewRun) {
         return;
       }
 
       const key = event.key.toLowerCase();
       if (key === "enter" || key === " " || key === "s") {
         event.preventDefault();
-        setAppPhase("characterSelect");
+        if (savedCampaign) continueCampaign(); else startGameFromTitle();
       }
     };
 
@@ -280,7 +407,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleStartShortcut);
     };
-  }, [appPhase, titlePanel]);
+  }, [appPhase, titlePanel, savedCampaign, confirmNewRun]);
 
   useEffect(() => {
     const handleFullscreenToggle = (event: KeyboardEvent) => {
@@ -303,12 +430,17 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const bossTrack = BOSS_MUSIC[stats.level];
     const musicSrc =
-      appPhase === "start"
+      appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
+        : appPhase === "story"
+          ? LEVEL_MUSIC[storyChapter ? STORY_CHAPTERS[storyChapter].musicLevel : 1]
         : appPhase === "intro"
           ? LEVEL_MUSIC[1]
-          : LEVEL_MUSIC[stats.level];
+          : appPhase === "game" && !useLegacyBrawler && bossTrack && stats.activeBossId === bossTrack.bossId
+            ? bossTrack.src
+          : LEVEL_MUSIC[useLegacyBrawler && stats.level === 4 ? FINAL_LEVEL : stats.level];
 
     if (!musicSrc) {
       pendingMusicStartRef.current = false;
@@ -319,7 +451,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const shouldPauseMusic = appPhase === "game" && (isPaused || stats.isGameOver || stats.isVictory);
+    const shouldPauseMusic = appPhase === "game" && (gameSuspended || stats.isGameOver || stats.isVictory);
     let audio = backgroundMusicRef.current;
 
     if (!audio || !audio.src.endsWith(musicSrc)) {
@@ -327,10 +459,11 @@ const App: React.FC = () => {
         audio.pause();
       }
       audio = new Audio(musicSrc);
+      audio.preload = 'none';
       audio.loop = true;
-      audio.volume = 0.42;
       backgroundMusicRef.current = audio;
     }
+    audio.volume=audioSettings.music;audio.muted=audioSettings.muted;
 
     const tryPlay = () => {
       if (!backgroundMusicRef.current || shouldPauseMusic) {
@@ -368,7 +501,7 @@ const App: React.FC = () => {
       window.removeEventListener("pointerdown", unlockPlayback);
       window.removeEventListener("keydown", unlockPlayback);
     };
-  }, [appPhase, isPaused, stats.isGameOver, stats.isVictory, stats.level]);
+  }, [appPhase, storyChapter, gameSuspended, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
 
   useEffect(() => {
     return () => {
@@ -380,16 +513,64 @@ const App: React.FC = () => {
   }, []);
 
   const handleStatsUpdate = (newStats: Partial<GameStats>) => {
+    if (storyTransitionRef.current) return;
+    const exitStory = LEVEL_EXIT_STORIES[stats.level];
+    const finalStory = !stats.isVictory && stats.level === FINAL_LEVEL && newStats.isVictory === true;
+    if (!useLegacyBrawler && appPhase === 'game' && (finalStory || exitStory && newStats.level === stats.level + 1)) {
+      // The engine reports its final rewards and equipment in this same snapshot.
+      // Keep that snapshot, release the old renderer, then mount the next level
+      // only after Continue/Skip. Never rebuild the loadout from defaults here.
+      storyTransitionRef.current = true;
+      setStoryChapter(finalStory ? 'level6' : exitStory!);
+      setIsPaused(false);
+      setAppPhase('story');
+    }
     setStats((previous) => {
       const updated = { ...previous, ...newStats };
       if (updated.isVictory) {
         return { ...updated, isGameOver: false };
       }
-      if (updated.lives <= 0 && !previous.isGameOver) {
+      // Flight reports Game Over after its final ship's explosion has completed.
+      const flightOwnsGameOver = !useLegacyBrawler && updated.level === FLIGHT_LEVEL && newStats.isGameOver === false;
+      if (updated.lives <= 0 && !previous.isGameOver && !flightOwnsGameOver && !updated.isDying) {
         return { ...updated, isGameOver: true };
       }
       return updated;
     });
+  };
+
+  const persistCampaign = React.useCallback(() => {
+    if (!campaignActive || useLegacyBrawler || playerSprite || stats.isDying || stats.health <= 0 || stats.lives <= 0 || stats.isGameOver || stats.isVictory) return false;
+    const save: CampaignSave = {version:1,savedAt:Date.now(),difficulty,stats:{...stats,activeBossId:null},story:appPhase === 'story' ? storyChapter : null};
+    if (!writeCampaignSave(save)) {setSaveError('Saving is unavailable in this browser. Keep playing, or enable browser storage and try again.');return false;}
+    setSavedCampaign(save); setSaveError(''); return true;
+  }, [campaignActive,useLegacyBrawler,playerSprite,stats,difficulty,appPhase,storyChapter]);
+
+  useEffect(() => {
+    if (!campaignActive || !['game','intro','story'].includes(appPhase)) return;
+    if (stats.isVictory) {
+      try {localStorage.removeItem(CAMPAIGN_SAVE_KEY);setSavedCampaign(null);} catch {setSaveError('Could not clear the completed campaign save.');}
+      return;
+    }
+    persistCampaign();
+  }, [persistCampaign]);
+
+  const continueCampaign = () => {
+    const save = readCampaignSave(DEFAULT_STATS);
+    if (!save) {setSavedCampaign(null);setSaveError('That save could not be loaded. You can start a new game.');return;}
+    // A title opened with preview parameters must restore the real campaign unchanged.
+    window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    setRequestedLegacyBrawler(false);
+    setSelectedCharacterId(save.stats.selectedCharacterId);setDifficulty(save.difficulty);
+    setStats(save.stats);setRestoreCheckpoint(save.stats.campaignCheckpoint);setRunId(n=>n+1);
+    setPlayerSprite(null);setIsPaused(false);setTitlePanel(null);setConfirmNewRun(false);
+    setCampaignActive(true);setSaveError('');
+    storyTransitionRef.current=!!save.story;setStoryChapter(save.story);setAppPhase(save.story?'story':'game');
+  };
+
+  const saveAndQuit = () => {
+    if (!persistCampaign()) {if (stats.isDying || stats.health <= 0) setSaveError('Wait for your hero to respawn before saving and quitting.');return;}
+    setCampaignActive(false);setIsPaused(false);setAppPhase('start');
   };
 
   const togglePause = () => {
@@ -405,7 +586,10 @@ const App: React.FC = () => {
   };
 
   const jumpToLevelForTesting = (level: number) => {
-    const targetLevel = clamp(level, 1, 4);
+    setCampaignActive(false);
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
+    const targetLevel = clamp(level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
     const hasSword = targetLevel >= 2;
     const hasShield = targetLevel >= 3;
     const hasDinio = targetLevel >= 2;
@@ -419,6 +603,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: targetLevel,
+      equipment:createLoadout(hasSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
       score: 0,
       souls: targetLevel >= 2 ? 3 : 0,
       health: DEFAULT_STATS.maxHealth,
@@ -442,7 +627,10 @@ const App: React.FC = () => {
   };
 
   const testCharacterMode = (characterId: CharacterId, powered: boolean) => {
-    const currentLevel = clamp(stats.level, 1, 4);
+    setCampaignActive(false);
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
+    const currentLevel = clamp(stats.level, 1, useLegacyBrawler ? 4 : FINAL_LEVEL);
     const hasShield = currentLevel >= 3;
     const hasDinio = currentLevel >= 2;
     const hasDoghost = currentLevel >= 3;
@@ -458,6 +646,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: currentLevel,
+      equipment:createLoadout(xGodPowered?'sword':characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands'),
       health: DEFAULT_STATS.maxHealth,
       lives: DEFAULT_STATS.maxLives,
       souls: currentLevel >= 2 ? 3 : 0,
@@ -473,14 +662,17 @@ const App: React.FC = () => {
       hasDoghost,
       teleportationCUnlocked: hasTeleportationC,
       hasTeleportationC: characterId === "teleportation_c" ? false : hasTeleportationC,
-      gravityCoreUnlocked: currentLevel >= 4 && powered,
-      gravityCoreCharges: currentLevel >= 4 && powered ? 3 : 0,
-      characterPowerUnlocked: powered
+      gravityCoreUnlocked: currentLevel >= (useLegacyBrawler ? 4 : FINAL_LEVEL) && powered,
+      gravityCoreCharges: currentLevel >= (useLegacyBrawler ? 4 : FINAL_LEVEL) && powered ? 3 : 0,
+      characterPowerUnlocked: characterId === 'zgod' || powered
     });
   };
 
   const restartGame = () => {
-    setStats({ ...DEFAULT_STATS, selectedCharacterId });
+    setCampaignActive(false);setRestoreCheckpoint(undefined);
+    storyTransitionRef.current = false;
+    setStoryChapter(null);
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -488,25 +680,41 @@ const App: React.FC = () => {
   };
 
   const startGameFromTitle = () => {
+    if (savedCampaign && !confirmNewRun) {setConfirmNewRun(true);return;}
+    setConfirmNewRun(false);
     setIsPaused(false);
     setTitlePanel(null);
     setAppPhase("characterSelect");
   };
 
   const beginRunWithCharacter = (characterId: CharacterId) => {
-    const canSelect = characterId === "xgod" || isRosterUnlocked;
+    const canSelect = characterId === "xgod" || characterId === "zgod" || isRosterUnlocked;
     if (!canSelect) {
       return;
     }
 
+    setRestoreCheckpoint(undefined);setRunId(n=>n+1);
+    setCampaignActive(!requestedLegacyBrawler && !window.location.search && !playerSprite);
     setSelectedCharacterId(characterId);
     setStats({
       ...DEFAULT_STATS,
-      selectedCharacterId: characterId
+      selectedCharacterId: characterId,
+      characterPowerUnlocked: characterId === 'zgod',
+      equipment:createLoadout(characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands')
     });
     setIsPaused(false);
     setTitlePanel(null);
-    setAppPhase("intro");
+    const legacyRun = requestedLegacyBrawler && characterId !== 'zgod' && characterId !== 'killer_kai';
+    storyTransitionRef.current = !legacyRun;
+    setStoryChapter(legacyRun ? null : 'prologue');
+    setAppPhase(legacyRun ? 'intro' : 'story');
+  };
+
+  const completeStory = () => {
+    storyTransitionRef.current = false;
+    setIsPaused(false);
+    setAppPhase(storyChapter === 'prologue' ? 'intro' : 'game');
+    setStoryChapter(null);
   };
 
   const handleSpriteUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,16 +731,70 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900 transition-all duration-500">
+    <div data-mobile={mobileGraphics ? 'true' : 'false'} data-phase={appPhase} className="game-app-shell mobile-safe-area flex h-[100dvh] w-screen overflow-hidden bg-slate-900">
       <div className="relative flex-grow overflow-hidden transition-all duration-500">
-        {appPhase !== "start" && appPhase !== "characterSelect" && (
-          <GameEngine
-            key={`${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}-${stats.characterPowerUnlocked ? "powered" : "base"}-${stats.hasFlameSword ? "sword" : "nosword"}`}
-            isPaused={appPhase !== "game" || isPaused || stats.isGameOver || stats.isVictory}
+        {graphicsLost && (
+          <div role="alert" className="absolute inset-0 z-[80] flex items-center justify-center bg-slate-950 p-6 text-center text-white">
+            <div className="max-w-sm">
+              <h2 className="text-2xl font-bold">Graphics interrupted</h2>
+              <p className="my-4">Reload to start the game again.</p>
+              <button type="button" className="rounded-xl bg-violet-700 px-6 py-3" onClick={() => window.location.reload()}>Reload game</button>
+            </div>
+          </div>
+        )}
+        {(appPhase === 'intro' || appPhase === 'game') && !stats.isVictory && (
+          <Suspense fallback={null}>
+          {useLegacyBrawler ? (
+            <GameEngine
+              key={`brawler-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}-${stats.characterPowerUnlocked ? "powered" : "base"}-${stats.hasFlameSword ? "sword" : "nosword"}`}
+              isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
+              currentLevel={stats.level}
+              difficulty={difficulty}
+              selectedCharacterId={selectedCharacterId}
+              initialScore={stats.score}
+              playerSprite={playerSprite}
+              initialSwordUnlocked={stats.swordUnlocked}
+              initialHasFlameSword={stats.hasFlameSword}
+              initialSwordDurability={stats.swordDurability}
+              maxSwordDurability={stats.maxSwordDurability}
+              initialShieldUnlocked={stats.shieldUnlocked}
+              initialInkShieldReady={stats.inkShieldReady}
+              initialDinioUnlocked={stats.dinioUnlocked}
+              initialHasDinio={stats.hasDinio}
+              initialDoghostUnlocked={stats.doghostUnlocked}
+              initialHasDoghost={stats.hasDoghost}
+              initialTeleportationCUnlocked={stats.teleportationCUnlocked}
+              initialHasTeleportationC={stats.hasTeleportationC}
+              initialGravityCoreUnlocked={stats.gravityCoreUnlocked}
+              initialGravityCoreCharges={stats.gravityCoreCharges}
+              initialCharacterPowerUnlocked={stats.characterPowerUnlocked}
+              onStatsUpdate={handleStatsUpdate}
+              onTogglePause={togglePause}
+            />
+          ) : stats.level === FLIGHT_LEVEL ? (
+            <FlightGameEngine
+              key={`flight-${selectedCharacterId}-${difficulty}-${runId}`}
+              isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
+              selectedCharacterId={selectedCharacterId}
+              difficulty={difficulty}
+              initialStats={stats}
+              onStatsUpdate={handleStatsUpdate}
+              onTogglePause={togglePause}
+            />
+          ) : (
+            <PlatformerGameEngine
+              key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
+            isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
+            initialLives={stats.lives}
+            initialHealth={stats.health}
+            initialCheckpoint={restoreCheckpoint}
+            initialEquipment={stats.equipment}
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
             initialScore={stats.score}
+            initialSouls={stats.souls}
+            initialMonstersDefeated={stats.monstersDefeated}
             playerSprite={playerSprite}
             initialSwordUnlocked={stats.swordUnlocked}
             initialHasFlameSword={stats.hasFlameSword}
@@ -552,6 +814,16 @@ const App: React.FC = () => {
             onStatsUpdate={handleStatsUpdate}
             onTogglePause={togglePause}
           />
+          )
+          }
+          </Suspense>
+        )}
+        {appPhase === 'game' && !useLegacyBrawler && loadingProgress < 1 && (
+          <div role="status" aria-label="Loading game" className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center font-['Gochi_Hand'] text-white">
+            <p className="text-3xl">Entering the Unknown Universe…</p>
+            <progress className="h-4 w-64 max-w-full accent-violet-500" max={100} value={Math.round(loadingProgress * 100)} />
+            <p className="text-xl">{Math.round(loadingProgress * 100)}%</p>
+          </div>
         )}
         {appPhase === "game" && (
           <UIOverlay
@@ -560,19 +832,20 @@ const App: React.FC = () => {
             selectedCharacterId={selectedCharacterId}
             isPaused={isPaused}
             useLegacyDesktopControls={useLegacyDesktopControls}
+            legacyCampaign={useLegacyBrawler}
             onTogglePause={togglePause}
             onJumpToLevel={jumpToLevelForTesting}
             onTestCharacterMode={testCharacterMode}
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls isPaused={isPaused} />
+          <TouchControls isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
-        {(appPhase === "start" || appPhase === "characterSelect" || (appPhase === "game" && !stats.isGameOver && !stats.isVictory)) && (
+        {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
             <div className="max-w-sm rounded-3xl border-4 border-white/70 bg-slate-900/92 p-6 shadow-2xl">
               <p className="text-4xl font-bold">Turn Sideways</p>
-              <p className="mt-3 text-2xl text-violet-100">Turn your device sideways for the best play experience.</p>
+              <p className="mt-3 text-2xl text-violet-100">The Unknown Universe plays best in landscape on phones.</p>
             </div>
           </div>
         )}
@@ -589,7 +862,7 @@ const App: React.FC = () => {
                 }}
               >
                 <img
-                  src={START_SCREEN_IMAGE}
+                  src={mobileImagePath(START_SCREEN_IMAGE)}
                   alt="Unknown Universe game start screen"
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
@@ -598,6 +871,11 @@ const App: React.FC = () => {
                   Mode: {difficulty}
                 </div>
 
+                {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
+                  {savedCampaign && <><button id="continue-game-button" onClick={continueCampaign} className="rounded-full border-2 border-slate-900 bg-emerald-400 px-6 py-1 text-xl font-bold text-slate-950 sm:text-2xl">Continue Game</button>
+                  <p className="text-xs sm:text-base">{CHARACTER_CONFIGS[savedCampaign.stats.selectedCharacterId].name} · Level {savedCampaign.stats.level} · {savedCampaign.difficulty} · {savedCampaign.stats.campaignCheckpoint?.level === savedCampaign.stats.level && savedCampaign.stats.campaignCheckpoint.index >= 0 ? `Checkpoint ${savedCampaign.stats.campaignCheckpoint.index+1}` : savedCampaign.stats.flightSave?.checkpoint ? 'Flight checkpoint' : 'Chapter start'}</p></>}
+                  {saveError && <p role="alert">{saveError}</p>}
+                </div>}
                 <div className="absolute left-[12.2%] right-[12.2%] top-[74.5%] grid h-[19%] grid-cols-3 gap-[2.4%]">
                   <button
                     type="button"
@@ -628,9 +906,16 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {confirmNewRun && <div role="dialog" aria-modal="true" aria-label="Start a new campaign" className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 p-4">
+              <div className="max-w-sm rounded-2xl bg-white p-5 text-center text-slate-900">
+                <h2 className="text-2xl font-bold">Start a new campaign?</h2><p className="my-3">Your current save will be replaced when you choose a hero.</p>
+                <button onClick={startGameFromTitle} className="m-2 rounded-xl bg-violet-700 px-4 py-2 text-white">Choose a hero</button>
+                <button onClick={()=>setConfirmNewRun(false)} className="m-2 rounded-xl border px-4 py-2">Keep my save</button>
+              </div>
+            </div>}
             {titlePanel && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
-                <div className="relative w-full max-w-2xl rotate-[-1deg] rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
+                <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
                   <button
                     type="button"
                     onClick={() => setTitlePanel(null)}
@@ -670,6 +955,7 @@ const App: React.FC = () => {
                           );
                         })}
                       </div>
+                      <SoundControls settings={audioSettings} />
                     </>
                   ) : (
                     <>
@@ -678,7 +964,7 @@ const App: React.FC = () => {
                         <p><span className="font-bold text-slate-900">Project:</span> The Unknown Universe: Doodle Beat 'Em Up</p>
                         <p><span className="font-bold text-slate-900">Art Direction:</span> Hand-drawn character, prop, and level art from your custom asset set.</p>
                         <p><span className="font-bold text-slate-900">Tech:</span> React, Phaser, and Vite.</p>
-                        <p><span className="font-bold text-slate-900">Current Build:</span> Four-level campaign with persistent power-ups, bosses, pals, and custom music.</p>
+                        <p><span className="font-bold text-slate-900">Current Build:</span> {useLegacyBrawler ? "Four" : "Five"}-level campaign with persistent power-ups, bosses, pals, and custom music.</p>
                       </div>
                     </>
                   )}
@@ -689,18 +975,19 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "characterSelect" && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950 p-3 font-['Gochi_Hand'] sm:p-4">
+          <div className="character-select absolute inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950 p-3 font-['Gochi_Hand'] sm:p-4" role="dialog" aria-labelledby="character-select-title">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_12%,rgba(124,58,237,0.36)_0%,rgba(15,23,42,0.92)_42%,#020617_100%)]" />
-            <div className="relative z-10 flex h-full w-full max-w-7xl flex-col justify-center">
-              <div className="mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
-                <div>
-                  <h1 className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
-                  <p className="mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
+            <div className="character-select-content relative z-10 flex min-h-full w-full max-w-7xl shrink-0 flex-col justify-start py-3 md:justify-center">
+              <div className="character-select-header mb-3 flex flex-wrap items-end justify-between gap-3 md:mb-5 md:gap-4">
+                <div className="character-select-copy">
+                  <h1 id="character-select-title" className="text-4xl font-bold text-white sm:text-5xl md:text-7xl">Pick Your Player</h1>
+                  <p className="character-select-description mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
                     {isRosterUnlocked
                       ? "The roster is unlocked. Choose who enters the Unknown Universe."
-                      : "Beat the game with X God to pick your player."}
+                      : "X God and Z-God are ready. Beat the game with X God to unlock the other heroes."}
                   </p>
                 </div>
+                <RosterUnlockPad unlocked={isRosterUnlocked} onUnlock={unlockRoster} />
                 <button
                   type="button"
                   onClick={() => setAppPhase("start")}
@@ -710,64 +997,76 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 md:gap-4">
+              <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
-                  const locked = characterId !== "xgod" && !isRosterUnlocked;
+                  const locked = characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
                   return (
                     <button
                       key={character.id}
                       type="button"
                       disabled={locked}
+                      data-character-id={character.id}
+                      autoFocus={character.id === selectedCharacterId}
+                      aria-label={`${character.name}: ${locked ? 'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
                       onClick={() => beginRunWithCharacter(character.id)}
-                      className={`group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
+                      className={`character-card group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
                         locked
                           ? "border-slate-700 opacity-55 grayscale"
                           : "border-amber-200 hover:-translate-y-1 hover:border-white hover:shadow-[10px_12px_0_rgba(0,0,0,0.5)]"
                       }`}
                     >
-                      <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-200">
+                      <div className="character-card-art relative aspect-[2/3] w-full overflow-hidden bg-slate-200">
                         <img
-                          src={character.cardImage}
+                          loading="lazy" decoding="async"
+                          src={mobileImagePath(character.cardImage)}
                           alt={`${character.name} character card`}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                         {locked && (
                           <div className="absolute inset-0 flex items-center justify-center bg-slate-950/64 px-3 text-center">
                             <p className="rounded-xl border-2 border-white/60 bg-black/70 px-2 py-2 text-base leading-tight text-white sm:px-3 sm:text-xl">
-                              Beat the game with X God to pick your player.
+                              LOCKED
                             </p>
                           </div>
                         )}
                       </div>
-                      <div className="border-t-4 border-slate-900 bg-white p-2 sm:p-3">
+                      <div className="character-card-details border-t-4 border-slate-900 bg-white p-2 sm:p-3">
                         <p className="text-xl font-bold text-slate-900 sm:text-2xl">{character.name}</p>
                         <p className="text-base text-slate-600 sm:text-lg">{character.subtitle}</p>
+                        <p className="mt-1 text-sm font-bold text-amber-700">{SIGNATURE_SPECIALS[character.id].name}</p>
                         <p className="mt-1 text-base font-bold text-violet-700">{locked ? "LOCKED" : "SELECT"}</p>
                       </div>
                     </button>
                   );
                 })}
               </div>
+              <p className="character-scroll-hint" aria-hidden="true">Swipe to browse heroes → · Tap SELECT to play</p>
             </div>
           </div>
         )}
 
+        {appPhase === 'story' && storyChapter && (
+          <CutscenePlayer key={storyChapter} chapter={STORY_CHAPTERS[storyChapter]} resumeStats={stats} onComplete={completeStory} />
+        )}
+
         {appPhase === "intro" && (
-          <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
+          <div className="level-intro pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
             <div
-              className={`absolute inset-0 transition-transform duration-700 ease-in-out ${
+              className={`level-intro-frame absolute inset-0 transition-transform duration-700 ease-in-out ${
                 isIntroExiting ? "-translate-x-full" : "translate-x-0"
               }`}
             >
-              <img
-                src={LEVEL_ONE_INTRO_IMAGE}
-                alt="Level 1 intro screen"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-x-0 bottom-10 flex justify-center">
+              <div className="level-intro-art">
+                <img
+                  src={mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
+                  alt="Level 1 intro screen"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="level-intro-status flex justify-center" role="status">
                 <div className="rounded-full border-2 border-white/70 bg-slate-950/65 px-6 py-2 font-['Gochi_Hand'] text-2xl tracking-wide text-white shadow-lg">
-                  LOADING LEVEL 1...
+                  {loadingProgress === 1 ? 'READY!' : `LOADING LEVEL 1… ${Math.round(loadingProgress * 100)}%`}
                 </div>
               </div>
             </div>
@@ -776,36 +1075,57 @@ const App: React.FC = () => {
 
         {appPhase === "game" && isPaused && !stats.isGameOver && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm pointer-events-auto">
-            <div className="mx-4 rotate-[-2deg] rounded-3xl border-8 border-slate-800 bg-white p-8 text-center font-['Gochi_Hand'] shadow-2xl md:p-12">
-              <h2 className="mb-6 text-5xl font-bold text-slate-800 md:text-6xl">Game Paused</h2>
+            <div className="pause-dialog mx-3 max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-slate-800 bg-white p-4 text-center font-['Gochi_Hand'] shadow-2xl md:p-8">
+              <h2 className="mb-3 text-4xl font-bold text-slate-800 md:text-5xl">Game Paused</h2>
+              {campaignActive && !useLegacyBrawler && !playerSprite && <div className="mb-3">
+                <button onClick={saveAndQuit} className="rounded-full border-2 border-slate-800 bg-emerald-600 px-6 py-2 text-xl text-white">Save &amp; Quit</button>
+                <p role="status" className="mt-2 text-sm text-slate-600">{saveError || 'Autosaved in this browser. Continue returns to your last checkpoint; enemies reset.'}</p>
+              </div>}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
+                && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
+                && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → butt bomb.<br />You can also press D-pad Down or press Down / S while airborne to slam.</p>
+              )}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'zgod' && (
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → ground punch.<br />You can also press D-pad Down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
+              )}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && hasNewMobilityArt(selectedCharacterId) && (
+                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → {HERO_MOBILITY[selectedCharacterId].name}.<br />Down / S or D-pad Down also triggers the slam in midair.</p>
+              )}
+              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
+                <p className="mb-3 text-base text-slate-700">Hold Down / S or D-pad Down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
+              )}
+              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
+              <SoundControls settings={audioSettings} />
               <button
                 onClick={togglePause}
-                className="rounded-full border-4 border-slate-800 bg-blue-500 px-12 py-4 text-3xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-blue-600"
+                className="rounded-full border-4 border-slate-800 bg-blue-500 px-8 py-2 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-blue-600"
               >
                 Resume Playing
               </button>
+
             </div>
           </div>
         )}
 
         {appPhase === "game" && stats.isVictory && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-amber-200/75 backdrop-blur-md pointer-events-auto">
-            <div className="max-w-2xl -rotate-1 rounded-3xl border-8 border-slate-800 bg-white p-12 text-center font-['Gochi_Hand'] shadow-2xl">
-              <h2 className="mb-2 text-7xl font-bold text-amber-500 underline decoration-slate-800">Universe Saved</h2>
-              <p className="mb-6 text-2xl text-slate-600">You cleared all 4 levels and survived the most dangerous planet in the Unknown Universe.</p>
-              <div className="mb-8 rounded-xl border-4 border-dashed border-slate-400 bg-slate-100 p-6">
-                <p className="mb-2 text-4xl text-amber-500">{stats.score} Points</p>
-                <p className="mb-2 text-3xl text-blue-600">{stats.souls} Souls Collected</p>
-                <p className="mb-2 text-3xl text-red-500">{stats.monstersDefeated} Monsters Banished</p>
-                <p className="text-3xl text-orange-500">{stats.hasFlameSword ? "Flame Sword Awakened" : "Flame Sword Lost In Battle"}</p>
-                <p className="mt-2 text-3xl text-sky-500">{stats.shieldUnlocked ? "Ink Shield Unlocked" : "Ink Shield Never Claimed"}</p>
-                <p className="mt-2 text-3xl text-pink-500">{stats.dinioUnlocked ? "Dinio Joined The Squad" : "Dinio Never Hatched"}</p>
-                <p className="mt-2 text-3xl text-slate-500">{stats.doghostUnlocked ? "Doghost Floated In" : "Doghost Never Appeared"}</p>
-                <p className="mt-2 text-3xl text-violet-700">{stats.teleportationCUnlocked ? "Teleportation C Emerged From The Void" : "Teleportation C Stayed Hidden"}</p>
+          <div className="absolute inset-0 z-50 flex items-start justify-center overflow-y-auto bg-amber-200/75 p-3 backdrop-blur-md pointer-events-auto">
+            <div className="my-auto w-full max-w-2xl shrink-0 rounded-3xl border-4 border-slate-800 bg-white p-4 sm:p-6 text-center font-['Gochi_Hand'] shadow-2xl">
+              <h2 className="mb-2 text-4xl sm:text-6xl font-bold text-amber-500 underline decoration-slate-800">Universe Saved</h2>
+              <p className="mb-3 text-base sm:text-xl text-slate-600">You cleared all {useLegacyBrawler ? 4 : FINAL_LEVEL} levels and survived the most dangerous planet in the Unknown Universe.</p>
+              <div className="mb-4 grid grid-cols-2 gap-x-3 rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 p-3">
+                <p className="mb-2 text-xl sm:text-3xl text-amber-500">{stats.score} Points</p>
+                <p className="mb-2 text-base sm:text-xl text-blue-600">{stats.souls} Souls Collected</p>
+                <p className="mb-2 text-base sm:text-xl text-red-500">{stats.monstersDefeated} Monsters Banished</p>
+                <p className="text-base sm:text-xl text-orange-500">{stats.hasFlameSword ? "Flame Sword Awakened" : "Flame Sword Lost In Battle"}</p>
+                <p className="mt-2 text-base sm:text-xl text-sky-500">{stats.shieldUnlocked ? "Ink Shield Unlocked" : "Ink Shield Never Claimed"}</p>
+                <p className="mt-2 text-base sm:text-xl text-pink-500">{stats.dinioUnlocked ? "Dinio Joined The Squad" : "Dinio Never Hatched"}</p>
+                <p className="mt-2 text-base sm:text-xl text-slate-500">{stats.doghostUnlocked ? "Doghost Floated In" : "Doghost Never Appeared"}</p>
+                <p className="mt-2 text-base sm:text-xl text-violet-700">{stats.teleportationCUnlocked ? "Teleportation C Emerged From The Void" : "Teleportation C Stayed Hidden"}</p>
               </div>
               <button
                 onClick={restartGame}
-                className="rounded-full border-4 border-slate-800 bg-green-500 px-16 py-6 text-4xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-green-600"
+                className="rounded-full border-4 border-slate-800 bg-green-500 px-8 py-3 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-green-600"
               >
                 Play Again
               </button>
@@ -844,9 +1164,9 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <div
+      {useLegacyDesktopControls && appPhase === 'game' && <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
-          isIdeatorCollapsed || appPhase !== "game" || !useLegacyDesktopControls ? "w-0" : "hidden w-0 lg:block lg:w-80"
+          !useLegacyDesktopControls ? "hidden" : isIdeatorCollapsed || appPhase !== "game" ? "w-0" : "hidden w-0 lg:block lg:w-80"
         }`}
       >
         <button
@@ -871,7 +1191,7 @@ const App: React.FC = () => {
             <MonsterIdeator onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)} />
           </Suspense>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

@@ -19,11 +19,21 @@ export interface CharacterConfig {
 export const ROSTER_UNLOCK_STORAGE_KEY = "unknownUniverse.xGodClear.v1";
 
 export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
+  zgod: {
+    id: "zgod",
+    name: "Z-God",
+    subtitle: "X God's Little Sister",
+    cardImage: "/cards/z-god-card.png",
+    hudColor: "pink",
+    rewardName: "Star Power",
+    rewardSubtitle: "Invincible. Every hit defeats an enemy—even a boss.",
+    stats: { strength: 100, speed: 90, defense: 100, spirit: 100 }
+  },
   xgod: {
     id: "xgod",
     name: "X God",
     subtitle: "Main Character",
-    cardImage: "/cards/xgod-card.png",
+    cardImage: "/cards/xgod-current-v2.webp",
     hudColor: "amber",
     rewardName: "Fire Sword",
     rewardSubtitle: "Claim the blade and let its fire answer you.",
@@ -68,12 +78,24 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
     rewardName: "Portal Core",
     rewardSubtitle: "Gone in a blink. Back in a strike.",
     stats: { strength: 70, speed: 92, defense: 64, spirit: 88 }
+  },
+  killer_kai: {
+    id: "killer_kai",
+    name: "Killer Kai",
+    subtitle: "Cyborg Cannoneer",
+    cardImage: "/cards/killer-kai-card-v2.webp",
+    hudColor: "cyan",
+    rewardName: "Thunder Core",
+    rewardSubtitle: "Punch the ground. Bring down an electrical storm.",
+    stats: { strength: 86, speed: 84, defense: 82, spirit: 88 }
   }
 };
 
 export const CHARACTER_IDS = Object.keys(CHARACTER_CONFIGS) as CharacterId[];
 
 export const isCharacterId = (value: string | null | undefined): value is CharacterId =>
+  value === "killer_kai" ||
+  value === "zgod" ||
   value === "xgod" ||
   value === "barrett" ||
   value === "nico" ||

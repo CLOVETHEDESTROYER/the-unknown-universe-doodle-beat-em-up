@@ -1,0 +1,22 @@
+{
+  "frameSize": 640,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "scale": 0.9,
+  "actions": [
+    "ready",
+    "windup",
+    "dash",
+    "follow-through",
+    "aim",
+    "recoil",
+    "leap",
+    "landing"
+  ],
+  "muzzle": [
+    490,
+    406
+  ]
+}

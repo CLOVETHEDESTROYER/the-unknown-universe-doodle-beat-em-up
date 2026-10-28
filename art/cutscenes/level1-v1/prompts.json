@@ -1,0 +1,69 @@
+{
+  "tool": "built-in image_gen",
+  "purpose": "first level ending with schoolmate reunion",
+  "specs": [
+    {
+      "id": "l1-01-flame-sword",
+      "title": "The Flame Sword",
+      "speaker": "X GOD",
+      "caption": [
+        "The Dragon was beaten.",
+        "The Flame Sword was finally mine."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/04-transformation-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/xgod_sword_reward_fit.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/boss-deaths-v1/dark_dragon-seed.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE static illustrated story screen for The Unknown Universe, continuing its approved cutscene images. Same chunky imperfect BLACK INK outlines, visible colored-pencil/crayon texture, saturated storybook lighting, short youthful cartoon proportions; not pixel art, realism, a sprite strip, trading card or comic montage. Wide LANDSCAPE 16:9, ideally 1672x941. All faces, hands, the sword and the important story clue must read ABOVE the bottom 24%, where a separate caption bar will go. Paint scenery across the complete canvas; NO caption box, labels, words, text, UI, watermark or panel borders. Image 1 is X GOD's exact post-mutation identity/style reference. Image 2 is the actual FLAME SWORD reference: preserve its long slim silver blade, red inner flame pattern, straight simple gold crossguard and red/black wrapped handle with gold end, with orange flames around it. Image 3 is the exact DARK DRAGON head/neck anatomy reference. Scene: after the first boss fight on The Scratch's purple-brick school rooftops, at warm violet sunset. X God, a young schoolboy survivor, stands near center-left gazing with relief and amazement at the new Flame Sword he holds raised diagonally; make the actual sword recognizable, not a huge generic fantasy blade. Preserve his swept LIME-YELLOW hair, PALE simple face with TWO BLACK X EYES, WHITE short-sleeved yellow-smiley T-shirt, ORANGE cargo trousers with large pockets, black/white/lime sneakers, exact short boy proportions. He has no backpack, no gun, no armor and no extra weapon. Off to the right and slightly behind, the defeated Dragon's dark green horned head and long neck rest low against the rooftop, eyes closed, breathing/fire stopped, non-gory. Keep its black swept horns, green scales and gray-green muzzle; do NOT add visible arms, legs, wings or torso. Scuffed purple brick, broken wooden freight crates nearby, distant school clock tower and a few dying embers. Leave the boy's face, sword hand and complete sword high enough for the caption overlay. The mood is a hard-won quiet first victory, not cruelty or celebrating suffering. No classmates or companions in this particular shot; it must work if optional helper pickups were missed."
+    },
+    {
+      "id": "l1-02-the-mark",
+      "title": "The mark on the meteor",
+      "speaker": "X GOD",
+      "caption": [
+        "That mark... I'd seen it before.",
+        "It was carved into the meteor."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/04-transformation-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/02-impact-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/xgod_sword_reward_fit.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE static illustrated story screen for The Unknown Universe, continuing its approved cutscene images. Same chunky imperfect BLACK INK outlines, visible colored-pencil/crayon texture, saturated storybook lighting, short youthful cartoon proportions; not pixel art, realism, a sprite strip, trading card or comic montage. Wide LANDSCAPE 16:9, ideally 1672x941. All faces, hands, the sword and the important story clue must read ABOVE the bottom 24%, where a separate caption bar will go. Paint scenery across the complete canvas; NO caption box, labels, words, text, UI, watermark or panel borders. Image 1 is X God's exact post-mutation face/clothes and drawing style. Image 2 is the METEOR CLUE REFERENCE: reproduce the simple FRACTURED GOLD CIRCULAR BAND on the large meteor's surface, with the same broken-ring silhouette and dark cracks, not a newly invented rune or logo. Image 3 is the established Flame Sword shape. A dramatic SINGLE close-up on the rooftop after Dark Dragon's defeat: X God lifts a palm-sized blackened freight-seal disk found among the crates the Dragon guarded. His young pale hand and white sleeve are clearly visible; his lime-haired X-eyed face appears at the side in three-quarter close view, focused as he recognizes the mark. The freight seal fills a readable central area above the bottom caption zone: dark stone/metal surface, the EXACT broken GOLD CIRCLE from the meteor engraved into it. A small portion of the correct Flame Sword rests diagonally behind his shoulder, softly glowing orange, same scuffed purple-brick school rooftop and violet sunset out of focus. No duplicate meteor inset, no split-panel flashback, no explanatory arrows and NO written text. The image communicates recognition through his pose and the shared emblem. Do not redesign his face, add armor or make him a muscular adult. No family members, graves or confirmation of anyone's fate."
+    },
+    {
+      "id": "l1-03-schoolmate",
+      "title": "A familiar face",
+      "speaker": "BARRETT",
+      "caption": [
+        "X! You made it too!",
+        "I saw that mark on a Graveyard cart."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/04-transformation-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/barrett-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/barrett-card.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/xgod_sword_reward_fit.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-01-flame-sword-source.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE static illustrated story screen for The Unknown Universe, continuing its approved cutscene images. Same chunky imperfect BLACK INK outlines, visible colored-pencil/crayon texture, saturated storybook lighting, short youthful cartoon proportions; not pixel art, realism, a sprite strip, trading card or comic montage. Wide LANDSCAPE 16:9, ideally 1672x941. All faces, hands, the sword and the important story clue must read ABOVE the bottom 24%, where a separate caption bar will go. Paint scenery across the complete canvas; NO caption box, labels, words, text, UI, watermark or panel borders. Image 1 is X GOD's exact identity. Image 2 is the CURRENT BARRETT character identity and correct youthful body proportions; Image 3 is supporting outfit/fur detail only, IGNORE the card layout, lettering and hostile expression. Image 4 is X God's actual Flame Sword. Scene: an EMOTIONAL FRIENDLY REUNION of TWO SCHOOLMATES who both survived Earthior's destruction and were transported to this universe. They already recognize and trust one another; Barrett is NOT an adult local guide, stranger, mentor or aggressor. X on the left has lime-yellow spiky hair, pale face with two black X eyes, white/yellow-smiley shirt, orange cargo pants, black/white/lime sneakers. Barrett on the right is his transformed school friend: SAME BROWN spiky hair, youthful human face, glowing warm orange/gold eyes, burgundy torn HOODIE with drawstrings, enormous BROWN FURRY forearms and long cream claws, dark ripped trousers and RED sneakers exactly as Image 2. Similar youthful height, Barrett slightly broader, not a huge adult werewolf or a full bear. Their faces show relieved recognition and warmth. They exchange a gentle FIST BUMP at chest height, Barrett's claws safely curled away, readable natural anatomy with no extra arms/fingers. X holds his Flame Sword in his other hand lowered safely away from Barrett, no attack pose. The palm-sized black freight seal with the broken gold circle lies on a crate between them. Same purple-brick rooftop, school clock tower in the distance, warm violet/gold sunset; no other characters. This is a reunion of displaced school friends, with a hopeful beat after the fight. Avoid a threatening grin, angry confrontation or adult anatomy. Image 5 is the approved new rooftop victory illustration from this same sequence: preserve that purple-brick rooftop and school tower at violet-orange sunset, and the exact X God/sword appearance."
+    },
+    {
+      "id": "l1-04-graveyard-road",
+      "title": "Toward the Graveyard",
+      "speaker": "X GOD",
+      "caption": [
+        "Then the Graveyard is our next stop.",
+        "We find answers. We find our friends."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/04-transformation-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/barrett-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/xgod_sword_reward_fit.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-01-flame-sword-source.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE static illustrated story screen for The Unknown Universe, continuing its approved cutscene images. Same chunky imperfect BLACK INK outlines, visible colored-pencil/crayon texture, saturated storybook lighting, short youthful cartoon proportions; not pixel art, realism, a sprite strip, trading card or comic montage. Wide LANDSCAPE 16:9, ideally 1672x941. All faces, hands, the sword and the important story clue must read ABOVE the bottom 24%, where a separate caption bar will go. Paint scenery across the complete canvas; NO caption box, labels, words, text, UI, watermark or panel borders. Image 1 is X God's exact character reference. Image 2 is his SCHOOLMATE BARRETT in his current transformed appearance, not a native adult protector. Image 3 is the actual Flame Sword. ONE wide departure illustration ending the first chapter: X God and Barrett stand side by side on a purple-brick rooftop path, three-quarter rear/side view with faces just enough visible to identify them, looking toward a distant MOONLIT GRAVEYARD gate and pale green mist at the end of the road below. X wears the exact lime spiky hair, white yellow-smiley shirt, orange cargo trousers, black/white/lime sneakers and carries the slim silver/red Flame Sword with its simple gold guard and a small controlled orange flame. Barrett wears the exact brown spiky hair, burgundy torn hoodie, massive brown furry clawed forearms, dark ripped trousers and red sneakers of Image 2. Both are youthful school friends, similar short proportions, Barrett slightly broader; do not turn him into an adult or a full animal. Their shared posture is determined, quietly hopeful, beginning the investigation together. The nearby school clock tower and scuffed rooftop connect to the previous shots; warm sunset is giving way to blue-violet moonlight toward the distant cemetery, with one or two lanterns. No text on the gate or gravestones, no names, dead classmates, parents, ghosts, family rescue clues or new villains. Do NOT include Dinio, Doghost or Teleportation C here, because this clean two-friend composition must work without optional helpers. Use the space above the bottom 24% for their heads, hands, sword hilt and the clear distant gate. No giant sword, extra weapons or visual redesign. Image 4 supplies the rooftop architecture, X God and sword appearance of this same sequence; keep the nearby setting consistent while the route ahead turns moonlit."
+    }
+  ]
+}

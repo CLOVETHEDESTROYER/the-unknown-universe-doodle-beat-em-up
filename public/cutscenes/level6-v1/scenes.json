@@ -1,0 +1,68 @@
+[
+  {
+    "id": "l6-01-the-crown-falls",
+    "title": "The crown falls",
+    "speaker": "X GOD",
+    "caption": [
+      "The Regent fell.",
+      "But his weapon was still awake."
+    ],
+    "alt": "The defeated Regent's broken crown lies on violet stone while a meteor launcher still glows red.",
+    "image": "/cutscenes/level6-v1/l6-01-the-crown-falls.png"
+  },
+  {
+    "id": "l6-02-earthior-wasnt-yours",
+    "title": "Earthior wasn't yours",
+    "speaker": "X GOD",
+    "caption": [
+      "Earthior wasn't yours to spend.",
+      "And you don't get the next world."
+    ],
+    "alt": "X turns from the fallen crown toward the launch controls, holding his scorched worksheet.",
+    "image": "/cutscenes/level6-v1/l6-02-earthior-wasnt-yours.png"
+  },
+  {
+    "id": "l6-03-friends-answer",
+    "title": "Friends answer",
+    "speaker": "KILLER KAI · RADIO",
+    "caption": [
+      "I've found the feed. C has a way out.",
+      "We're getting everyone clear."
+    ],
+    "alt": "Kai traces the launch circuit over radio while C opens an evacuation path.",
+    "image": "/cutscenes/level6-v1/l6-03-friends-answer.png"
+  },
+  {
+    "id": "l6-04-ive-got-it",
+    "title": "I've got it",
+    "speaker": "Z-GOD",
+    "caption": [
+      "Keep moving.",
+      "I've got it."
+    ],
+    "alt": "Z-God casually supports a huge broken arch so local creatures can escape while X cuts the weapon's elemental feed.",
+    "image": "/cutscenes/level6-v1/l6-04-ive-got-it.png"
+  },
+  {
+    "id": "l6-05-no-more-meteors",
+    "title": "No more meteors",
+    "speaker": "X GOD",
+    "caption": [
+      "The launch went dark.",
+      "This world would get its tomorrow."
+    ],
+    "alt": "The meteor weapon shuts down, leaving the unlaunched meteor secured in its cradle.",
+    "image": "/cutscenes/level6-v1/l6-05-no-more-meteors.png"
+  },
+  {
+    "id": "l6-06-what-remains",
+    "title": "What remains",
+    "speaker": "X GOD",
+    "caption": [
+      "They took my world.",
+      "They don't get the next one."
+    ],
+    "alt": "At dawn X draws a route to more survivors on the back of his scorched worksheet, with Z-God beside him.",
+    "image": "/cutscenes/level6-v1/l6-06-what-remains.png"
+  }
+]

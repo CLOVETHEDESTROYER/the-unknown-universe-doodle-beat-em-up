@@ -1,0 +1,68 @@
+[
+  {
+    "id": "01-earthior",
+    "title": "Earthior, before the impact",
+    "image": "/cutscenes/prologue-v1/01-earthior.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Before the meteor, Earthior was home.",
+      "School, friends... and homework to finish."
+    ],
+    "alt": "Before the mutation, brown-haired X wears his familiar white shirt and orange cargo pants outside school on Earthior."
+  },
+  {
+    "id": "02-impact",
+    "title": "The sky tears open",
+    "image": "/cutscenes/prologue-v1/02-impact.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Then a meteor tore through Earthior.",
+      "The impact ripped open dimensional time."
+    ],
+    "alt": "A marked meteor strikes Earthior and tears open a violet dimensional rift."
+  },
+  {
+    "id": "03-through-the-rift",
+    "title": "Through the tear",
+    "image": "/cutscenes/prologue-v2/03-through-the-rift.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Even as Earthior broke apart,",
+      "I was pulled into the tear."
+    ],
+    "alt": "Brown-haired X is pulled through a violet dimensional tear, holding his folded worksheet."
+  },
+  {
+    "id": "04-alone-in-the-alley",
+    "title": "Alone in the alley",
+    "image": "/cutscenes/prologue-v2/04-alone-in-the-alley.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Mom? Dad? Where's my sister?",
+      "No one answered."
+    ],
+    "alt": "The ordinary brown-haired boy wakes alone in the purple-brick alley with his backpack and worksheet, before the Dragon arrives."
+  },
+  {
+    "id": "03-alley-fire",
+    "title": "A strange alley",
+    "image": "/cutscenes/prologue-v1/03-alley-fire.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Then something found me.",
+      "Its fire should have been the end."
+    ],
+    "alt": "The green horned Dark Dragon breathes magical fire toward X in a strange purple-brick alley."
+  },
+  {
+    "id": "04-transformation",
+    "title": "The fire changed me",
+    "image": "/cutscenes/prologue-v1/04-transformation.png",
+    "speaker": "X GOD",
+    "caption": [
+      "But that fire changed me.",
+      "It fled to the rooftops. I followed."
+    ],
+    "alt": "Transformed X God studies his hands, with lime hair, X eyes and newly awakened elemental power."
+  }
+]

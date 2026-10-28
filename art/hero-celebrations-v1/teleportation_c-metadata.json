@@ -1,0 +1,29 @@
+{
+  "frames": 4,
+  "baseline": 352,
+  "cell": 384,
+  "scale": 0.29590017825311943,
+  "sourceBodyBounds": [
+    [
+      299,
+      561
+    ],
+    [
+      356,
+      554
+    ],
+    [
+      428,
+      541
+    ],
+    [
+      334,
+      541
+    ]
+  ],
+  "atlas": [
+    1024,
+    170
+  ],
+  "extraction": "connected body alpha, outline padding, shared scale, bottom-boot midpoint"
+}

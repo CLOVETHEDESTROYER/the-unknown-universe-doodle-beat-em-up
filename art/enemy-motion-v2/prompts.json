@@ -1,0 +1,63 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "shipped-roster.jpg",
+  "common": "Production transparent 2D sprite sheet for the existing hand-drawn colored-pencil browser game. Use the attached shipped-roster contact sheet solely as an identity reference. Square canvas, EXACTLY 4 columns and 4 rows, 16 complete separate sprites, equal cells, generous gutters, no grid, no scenery, no text. Same scale and anchor across poses; every full body fits inside its own cell. Rows 1-2: eight distinct chronological locomotion poses with visible alternating limbs and weight shifts, never eight copies of an idle pose. Row 3: four committed attack poses (anticipation, windup, impact, recovery). Row 4: four non-gory defeat poses (recoil, buckle, topple, fully collapsed or dissipated). Preserve thin black sketch outlines, hand-shaded pencil texture, recognizable shape and face. ",
+  "specs": [
+    [
+      "spider",
+      "Target ONLY the moss-green thorny SPIDER at row2 column1. Face LEFT in all poses. Keep eight jointed spider legs, angular bramble shell and hanging fangs. Locomotion: eight-leg scuttle with alternating legs planted. Attack: compress all legs then spring forward with fangs extended and forelegs striking, then land crouched; keep motion compact, no jump trajectory drawings. Death: recoil, legs buckle, curl inward, finally motionless curled legs beneath shell."
+    ],
+    [
+      "ghost",
+      "Target ONLY the red-outline smiling GHOST at row2 column2. Face LEFT in a slight three-quarter side view but preserve the red face, two big oval eyes, wispy triangular hem and thin waving arms. White interior is a pale translucent ghost body, background truly transparent. Locomotion: fluid rising/falling wave shapes and arms alternating, actual changing outlines. Attack: inhale/rear back, narrow forward, dive claws first to LEFT, recoil. Death: startled recoil, sagging face, unravel into wisps, small fading wisp remains; same palette."
+    ],
+    [
+      "terror",
+      "Target ONLY the spiky moss-green MOONLIGHT TERROR at row2 column3. Face LEFT throughout. Preserve big pointed thorny fur, angry eyes, thick small legs, long arms and toothy grin. Walk eight alternating heavy footfall poses, attack: lean backward, open mouth and draw LONG PINK TONGUE into a coil, extend tongue sharply LEFT, retract tongue. Death: reel backward, knees buckle, tip sideways, lie flat with eyes shut. No blood."
+    ],
+    [
+      "cosmic",
+      "Target ONLY the black-purple COSMIC SENTRY with orange single eye at row2 column4. Face LEFT throughout. Preserve its distinctive curved dark silhouette, spiky back, long claws, eye, and lavender pencil edge highlights. Walk eight low stalking stride poses; attack: brace feet, gather violet charge between hands, thrust claws LEFT and expel a small violet pulse, recoil. Death: recoil, crouch/stagger, crumble sideways with dark dust, collapsed inert body. No large clouds hiding the silhouette."
+    ],
+    [
+      "alien",
+      "Target ONLY the mint-green skinny antenna ALIEN at row1 column2. Face LEFT throughout. Preserve two antennae with yellow tips, large oval dark eyes, slim mint body and long skinny arms and legs. Walk eight long alternating stride poses with shoulder counter-motion. Attack: hunch and inflate throat with orange glow, recoil/aim mouth LEFT, spit small orange embers LEFT, follow through. Death: recoil, knees fold, fall to the side, lie still with antennae drooping. Retain original green body."
+    ],
+    [
+      "dasher",
+      "Target ONLY the yellow-orange triangular-headed DASHER at row1 column3. Face LEFT throughout (mirror original right-facing reference). Preserve triangular pointed head, jagged red/orange back quills, angry eye, thin limbs, energetic crayon texture. Eight fast sprint poses with feet truly alternating; attack: low crouched windup, coil legs, straight horizontal shoulder-first rush LEFT, skid recovery. Death: startled recoil, trip, tumble, lie still with eye closed. Keep complete body inside every cell."
+    ],
+    [
+      "giant",
+      "Target ONLY the huge purple locker-shaped GIANT at row1 column4. Face LEFT in slight three-quarter profile throughout. Preserve rectangular jagged locker body, two yellow eyes, vent panel, heavy block hands and short legs. Eight heavy walk poses with clear alternating feet and torso weight changes. Attack: crouch, raise BOTH fists high, slam both fists DOWN into ground with a small orange impact, settle. Death: cracks/recoil with no gore, knees buckle, body tips, giant falls on its side inert."
+    ],
+    [
+      "grunt-2",
+      "Target ONLY the ONE-EYED RED GRUNT at row1 column1. Preserve its exact horned silhouette, big eye, toothy grin, ragged hoodie, claws and small boots; adapt only its outfit and surface palette to this setting: Grave Thrall: pale desaturated gray-green fur and a small torn burial shawl on the same red grunt silhouette. Face LEFT. Eight walking/running poses with alternating foot contact and passing poses. Four claw slash attack poses, windup and extended slash LEFT. Four collapse death poses ending lying sideways eye shut, no gore. Each pose must clearly be the same existing grunt in themed clothing, not a different monster."
+    ],
+    [
+      "grunt-3",
+      "Target ONLY the ONE-EYED RED GRUNT at row1 column1. Preserve its exact horned silhouette, big eye, toothy grin, ragged hoodie, claws and small boots; adapt only its outfit and surface palette to this setting: Ash Grunt: charcoal-brown fur, glowing orange ember cracks across its ragged hoodie and singed tips. Face LEFT. Eight walking/running poses with alternating foot contact and passing poses. Four claw slash attack poses, windup and extended slash LEFT. Four collapse death poses ending lying sideways eye shut, no gore. Each pose must clearly be the same existing grunt in themed clothing, not a different monster."
+    ],
+    [
+      "grunt-4",
+      "Target ONLY the ONE-EYED RED GRUNT at row1 column1. Preserve its exact horned silhouette, big eye, toothy grin, ragged hoodie, claws and small boots; adapt only its outfit and surface palette to this setting: Briar Grunt: moss-olive fur, small leaves and vines woven into its ragged hoodie and thorny horn tips. Face LEFT. Eight walking/running poses with alternating foot contact and passing poses. Four claw slash attack poses, windup and extended slash LEFT. Four collapse death poses ending lying sideways eye shut, no gore. Each pose must clearly be the same existing grunt in themed clothing, not a different monster."
+    ],
+    [
+      "grunt-6",
+      "Target ONLY the ONE-EYED RED GRUNT at row1 column1. Preserve its exact horned silhouette, big eye, toothy grin, ragged hoodie, claws and small boots; adapt only its outfit and surface palette to this setting: Void Grunt: dark plum fur, violet glowing seams in hoodie, small cosmic speckles and a luminous cream-orange eye. Face LEFT. Eight walking/running poses with alternating foot contact and passing poses. Four claw slash attack poses, windup and extended slash LEFT. Four collapse death poses ending lying sideways eye shut, no gore. Each pose must clearly be the same existing grunt in themed clothing, not a different monster."
+    ],
+    [
+      "scout",
+      "Target ONLY the round purple bat-wing SCOUT at row3 column1. Face LEFT in every pose, horizontal side view; preserve exact ship proportions and pencil metal shading. Here rows1-2 mean eight flight/cruise frames: subtle hull bank plus clearly varying engine flames/wing articulation, NO feet or humanoid parts. Row3 four attack frames: eye charge, eye flash, short red plasma shot left, eye cool down. Row4 destruction: impact cracks, damaged hull starts breaking, recognisable hull splits into a few major pieces with small fire, scattered inert metal pieces and dying ember. No enormous explosions obscuring craft, no backgrounds. Keep center of mass fixed and all pieces inside cell."
+    ],
+    [
+      "interceptor",
+      "Target ONLY the red pointed INTERCEPTOR at row3 column2. Face LEFT in every pose, horizontal side view; preserve exact ship proportions and pencil metal shading. Here rows1-2 mean eight flight/cruise frames: subtle hull bank plus clearly varying engine flames/wing articulation, NO feet or humanoid parts. Row3 four attack frames: engines gather charge, fins fold, powerful leftward afterburner burst, braking fins open. Row4 destruction: impact cracks, damaged hull starts breaking, recognisable hull splits into a few major pieces with small fire, scattered inert metal pieces and dying ember. No enormous explosions obscuring craft, no backgrounds. Keep center of mass fixed and all pieces inside cell."
+    ],
+    [
+      "gunship",
+      "Target ONLY the heavy steel/gray GUNSHIP with nose cannon at row3 column3. Face LEFT in every pose, horizontal side view; preserve exact ship proportions and pencil metal shading. Here rows1-2 mean eight flight/cruise frames: subtle hull bank plus clearly varying engine flames/wing articulation, NO feet or humanoid parts. Row3 four attack frames: nose cannon powers up, barrel recoils, muzzle flash left, barrel returns. Row4 destruction: impact cracks, damaged hull starts breaking, recognisable hull splits into a few major pieces with small fire, scattered inert metal pieces and dying ember. No enormous explosions obscuring craft, no backgrounds. Keep center of mass fixed and all pieces inside cell."
+    ]
+  ]
+}

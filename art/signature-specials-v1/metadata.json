@@ -1,0 +1,38 @@
+{
+  "xgod": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/xgod/drawn-v1/idle.png"
+  },
+  "barrett": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/playable-v3/barrett-idle.png"
+  },
+  "nico": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/equipment-v4/nico-hands-idle.png"
+  },
+  "ezra": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/playable-v3/ezra-idle.png"
+  },
+  "teleportation_c": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/playable-v3/teleportation_c-idle.png"
+  },
+  "zgod": {
+    "frames": 6,
+    "frameSize": 256,
+    "baseline": 220,
+    "seed": "characters/z-god-v1/extras-idle.png"
+  }
+}

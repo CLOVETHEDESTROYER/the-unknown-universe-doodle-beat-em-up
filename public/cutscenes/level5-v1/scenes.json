@@ -1,0 +1,46 @@
+[
+  {
+    "id": "l5-01-the-corridor-clears",
+    "title": "The corridor clears",
+    "speaker": "X GOD",
+    "caption": [
+      "The Pursuer fell behind us.",
+      "Dread Planet filled the sky."
+    ],
+    "alt": "The familiar Starbreak ship leaves the defeated Pursuer's debris behind and approaches Dread Planet.",
+    "image": "/cutscenes/level5-v1/l5-01-the-corridor-clears.png"
+  },
+  {
+    "id": "l5-02-what-paid-for-it",
+    "title": "What paid for it",
+    "speaker": "KILLER KAI · RADIO",
+    "caption": [
+      "Earthior's gold. Their towers.",
+      "They built this place from stolen worlds."
+    ],
+    "alt": "X and Z-God compare an Earthior cargo manifest with the gold-lit city below Dread Planet.",
+    "image": "/cutscenes/level5-v1/l5-02-what-paid-for-it.png"
+  },
+  {
+    "id": "l5-03-the-next-impact",
+    "title": "The next impact",
+    "speaker": "NICO · RADIO",
+    "caption": [
+      "He's arming another meteor.",
+      "The target is still Witchwood."
+    ],
+    "alt": "A warning in the cockpit shows a meteor weapon arming for Witchwood, the refuge-world target found earlier.",
+    "image": "/cutscenes/level5-v1/l5-03-the-next-impact.png"
+  },
+  {
+    "id": "l5-04-at-the-source",
+    "title": "At the source",
+    "speaker": "X GOD",
+    "caption": [
+      "Then we stop it at the source.",
+      "No more worlds. No more meteors."
+    ],
+    "alt": "After landing, X and Z-God face the distant launch structure on Dread Planet.",
+    "image": "/cutscenes/level5-v1/l5-04-at-the-source.png"
+  }
+]

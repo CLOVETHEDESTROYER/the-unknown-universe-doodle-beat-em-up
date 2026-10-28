@@ -1,0 +1,70 @@
+{
+  "mode": "built-in ImageGen",
+  "useCase": "illustration-story",
+  "scenes": [
+    {
+      "id": "l2-01-the-registry",
+      "title": "The sealed registry",
+      "speaker": "X GOD",
+      "caption": [
+        "The Daughter's seal was broken.",
+        "Inside: a ledger of harvested worlds."
+      ],
+      "alt": "X and his schoolmate Barrett uncover a chained registry inside the moonlit mausoleum.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-03-schoolmate-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-04-graveyard-road-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/graveyard-moonlit-panorama.png"
+      ],
+      "prompt": "Use case: illustration-story. Generate ONE landscape 16:9 static RPG story illustration, ideally 1672x941, continuing The Unknown Universe. Match reference images' bold imperfect BLACK INK outlines, saturated colored-pencil/crayon texture, youthful cartoon proportions and rich atmospheric scenery. Full canvas painted, no split panels, UI, captions, logos, watermarks or border. Put faces, hands and plot objects ABOVE the bottom 24% reserved for separate captions. X GOD is a young schoolboy: spiky lime-yellow hair, two BLACK X shaped eyes, pale skin, WHITE yellow smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Barrett is his surviving SCHOOLMATE: youthful brown spiky hair, orange eyes, torn burgundy hoodie with drawstrings, enormous brown furry forearms, cream claws, dark torn trousers, red sneakers. Similar young heights, Barrett a little broader, not adult native mentor. No new powers, no parents, no named graves, no dead classmates, no villain revelation, no extra characters. They have put weapons aside to investigate, no sword or guns required in these shots. Keep their clothes and faces faithful. Image 1 locks both characters, Image 2 supplies moonlit Graveyard mood, Image 3 is supporting cemetery architecture only. Inside a small old stone MAUSOLEUM at the end of the Graveyard: a heavy black ledger lies opening on a waist-high stone lectern, a broken black-and-gold circular shipping seal and loose chain on the stone beside it. Cool violet moonlight enters a pointed arch, small warm lantern lights their faces. X stands left carefully opening the cover with one hand; Barrett stands right, watchful and relieved, safely curling his claws away from the fragile pages. The open ledger and their faces occupy the upper central composition. Pages contain small diagrams of planets and rows of abstract tally marks, no readable writing. No defeated boss body, resurrection, ghosts or speech from the Daughter. A quiet discovery after battle, not horror gore."
+    },
+    {
+      "id": "l2-02-earthior",
+      "title": "Earthior on the page",
+      "speaker": "X GOD",
+      "caption": [
+        "Earthior. Marked: extracted.",
+        "Ours wasn't the only world they'd taken."
+      ],
+      "alt": "X points to Earthior's entry among several worlds recorded in a ledger of resource extraction.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-03-schoolmate-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-04-graveyard-road-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/graveyard-moonlit-panorama.png"
+      ],
+      "prompt": "Use case: illustration-story. Generate ONE landscape 16:9 static RPG story illustration, ideally 1672x941, continuing The Unknown Universe. Match reference images' bold imperfect BLACK INK outlines, saturated colored-pencil/crayon texture, youthful cartoon proportions and rich atmospheric scenery. Full canvas painted, no split panels, UI, captions, logos, watermarks or border. Put faces, hands and plot objects ABOVE the bottom 24% reserved for separate captions. X GOD is a young schoolboy: spiky lime-yellow hair, two BLACK X shaped eyes, pale skin, WHITE yellow smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Barrett is his surviving SCHOOLMATE: youthful brown spiky hair, orange eyes, torn burgundy hoodie with drawstrings, enormous brown furry forearms, cream claws, dark torn trousers, red sneakers. Similar young heights, Barrett a little broader, not adult native mentor. No new powers, no parents, no named graves, no dead classmates, no villain revelation, no extra characters. They have put weapons aside to investigate, no sword or guns required in these shots. Keep their clothes and faces faithful. Image 1 locks X and Barrett drawing style; Images 2 and 3 supply the moonlit cemetery setting. One close over-the-shoulder view: X's lime hair and pale cheek at left, his orange-clad knee partly visible, a large aged LEDGER tilted toward the viewer at center, resting on a stone lectern under blue-violet moonlight and a small amber lamp. The OPEN PAGE shows four small different planet diagrams and neat horizontal inventory tally marks. The most prominent planet entry has EXACT readable hand-lettered word 'EARTHIOR' (spell E A R T H I O R) above it, a small completed square mark and a picture of stacked gold ingots beside it. X's index finger rests under that entry; show his recognition and sober expression. Other entries use abstract ink strokes, NO other readable text, no people's names, portraits or locations. Keep the EARTHIOR word and planet diagram high in the center, fully above bottom quarter. This is an extraction registry of planets and resources, NOT a list of confirmed individual casualties, no skull/death icons. No family clues. The known fractured gold ring shipping emblem can be on the ledger clasp, not a new rune."
+    },
+    {
+      "id": "l2-03-a-familiar-voice",
+      "title": "A familiar voice",
+      "speaker": "NICO · RADIO",
+      "caption": [
+        "X? It's Nico! That tag's from the Furnace.",
+        "Their launch records should still be there."
+      ],
+      "alt": "X recognizes his schoolmate Nico's voice on Barrett's radio beside a recovered Furnace shipment tag.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-03-schoolmate-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-04-graveyard-road-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/graveyard-moonlit-panorama.png"
+      ],
+      "prompt": "Use case: illustration-story. Generate ONE landscape 16:9 static RPG story illustration, ideally 1672x941, continuing The Unknown Universe. Match reference images' bold imperfect BLACK INK outlines, saturated colored-pencil/crayon texture, youthful cartoon proportions and rich atmospheric scenery. Full canvas painted, no split panels, UI, captions, logos, watermarks or border. Put faces, hands and plot objects ABOVE the bottom 24% reserved for separate captions. X GOD is a young schoolboy: spiky lime-yellow hair, two BLACK X shaped eyes, pale skin, WHITE yellow smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Barrett is his surviving SCHOOLMATE: youthful brown spiky hair, orange eyes, torn burgundy hoodie with drawstrings, enormous brown furry forearms, cream claws, dark torn trousers, red sneakers. Similar young heights, Barrett a little broader, not adult native mentor. No new powers, no parents, no named graves, no dead classmates, no villain revelation, no extra characters. They have put weapons aside to investigate, no sword or guns required in these shots. Keep their clothes and faces faithful. Image 1 is exact X and Barrett identities; Images 2 and 3 are moonlit setting. Medium intimate shot INSIDE the same small mausoleum: Barrett holds a simple worn handheld radio at chest height and shares it toward X, who leans in with visible relieved recognition, a small hopeful smile even with his X eyes. On the stone lectern in front lies the open dark ledger, a thick shipment tag bearing a simple orange furnace/chimney pictogram, and a folded scorched school worksheet with faint math scribbles. No text on radio or tag; no floating voice portrait or speech balloon. Warm lantern and cool violet moonlight, archway to misty cemetery behind. Their hand/radio interaction and tag should be clearly visible above bottom24%. Nico is a surviving schoolmate whose voice is heard through this radio, NOT visibly present in this scene. Do NOT depict Doghost or other companions because this image must also work when optional helper pickups are missed. No magical holograms, new weapons or equipment rewards."
+    },
+    {
+      "id": "l2-04-toward-the-furnace",
+      "title": "Toward the Furnace",
+      "speaker": "X GOD",
+      "caption": [
+        "They didn't just take my world.",
+        "The Furnace might tell us who did."
+      ],
+      "alt": "X secures the shipment clue in his folded worksheet as Barrett watches the distant Furnace beyond the Graveyard.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-03-schoolmate-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level1-v1/l1-04-graveyard-road-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/graveyard-moonlit-panorama.png"
+      ],
+      "prompt": "Use case: illustration-story. Generate ONE landscape 16:9 static RPG story illustration, ideally 1672x941, continuing The Unknown Universe. Match reference images' bold imperfect BLACK INK outlines, saturated colored-pencil/crayon texture, youthful cartoon proportions and rich atmospheric scenery. Full canvas painted, no split panels, UI, captions, logos, watermarks or border. Put faces, hands and plot objects ABOVE the bottom 24% reserved for separate captions. X GOD is a young schoolboy: spiky lime-yellow hair, two BLACK X shaped eyes, pale skin, WHITE yellow smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Barrett is his surviving SCHOOLMATE: youthful brown spiky hair, orange eyes, torn burgundy hoodie with drawstrings, enormous brown furry forearms, cream claws, dark torn trousers, red sneakers. Similar young heights, Barrett a little broader, not adult native mentor. No new powers, no parents, no named graves, no dead classmates, no villain revelation, no extra characters. They have put weapons aside to investigate, no sword or guns required in these shots. Keep their clothes and faces faithful. Image 1 locks X and Barrett character designs; Image 2 establishes the prior departure composition and Image 3 supplies graveyard architecture. ONE wide departure shot at the outer moonlit Graveyard gate: X God foreground center-left carefully tucks the little shipment tag into his folded scorched worksheet, the same schoolboy's paper with faint math marks, and looks forward with determined concern rather than a cruel grin. Barrett stands just behind at his side, steady friend with radio at belt, looking toward their next destination. Beyond the cemetery hills, far to the right, an enormous FURNACE district glows ORANGE through the blue night, pipes and chimneys silhouetted, no planet-sized meteor launch yet. Weathered stone gate, unnamed gravestones, green ground mist, violet sky and tiny gold lights link the journey to previous imagery. Faces, worksheet hands and orange industrial destination all above bottom quarter. No revealed mastermind, parents, family ghosts, rescue location or extra crew; no readable writing or caption box. Quiet resolve: they now know other worlds were targeted too."
+    }
+  ]
+}

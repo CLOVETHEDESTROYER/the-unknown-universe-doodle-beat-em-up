@@ -1,0 +1,74 @@
+{
+  "mode": "built-in ImageGen",
+  "useCase": "illustration-story",
+  "scenes": [
+    {
+      "id": "l5-01-the-corridor-clears",
+      "title": "The corridor clears",
+      "speaker": "X GOD",
+      "caption": [
+        "The Pursuer fell behind us.",
+        "Dread Planet filled the sky."
+      ],
+      "alt": "The familiar Starbreak ship leaves the defeated Pursuer's debris behind and approaches Dread Planet.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/boss-deaths-v1/pursuer-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/void-regent-pencil-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. NO visible people in this exterior space shot; Image1 is the drawing style only. Image2 is EXACT PLAYER STARBREAK SHIP: compact cream/white hull, orange nose/trim, lime wings and tail, blue bubble canopy, gray rear engine. Image3 supplies recognizable BLACK/SILVER/BURGUNDY wreck fragments of the defeated Pursuer, red diamond core now dark and broken. Image4 supplies Dread Planet's violet basalt landscape, thin ruined arches and red moons. ONE wide dramatic exterior view: the Starbreak ship flies toward a huge dark violet planet at right with thin gold city-light veins on its night side, clear blue atmosphere edge. Behind it at far left drift a FEW small inert angular black/burgundy debris pieces, no active Pursuer, no exploding duplicate ships or fresh fight. Orange rear thrust, rich indigo stars, distant crimson moon. The victory/wreck has ALREADY happened; this is a quiet cleared approach, not new gameplay combat. Important craft silhouette and planet horizon in upper72%, no text, cockpit faces not necessary."
+    },
+    {
+      "id": "l5-02-what-paid-for-it",
+      "title": "What paid for it",
+      "speaker": "KILLER KAI · RADIO",
+      "caption": [
+        "Earthior's gold. Their towers.",
+        "They built this place from stolen worlds."
+      ],
+      "alt": "X and Z-God compare an Earthior cargo manifest with the gold-lit city below Dread Planet.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/void-regent-pencil-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 exact Z-GOD: younger brown-haired girl with large pink bow, pink yellow-star sweater, pleated pink skirt, violet leggings and pink sneakers. Image3 is the small cream/orange/lime Starbreak ship with BLUE bubble canopy and TWO seats; Image4 violet basalt planet landscape. Inside that compact TWO-SEAT cockpit, X and Z sit safely side by side; no seven-person transport cabin, no extra crew. X compares a recovered cargo slip with a small cyan projection supplied over the radio by Kai (Kai is NOT physically visible). The slip has exactly ONE legible word 'EARTHIOR', a little gold-ingot pictogram, a checked shipment and the broken gold-circle seal; no other words. Through the blue canopy the planet's severe violet terrain and glowing GOLD resource towers fill a distant horizon. A light projection aligns simple gold-ingot icons from the manifest toward those structures, making clear the stolen wealth's destination. Z calmly studies the evidence, fully healthy and invincible; no passenger helplessness or distress. Keep Earthior word, slip, faces and gold structures above bottom28%. Controls have orange-green trim and hand-drawn rivets matching exterior, not a new spaceship."
+    },
+    {
+      "id": "l5-03-the-next-impact",
+      "title": "The next impact",
+      "speaker": "NICO · RADIO",
+      "caption": [
+        "He's arming another meteor.",
+        "The target is still Witchwood."
+      ],
+      "alt": "A warning in the cockpit shows a meteor weapon arming for Witchwood, the refuge-world target found earlier.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/witchwood-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 exact healthy younger Z-God design, Image3 cream/orange/lime craft controls, Image4 exact PURPLE WITCHWOOD observatory/forest motif. Medium close view over X's shoulder in compact cockpit: X's pale hand and lime hair at left, Z's bow and calm determined profile at right. Central RED/AMBER warning display shows an ominous BLACK meteor with BROKEN GOLD RING held in a mechanical launch cradle, a charging red bar, and a target inset of the SAME purple Witchwood forest/observatory with a red bullseye. Display is pictograms ONLY, no legible UI labels, numbers, dialogue bubbles or text. Nico is on RADIO offscreen, no floating portrait of a new person. This is a warning of the NEXT attack on the same refuge world from earlier chapters, NOT Earthior restored or a new third subplot. Their faces and the complete warning display are ABOVE bottom28%. Rich hand-inked colored-pencil texture, urgency and resolve without a new villain reveal, family clues or damaged Z-God. No split-panel composition; the warning is a physical screen inside ONE illustration."
+    },
+    {
+      "id": "l5-04-at-the-source",
+      "title": "At the source",
+      "speaker": "X GOD",
+      "caption": [
+        "Then we stop it at the source.",
+        "No more worlds. No more meteors."
+      ],
+      "alt": "After landing, X and Z-God face the distant launch structure on Dread Planet.",
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/signature-specials-v1/zgod-seed.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/flight/starbreak-ship-v1.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/platformer/void-regent-pencil-panorama-generated.png"
+      ],
+      "prompt": "Use case: illustration-story. ONE finished static RPG story screen for The Unknown Universe, same bold imperfect BLACK INK outlines and richly saturated colored-pencil/crayon texture as approved story art. Landscape 16:9 ideally1672x941. Full painted scenery, no panels, captions, UI, borders, watermark or speech balloons. Faces, interacting hands and main story evidence ABOVE the bottom 28%, reserved for an editable caption overlay. Short youthful cartoon schoolmate proportions, not realistic or adult anatomy. Reference1 is style and exact X GOD identity: lime-yellow spiky hair, PALE face, TWO BLACK X eyes, WHITE yellow-smiley shirt, ORANGE cargo trousers, black-white-lime sneakers. Only depict people specified below; do not copy other people from a style reference. Established costumes and powers stay. No parents, family-fate clues, new origin for anyone's powers, gore, corpses or new villain above Void Regent. Weapons have been set aside during investigation, no automatic equipment rewards. Image2 exact little sister Z-God (brown hair, big pink bow, pink yellow-star sweater/skirt, violet leggings, pink-white sneakers). Image3 exact small cream-white/orange/lime Starbreak craft with blue two-seat canopy, now parked behind them. Image4 establishes Dread Planet's purple basalt, spindly broken arches, turquoise crystals and looming RED moon. ONE wide arrival shot after actual flight landing/disembark: X and Z stand side by side on a violet stone landing path, three-quarter back/side angle with enough face to identify them, looking toward a far gold-lit industrial LAUNCH STRUCTURE amid the basalt arches. A black meteor in a distant mechanical cradle under a thin red charging light echoes the warning; small enough to be ominous, not ready impact. X grips his folded scorched worksheet and cargo slip as evidence, no compulsory sword or collected ability. Z stands strong, relaxed and determined beside him, not clinging helplessly. Ship parked safely upperleftbackground; route toward the real Level6 terrain center/right. Faces, evidence hands and distant objective upper72%. No other visible crew or optional companions, parents, new villains, text or celebratory final-victory pose: the real final fight is still ahead."
+    }
+  ]
+}

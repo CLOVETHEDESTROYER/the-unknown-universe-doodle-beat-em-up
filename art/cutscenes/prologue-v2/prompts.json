@@ -1,0 +1,32 @@
+{
+  "mode": "built-in image_gen",
+  "purpose": "fill opening continuity gaps",
+  "specs": [
+    {
+      "id": "03-through-the-rift",
+      "title": "Through the tear",
+      "caption": [
+        "Even as Earthior broke apart,",
+        "I was pulled into the tear."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/01-earthior-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/03-alley-fire-source.png"
+      ],
+      "prompt": "Use case: illustration-story. Make ONE new static story illustration as a continuation of the supplied approved scenes for The Unknown Universe. Use the same bold imperfect black ink contours, textured colored-pencil/crayon shading, saturated but readable warm/cool palette, and short expressive cartoon anatomy. This is an illustrated classic RPG / arcade ending screen, not pixel art, not animation frames, not a comic sheet or trading card. Wide landscape 16:9, ideally matching the approved 1672x941 framing. Keep the boy's face and hands above the bottom 24%, which gets an external caption overlay. Paint normal scenery across the entire canvas; NO text, caption boxes, borders, logos, UI, watermarks or multiple panels. Image 1 is the approved PRE-MUTATION boy identity reference; image 2 is the same boy and the visual reference for the destination alley. Preserve exactly his CHESTNUT BROWN spiky hair, simple NORMAL black oval eyes (NOT X eyes), pale face, youthful short body, white short-sleeve shirt with yellow X-eyed smile emblem, ORANGE cargo trousers with large side pockets, and black/white sneakers with lime details. Preserve his black school backpack with lime details from Image 1, and the familiar math worksheet. Do NOT give him green hair, X eyes, fire, ice, lightning, a sword or a gun yet. Scene: the dimensional crossing BETWEEN the meteor impact and waking in the alley. The boy is being pulled/falling sideways through a huge jagged violet-blue rip in space. He reaches forward in fear and surprise with one open hand while clutching the FOLDED worksheet in the other. His full silhouette is clear in the center-left / middle of the wide scene, expressive readable face, hands entirely visible. Behind and above him a warm turquoise/yellow-lit fragment of the Earthior school district is receding through the opening; ahead of him a distant glimpse of the strange purple-brick alley appears through a second bend in the same rift. Floating harmless paper scraps, a few fragments of brick and curving purple light suggest motion without obscuring his body. A single continuous transition with clear depth, no split panels. He is physically intact, no wounds, burns, flames or gore. No other people or family members, no ghosts, no grave markers; their fates are UNKNOWN. No dragon appears yet. Preserve the same pencil textures and boy design as the approved images. Mood: frightening separation and disorientation, not heroic flying or triumph."
+    },
+    {
+      "id": "04-alone-in-the-alley",
+      "title": "Alone in the alley",
+      "caption": [
+        "Mom? Dad? Where's my sister?",
+        "No one answered."
+      ],
+      "references": [
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/01-earthior-source.png",
+        "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/art/cutscenes/prologue-v1/03-alley-fire-source.png"
+      ],
+      "prompt": "Use case: illustration-story. Make ONE new static story illustration as a continuation of the supplied approved scenes for The Unknown Universe. Use the same bold imperfect black ink contours, textured colored-pencil/crayon shading, saturated but readable warm/cool palette, and short expressive cartoon anatomy. This is an illustrated classic RPG / arcade ending screen, not pixel art, not animation frames, not a comic sheet or trading card. Wide landscape 16:9, ideally matching the approved 1672x941 framing. Keep the boy's face and hands above the bottom 24%, which gets an external caption overlay. Paint normal scenery across the entire canvas; NO text, caption boxes, borders, logos, UI, watermarks or multiple panels. Image 1 is the approved PRE-MUTATION boy identity and outfit reference; Image 2 is the exact ALLEY SETTING continuity reference. Depict the quiet moment BEFORE the Dragon attack: the same ordinary boy with CHESTNUT BROWN spiky hair, simple NORMAL black oval eyes (NOT X eyes), pale face, youthful short proportions, WHITE short-sleeved shirt with yellow X-eyed smile emblem, ORANGE cargo trousers with side pockets, and black/white/lime sneakers. He has NO powers or weapons yet. Same purple-brick alley, bent drainpipe on the left wall, high broken school window, crooked rooftops and clock tower deeper in the distance, subtle violet dimensional glow in the strange night sky. A wider, quieter composition: the boy sits up / kneels on the alley paving near center-left, looks upward and calls into the unfamiliar space with one hand slightly raised. His face expresses loneliness, worry and confusion rather than comic surprise. His familiar black-and-lime school backpack lies beside him on the ground, and he is retrieving the folded math worksheet, which is still intact before the fire. Preserve the recognizable alley architecture of Image 2 but remove ALL dragon, fire, embers and attack effects: this is before they arrive. Leave generous empty space toward the far end of the alley to emphasize that nobody answers. Do not add any human figures, monsters, shadow creatures, parents, bodies, graves, ghosts or signs confirming anyone's fate. Same artwork medium and character scale as approved scenes. The mood is an emotionally quiet pause between the enormous impact and the coming attack; clear readable character, not an almost-black frame."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "tool": "built-in ImageGen",
+  "images": [
+    {
+      "id": "l6-01-the-crown-falls",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-3cc02786-52b1-4ab0-97b6-e2a9b24709a0.png"
+    },
+    {
+      "id": "l6-02-earthior-wasnt-yours",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-72677456-6440-4133-aa7d-f0fb8232d388.png"
+    },
+    {
+      "id": "l6-03-friends-answer",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-7b902907-b8b5-4d81-a114-caf976d6659f.png"
+    },
+    {
+      "id": "l6-04-ive-got-it",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-78dd76d8-65a6-471b-b699-28e61eec225e.png"
+    },
+    {
+      "id": "l6-05-no-more-meteors",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-4f20e047-98f5-48ef-8902-2bbf359e8b9b.png"
+    },
+    {
+      "id": "l6-06-what-remains",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1744c-f484-75e0-8a41-fd4ea3da3b1f\\exec-ca3489af-ce3a-4b25-b5e4-619c1d51eef4.png"
+    }
+  ]
+}

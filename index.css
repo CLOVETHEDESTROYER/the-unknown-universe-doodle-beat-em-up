@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html,
 body,
@@ -7,7 +9,7 @@ body,
   min-height: 100%;
   margin: 0;
   overscroll-behavior: none;
-  touch-action: none;
+  touch-action: auto;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -17,12 +19,148 @@ body {
   background: #0f172a;
 }
 
+.game-app-shell[data-mobile] {
+  height: 100vh;
+  height: var(--app-height, 100dvh);
+  min-height: 0;
+}
+
+/* Portrait tablets keep dedicated space for the HUD and touch controls. */
+.game-app-shell[data-mobile="true"] .unknown-universe-game {
+  position: absolute;
+  inset: 56px 0 104px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+}
+
+/* Landscape is height-limited: overlay controls instead of shrinking the game. */
+@media (orientation: landscape) {
+  .game-app-shell[data-mobile="true"][data-phase="game"] { padding: 0; }
+  .game-app-shell[data-mobile="true"][data-phase="game"] .game-hud {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+  .game-app-shell[data-mobile="true"] .unknown-universe-game {
+    inset: 0;
+  }
+}
+
+.game-app-shell[data-mobile="true"] button {
+  -webkit-touch-callout: none;
+}
+
+.game-app-shell[data-mobile="true"] .touch-control,
+.game-app-shell[data-mobile="true"] .touch-dpad,
+.game-app-shell[data-mobile="true"] .phone-portrait-rotate {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 * {
   box-sizing: border-box;
 }
 
 canvas {
   display: block;
+  touch-action: none;
+}
+
+.character-select .character-scroll-hint { display: none; }
+.character-select .character-select-copy { flex: 1 1 0; min-width: 0; }
+.character-select .roster-code-pad {
+  position: relative; display: grid; flex: 0 0 auto;
+  grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px);
+  gap: 4px; touch-action: manipulation;
+}
+.character-select .roster-code-direction {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  padding: 0; border: 2px solid #c4b5fd; border-radius: 12px;
+  background: #312e81; color: #fff; font-size: 26px; line-height: 1;
+  box-shadow: 0 3px 0 #141031; user-select: none; -webkit-user-select: none;
+  touch-action: manipulation; -webkit-touch-callout: none;
+}
+.character-select .roster-code-direction:hover { background: #4c1d95; }
+.character-select .roster-code-direction:active { background: #7c3aed; transform: translateY(2px); box-shadow: none; }
+.character-select .roster-code-direction:focus-visible { outline: 3px solid #fcd34d; outline-offset: 2px; }
+.roster-code-up { grid-area: 1 / 2; }
+.roster-code-left { grid-area: 2 / 1; }
+.roster-code-down { grid-area: 2 / 2; }
+.roster-code-right { grid-area: 2 / 3; }
+.roster-code-label { align-self: center; grid-area: 1 / 1; color: #ddd6fe; font-size: 13px; text-align: center; }
+.roster-code-success {
+  display: flex; flex: 0 0 140px; min-height: 92px; flex-direction: column; justify-content: center;
+  border: 2px solid #fcd34d; border-radius: 12px; padding: 4px;
+  background: #422006; color: #fef3c7; text-align: center; font-size: 15px; line-height: 1.15;
+}
+.roster-code-success > span:first-child { color: #fcd34d; font-size: 24px; }
+.level-intro .level-intro-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+.level-intro .level-intro-art { flex: 1 1 0; min-height: 0; min-width: 0; }
+.level-intro .level-intro-art img { object-fit: contain; }
+.level-intro .level-intro-status { flex: 0 0 auto; }
+@media (max-height: 520px) {
+  .level-intro .level-intro-status > div { font-size: 18px; line-height: 24px; padding: 4px 18px; }
+}
+.character-select .character-roster:focus-visible { outline: 3px solid #fcd34d; outline-offset: 3px; }
+.character-select .character-card:focus-visible { outline: 4px solid #fcd34d; outline-offset: -4px; }
+@media (max-width: 767px), (max-height: 600px) {
+  .game-app-shell .character-select {
+    overflow: hidden;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .character-select .character-select-content {
+    height: 100%; min-height: 0; padding: 0; justify-content: flex-start;
+  }
+  .character-select .character-select-header { flex: 0 0 auto; flex-wrap: nowrap; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .character-select .character-select-header h1 { font-size: 30px; line-height: 1.05; }
+  .character-select .character-select-description { font-size: 15px; line-height: 1.15; margin-top: 3px; }
+  .character-select .character-select-header > button { flex-shrink: 0; min-height: 44px; font-size: 18px; padding: 5px 16px; }
+  .character-select .character-roster {
+    display: flex; flex: 1 1 0; min-height: 0; gap: 14px;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory; scroll-padding-inline: 4px;
+    overscroll-behavior-x: contain; touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 6px 12px 4px;
+    scrollbar-width: thin; scrollbar-color: #c4b5fd #1e293b;
+  }
+  .character-select .character-card {
+    flex: 0 0 min(78vw, 360px); height: 100%; min-width: 0;
+    display: grid; grid-template-columns: 44% 56%;
+    scroll-snap-align: start; scroll-snap-stop: normal;
+    box-shadow: 4px 4px 0 #0007; transform: none;
+  }
+  .character-select .character-card-art { aspect-ratio: auto; height: 100%; min-height: 0; background: #e2e8f0; }
+  .character-select .character-card-art img { object-fit: contain; }
+  .character-select .character-card-details { border-top: 0; border-left: 3px solid #0f172a; padding: 12px; display: flex; flex-direction: column; justify-content: center; }
+  .character-select .character-card-details p { font-size: 16px; line-height: 1.15; }
+  .character-select .character-card-details p:first-child { font-size: 24px; }
+  .character-select .character-card-details p:last-child { margin-top: 10px; font-size: 18px; }
+  .character-select .character-card-art > div { align-items: flex-end; padding: 8px; background: #02061722; }
+  .character-select .character-card-art > div p { font-size: 14px; padding: 4px 8px; }
+  .character-select .character-scroll-hint { display: block; flex: 0 0 auto; margin: 6px 0 0; color: #ddd6fe; text-align: center; font-size: 15px; line-height: 20px; }
+}
+@media (max-width: 767px) and (orientation: portrait) {
+  .character-select .character-select-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .character-select .character-select-copy { grid-area: 1 / 1; }
+  .character-select .character-select-header > button { grid-area: 1 / 2; }
+  .character-select .roster-code-pad, .character-select .roster-code-success { grid-area: 2 / 1 / 3 / 3; justify-self: center; width: 140px; }
+  .character-select .character-card { flex-basis: min(76vw, 300px); display: flex; flex-direction: column; }
+  .character-select .character-card-art { flex: 1 1 0; }
+  .character-select .character-card-details { flex: 0 0 auto; border-left: 0; border-top: 3px solid #0f172a; }
+  .character-select .character-select-header h1 { font-size: 28px; }
+}
+@media (max-height: 350px) and (orientation: landscape) {
+  .character-select .character-select-header h1 { font-size: 26px; }
+  .character-select .character-select-description { font-size: 14px; }
+  .character-select .character-card-details { padding: 8px; }
+  .character-select .character-card-details p { font-size: 14px; }
+  .character-select .character-card-details p:first-child { font-size: 21px; }
 }
 
 .mobile-safe-area {
@@ -37,63 +175,202 @@ canvas {
   max-height: 100%;
 }
 
+.touch-control {
+  touch-action: none;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .game-app-shell[data-mobile="true"] .game-hud {
+    height: 36px;
+    padding: 2px 8px;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:first-child p:first-child {
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:first-child p:last-child {
+    font-size: 11px;
+    line-height: 12px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(2) > div:first-child {
+    margin-bottom: 2px;
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(2) > div:last-child {
+    height: 8px;
+  }
+
+  .game-app-shell[data-mobile="true"] .game-hud > button {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  .pause-dialog {
+    padding: 0.75rem;
+  }
+
+  .pause-dialog > h2 {
+    margin-bottom: 0.25rem;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .pause-dialog .pause-equipment-hint {
+    display: none;
+  }
+
+  .pause-dialog > section {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+  }
+  .pause-dialog > p:not(.pause-equipment-hint) {
+    margin-bottom: 4px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+  .pause-dialog section[aria-label="Sound settings"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 10px;
+    margin: 4px 0 8px;
+  }
+  .pause-dialog section[aria-label="Sound settings"] > div { grid-column: 1 / -1; margin-bottom: 0; }
+  .pause-dialog section[aria-label="Sound settings"] > label { margin: 0; font-size: 14px; }
+  .pause-dialog section[aria-label="Sound settings"] > label.my-2 { grid-template-columns: 3rem 1fr 2rem; gap: 4px; }
+  .pause-dialog section[aria-label="Sound settings"] > button { margin: 0; justify-self: end; min-height: 32px; }
+
+}
+
+/* Large thumb targets, with a clear lane through the middle of the playfield. */
 .touch-controls {
-  --touch-pad-size: 11rem;
-  --touch-compact-size: 3rem;
-  --touch-action-size: 4rem;
-  --touch-word-size: 5rem;
-  --touch-attack-width: 9rem;
+  --thumb-size: 64px;
+  --stick-size: 140px;
+  --thumb-gap: 12px;
+  padding: 0 max(16px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
-
+.touch-controls[aria-hidden="true"] { visibility: hidden; }
 .touch-dpad {
-  width: var(--touch-pad-size);
-  height: var(--touch-pad-size);
+  --dpad-key: calc(var(--stick-size) / 3);
+  display: grid;
+  grid-template: repeat(3, var(--dpad-key)) / repeat(3, var(--dpad-key));
+  width: var(--stick-size); height: var(--stick-size);
+  flex: 0 0 var(--stick-size);
+  touch-action: none; -webkit-user-select: none;
+  filter: drop-shadow(0 4px 5px #0008);
 }
-
-.touch-control-button.touch-control-compact {
-  width: var(--touch-compact-size);
-  height: var(--touch-compact-size);
+.touch-dpad-key, .touch-dpad-center {
+  display: grid; place-items: center;
+  border: 2px solid #e9ddff; background: #30234c;
+  color: #fff6db; font-size: 24px; line-height: 1;
+  touch-action: none; user-select: none;
 }
-
-.touch-control-button.touch-control-action {
-  width: var(--touch-action-size);
-  height: var(--touch-action-size);
+.touch-dpad-center { grid-area: 2 / 2; border-color: #55416f; background: #55416f; }
+.touch-dpad-up { grid-area: 1 / 2; border-radius: 10px 10px 0 0; border-bottom: 0; }
+.touch-dpad-left { grid-area: 2 / 1; border-radius: 10px 0 0 10px; border-right: 0; }
+.touch-dpad-right { grid-area: 2 / 3; border-radius: 0 10px 10px 0; border-left: 0; }
+.touch-dpad-down { grid-area: 3 / 2; border-radius: 0 0 10px 10px; border-top: 0; }
+.touch-dpad-key[data-pressed] { background: #8754c7; color: #fff6a9; box-shadow: inset 0 0 0 3px #ffedaa; }
+.touch-controls .touch-actions {
+  display: grid;
+  grid-template-columns: repeat(2, var(--thumb-size));
+  gap: var(--thumb-gap);
+  margin: 0;
+  transform: none;
 }
-
-.touch-control-button.touch-control-word {
-  width: var(--touch-word-size);
+.touch-controls .touch-control {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  min-width: var(--thumb-size);
+  min-height: var(--thumb-size);
+  border-radius: 50%;
+  border-width: 3px;
+  font-size: 28px;
+  padding: 0;
+  background-color: #241b3dd9;
 }
-
-.touch-control-button.touch-control-attack {
-  width: var(--touch-attack-width);
+.touch-actions [data-touch-control="jump"] { grid-column: 1; grid-row: 2; background-color: #075985c9; }
+.touch-actions [data-touch-control="dash"] { grid-column: 2; grid-row: 1; background-color: #6d28d9cc; }
+.touch-actions [data-touch-control="shoot"],
+.touch-actions [data-touch-control="recall"] { grid-column: 1; grid-row: 1; }
+.touch-actions [data-touch-control="attack"] { grid-column: 2; grid-row: 2; background-color: #a4510bc9; }
+.touch-actions [data-touch-control="down"] { grid-column: 2; grid-row: 1; }
+.touch-actions .pointer-events-none { display: none; }
+.game-app-shell[data-mobile="true"] .touch-controls {
+  --thumb-size: 88px;
+  --stick-size: 164px;
 }
-
-@media (orientation: landscape) and (max-height: 500px) {
-  .touch-controls {
-    --touch-pad-size: 8.5rem;
-    --touch-compact-size: 2.75rem;
-    --touch-action-size: 3.5rem;
-    --touch-word-size: 4.25rem;
-    --touch-attack-width: 8rem;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+.touch-control[data-pressed] { transform: scale(.95); border-color: #fff5a8; filter: brightness(1.2); }
+.touch-controls .touch-control[data-touch-control="jump"],
+.touch-controls .touch-control[data-touch-control="attack"],
+.touch-controls .touch-control[data-touch-control="shoot"] { font-size: 21px; }
+.game-app-shell[data-mobile="true"] .touch-control { font-size: 32px; }
+@media (min-width: 768px) and (min-height: 600px) {
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --thumb-size: 104px;
+    --stick-size: 208px;
+    --thumb-gap: 18px;
+    padding-right: max(28px, env(safe-area-inset-right));
+    padding-left: max(28px, env(safe-area-inset-left));
+    padding-bottom: max(26px, env(safe-area-inset-bottom));
   }
-
-  .touch-action-cluster {
-    gap: 0.625rem;
-  }
-
-  .touch-control-center {
-    width: 2rem;
-    height: 2rem;
+  .game-app-shell[data-mobile="true"] .touch-control { font-size: 38px; border-width: 4px; }
+  .game-app-shell[data-mobile="true"] .unknown-universe-game { bottom: 260px; }
+}
+@media (min-width: 768px) and (min-height: 600px) and (orientation: landscape) {
+  .game-app-shell[data-mobile="true"] .unknown-universe-game { bottom: 0; }
+}
+@media (max-height: 350px) and (orientation: landscape) {
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --thumb-size: 76px;
+    --stick-size: 144px;
+    --thumb-gap: 10px;
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 }
+/* Safari's toolbar leaves modern phones short, but there is still room for full thumb targets. */
+@media (min-width: 700px) and (max-height: 350px) and (orientation: landscape) {
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --thumb-size: 88px;
+    --stick-size: 164px;
+  }
+}
+
+/* Phone controls live in side rails, outside the canvas, including at spawn. */
+@media (orientation: landscape) and (max-height: 599px) {
+  .game-app-shell[data-mobile="true"] {
+    --control-rail: 146px;
+    --control-left: calc(var(--control-rail) + env(safe-area-inset-left));
+    --control-right: calc(var(--control-rail) + env(safe-area-inset-right));
+  }
+  .game-app-shell[data-mobile="true"] .unknown-universe-game {
+    inset: 36px var(--control-right) 0 var(--control-left);
+  }
+  .game-app-shell[data-mobile="true"] .touch-controls {
+    --stick-size: 132px;
+    --thumb-size: 58px;
+    --thumb-gap: 8px;
+    padding: 0 calc(env(safe-area-inset-right) + 10px) max(12px, env(safe-area-inset-bottom)) calc(env(safe-area-inset-left) + 7px);
+  }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-control { font-size: 18px; }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-dpad-key { font-size: 24px; }
+}
+
 
 .phone-portrait-rotate {
   display: none;
 }
 
-@media (orientation: portrait) and (max-width: 1024px), (orientation: portrait) and (any-pointer: coarse) {
+@media (orientation: portrait) and (max-width: 767px) {
   .phone-portrait-rotate {
     display: flex;
   }

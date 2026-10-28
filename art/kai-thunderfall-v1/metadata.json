@@ -1,0 +1,26 @@
+{
+  "actor": {
+    "frames": 6,
+    "baseline": 220,
+    "scale": 0.35789473684210527,
+    "pages": [
+      {
+        "image": "special-0.webp",
+        "width": 1024,
+        "height": 174
+      }
+    ]
+  },
+  "beams": {
+    "frames": 4,
+    "baseline": 496,
+    "scale": 0.4419889502762431,
+    "pages": [
+      {
+        "image": "beams-0.webp",
+        "width": 1024,
+        "height": 484
+      }
+    ]
+  }
+}

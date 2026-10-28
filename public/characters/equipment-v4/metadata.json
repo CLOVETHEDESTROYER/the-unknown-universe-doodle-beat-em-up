@@ -1,0 +1,3348 @@
+{
+  "barrett": {
+    "blaster": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              236,
+              158,
+              615,
+              480
+            ],
+            "muzzle": [
+              602,
+              284
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              304,
+              176,
+              654,
+              480
+            ],
+            "muzzle": [
+              639,
+              307
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              311,
+              155,
+              656,
+              480
+            ],
+            "muzzle": [
+              642,
+              295
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              272,
+              179,
+              622,
+              480
+            ],
+            "muzzle": [
+              608,
+              285
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              243,
+              168,
+              619,
+              480
+            ],
+            "muzzle": [
+              605,
+              305
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              281,
+              186,
+              646,
+              480
+            ],
+            "muzzle": [
+              636,
+              303
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              279,
+              164,
+              634,
+              480
+            ],
+            "muzzle": [
+              621,
+              292
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              282,
+              160,
+              617,
+              480
+            ],
+            "muzzle": [
+              610,
+              291
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              292,
+              169,
+              652,
+              480
+            ],
+            "muzzle": [
+              638,
+              286
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              268,
+              148,
+              631,
+              480
+            ],
+            "muzzle": [
+              618,
+              241
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              266,
+              196,
+              634,
+              480
+            ],
+            "muzzle": [
+              620,
+              302
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              280,
+              174,
+              632,
+              480
+            ],
+            "muzzle": [
+              618,
+              300
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              254,
+              171,
+              607,
+              480
+            ],
+            "muzzle": [
+              592,
+              281
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              251,
+              173,
+              607,
+              480
+            ],
+            "muzzle": [
+              596,
+              287
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              252,
+              176,
+              584,
+              480
+            ],
+            "muzzle": [
+              573,
+              305
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              262,
+              176,
+              596,
+              480
+            ],
+            "muzzle": [
+              586,
+              289
+            ],
+            "hand": null
+          }
+        ]
+      }
+    },
+    "sword": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              252,
+              166,
+              644,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              287,
+              196,
+              673,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              306,
+              166,
+              682,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              273,
+              174,
+              633,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              239,
+              176,
+              641,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              257,
+              199,
+              653,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              264,
+              173,
+              676,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              279,
+              169,
+              644,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              292,
+              187,
+              663,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              289,
+              186,
+              639,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              297,
+              161,
+              593,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              272,
+              191,
+              671,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              265,
+              127,
+              504,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              259,
+              151,
+              532,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              257,
+              186,
+              741,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              258,
+              202,
+              673,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "frost": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              282,
+              201,
+              545,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              488,
+              346
+            ]
+          },
+          {
+            "bounds": [
+              267,
+              201,
+              532,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              459,
+              317
+            ]
+          },
+          {
+            "bounds": [
+              264,
+              199,
+              503,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              449,
+              297
+            ]
+          },
+          {
+            "bounds": [
+              275,
+              187,
+              542,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              465,
+              314
+            ]
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              286,
+              168,
+              570,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              564,
+              260
+            ]
+          },
+          {
+            "bounds": [
+              286,
+              168,
+              570,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              564,
+              260
+            ]
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              272,
+              171,
+              497,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              448,
+              346
+            ]
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              248,
+              212,
+              570,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              566,
+              337
+            ]
+          }
+        ]
+      }
+    },
+    "ember": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              252,
+              170,
+              529,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              247,
+              165,
+              508,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              254,
+              181,
+              515,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              268,
+              166,
+              545,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              294,
+              161,
+              564,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              328,
+              199,
+              594,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              269,
+              156,
+              498,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              297,
+              231,
+              601,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "storm": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              303,
+              123,
+              552,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              259,
+              117,
+              527,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              265,
+              118,
+              503,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              276,
+              111,
+              539,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              280,
+              118,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              250,
+              162,
+              512,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              272,
+              128,
+              496,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              258,
+              129,
+              580,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "death": {
+      "collapse": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              255,
+              171,
+              512,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              257,
+              226,
+              512,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              206,
+              272,
+              562,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              220,
+              356,
+              547,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    }
+  },
+  "nico": {
+    "blaster": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              265,
+              198,
+              562,
+              480
+            ],
+            "muzzle": [
+              560,
+              304
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              277,
+              219,
+              578,
+              480
+            ],
+            "muzzle": [
+              571,
+              319
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              318,
+              198,
+              579,
+              480
+            ],
+            "muzzle": [
+              574,
+              300
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              298,
+              207,
+              582,
+              480
+            ],
+            "muzzle": [
+              578,
+              305
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              262,
+              213,
+              561,
+              480
+            ],
+            "muzzle": [
+              544,
+              320
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              287,
+              222,
+              577,
+              480
+            ],
+            "muzzle": [
+              573,
+              321
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              303,
+              198,
+              566,
+              480
+            ],
+            "muzzle": [
+              561,
+              299
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              261,
+              206,
+              538,
+              480
+            ],
+            "muzzle": [
+              537,
+              298
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              320,
+              247,
+              598,
+              480
+            ],
+            "muzzle": [
+              583,
+              336
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              311,
+              206,
+              595,
+              480
+            ],
+            "muzzle": [
+              579,
+              271
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              290,
+              230,
+              560,
+              480
+            ],
+            "muzzle": [
+              557,
+              295
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              216,
+              211,
+              477,
+              480
+            ],
+            "muzzle": [
+              462,
+              317
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              288,
+              195,
+              551,
+              480
+            ],
+            "muzzle": [
+              538,
+              287
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              294,
+              200,
+              614,
+              480
+            ],
+            "muzzle": [
+              513,
+              282
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              275,
+              199,
+              526,
+              480
+            ],
+            "muzzle": [
+              520,
+              280
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              287,
+              196,
+              552,
+              480
+            ],
+            "muzzle": [
+              545,
+              280
+            ],
+            "hand": null
+          }
+        ]
+      }
+    },
+    "sword": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              269,
+              190,
+              570,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              284,
+              191,
+              549,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              307,
+              172,
+              561,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              303,
+              185,
+              577,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              272,
+              186,
+              556,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              291,
+              199,
+              553,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              303,
+              191,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              271,
+              188,
+              532,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              314,
+              200,
+              596,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              319,
+              207,
+              582,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              288,
+              210,
+              566,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              213,
+              224,
+              495,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              298,
+              191,
+              485,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              288,
+              240,
+              503,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              264,
+              272,
+              679,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              298,
+              229,
+              529,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "frost": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              270,
+              212,
+              531,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              415,
+              301
+            ]
+          },
+          {
+            "bounds": [
+              289,
+              206,
+              520,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              440,
+              295
+            ]
+          },
+          {
+            "bounds": [
+              275,
+              211,
+              511,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              414,
+              318
+            ]
+          },
+          {
+            "bounds": [
+              287,
+              213,
+              531,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              527,
+              313
+            ]
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              314,
+              203,
+              579,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              575,
+              266
+            ]
+          },
+          {
+            "bounds": [
+              281,
+              233,
+              505,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              502,
+              360
+            ]
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              282,
+              195,
+              481,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              477,
+              353
+            ]
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              262,
+              228,
+              547,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              545,
+              331
+            ]
+          }
+        ]
+      }
+    },
+    "ember": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              262,
+              212,
+              516,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              288,
+              205,
+              519,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              262,
+              212,
+              502,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              283,
+              216,
+              499,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              313,
+              209,
+              567,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              279,
+              235,
+              505,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              279,
+              196,
+              480,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              299,
+              253,
+              572,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "storm": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              266,
+              179,
+              513,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              282,
+              169,
+              497,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              274,
+              189,
+              498,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              273,
+              185,
+              509,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              319,
+              190,
+              551,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              269,
+              220,
+              497,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              280,
+              188,
+              470,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              271,
+              212,
+              532,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "death": {
+      "collapse": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              262,
+              195,
+              506,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              259,
+              246,
+              509,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              212,
+              277,
+              557,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              228,
+              380,
+              541,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "hands": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              264,
+              194,
+              516,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              294,
+              203,
+              530,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              314,
+              194,
+              546,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              291,
+              185,
+              529,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              261,
+              191,
+              516,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              321,
+              191,
+              577,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              307,
+              183,
+              552,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              290,
+              177,
+              530,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              283,
+              268,
+              525,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              319,
+              179,
+              583,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              314,
+              179,
+              568,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              268,
+              197,
+              474,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              283,
+              195,
+              470,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              269,
+              203,
+              499,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              260,
+              205,
+              558,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              274,
+              201,
+              494,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    }
+  },
+  "ezra": {
+    "blaster": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              242,
+              154,
+              619,
+              480
+            ],
+            "muzzle": [
+              612,
+              307
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              258,
+              156,
+              598,
+              480
+            ],
+            "muzzle": [
+              589,
+              318
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              263,
+              157,
+              545,
+              480
+            ],
+            "muzzle": [
+              535,
+              296
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              295,
+              159,
+              645,
+              480
+            ],
+            "muzzle": [
+              639,
+              295
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              242,
+              159,
+              601,
+              480
+            ],
+            "muzzle": [
+              593,
+              295
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              240,
+              165,
+              601,
+              480
+            ],
+            "muzzle": [
+              592,
+              318
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              236,
+              149,
+              616,
+              480
+            ],
+            "muzzle": [
+              607,
+              286
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              249,
+              154,
+              592,
+              480
+            ],
+            "muzzle": [
+              586,
+              295
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              304,
+              157,
+              641,
+              480
+            ],
+            "muzzle": [
+              634,
+              277
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              307,
+              151,
+              646,
+              480
+            ],
+            "muzzle": [
+              640,
+              258
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              235,
+              170,
+              558,
+              480
+            ],
+            "muzzle": [
+              551,
+              289
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              239,
+              166,
+              563,
+              480
+            ],
+            "muzzle": [
+              555,
+              335
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              265,
+              151,
+              620,
+              480
+            ],
+            "muzzle": [
+              613,
+              260
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              265,
+              151,
+              620,
+              480
+            ],
+            "muzzle": [
+              613,
+              260
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              235,
+              172,
+              736,
+              480
+            ],
+            "muzzle": [
+              731,
+              273
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              267,
+              160,
+              562,
+              480
+            ],
+            "muzzle": [
+              557,
+              269
+            ],
+            "hand": null
+          }
+        ]
+      }
+    },
+    "sword": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              241,
+              129,
+              580,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              244,
+              129,
+              567,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              255,
+              143,
+              579,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              290,
+              140,
+              645,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              240,
+              143,
+              598,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              228,
+              143,
+              594,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              232,
+              129,
+              575,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              248,
+              141,
+              585,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              301,
+              156,
+              633,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              306,
+              133,
+              627,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              237,
+              172,
+              576,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              253,
+              159,
+              561,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              286,
+              112,
+              482,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              248,
+              162,
+              561,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              229,
+              193,
+              718,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              263,
+              194,
+              595,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "frost": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              261,
+              176,
+              550,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              428,
+              318
+            ]
+          },
+          {
+            "bounds": [
+              282,
+              199,
+              575,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              405,
+              329
+            ]
+          },
+          {
+            "bounds": [
+              250,
+              181,
+              550,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              421,
+              341
+            ]
+          },
+          {
+            "bounds": [
+              284,
+              165,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              390,
+              296
+            ]
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              283,
+              158,
+              525,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              360,
+              328
+            ]
+          },
+          {
+            "bounds": [
+              224,
+              158,
+              475,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              303,
+              323
+            ]
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              264,
+              151,
+              480,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              340,
+              373
+            ]
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              238,
+              184,
+              594,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              590,
+              306
+            ]
+          }
+        ]
+      }
+    },
+    "ember": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              260,
+              178,
+              550,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              282,
+              200,
+              575,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              247,
+              180,
+              547,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              282,
+              163,
+              566,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              308,
+              154,
+              539,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              235,
+              156,
+              476,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              272,
+              148,
+              480,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              232,
+              219,
+              623,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "storm": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              259,
+              98,
+              549,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              274,
+              119,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              251,
+              102,
+              550,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              274,
+              86,
+              554,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              282,
+              86,
+              516,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              237,
+              89,
+              475,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              273,
+              98,
+              479,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              236,
+              89,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "death": {
+      "collapse": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              239,
+              151,
+              530,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              237,
+              199,
+              530,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              189,
+              247,
+              579,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              204,
+              345,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    }
+  },
+  "teleportation_c": {
+    "blaster": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              259,
+              175,
+              624,
+              480
+            ],
+            "muzzle": [
+              617,
+              309
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              271,
+              187,
+              622,
+              480
+            ],
+            "muzzle": [
+              615,
+              317
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              272,
+              168,
+              601,
+              480
+            ],
+            "muzzle": [
+              592,
+              302
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              290,
+              165,
+              603,
+              480
+            ],
+            "muzzle": [
+              595,
+              309
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              267,
+              178,
+              607,
+              480
+            ],
+            "muzzle": [
+              600,
+              311
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              267,
+              186,
+              630,
+              480
+            ],
+            "muzzle": [
+              621,
+              310
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              269,
+              168,
+              587,
+              480
+            ],
+            "muzzle": [
+              579,
+              308
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              298,
+              156,
+              611,
+              480
+            ],
+            "muzzle": [
+              602,
+              310
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              286,
+              173,
+              626,
+              480
+            ],
+            "muzzle": [
+              618,
+              286
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              290,
+              147,
+              586,
+              480
+            ],
+            "muzzle": [
+              576,
+              260
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              279,
+              190,
+              611,
+              480
+            ],
+            "muzzle": [
+              603,
+              300
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              309,
+              187,
+              642,
+              480
+            ],
+            "muzzle": [
+              634,
+              320
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              292,
+              184,
+              577,
+              480
+            ],
+            "muzzle": [
+              568,
+              291
+            ],
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              280,
+              193,
+              624,
+              480
+            ],
+            "muzzle": [
+              616,
+              284
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              211,
+              189,
+              488,
+              480
+            ],
+            "muzzle": [
+              480,
+              256
+            ],
+            "hand": null
+          },
+          {
+            "bounds": [
+              280,
+              184,
+              556,
+              480
+            ],
+            "muzzle": [
+              548,
+              311
+            ],
+            "hand": null
+          }
+        ]
+      }
+    },
+    "sword": {
+      "run": {
+        "frames": 8,
+        "poses": [
+          {
+            "bounds": [
+              272,
+              165,
+              607,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              277,
+              187,
+              620,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              280,
+              173,
+              592,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              305,
+              173,
+              629,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              276,
+              200,
+              594,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              277,
+              189,
+              601,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              275,
+              173,
+              605,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              312,
+              154,
+              616,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              294,
+              195,
+              612,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              287,
+              120,
+              571,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              283,
+              186,
+              609,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              309,
+              187,
+              624,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              302,
+              150,
+              506,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 3,
+        "poses": [
+          {
+            "bounds": [
+              277,
+              179,
+              606,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              276,
+              176,
+              694,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              279,
+              200,
+              598,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "frost": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              272,
+              199,
+              529,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              517,
+              363
+            ]
+          },
+          {
+            "bounds": [
+              280,
+              202,
+              505,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              474,
+              264
+            ]
+          },
+          {
+            "bounds": [
+              266,
+              198,
+              507,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              496,
+              361
+            ]
+          },
+          {
+            "bounds": [
+              286,
+              197,
+              512,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              485,
+              273
+            ]
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              309,
+              181,
+              554,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              546,
+              238
+            ]
+          },
+          {
+            "bounds": [
+              280,
+              202,
+              510,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              480,
+              262
+            ]
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              290,
+              184,
+              470,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              438,
+              249
+            ]
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              270,
+              203,
+              565,
+              480
+            ],
+            "muzzle": null,
+            "hand": [
+              558,
+              328
+            ]
+          }
+        ]
+      }
+    },
+    "ember": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              262,
+              198,
+              522,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              276,
+              194,
+              505,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              273,
+              197,
+              495,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              277,
+              193,
+              513,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              298,
+              190,
+              525,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              303,
+              195,
+              508,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              284,
+              180,
+              480,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              277,
+              234,
+              563,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "storm": {
+      "run": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              270,
+              126,
+              499,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              284,
+              129,
+              500,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              284,
+              141,
+              497,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              282,
+              140,
+              511,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "jump": {
+        "frames": 2,
+        "poses": [
+          {
+            "bounds": [
+              305,
+              129,
+              524,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              285,
+              145,
+              505,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "idle": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              297,
+              131,
+              471,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      },
+      "attack": {
+        "frames": 1,
+        "poses": [
+          {
+            "bounds": [
+              266,
+              141,
+              537,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    },
+    "death": {
+      "collapse": {
+        "frames": 4,
+        "poses": [
+          {
+            "bounds": [
+              235,
+              184,
+              532,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              234,
+              232,
+              534,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              183,
+              245,
+              586,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          },
+          {
+            "bounds": [
+              194,
+              349,
+              574,
+              480
+            ],
+            "muzzle": null,
+            "hand": null
+          }
+        ]
+      }
+    }
+  }
+}

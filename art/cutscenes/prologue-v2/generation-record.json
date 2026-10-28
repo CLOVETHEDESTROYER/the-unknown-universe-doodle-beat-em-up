@@ -1,0 +1,17 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "03-through-the-rift",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-50cf5da8-c81f-4575-bd82-935403051244.png",
+      "archived_source": "art/cutscenes/prologue-v2/03-through-the-rift-source.png",
+      "runtime_image": "public/cutscenes/prologue-v2/03-through-the-rift.png"
+    },
+    {
+      "id": "04-alone-in-the-alley",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-3cff2888-9795-4fef-9857-789071d6571f.png",
+      "archived_source": "art/cutscenes/prologue-v2/04-alone-in-the-alley-source.png",
+      "runtime_image": "public/cutscenes/prologue-v2/04-alone-in-the-alley.png"
+    }
+  ]
+}

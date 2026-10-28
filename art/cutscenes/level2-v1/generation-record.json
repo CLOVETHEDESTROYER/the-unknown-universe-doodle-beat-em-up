@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "l2-01-the-registry",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-33bdb20d-814a-4793-b1d5-c7e897a74dca.png",
+      "archived_source": "art/cutscenes/level2-v1/l2-01-the-registry-source.png",
+      "runtime_image": "public/cutscenes/level2-v1/l2-01-the-registry.png"
+    },
+    {
+      "id": "l2-02-earthior",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-f0da4e05-a63d-419e-95d7-956bd1b22be3.png",
+      "archived_source": "art/cutscenes/level2-v1/l2-02-earthior-source.png",
+      "runtime_image": "public/cutscenes/level2-v1/l2-02-earthior.png"
+    },
+    {
+      "id": "l2-03-a-familiar-voice",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-5d9178fb-1d85-4163-8c1e-1a3e92fc5373.png",
+      "archived_source": "art/cutscenes/level2-v1/l2-03-a-familiar-voice-source.png",
+      "runtime_image": "public/cutscenes/level2-v1/l2-03-a-familiar-voice.png"
+    },
+    {
+      "id": "l2-04-toward-the-furnace",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-d7edd7e2-c1d3-4b35-9991-4d1a5d63da5b.png",
+      "archived_source": "art/cutscenes/level2-v1/l2-04-toward-the-furnace-source.png",
+      "runtime_image": "public/cutscenes/level2-v1/l2-04-toward-the-furnace.png"
+    }
+  ]
+}

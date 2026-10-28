@@ -1,0 +1,54 @@
+[
+  {
+    "sound": "punchSwing",
+    "atSeconds": 0
+  },
+  {
+    "sound": "punchHit",
+    "atSeconds": 0.1
+  },
+  {
+    "sound": "swordSwing",
+    "atSeconds": 0.7
+  },
+  {
+    "sound": "swordHit",
+    "atSeconds": 0.87
+  },
+  {
+    "sound": "playerHit",
+    "atSeconds": 1.5
+  },
+  {
+    "sound": "enemyDeath",
+    "atSeconds": 2.1
+  },
+  {
+    "sound": "teleport",
+    "atSeconds": 2.8
+  },
+  {
+    "sound": "powerup",
+    "atSeconds": 3.5
+  },
+  {
+    "sound": "blaster",
+    "atSeconds": 4.3
+  },
+  {
+    "sound": "blaster",
+    "atSeconds": 4.5
+  },
+  {
+    "sound": "shipHit",
+    "atSeconds": 5.0
+  },
+  {
+    "sound": "shipExplosion",
+    "atSeconds": 5.7
+  },
+  {
+    "sound": "playerDeath",
+    "atSeconds": 6.9
+  }
+]

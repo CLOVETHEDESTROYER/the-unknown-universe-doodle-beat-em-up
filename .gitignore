@@ -16,6 +16,12 @@ dist-ssr
 !.env.example
 output
 
+# Local captures, Python caches and Blender autosaves
+/-/
+__pycache__/
+*.pyc
+*.blend[0-9]
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

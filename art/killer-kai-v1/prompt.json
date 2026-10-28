@@ -1,0 +1,17 @@
+{
+  "tool": "Built-in ImageGen",
+  "type": "Character concept sample; three poses, no runtime integration",
+  "prompt": "Use case: style-transfer / new game character concept sprite.\nCreate a production-style transparent three-pose sample sheet for a NEW original playable hero named Killer Kai in The Unknown Universe doodle beat-em-up.\nThe three supplied images are STYLE AND PROPORTION references only: Nico, Barrett and Ezra are existing characters in this game. Match their colored-pencil / wax-crayon grain, rough hand-inked thick black contours, paper-doodle shading, cartoon anatomy, chunky sneakers/boots, and expressive large head. Do not copy their character identities or outfits.\nKiller Kai is a PALE-SKINNED young male CYBORG with a clearly visible full head of dense CURLY dark brown hair, soft round ringlets, an uncovered pale human face, dark eyebrows, a determined mischievous expression, and subtle steel/cyan cybernetic plating along one temple and cheek. Keep his pale complexion plainly visible. No helmet, face mask, spiky straight hair, tan skin, or fully robotic head.\nHis right forearm/hand is replaced by a sturdy cylindrical integrated ENERGY ARM CANNON with a round cyan-lit muzzle, visible mechanical joints, segmented charcoal/steel housing, and cobalt-blue armor plates. It is part of his body, not a separate held gun. His other hand has articulated cyborg knuckles. Outfit: compact cobalt-blue and charcoal armor over a dark undersuit, small cyan chest reactor, segmented knees and robust steel-and-blue boots. This is an original cyborg action hero whose arm-cannon powers evoke Mega Man; do not reproduce Mega Man's helmet or exact costume.\nComposition: exactly THREE full-body poses arranged left-to-right in three equally sized columns on one horizontal canvas. Same character, costume, scale and consistent foot baseline in all poses. Side/three-quarter view facing RIGHT as in the game references. Left: grounded ready/idle stance with the arm cannon angled slightly forward and down, free hand relaxed. Center: planted action stance, arm cannon raised horizontally to the right, free arm balanced behind. Right: strong firing stance with a compact bright cyan/white charged energy sphere leaving the arm cannon, a small stylized muzzle burst and mild recoil. The cannon must clearly read as his forearm in every pose. Keep the same appealing face and recognizable curly hair in all three.\nEvery full body and every small shot effect fits within its own column with ample transparent gutters and at least 10 percent safe margin around each entire pose. Characters should be large enough to inspect. Transparent background including between poses. No scenery, ground plane, drop shadows, text, name labels, frame borders, UI, watermark, photorealism, glossy 3D shading, smooth vector art, or pixel art. Deliver a clean colored-pencil raster sprite sample with the same tactile handmade finish as the supplied game sprites.",
+  "refinement": "Preserve identity, curls, armor, all three poses and pencil texture. Lighten all exposed skin to distinctly pale cool ivory with muted pink shadows. Fit the complete charged shot with transparent outer margins.",
+  "references": [
+    "public/characters/playable-v3/nico-idle.png",
+    "public/characters/playable-v3/barrett-idle.png",
+    "public/characters/playable-v3/ezra-idle.png"
+  ],
+  "poses": [
+    "ready stance",
+    "arm-cannon aim",
+    "charged shot"
+  ],
+  "asset": "art/killer-kai-v1/killer-kai-sample.png"
+}

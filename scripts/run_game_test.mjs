@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { homedir } from "node:os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,8 +12,8 @@ const repoRoot = path.resolve(__dirname, "..");
 const distDir = path.join(repoRoot, "dist");
 const defaultActionsFile = path.join(repoRoot, "tests", "game-smoke.actions.json");
 const defaultOutputDir = path.join(repoRoot, "output", "web-game");
-const webGameClientPath = path.join(repoRoot, "scripts", "web_game_playwright_client.mjs");
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const codexHome = process.env.CODEX_HOME || path.join(homedir(), ".codex");
+const webGameClientPath = path.join(codexHome, "skills", "develop-web-game", "scripts", "web_game_playwright_client.js");
 
 function parseArgs(argv) {
   const args = {
@@ -198,10 +199,16 @@ async function runWebGameClient(args) {
   }
   const queryString = queryParams.toString();
 
+  const clientSource = await readFile(webGameClientPath, "utf8");
+  const runnableClientSource = `process.argv.splice(1, 0, "web_game_playwright_client.js");\n${clientSource}`;
+
   await runCommand(
     process.execPath,
     [
-      webGameClientPath,
+      "--input-type=module",
+      "--eval",
+      runnableClientSource,
+      "--",
       "--url",
       `http://127.0.0.1:${args.port}${queryString ? `/?${queryString}` : ""}`,
       "--actions-file",
@@ -230,7 +237,7 @@ async function main() {
   fs.mkdirSync(args.screenshotDir, { recursive: true });
 
   if (!args.skipBuild) {
-    await runCommand(npmCommand, ["run", "build"]);
+    await runCommand("npm.cmd", ["run", "build"]);
   }
 
   const server = await createStaticServer(args.port);

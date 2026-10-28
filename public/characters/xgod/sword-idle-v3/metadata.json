@@ -1,0 +1,39 @@
+{
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "displayScale": 0.4,
+  "weaponHand": "right",
+  "sourceHandSocket": "hand_left_back",
+  "frames": 4,
+  "fps": 6,
+  "attachments": [
+    {
+      "grip": [
+        283.42,
+        310.51
+      ]
+    },
+    {
+      "grip": [
+        283.09,
+        310.23
+      ]
+    },
+    {
+      "grip": [
+        283.42,
+        310.51
+      ]
+    },
+    {
+      "grip": [
+        283.75,
+        310.8
+      ]
+    }
+  ]
+}

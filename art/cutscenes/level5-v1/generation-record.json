@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "l5-01-the-corridor-clears",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-2ef89c49-7529-4ea7-9d0a-ebb4a56c9e0e.png",
+      "archived_source": "art/cutscenes/level5-v1/l5-01-the-corridor-clears-source.png",
+      "runtime_image": "public/cutscenes/level5-v1/l5-01-the-corridor-clears.png"
+    },
+    {
+      "id": "l5-02-what-paid-for-it",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-90098e34-effe-4356-b27c-f85e9673e99b.png",
+      "archived_source": "art/cutscenes/level5-v1/l5-02-what-paid-for-it-source.png",
+      "runtime_image": "public/cutscenes/level5-v1/l5-02-what-paid-for-it.png"
+    },
+    {
+      "id": "l5-03-the-next-impact",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-27128a54-f589-4b63-b156-05333673bb55.png",
+      "archived_source": "art/cutscenes/level5-v1/l5-03-the-next-impact-source.png",
+      "runtime_image": "public/cutscenes/level5-v1/l5-03-the-next-impact.png"
+    },
+    {
+      "id": "l5-04-at-the-source",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-c2f54609-0575-4824-a962-cbadf066b826.png",
+      "archived_source": "art/cutscenes/level5-v1/l5-04-at-the-source-source.png",
+      "runtime_image": "public/cutscenes/level5-v1/l5-04-at-the-source.png"
+    }
+  ]
+}

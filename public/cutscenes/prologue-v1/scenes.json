@@ -1,0 +1,46 @@
+[
+  {
+    "id": "01-earthior",
+    "title": "Earthior, before the impact",
+    "image": "01-earthior.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Before the meteor, Earthior was home.",
+      "School, friends... and homework to finish."
+    ],
+    "alt": "Before the mutation, brown-haired X wears his familiar white shirt and orange cargo pants outside school on Earthior."
+  },
+  {
+    "id": "02-impact",
+    "title": "The sky tears open",
+    "image": "02-impact.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Then a meteor tore through Earthior.",
+      "The impact ripped open dimensional time."
+    ],
+    "alt": "A marked meteor strikes Earthior and tears open a violet dimensional rift."
+  },
+  {
+    "id": "03-alley-fire",
+    "title": "A strange alley",
+    "image": "03-alley-fire.png",
+    "speaker": "X GOD",
+    "caption": [
+      "I woke in a strange alley.",
+      "A monster's fire should have been the end."
+    ],
+    "alt": "The green horned Dark Dragon breathes magical fire toward X in a strange purple-brick alley."
+  },
+  {
+    "id": "04-transformation",
+    "title": "The fire changed me",
+    "image": "04-transformation.png",
+    "speaker": "X GOD",
+    "caption": [
+      "But that fire changed me.",
+      "I was still here—and nothing would be the same."
+    ],
+    "alt": "Transformed X God studies his hands, with lime hair, X eyes and newly awakened elemental power."
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "tool": "built-in image_gen",
+  "sources": [
+    {
+      "id": "xgod",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-252d80fe-5e01-4263-9ff8-458fe1d4d5b6.png",
+      "archived_source": "art/hero-celebrations-v1/xgod-source.png"
+    },
+    {
+      "id": "barrett",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-2c5317ee-3df5-48ce-920d-998e471d9a70.png",
+      "archived_source": "art/hero-celebrations-v1/barrett-source.png"
+    },
+    {
+      "id": "nico",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-401e54a8-c15e-4e97-a4b5-ce416505f7c5.png",
+      "archived_source": "art/hero-celebrations-v1/nico-source.png"
+    },
+    {
+      "id": "ezra",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-33ac73f5-14b5-4b1b-baf4-4e9188c6195a.png",
+      "archived_source": "art/hero-celebrations-v1/ezra-source.png"
+    },
+    {
+      "id": "teleportation_c",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-d10efdf5-14f9-4315-b6bf-331a7f638800.png",
+      "archived_source": "art/hero-celebrations-v1/teleportation_c-source.png"
+    },
+    {
+      "id": "zgod",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-ada8e779-aaaa-41a8-b955-2c5b6b46c8e2.png",
+      "archived_source": "art/hero-celebrations-v1/zgod-source.png"
+    },
+    {
+      "id": "xgod-sword",
+      "generated_source": "C:\\Users\\analo\\.codex\\generated_images\\01a147b3-d038-7751-8247-0888464bd24c\\exec-641cb6ff-3b14-407a-a967-f30652584766.png",
+      "archived_source": "art/hero-celebrations-v1/xgod-sword-initial-source.png"
+    }
+  ]
+}

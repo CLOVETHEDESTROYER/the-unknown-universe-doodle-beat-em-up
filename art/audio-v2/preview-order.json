@@ -1,0 +1,92 @@
+[
+  {
+    "version": "v1",
+    "sound": "blaster",
+    "atSeconds": 0
+  },
+  {
+    "version": "v2",
+    "sound": "blaster",
+    "atSeconds": 0.7
+  },
+  {
+    "version": "v1",
+    "sound": "jump",
+    "atSeconds": 1.5
+  },
+  {
+    "version": "v2",
+    "sound": "jump",
+    "atSeconds": 2.2
+  },
+  {
+    "version": "v2",
+    "sound": "doubleJump",
+    "atSeconds": 2.9
+  },
+  {
+    "version": "v1",
+    "sound": "stomp",
+    "atSeconds": 3.7
+  },
+  {
+    "version": "v2",
+    "sound": "slamXgod",
+    "atSeconds": 4.4
+  },
+  {
+    "version": "v2",
+    "sound": "shipLaser",
+    "atSeconds": 5.4
+  },
+  {
+    "version": "v2",
+    "sound": "shipLance",
+    "atSeconds": 6.1
+  },
+  {
+    "version": "v2",
+    "sound": "shipMissile",
+    "atSeconds": 6.8
+  },
+  {
+    "version": "v2",
+    "sound": "slamBarrett",
+    "atSeconds": 7.6
+  },
+  {
+    "version": "v2",
+    "sound": "slamNico",
+    "atSeconds": 8.6
+  },
+  {
+    "version": "v2",
+    "sound": "slamEzra",
+    "atSeconds": 9.6
+  },
+  {
+    "version": "v2",
+    "sound": "slamTeleport",
+    "atSeconds": 10.6
+  },
+  {
+    "version": "v2",
+    "sound": "slamZgod",
+    "atSeconds": 11.6
+  },
+  {
+    "version": "v2",
+    "sound": "swordSwing",
+    "atSeconds": 12.8
+  },
+  {
+    "version": "v2",
+    "sound": "swordHit",
+    "atSeconds": 13.0
+  },
+  {
+    "version": "v2",
+    "sound": "teleport",
+    "atSeconds": 13.9
+  }
+]

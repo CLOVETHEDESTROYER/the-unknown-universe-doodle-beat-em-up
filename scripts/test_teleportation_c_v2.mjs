@@ -1,0 +1,65 @@
+import {chromium} from 'playwright';
+import {build} from 'esbuild';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const out=new URL('../output/teleportation-c-v2/playtest/',import.meta.url);await fs.mkdir(out,{recursive:true});
+await build({entryPoints:['gameplay/teleportation.ts'],bundle:true,platform:'node',format:'esm',outdir:fileURLToPath(new URL('simulation/',out)),outExtension:{'.js':'.mjs'},logLevel:'silent'});
+const {createTeleport,blinkDestination,safeTeleportPoint,teleportPathClear,startTeleport,resetTeleport}=await import(new URL('simulation/teleportation.mjs',out));
+const evidence={},errors=[];
+const room={solids:[{x:0,y:480,w:1200,h:200}],supports:[{x:0,y:480,w:1200,h:200}],hazards:[],left:0,right:1200,halfWidth:18,height:108};
+assert.equal(blinkDestination(100,480,1,room,true).x,286);assert.equal(blinkDestination(300,480,-1,room,true).x,114);
+const wall={...room,solids:[...room.solids,{x:230,y:370,w:50,h:110}]};assert(blinkDestination(100,480,1,wall,true).x<=212);assert.equal(blinkDestination(210,480,1,wall,true),null);
+assert.equal(teleportPathClear({x:100,y:480},{x:350,y:480},wall),false);
+const pit={...room,solids:[],supports:[{x:0,y:480,w:200,h:200}]};assert(blinkDestination(100,480,1,pit,true).x<=182);assert.equal(safeTeleportPoint(250,480,pit,true),false);
+const hazard={...room,hazards:[{x:230,y:400,w:100,h:80}]};assert.equal(safeTeleportPoint(260,480,hazard,true),false);
+const gate={...room,right:250};assert(blinkDestination(100,480,1,gate,true).x<=232);
+const t=createTeleport();assert(startTeleport(t,100,{x:100,y:480},{x:286,y:480}));assert.equal(startTeleport(t,200,{x:286,y:480},{x:100,y:480},true),false);
+assert(startTeleport(t,1300,{x:286,y:480},{x:100,y:480},true));assert.equal(t.anchor,null);assert.equal(t.recalls,1);resetTeleport(t);assert.equal(t.counterUntil,0);
+const expired=createTeleport();startTeleport(expired,0,{x:100,y:480},{x:286,y:480});assert.equal(startTeleport(expired,3400,{x:286,y:480},{x:100,y:480},true),false);
+evidence.safeBlinkWallPitHazardBoundsRecallAndExpiry=true;
+const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1280,height:800}});
+page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
+const shot=n=>page.screenshot({path:fileURLToPath(new URL(n+'.png',out))});
+const place=(x,y)=>page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x,y});
+const wait=async(fn,ms=7000)=>{const end=Date.now()+ms;while(Date.now()<end){assert.deepEqual(errors,[]);const s=await read();if(fn(s))return s;await page.waitForTimeout(20);}throw Error('Timeout: '+fn.toString());};
+async function boot(level=2,extra='',hero='teleportation_c'){
+ for(const k of ['Space','KeyC','KeyX','KeyR','ArrowRight','ArrowLeft','ArrowDown','KeyZ'])await page.keyboard.up(k);
+ await page.goto(`${process.env.GAME_TEST_URL||'http://127.0.0.1:3000'}/?autostart=1&level=${level}&capture=1&character=${hero}&unlockRoster=1${extra}`);
+ await wait(s=>s.engine==='platformer'&&s.player?.grounded);assert.deepEqual((await read()).failedAssets,[]);
+}
+const hurt=n=>page.evaluate(n=>window.__unknownPlatformerDamagePlayer(n),n);
+async function face(direction=1){const key=direction>0?'ArrowRight':'ArrowLeft';await page.keyboard.down(key);await page.waitForTimeout(35);await page.keyboard.up(key);await page.waitForTimeout(70);}
+try{
+ await boot();assert.equal((await read()).selectedCharacter.id,'teleportation_c');await place(80,480);await page.waitForTimeout(100);let s=await read();assert.equal(Number(s.player.frame),0);
+ const bottom=s.player.bodyBottom,height=s.player.bodyHeight;await page.keyboard.down('ArrowRight');const frames=new Set();
+ for(let i=0;i<12;i++){s=await read();frames.add(s.player.frame);assert.equal(s.player.bodyHeight,height);await page.waitForTimeout(25);}await page.keyboard.up('ArrowRight');
+ assert(frames.size>=3);await wait(s=>Math.abs(s.player.velocityX)<1);s=await read();assert.equal(Number(s.player.frame),0);assert.equal(s.player.bodyBottom,bottom);await shot('upright-idle');evidence.strideFramesIdleAndStableBody=true;
+ await place(80,480);await page.keyboard.down('KeyX');s=await wait(s=>s.teleport.phaseActive);const blinkX=s.player.x;assert(blinkX>=260&&blinkX<=280);assert(s.teleport.anchor);await hurt(10);assert.equal((await read()).player.health,100);await shot('phase-step');
+ await page.waitForTimeout(1400);s=await read();assert.equal(s.teleport.blinks,1,'Held blink never repeats');assert.equal(s.player.bodyHeight,height);await page.keyboard.up('KeyX');
+ await page.keyboard.press('KeyR');s=await wait(s=>s.teleport.recalls===1);assert(Math.abs(s.player.x-80)<5);assert.equal(s.teleport.anchor,null);await shot('recall-arrival');evidence.blinkPhaseImmunityHoldAndRecall=true;
+ await page.waitForTimeout(190);await hurt(10);assert.equal((await read()).player.health,90);evidence.phaseProtectionEnds=true;
+ await page.keyboard.press('KeyP');await page.waitForTimeout(80);const frozen=(await read()).teleport.cooldownRemainingMs;await page.waitForTimeout(500);assert.equal((await read()).teleport.cooldownRemainingMs,frozen);await shot('pause');await page.keyboard.press('KeyP');evidence.pauseFreezesTeleportCooldown=true;
+ await boot();await place(80,480);await page.keyboard.down('KeyZ');await page.waitForTimeout(100);await page.keyboard.up('KeyZ');await page.keyboard.press('KeyX',{delay:25});s=await wait(s=>s.teleport.phaseActive);
+ assert(s.player.velocityY<0);assert(s.player.y<470);assert.equal(s.teleport.anchor,null);await shot('air-blink');await wait(s=>s.player.grounded);evidence.airBlinkPreservesJumpAndDoesNotCreateUnsafeAnchor=true;
+ await boot(1);await place(350,480);await page.keyboard.press('KeyX');s=await wait(s=>s.teleport.blinks===1);assert(s.player.x<415);await page.waitForTimeout(1250);await page.keyboard.press('KeyX');s=await wait(s=>s.teleport.blocked>0);assert.equal(s.teleport.blinks,1);await shot('wall-stops-blink');evidence.realHurdleStopsBlink=true;
+ await boot();s=await read();let e=s.enemies.find(e=>e.kind==='walker'&&!e.bounceLane);await place(e.x-260,e.bodyBottom);await face();await page.keyboard.press('KeyX',{delay:20});await page.keyboard.press('Space',{delay:55});
+ s=await wait(s=>s.teleport.strikes===1&&s.attack.hits>0);assert(s.attack.w>=139);assert(s.enemies.some(n=>n.kind==='walker'&&n.hp<e.hp));await shot('blink-counter-strike');evidence.realBlinkStrikeBonusAndReach=true;
+ await place(80,480);await page.waitForTimeout(950);await page.evaluate(()=>window.__unknownPlatformerCollectPickup('frost'));await hurt(5);await page.waitForTimeout(920);await hurt(5);await page.waitForTimeout(920);await hurt(5);s=await read();assert.equal(s.equipment.active,'hands');
+ await place(80,480);const count=s.teleport.blinks;await page.keyboard.press('KeyX');s=await wait(s=>s.teleport.blinks>count);assert(s.teleport.phaseActive);evidence.innateTeleportSurvivesEquipmentLoss=true;
+ await boot(2,'&finishLevel=1');s=await read();e=s.enemies.find(e=>e.bossId==='killinas_daughter');await place(e.x-250,e.bodyBottom);await face();await page.keyboard.press('KeyX',{delay:20});await page.keyboard.press('Space',{delay:55});
+ s=await wait(s=>s.enemies.find(e=>e.bossId==='killinas_daughter')?.guardedHits>0);e=s.enemies.find(e=>e.bossId==='killinas_daughter');assert.equal(e.hp,e.maxHp);await shot('boss-blocks-counter');evidence.blinkStrikeRespectsBossGuard=true;
+ await boot(2,'&finishLevel=1&teleportc=1','xgod');s=await read();e=s.enemies.find(e=>e.bossId==='killinas_daughter');await place(e.x-220,e.bodyBottom);
+ s=await wait(s=>s.enemies.find(e=>e.bossId==='killinas_daughter')?.attackState==='tell');assert.equal(s.teleportationC.strikes,0);
+ s=await wait(s=>s.teleportationC.strikes>0,12000);e=s.enemies.find(e=>e.bossId==='killinas_daughter');assert(e.hp<e.maxHp);assert(e.vulnerable);await shot('companion-boss-opening');evidence.companionWaitsForBossOpening=true;
+ await boot(6,'&teleportc=1','xgod');s=await read();e=s.enemies.find(e=>e.kind==='cosmic');await place(e.x-170,e.bodyBottom);
+ s=await wait(s=>s.teleportationC.intercepts>0,10000);await shot('companion-projectile-intercept');evidence.companionInterceptsActualHostileShot=true;
+ await page.setViewportSize({width:844,height:390});await boot();await place(80,480);
+ const blink=page.getByRole('button',{name:'Teleport step',exact:true}),recall=page.getByRole('button',{name:'Return to teleport anchor',exact:true});
+ await blink.dispatchEvent('pointerdown',{pointerId:8,pointerType:'touch',bubbles:true});await wait(s=>s.teleport.blinks===1);await blink.dispatchEvent('pointercancel',{pointerId:8,pointerType:'touch',bubbles:true});
+ await page.waitForTimeout(1250);await recall.dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',bubbles:true});await wait(s=>s.teleport.recalls===1);await recall.dispatchEvent('pointercancel',{pointerId:9,pointerType:'touch',bubbles:true});await shot('phone-blink-recall');assert.equal((await read()).touchControls.recall,false);evidence.phoneBlinkRecallAndCancel=true;
+ await boot(3,'&teleportc=1');assert.equal((await read()).teleportationC.active,false);await page.evaluate(()=>window.__unknownPlatformerCollectPickup('teleportation_c'));assert.equal((await read()).teleportationC.active,false);evidence.noDuplicatePlayableCompanion=true;
+ await place(80,520);await page.keyboard.press('KeyX');await wait(s=>s.teleport.anchor);await page.evaluate(()=>window.__unknownPlatformerForceFall());await wait(s=>!s.teleport.anchor);assert.equal((await read()).teleport.counterReady,false);evidence.checkpointClearsAnchor=true;
+ assert.deepEqual(errors,[]);await fs.writeFile(new URL('results.json',out),JSON.stringify({evidence,errors},null,2));console.log(JSON.stringify({passed:true,evidence,errors}));
+}catch(error){await fs.writeFile(new URL('failure.json',out),JSON.stringify({error:String(error),state:await read().catch(()=>null),evidence,errors},null,2));await shot('failure').catch(()=>{});throw error;}finally{await browser.close();}

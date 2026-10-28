@@ -1,3 +1,4 @@
+import {regularEnemyHealth} from '../gameplay/enemyBalance';
 
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
@@ -157,8 +158,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const CHARACTER_ATTACK_FRAME_HEIGHT = 360;
   const CHARACTER_DASH_FRAME_WIDTH = 256;
   const CHARACTER_DASH_FRAME_HEIGHT = 360;
-  const XGOD_DASH_FRAME_WIDTH = 320;
-  const XGOD_DASH_FRAME_HEIGHT = 360;
   const CHARACTER_PROJECTILE_FRAME_WIDTH = 192;
   const CHARACTER_PROJECTILE_FRAME_HEIGHT = 96;
   const SMALL_ENEMY_FRAME_WIDTH = 280;
@@ -166,29 +165,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const GIANT_ENEMY_FRAME_WIDTH = 360;
   const GIANT_ENEMY_FRAME_HEIGHT = 420;
   const FALLBACK_FRAME_SIZE = 180;
-  const GRUNT_WALK_FRAME_WIDTH = 320;
-  const GRUNT_WALK_FRAME_HEIGHT = 420;
-  const SWORD_WALK_FRAME_WIDTH = 260;
-  const SWORD_WALK_FRAME_HEIGHT = 360;
-  const SWORD_ATTACK_FRAME_WIDTH = 500;
-  const SWORD_ATTACK_FRAME_HEIGHT = 400;
-  const PLAYER_UNARMED_ATTACK_FRAME_WIDTH = 400;
-  const PLAYER_UNARMED_ATTACK_FRAME_HEIGHT = 400;
-  const PLAYER_JUMP_FRAME_WIDTH = 240;
-  const PLAYER_JUMP_FRAME_HEIGHT = 360;
-  const SWORD_JUMP_FRAME_WIDTH = 300;
-  const SWORD_JUMP_FRAME_HEIGHT = 360;
+  const GRUNT_WALK_FRAME_WIDTH = 543;
+  const GRUNT_WALK_FRAME_HEIGHT = 724;
+  const SWORD_WALK_FRAME_WIDTH = 232;
+  const SWORD_WALK_FRAME_HEIGHT = 327;
+  const SWORD_ATTACK_FRAME_WIDTH = 350;
+  const SWORD_ATTACK_FRAME_HEIGHT = 332;
   const SWORD_COMBO_FRAMES = [0, 1, 2] as const;
   const SPIDER_FRAME_WIDTH = 560;
   const SPIDER_FRAME_HEIGHT = 578;
-  const DARK_DRAGON_WALK_FRAME_WIDTH = 640;
-  const DARK_DRAGON_WALK_FRAME_HEIGHT = 700;
-  const DARK_DRAGON_ATTACK_FRAME_WIDTH = 640;
-  const DARK_DRAGON_ATTACK_FRAME_HEIGHT = 700;
+  const DARK_DRAGON_WALK_FRAME_WIDTH = 520;
+  const DARK_DRAGON_WALK_FRAME_HEIGHT = 560;
+  const DARK_DRAGON_ATTACK_FRAME_WIDTH = 960;
+  const DARK_DRAGON_ATTACK_FRAME_HEIGHT = 620;
   const KILLINAS_DAUGHTER_WALK_FRAME_WIDTH = 560;
   const KILLINAS_DAUGHTER_WALK_FRAME_HEIGHT = 700;
-  const KILLINAS_DAUGHTER_ATTACK_FRAME_WIDTH = 560;
-  const KILLINAS_DAUGHTER_ATTACK_FRAME_HEIGHT = 700;
+  const KILLINAS_DAUGHTER_ATTACK_FRAME_WIDTH = 760;
+  const KILLINAS_DAUGHTER_ATTACK_FRAME_HEIGHT = 720;
   const DINIO_WALK_FRAME_WIDTH = 238;
   const DINIO_WALK_FRAME_HEIGHT = 279;
   const DINIO_ATTACK_FRAME_WIDTH = 448;
@@ -205,51 +198,45 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const MOONLIGHT_TERROR_ATTACK_FRAME_HEIGHT = 594;
   const COSMIC_GRUNT_FRAME_WIDTH = 543;
   const COSMIC_GRUNT_FRAME_HEIGHT = 724;
-  const VOID_REGENT_WALK_FRAME_WIDTH = 720;
-  const VOID_REGENT_WALK_FRAME_HEIGHT = 840;
-  const VOID_REGENT_ATTACK_FRAME_WIDTH = 700;
-  const VOID_REGENT_ATTACK_FRAME_HEIGHT = 840;
+  const VOID_REGENT_WALK_FRAME_WIDTH = 768;
+  const VOID_REGENT_WALK_FRAME_HEIGHT = 512;
+  const VOID_REGENT_ATTACK_FRAME_WIDTH = 768;
+  const VOID_REGENT_ATTACK_FRAME_HEIGHT = 512;
   const INK_BEHEMOTH_FRAME_WIDTH = 620;
   const INK_BEHEMOTH_FRAME_HEIGHT = 580;
   const XGOD_SWORD_POWERUP_FRAME_WIDTH = 420;
   const XGOD_SWORD_POWERUP_FRAME_HEIGHT = 700;
   const BACKGROUND_STRIP_HEIGHT = 850;
   const DARK_DRAGON = {
-    scale: 0.68,
-    attackScale: 0.68,
-    corpseScale: 0.9,
+    scale: 0.98,
+    corpseScale: 0.7,
     patrolRadius: 320,
-    attackIntervalMs: 2900,
-    windupMs: 620,
+    attackIntervalMs: 2700,
+    windupMs: 520,
     breathMs: 1500,
     fireOrbSpeed: 560,
     phaseTwoFireOrbSpeed: 640,
-    fireVolleyCount: 4,
-    phaseTwoFireVolleyCount: 5,
-    fireVolleySpacingMs: 185
+    fireVolleyCount: 5,
+    phaseTwoFireVolleyCount: 6
   };
   const KILLINAS_DAUGHTER = {
-    scale: 0.62,
-    attackScale: 0.62,
-    corpseScale: 0.68,
-    patrolRadius: 270,
-    attackIntervalMs: 2300,
-    bulletSpeed: 510,
-    phaseTwoBulletSpeed: 580,
-    bulletVolleyCount: 5,
-    phaseTwoBulletVolleyCount: 7,
-    bulletVolleyDelayMs: 150,
-    meleeRange: 225,
-    meleeWindupMs: 440,
-    meleeRecoverMs: 650,
-    gunWindupMs: 420,
-    gunRecoverMs: 940
+    scale: 0.74,
+    patrolRadius: 245,
+    attackIntervalMs: 2800,
+    bulletSpeed: 450,
+    bulletVolleyCount: 4,
+    bulletVolleyDelayMs: 120,
+    meleeRange: 205,
+    meleeWindupMs: 360,
+    meleeRecoverMs: 520,
+    gunWindupMs: 260,
+    gunRecoverMs: 720
   };
   const FEEL = {
-    moveSpeed: 190,
+    moveSpeed: 255,
     moveResponse: 0.26,
     verticalRatio: 0.78,
-    dashMultiplier: 2.1,
+    dashMultiplier: 2.35,
     dashDuration: 170,
     dashCooldown: 560,
     attackDuration: 155,
@@ -259,7 +246,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     attackReach: 66,
     jumpVelocity: 18,
     slamVelocity: -32,
-    cameraLerp: 0.075,
+    cameraLerp: 0.14,
     hitInvulnerabilityMs: 1040,
     hitKnockback: 235,
   };
@@ -325,6 +312,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
     dashCooldownMultiplier: number;
     specialCooldownMs: number;
   }> = {
+    killer_kai: {speedMultiplier:1.05,damageTakenMultiplier:.9,attackDamageMultiplier:1.1,attackDurationMultiplier:1,attackReachBonus:10,dashCooldownMultiplier:.9,specialCooldownMs:1300},
+    zgod: {
+      speedMultiplier: 1.1, damageTakenMultiplier: 0, attackDamageMultiplier: 1000,
+      attackDurationMultiplier: 1, attackReachBonus: 25, dashCooldownMultiplier: .8, specialCooldownMs: 1000
+    },
     xgod: {
       speedMultiplier: 1.04,
       damageTakenMultiplier: 0.9,
@@ -373,9 +365,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
   };
   const playstyle = CHARACTER_PLAYSTYLE[selectedCharacterId];
   const VOID_REGENT = {
-    scale: 0.52,
-    attackScale: 0.55,
-    corpseScale: 0.5,
+    scale: 0.77,
+    attackScale: 0.77,
     attackIntervalMs: 2250,
     windupMs: 430,
     beamMs: 1150,
@@ -386,7 +377,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
   const INK_BEHEMOTH = {
     scale: 0.84,
     attackScale: 0.9,
-    corpseScale: 0.8,
     patrolRadius: 260,
     attackIntervalMs: 2450,
     windupMs: 420,
@@ -459,7 +449,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         { title: 'FURNACE 3', subtitle: 'CINDER RAMPART' },
         { title: 'BOSS ZONE', subtitle: 'THE VOID GATE' },
       ],
-      backgrounds: ['cave_level_full_v2', 'cave_level_full_v2'],
+      backgrounds: ['cave_level_1', 'cave_level_2', 'cave_level_3', 'cave_level_3'],
       wavePlans: [
         { primaryEnemy: 'DEVIL', supportEnemies: ['GIANT', 'GHOST'], baseCount: 4, staggerMs: 720, supportSlots: [1, 3], rearSlots: [3] },
         { primaryEnemy: 'DEVIL', supportEnemies: ['DASHER', 'GIANT', 'ALIEN', 'GHOST'], baseCount: 5, staggerMs: 640, supportSlots: [1, 3, 4, 5], rearSlots: [3, 5] },
@@ -494,28 +484,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
       fitBackgroundToScreen: true
     }
   } as const;
-  const LEVEL_BACKGROUND_ASSETS: Record<LevelNumber, ReadonlyArray<readonly [string, string]>> = {
-    1: [
-      ['dark_alleyway_1', 'dark_alleyway_1.png'],
-      ['dark_alleyway_2', 'dark_alleyway_2.png'],
-      ['dark_alleyway_3', 'dark_alleyway_3.png']
-    ],
-    2: [
-      ['graveyard_level1', 'graveyard_level1.png'],
-      ['graveyard_level2', 'graveyard_level2.png'],
-      ['graveyard_level2_5', 'graveyard_level2_5.png'],
-      ['graveyard_level3', 'graveyard_level3.png']
-    ],
-    3: [
-      ['cave_level_full_v2', 'cave_level_full_v2.png']
-    ],
-    4: [
-      ['space_level_1', 'doodles/space_level_1.svg'],
-      ['space_level_2', 'doodles/space_level_2.svg'],
-      ['space_level_3', 'doodles/space_level_3.svg'],
-      ['space_level_3_ai', 'doodles/space_level_3_ai.png']
-    ]
-  };
   // ------------------------
 
   const getAudioContext = () => {
@@ -763,19 +731,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
     let currentSectionIndex = 0;
     let isFightingWave = false;
     let pendingWaveSpawns = 0;
-    let lastMovementTime = 0;
-    let lockedArenaCameraX: number | null = null;
-    let sectionAdvanceReadyAt = 0;
-    let sectionReleaseX = 0;
+      let lastMovementTime = 0;
       let teleportiCooldownUntil = 0;
       let teleportHangUntil = 0;
       let playableTeleportStrikeDepthUntil = 0;
       let teleportHoldJumpZ = 0;
     let virtualTime = 0;
     let isManualStepping = false;
-    const fightSections = [840, 1700, 2560, 3360];
-    const SECTION_RELEASE_DELAY_MS = 700;
-    const SECTION_RELEASE_DISTANCE = 320;
+    const fightSections = [800, 1600, 2400, 3200];
 
     function syncPowerupStats(extra: Partial<GameStats> = {}) {
       onStatsUpdate({
@@ -860,7 +823,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
 
-      scene.tweens.killTweensOf(player);
+      scene.tweens.killTweensOf(player, 'tint');
       player.setTint(color);
       scene.time.delayedCall(duration, () => {
         if (player && player.active && !isDazed) {
@@ -1110,9 +1073,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
           frameHeight: FALLBACK_FRAME_SIZE
         });
       } else {
-        this.load.spritesheet('player_walk_internal', 'player_walk_v5.png', {
-          frameWidth: XGOD_WALK_FRAME_WIDTH,
-          frameHeight: XGOD_WALK_FRAME_HEIGHT
+        this.load.spritesheet('player_walk_internal', 'player_walk.png', {
+          frameWidth: FRAME_WIDTH,
+          frameHeight: FRAME_HEIGHT
         });
         if (isXGod && useXGodRigWalk) {
           this.load.spritesheet('player_walk_rig_test', 'player_walk_rig_v1.png', {
@@ -1134,10 +1097,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
       this.load.image('player_jump', 'player_jump.png');
-      this.load.spritesheet('player_jump_anim', 'player_jump_v2.png', {
-        frameWidth: PLAYER_JUMP_FRAME_WIDTH,
-        frameHeight: PLAYER_JUMP_FRAME_HEIGHT
-      });
       if (isXGod && useXGodBlenderJump) {
         this.load.spritesheet('player_jump_blender_test', 'player_jump_blender_v1.png', {
           frameWidth: XGOD_WALK_FRAME_WIDTH,
@@ -1146,21 +1105,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
       this.load.image('player_buttbomb', 'player_buttbomb.png');
       this.load.image('player_attack', 'player_attack.png');
-      this.load.spritesheet('player_unarmed_attack', 'player_unarmed_attack_v2.png', {
-        frameWidth: PLAYER_UNARMED_ATTACK_FRAME_WIDTH,
-        frameHeight: PLAYER_UNARMED_ATTACK_FRAME_HEIGHT
-      });
-      this.load.spritesheet('player_sword_walk', 'player_sword_walk_v2.png', {
+      this.load.spritesheet('player_sword_walk', 'player_sword_walk.png', {
         frameWidth: SWORD_WALK_FRAME_WIDTH,
         frameHeight: SWORD_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('player_sword_attack', 'player_sword_attack_v3.png', {
+      this.load.spritesheet('player_sword_attack', 'player_sword_attack.png', {
         frameWidth: SWORD_ATTACK_FRAME_WIDTH,
         frameHeight: SWORD_ATTACK_FRAME_HEIGHT
-      });
-      this.load.spritesheet('player_sword_jump', 'player_sword_jump_v2.png', {
-        frameWidth: SWORD_JUMP_FRAME_WIDTH,
-        frameHeight: SWORD_JUMP_FRAME_HEIGHT
       });
       this.load.spritesheet('spider_walk', 'spider_walk.png', {
         frameWidth: SPIDER_FRAME_WIDTH,
@@ -1170,24 +1121,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: SPIDER_FRAME_WIDTH,
         frameHeight: SPIDER_FRAME_HEIGHT
       });
-      this.load.spritesheet('dark_dragon_walk', 'bosses/dark_dragon_walk_v3.png', {
+      this.load.spritesheet('dark_dragon_walk', 'dark_dragon_walk_v2.png', {
         frameWidth: DARK_DRAGON_WALK_FRAME_WIDTH,
         frameHeight: DARK_DRAGON_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('dark_dragon_attack', 'bosses/dark_dragon_attack_v3.png', {
+      this.load.spritesheet('dark_dragon_attack', 'dark_dragon_attack_v2.png', {
         frameWidth: DARK_DRAGON_ATTACK_FRAME_WIDTH,
         frameHeight: DARK_DRAGON_ATTACK_FRAME_HEIGHT
       });
-      this.load.image('dark_dragon_dead', 'bosses/dark_dragon_dead_v3.png');
-      this.load.spritesheet('killinas_daughter_walk', 'bosses/killinas_daughter_walk_v3.png', {
+      this.load.image('dark_dragon_dead', 'dark_dragon_dead_v2.png');
+      this.load.spritesheet('killinas_daughter_walk', 'killinas_daughter_walk_v2.png', {
         frameWidth: KILLINAS_DAUGHTER_WALK_FRAME_WIDTH,
         frameHeight: KILLINAS_DAUGHTER_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('killinas_daughter_attack', 'bosses/killinas_daughter_attack_v3.png', {
+      this.load.spritesheet('killinas_daughter_attack', 'killinas_daughter_attack_v2.png', {
         frameWidth: KILLINAS_DAUGHTER_ATTACK_FRAME_WIDTH,
         frameHeight: KILLINAS_DAUGHTER_ATTACK_FRAME_HEIGHT
       });
-      this.load.image('killinas_daughter_dead', 'bosses/killinas_daughter_dead_v2.png');
       this.load.image('player_dazed', 'player_dazed.png');
       this.load.image('player_dead', 'player_dead.png');
       this.load.spritesheet('dinio_walk', 'dinio_walk.png', {
@@ -1218,30 +1168,28 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameWidth: MOONLIGHT_TERROR_ATTACK_FRAME_WIDTH,
         frameHeight: MOONLIGHT_TERROR_ATTACK_FRAME_HEIGHT
       });
-      this.load.spritesheet('cosmic_grunt_walk', 'doodles/cosmic_grunt_walk_v2.png', {
+      this.load.spritesheet('cosmic_grunt_walk', 'doodles/cosmic_grunt_walk_ai.png', {
         frameWidth: COSMIC_GRUNT_FRAME_WIDTH,
         frameHeight: COSMIC_GRUNT_FRAME_HEIGHT
       });
-      this.load.spritesheet('void_regent_walk', 'doodles/void_regent_walk_v2.png', {
+      this.load.spritesheet('void_regent_walk', 'bosses/void_regent_walk_v3.png', {
         frameWidth: VOID_REGENT_WALK_FRAME_WIDTH,
         frameHeight: VOID_REGENT_WALK_FRAME_HEIGHT
       });
-      this.load.spritesheet('void_regent_attack', 'doodles/void_regent_attack_v2.png', {
+      this.load.spritesheet('void_regent_attack', 'bosses/void_regent_attack_v3.png', {
         frameWidth: VOID_REGENT_ATTACK_FRAME_WIDTH,
         frameHeight: VOID_REGENT_ATTACK_FRAME_HEIGHT
       });
-      this.load.image('void_regent_dead', 'bosses/void_regent_dead_v2.png');
-      this.load.spritesheet('ink_behemoth_walk', 'ink_behemoth_walk_v2.png', {
+      this.load.spritesheet('ink_behemoth_walk', 'ink_behemoth_walk.png', {
         frameWidth: INK_BEHEMOTH_FRAME_WIDTH,
         frameHeight: INK_BEHEMOTH_FRAME_HEIGHT
       });
-      this.load.spritesheet('ink_behemoth_attack', 'ink_behemoth_attack_v2.png', {
+      this.load.spritesheet('ink_behemoth_attack', 'ink_behemoth_attack.png', {
         frameWidth: INK_BEHEMOTH_FRAME_WIDTH,
         frameHeight: INK_BEHEMOTH_FRAME_HEIGHT
       });
-      this.load.image('ink_behemoth_dead', 'bosses/ink_behemoth_dead_v2.png');
       this.load.image('boss_fireball', 'doodles/boss_fireball_v2.png');
-      this.load.image('killinas_bullet', 'bosses/boss_bullet_v2.png');
+      this.load.image('killinas_bullet', 'doodles/killinas_bullet_v2.png');
       this.load.image('void_bolt', 'doodles/void_bolt_v2.png');
       this.load.image('ink_boss_spit', 'doodles/ink_boss_spit_v2.png');
       this.load.image('xgod_sword_reward', 'xgod_sword_reward_fit.png');
@@ -1250,16 +1198,24 @@ const GameEngine: React.FC<GameEngineProps> = ({
         frameHeight: XGOD_SWORD_POWERUP_FRAME_HEIGHT
       });
       this.load.image('ghost_float', 'ghost_float.png');
-      LEVEL_BACKGROUND_ASSETS[getLevelKey(currentLevel)].forEach(([key, path]) => {
-        this.load.image(key, path);
-      });
+      this.load.image('background_alley', 'background_alley.png');
+      this.load.image('dark_alleyway_1', 'dark_alleyway_1.png');
+      this.load.image('dark_alleyway_2', 'dark_alleyway_2.png');
+      this.load.image('dark_alleyway_3', 'dark_alleyway_3.png');
+      this.load.image('graveyard_level1', 'graveyard_level1.png');
+      this.load.image('graveyard_level2', 'graveyard_level2.png');
+      this.load.image('graveyard_level2_5', 'graveyard_level2_5.png');
+      this.load.image('graveyard_level3', 'graveyard_level3.png');
+      this.load.image('cave_level_1', 'cave_level_1.png');
+      this.load.image('cave_level_2', 'cave_level_2.png');
+      this.load.image('cave_level_3', 'cave_level_3.png');
+      this.load.image('space_level_1', 'doodles/space_level_1.svg');
+      this.load.image('space_level_2', 'doodles/space_level_2.svg');
+      this.load.image('space_level_3', 'doodles/space_level_3.svg');
+      this.load.image('space_level_3_ai', 'doodles/space_level_3_ai.png');
       this.load.spritesheet('player_dash', 'player_dash.png', {
         frameWidth: 221, // 887 / 4
         frameHeight: 266
-      });
-      this.load.spritesheet('player_dash_xgod', 'player_dash_v2.png', {
-        frameWidth: XGOD_DASH_FRAME_WIDTH,
-        frameHeight: XGOD_DASH_FRAME_HEIGHT
       });
       if (isXGod && useXGodBlenderDash) {
         this.load.spritesheet('player_dash_blender_test', 'player_dash_blender_v1.png', {
@@ -1267,7 +1223,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           frameHeight: XGOD_WALK_FRAME_HEIGHT
         });
       }
-      this.load.spritesheet('grunt_walking', 'grunt_walking_v2.png', {
+      this.load.spritesheet('grunt_walking', 'grunt_walking_ai.png', {
         frameWidth: GRUNT_WALK_FRAME_WIDTH,
         frameHeight: GRUNT_WALK_FRAME_HEIGHT
       });
@@ -1278,7 +1234,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       this.load.image('grunt_pile', 'grunt_pile.png');
       this.load.image('p_happy', 'doodles/p_happy.svg');
       this.load.image('m_devil', 'doodles/m_devil.png');
-      this.load.spritesheet('m_alien_walk', 'doodles/m_alien_walk_v2.png', {
+      this.load.spritesheet('m_alien_walk', 'doodles/m_alien_walk_ai.png', {
         frameWidth: SMALL_ENEMY_FRAME_WIDTH,
         frameHeight: SMALL_ENEMY_FRAME_HEIGHT
       });
@@ -1298,7 +1254,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       this.load.image('scrap', 'homework_pickup.png');
       this.load.image('soulTexture', 'doodles/soul_orb.svg');
       this.load.image('m_floater', 'doodles/m_floater.png');
-      this.load.spritesheet('m_dasher_walk', 'doodles/m_dasher_walk_v2.png', {
+      this.load.spritesheet('m_dasher_walk', 'doodles/m_dasher_walk_ai.png', {
         frameWidth: SMALL_ENEMY_FRAME_WIDTH,
         frameHeight: SMALL_ENEMY_FRAME_HEIGHT
       });
@@ -1401,7 +1357,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           scene.anims.create({
             key: 'walk',
             frames: scene.anims.generateFrameNumbers(animKey, { start: 0, end: walkEndFrame }),
-            frameRate: isXGod ? ((useXGodBlenderWalk || useXGodBlenderV3Walk) ? 24 : 12) : 10,
+            frameRate: isXGod && (useXGodBlenderWalk || useXGodBlenderV3Walk) ? 24 : 10,
             repeat: -1
           });
           scene.anims.create({
@@ -1419,12 +1375,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
             frames: scene.anims.generateFrameNumbers(
               isXGod && useXGodBlenderDash && scene.textures.exists('player_dash_blender_test')
                 ? 'player_dash_blender_test'
-                : isXGod && scene.textures.exists('player_dash_xgod')
-                ? 'player_dash_xgod'
                 : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash'),
               { start: 0, end: 3 }
             ),
-            frameRate: 18,
+            frameRate: isXGod && useXGodBlenderDash ? 18 : 15,
             repeat: -1
           });
         }
@@ -1468,7 +1422,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('m_alien_walk')) {
         scene.anims.create({
           key: 'm_alien_walk_anim',
-          frames: scene.anims.generateFrameNumbers('m_alien_walk', { start: 0, end: 7 }),
+          frames: scene.anims.generateFrameNumbers('m_alien_walk', { start: 0, end: 3 }),
           frameRate: 8,
           repeat: -1
         });
@@ -1476,7 +1430,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('m_dasher_walk')) {
         scene.anims.create({
           key: 'm_dasher_walk_anim',
-          frames: scene.anims.generateFrameNumbers('m_dasher_walk', { start: 0, end: 7 }),
+          frames: scene.anims.generateFrameNumbers('m_dasher_walk', { start: 0, end: 3 }),
           frameRate: 13,
           repeat: -1
         });
@@ -1493,7 +1447,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('grunt_walking')) {
         scene.anims.create({
           key: 'grunt_walk',
-          frames: scene.anims.generateFrameNumbers('grunt_walking', { start: 0, end: 7 }),
+          frames: scene.anims.generateFrameNumbers('grunt_walking', { start: 0, end: 3 }),
           frameRate: 12,
           repeat: -1
         });
@@ -1582,7 +1536,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         scene.anims.create({
           key: 'void_regent_attack_anim',
           frames: scene.anims.generateFrameNumbers('void_regent_attack', { start: 0, end: 3 }),
-          frameRate: 8,
+          frameRate: 6,
           repeat: 0
         });
       }
@@ -1605,7 +1559,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('player_sword_walk')) {
         scene.anims.create({
           key: 'sword_walk',
-          frames: scene.anims.generateFrameNumbers('player_sword_walk', { start: 0, end: 7 }),
+          frames: scene.anims.generateFrameNumbers('player_sword_walk', { start: 0, end: 3 }),
           frameRate: 10,
           repeat: -1
         });
@@ -1613,14 +1567,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
           key: 'sword_idle',
           frames: [{ key: 'player_sword_walk', frame: 0 }],
           frameRate: 1
-        });
-      }
-      if (scene.textures.exists('player_unarmed_attack')) {
-        scene.anims.create({
-          key: 'player_unarmed_attack_anim',
-          frames: scene.anims.generateFrameNumbers('player_unarmed_attack', { start: 0, end: 2 }),
-          frameRate: 12,
-          repeat: 0
         });
       }
       if (scene.textures.exists('spider_walk')) {
@@ -1642,7 +1588,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('dark_dragon_walk')) {
         scene.anims.create({
           key: 'dark_dragon_walk_anim',
-          frames: scene.anims.generateFrameNumbers('dark_dragon_walk', { start: 0, end: 7 }),
+          frames: scene.anims.generateFrameNumbers('dark_dragon_walk', { start: 0, end: 6 }),
           frameRate: 9,
           repeat: -1
         });
@@ -1650,8 +1596,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('dark_dragon_attack')) {
         scene.anims.create({
           key: 'dark_dragon_attack_anim',
-          frames: scene.anims.generateFrameNumbers('dark_dragon_attack', { start: 0, end: 7 }),
-          frameRate: 10,
+          frames: scene.anims.generateFrameNumbers('dark_dragon_attack', { start: 0, end: 3 }),
+          frameRate: 7,
           repeat: 0
         });
       }
@@ -1666,8 +1612,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (scene.textures.exists('killinas_daughter_attack')) {
         scene.anims.create({
           key: 'killinas_daughter_attack_anim',
-          frames: scene.anims.generateFrameNumbers('killinas_daughter_attack', { start: 0, end: 7 }),
-          frameRate: 10,
+          frames: scene.anims.generateFrameNumbers('killinas_daughter_attack', { start: 0, end: 3 }),
+          frameRate: 9,
           repeat: 0
         });
       }
@@ -1715,10 +1661,10 @@ const GameEngine: React.FC<GameEngineProps> = ({
       teleportiPickups = scene.physics.add.group();
       gravityCorePickups = scene.physics.add.group();
       healthGraphics = scene.add.graphics().setDepth(10000);
-      const arrowTxt = scene.add.text(0, 0, 'MOVE RIGHT TO START\nA ATTACKS  •  J JUMPS  •  D DASHES', {
-        fontFamily: 'Gochi Hand', fontSize: '28px', align: 'center', color: '#ff4444', stroke: '#ffffff', strokeThickness: 6
+      const arrowTxt = scene.add.text(0, 0, 'KEEP MOVING! ➡️', {
+        fontFamily: 'Gochi Hand', fontSize: '56px', color: '#ff4444', stroke: '#ffffff', strokeThickness: 8
       }).setOrigin(0.5);
-      keepMovingPrompt = scene.add.container(SCREEN_WIDTH / 2, 104, [arrowTxt]);
+      keepMovingPrompt = scene.add.container(200, HORIZON_Y + 50, [arrowTxt]);
       keepMovingPrompt.setScrollFactor(0).setVisible(false).setDepth(10001);
 
       const transitionBg = scene.add.rectangle(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, 200, 0x1e293b, 0.9).setOrigin(0.5);
@@ -2081,6 +2027,69 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
+    function showSectionCard(scene: Phaser.Scene, title: string, subtitle: string, duration: number = 1050) {
+      const titleText = sectionCardOverlay.getAt(1) as Phaser.GameObjects.Text;
+      const subtitleText = sectionCardOverlay.getAt(2) as Phaser.GameObjects.Text;
+      titleText.setText(title);
+      subtitleText.setText(subtitle);
+      scene.tweens.killTweensOf(sectionCardOverlay);
+      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-10);
+      scene.tweens.add({
+        targets: sectionCardOverlay,
+        alpha: SECTION_CARD_OPACITY,
+        y: 0,
+        duration: 160,
+        ease: 'Cubic.easeOut',
+        onComplete: () => {
+          scene.time.delayedCall(duration, () => {
+            scene.tweens.add({
+              targets: sectionCardOverlay,
+              alpha: 0,
+              y: -18,
+              duration: 190,
+              onComplete: () => sectionCardOverlay.setVisible(false).setY(0)
+            });
+          });
+        }
+      });
+    }
+
+    function pulseFeedbackFlash(scene: Phaser.Scene, color: number, alpha: number, duration: number) {
+      feedbackFlash.setFillStyle(color, alpha).setAlpha(alpha);
+      scene.tweens.add({
+        targets: feedbackFlash,
+        alpha: 0,
+        duration,
+        ease: 'Quad.easeOut'
+      });
+    }
+
+    function updateBossHudDisplay(boss?: Phaser.Physics.Arcade.Sprite | null) {
+      if (!boss || !boss.active || boss.getData('state') === 'DEAD') {
+        bossHud.setVisible(false).setAlpha(0);
+        return;
+      }
+
+      const hp = boss.getData('hp') || 0;
+      const maxHp = boss.getData('maxHp') || 1;
+      const intent = boss.getData('intent') || 'STALKING';
+      const bossName = boss.getData('bossName') || 'INK BEHEMOTH';
+      const pct = Phaser.Math.Clamp(hp / maxHp, 0, 1);
+
+      bossHud.setVisible(true).setAlpha(1);
+      bossLabelText.setText(bossName);
+      bossBarFill.width = 204 * pct;
+      bossIntentText.setText(`Intent: ${intent}`);
+      bossIntentText.setColor(
+        intent === 'SHOCKWAVE' ? '#fde68a'
+          : intent === 'DRAGON BREATH' ? '#fdba74'
+          : intent === 'GUNFIRE' ? '#c4b5fd'
+          : intent === 'AXE SWING' || intent === 'AXE RANGE' ? '#fca5a5'
+          : intent === 'INK SPIT' ? '#fecdd3'
+          : '#ddd6fe'
+      );
+    }
+
     function drawBackground(g: Phaser.GameObjects.Graphics, level: number) {
       g.clear();
       g.fillStyle(0xe2e8f0, 1).fillRect(0, 0, 4096, HORIZON_Y);
@@ -2216,19 +2225,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         if (type === 'BOSS') {
           addScore(getMonsterPointValue(monster));
           const isDarkDragonBoss = monster.getData('bossVariant') === 'DARK_DRAGON';
-          const isKillinasBoss = monster.getData('bossVariant') === 'KILLINAS_DAUGHTER';
-          const isInkBehemothBoss = monster.getData('bossVariant') === 'INK_BEHEMOTH';
-          const isVoidRegentBoss = monster.getData('bossVariant') === 'VOID_REGENT';
-          const deathTexture = isDarkDragonBoss
-            ? 'dark_dragon_dead'
-            : isKillinasBoss
-              ? 'killinas_daughter_dead'
-              : isInkBehemothBoss
-                ? 'ink_behemoth_dead'
-            : isVoidRegentBoss
-              ? 'void_regent_dead'
-              : null;
-          if (deathTexture && scene.textures.exists(deathTexture)) {
+          if (isDarkDragonBoss && scene.textures.exists('dark_dragon_dead')) {
             const facingRight = !!monster.getData('facingRight');
             monster.setData('state', 'DEAD');
             monster.setData('intent', 'DEFEATED');
@@ -2238,24 +2235,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
             monster.clearTint();
             monster.setVisible(false);
             const corpse = scene.add.image(
-              monster.x + (isDarkDragonBoss ? (facingRight ? 18 : -18) : 0),
-              monster.y + (isVoidRegentBoss ? 22 : isInkBehemothBoss ? 8 : isKillinasBoss ? 4 : -4),
-              deathTexture
+              monster.x + (facingRight ? 18 : -18),
+              monster.y - 4,
+              'dark_dragon_dead'
             )
-              .setScale(
-                isDarkDragonBoss
-                  ? DARK_DRAGON.corpseScale
-                  : isKillinasBoss
-                    ? KILLINAS_DAUGHTER.corpseScale
-                    : isInkBehemothBoss
-                      ? INK_BEHEMOTH.corpseScale
-                      : VOID_REGENT.corpseScale
-              )
-              .setOrigin(0.5, isVoidRegentBoss ? 0.9 : isDarkDragonBoss ? 0.85 : 0.88)
-              .setFlipX(isDarkDragonBoss ? facingRight : isKillinasBoss ? getBossFlipForFacing(monster, facingRight) : false)
+              .setScale(DARK_DRAGON.corpseScale)
+              .setOrigin(0.5, 0.8)
+              .setFlipX(facingRight)
               .setDepth(monster.y + 1);
             handleBossDefeat(scene);
-            scene.time.delayedCall(isVoidRegentBoss ? 1800 : 1550, () => {
+            scene.time.delayedCall(1400, () => {
               corpse.destroy();
               if (monster && monster.active) {
                 monster.destroy();
@@ -3420,7 +3409,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         monster.anims.stop();
         monster.setTexture('dark_dragon_dead');
         monster.setScale(DARK_DRAGON.corpseScale);
-        monster.setOrigin(0.5, 0.9);
+        monster.setOrigin(0.5, 0.82);
         monster.setSize(430, 255);
         monster.setOffset(236, 302);
         syncBossFacing(monster);
@@ -3429,9 +3418,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       if (pose === 'WALK') {
         monster.setScale(DARK_DRAGON.scale);
-        monster.setOrigin(0.5, 0.82);
-        monster.setSize(345, 350);
-        monster.setOffset(148, 220);
+        monster.setOrigin(0.5, 0.86);
+        monster.setSize(305, 300);
+        monster.setOffset(112, 190);
         syncBossFacing(monster);
         if (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'dark_dragon_walk_anim') {
           monster.play('dark_dragon_walk_anim', true);
@@ -3439,31 +3428,20 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
 
-      monster.setScale(DARK_DRAGON.attackScale);
-      monster.setOrigin(0.5, 0.9);
-      monster.setSize(345, 350);
-      monster.setOffset(148, 220);
-      if (monster.texture.key !== 'dark_dragon_attack') {
-        monster.setTexture('dark_dragon_attack', 0);
-      }
-      syncBossFacing(monster);
-
-      if (pose === 'WINDUP') {
-        if (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'dark_dragon_attack_anim') {
-          monster.play('dark_dragon_attack_anim', true);
-        }
-        return;
-      }
-
       monster.anims.stop();
-      monster.setFrame(5);
+      monster.setTexture('dark_dragon_attack', pose === 'BREATH' ? 2 : 0);
+      monster.setScale(DARK_DRAGON.scale);
+      monster.setOrigin(0.5, 0.82);
+      monster.setSize(330, 270);
+      monster.setOffset(150, 205);
+      syncBossFacing(monster);
     }
 
     function setKillinasPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'GUN' | 'AXE') {
-      monster.setScale(pose === 'WALK' ? KILLINAS_DAUGHTER.scale : KILLINAS_DAUGHTER.attackScale);
-      monster.setOrigin(0.5, 0.88);
-      monster.setSize(220, 320);
-      monster.setOffset(170, 270);
+      monster.setScale(KILLINAS_DAUGHTER.scale);
+      monster.setOrigin(0.5, 0.92);
+      monster.setSize(178, 270);
+      monster.setOffset(pose === 'WALK' ? 190 : 242, pose === 'WALK' ? 345 : 372);
       syncBossFacing(monster);
 
       if (pose === 'WALK') {
@@ -3476,24 +3454,18 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
 
-      if (pose === 'GUN') {
-        if (monster.texture.key !== 'killinas_daughter_attack') {
-          monster.setTexture('killinas_daughter_attack', 0);
-        }
-        if (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'killinas_daughter_attack_anim') {
-          monster.play('killinas_daughter_attack_anim', true);
-        }
-        return;
-      }
-
       monster.anims.stop();
-      monster.setTexture('killinas_daughter_attack', 7);
+      if (pose === 'GUN') {
+        monster.setTexture('killinas_daughter_attack', 1);
+      } else {
+        monster.setTexture('killinas_daughter_attack', 3);
+      }
     }
 
     function setVoidRegentPose(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, pose: 'WALK' | 'ATTACK') {
-      monster.setOrigin(0.5, 0.9);
-      monster.setSize(330, 480);
-      monster.setOffset(pose === 'ATTACK' ? 185 : 195, pose === 'ATTACK' ? 238 : 250);
+      monster.setOrigin(0.5, 1);
+      monster.setSize(230, 330);
+      monster.setOffset(240, 145);
       syncBossFacing(monster);
 
       if (pose === 'ATTACK') {
@@ -3501,7 +3473,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         if (monster.texture.key !== 'void_regent_attack') {
           monster.setTexture('void_regent_attack', 0);
         }
-        if (scene.anims.exists('void_regent_attack_anim')) {
+        if (scene.anims.exists('void_regent_attack_anim') && (!monster.anims.currentAnim || monster.anims.currentAnim.key !== 'void_regent_attack_anim')) {
           monster.play('void_regent_attack_anim', true);
         }
         return;
@@ -3695,18 +3667,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
-    function spawnDarkDragonFireOrb(
-      scene: Phaser.Scene,
-      monster: Phaser.Physics.Arcade.Sprite,
-      speed: number,
-      laneOffsetY: number
-    ) {
+    function spawnDarkDragonFireOrb(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, speed: number) {
       if (!monster.active || !player?.active) {
         return;
       }
       const facingDirection = monster.getData('facingRight') ? 1 : -1;
-      const muzzleX = monster.x + (facingDirection * 176);
-      const muzzleY = monster.y - 156;
+      const muzzleX = monster.x + (facingDirection * 148);
+      const muzzleY = monster.y - 154;
       const muzzleFlash = scene.add.sprite(muzzleX, muzzleY, 'impact_vfx')
         .setScale(0.46)
         .setTint(0xff9f43)
@@ -3728,14 +3695,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       sounds.bossShoot();
       projectile.setScale(0.46);
-      (projectile.body as Phaser.Physics.Arcade.Body).setCircle(54, 56, 56);
       projectile.setTint(0xff7a18);
       projectile.setAlpha(0.98);
       projectile.setDepth(monster.y + 5);
       projectile.setData({
         ownerBoss: monster,
-        damage: 13,
-        expiresAt: scene.time.now + 1650
+        expiresAt: scene.time.now + 1400
       });
       monster.setData('activeFireballs', (monster.getData('activeFireballs') || 0) + 1);
       scene.tweens.add({
@@ -3745,7 +3710,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         yoyo: true,
         repeat: 1
       });
-      scene.physics.moveTo(projectile, player.x, player.y + laneOffsetY, speed);
+      scene.physics.moveToObject(projectile, player, speed);
     }
 
     function performDarkDragonBreath(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite) {
@@ -3757,8 +3722,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const phase = (monster.getData('hp') || 1) <= ((monster.getData('maxHp') || 1) / 2) ? 2 : 1;
       const volleyCount = phase === 2 ? DARK_DRAGON.phaseTwoFireVolleyCount : DARK_DRAGON.fireVolleyCount;
       const orbSpeed = phase === 2 ? DARK_DRAGON.phaseTwoFireOrbSpeed : DARK_DRAGON.fireOrbSpeed;
-      const volleyDurationMs = (volleyCount - 1) * DARK_DRAGON.fireVolleySpacingMs;
-      const dodgeLanes = phase === 2 ? [-52, 44, -28, 62, -8] : [-44, 38, -18, 54];
+      const volleyDurationMs = (volleyCount - 1) * 140;
 
       updateBossFacing(monster);
       monster.setVelocity(0);
@@ -3778,30 +3742,25 @@ const GameEngine: React.FC<GameEngineProps> = ({
         updateBossFacing(monster);
         setDarkDragonPose(scene, monster, 'BREATH');
         for (let i = 0; i < volleyCount; i++) {
-          scene.time.delayedCall(i * DARK_DRAGON.fireVolleySpacingMs, () => {
+          scene.time.delayedCall(i * 140, () => {
             if (monster && monster.active && monster.getData('state') !== 'DEAD' && player && player.active) {
               updateBossFacing(monster);
-              spawnDarkDragonFireOrb(scene, monster, orbSpeed, dodgeLanes[i % dodgeLanes.length]);
+              spawnDarkDragonFireOrb(scene, monster, orbSpeed);
             }
           });
         }
       });
     }
 
-    function spawnKillinasBullet(
-      scene: Phaser.Scene,
-      monster: Phaser.Physics.Arcade.Sprite,
-      speed: number,
-      laneOffsetY: number
-    ) {
+    function spawnKillinasBullet(scene: Phaser.Scene, monster: Phaser.Physics.Arcade.Sprite, spreadRadians: number = 0) {
       if (!monster.active || !player?.active) {
         return;
       }
 
       const facingRight = !!monster.getData('facingRight');
       const direction = facingRight ? 1 : -1;
-      const muzzleX = monster.x + (direction * 110);
-      const muzzleY = monster.y - 132;
+      const muzzleX = monster.x + (direction * 92);
+      const muzzleY = monster.y - 162;
       const projectile = projectiles.create(muzzleX, muzzleY, textureOrFallback(scene, 'killinas_bullet', 'fallback_powerup'));
       if (!projectile) {
         return;
@@ -3821,19 +3780,17 @@ const GameEngine: React.FC<GameEngineProps> = ({
         onComplete: () => muzzleFlash.destroy()
       });
 
-      const angle = Phaser.Math.Angle.Between(muzzleX, muzzleY, player.x, player.y + laneOffsetY);
+      const angle = Phaser.Math.Angle.Between(muzzleX, muzzleY, player.x, player.y - 18) + spreadRadians;
       const body = projectile.body as Phaser.Physics.Arcade.Body;
       body.allowGravity = false;
-      body.setCircle(48, 62, 62);
       body.setVelocity(
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed
+        Math.cos(angle) * KILLINAS_DAUGHTER.bulletSpeed,
+        Math.sin(angle) * KILLINAS_DAUGHTER.bulletSpeed
       );
       projectile.setScale(0.36);
       projectile.setTint(0xc4b5fd);
       projectile.setAlpha(0.96);
       projectile.setDepth(monster.y + 4);
-      projectile.setData({ damage: 14, expiresAt: scene.time.now + 1800 });
       sounds.bossShoot();
     }
 
@@ -3842,17 +3799,13 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
       const now = scene.time.now;
-      const phase = (monster.getData('hp') || 1) <= ((monster.getData('maxHp') || 1) / 2) ? 2 : 1;
-      const volleyCount = phase === 2 ? KILLINAS_DAUGHTER.phaseTwoBulletVolleyCount : KILLINAS_DAUGHTER.bulletVolleyCount;
-      const bulletSpeed = phase === 2 ? KILLINAS_DAUGHTER.phaseTwoBulletSpeed : KILLINAS_DAUGHTER.bulletSpeed;
-      const dodgeLanes = phase === 2 ? [-58, 48, -26, 66, -8, 34, -44] : [-42, 36, -18, 52, 8];
       updateBossFacing(monster);
       monster.setVelocity(0);
       monster.setData('intent', 'GUNFIRE');
       monster.setData('attackKind', 'GUN');
       monster.setData('windupEndsAt', now + KILLINAS_DAUGHTER.gunWindupMs);
-      monster.setData('attackEndsAt', now + KILLINAS_DAUGHTER.gunWindupMs + KILLINAS_DAUGHTER.gunRecoverMs + ((volleyCount - 1) * KILLINAS_DAUGHTER.bulletVolleyDelayMs));
-      monster.setData('nextAttackAt', now + KILLINAS_DAUGHTER.attackIntervalMs - (phase === 2 ? 200 : 0));
+      monster.setData('attackEndsAt', now + KILLINAS_DAUGHTER.gunWindupMs + KILLINAS_DAUGHTER.gunRecoverMs);
+      monster.setData('nextAttackAt', now + KILLINAS_DAUGHTER.attackIntervalMs);
       setKillinasPose(scene, monster, 'GUN');
       playMonsterTell(scene, monster.x, monster.y - 84, 'tell_ring', 0.22, KILLINAS_DAUGHTER.gunWindupMs + 120);
 
@@ -3861,13 +3814,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
           return;
         }
         setKillinasPose(scene, monster, 'GUN');
-        for (let i = 0; i < volleyCount; i++) {
+        for (let i = 0; i < KILLINAS_DAUGHTER.bulletVolleyCount; i++) {
           scene.time.delayedCall(i * KILLINAS_DAUGHTER.bulletVolleyDelayMs, () => {
             if (monster && monster.active && monster.getData('state') !== 'DEAD' && player && player.active) {
               updateBossFacing(monster);
-              monster.anims.stop();
-              monster.setFrame(5);
-              spawnKillinasBullet(scene, monster, bulletSpeed, dodgeLanes[i % dodgeLanes.length]);
+              setKillinasPose(scene, monster, 'GUN');
+              spawnKillinasBullet(scene, monster, Phaser.Math.FloatBetween(-0.08, 0.08));
             }
           });
         }
@@ -4055,26 +4007,23 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     function getWaveMonsterType(sectionIndex: number, spawnSlot: number): MonsterType {
       const wavePlan = getWavePlan(sectionIndex);
-      const supportEnemies = wavePlan.supportEnemies as readonly MonsterType[];
-      const supportSlots = wavePlan.supportSlots as readonly number[];
-      const supportCount = supportEnemies.length;
+      const supportCount = wavePlan.supportEnemies.length;
       const isSupportSlot =
-        supportSlots.includes(spawnSlot) ||
+        wavePlan.supportSlots.includes(spawnSlot) ||
         (spawnSlot >= wavePlan.baseCount && supportCount > 0 && spawnSlot % 2 === 1);
 
       if (!isSupportSlot || supportCount === 0) {
         return wavePlan.primaryEnemy;
       }
 
-      const supportIndex = supportSlots.indexOf(spawnSlot);
+      const supportIndex = wavePlan.supportSlots.indexOf(spawnSlot);
       const cycleIndex = supportIndex >= 0 ? supportIndex : spawnSlot;
-      return supportEnemies[cycleIndex % supportCount];
+      return wavePlan.supportEnemies[cycleIndex % supportCount];
     }
 
     function shouldSpawnFromRear(sectionIndex: number, spawnSlot: number) {
       const wavePlan = getWavePlan(sectionIndex);
-      const rearSlots = wavePlan.rearSlots as readonly number[];
-      return rearSlots.includes(spawnSlot) || (spawnSlot > wavePlan.baseCount && spawnSlot % 3 === 0);
+      return wavePlan.rearSlots.includes(spawnSlot) || (spawnSlot > wavePlan.baseCount && spawnSlot % 3 === 0);
     }
 
     function getMonsterVisual(type: MonsterType) {
@@ -4085,7 +4034,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       if (type === 'COSMIC_GRUNT') return { texture: 'cosmic_grunt_walk', useAnim: true, scale: 0.26, animKey: 'cosmic_grunt_walk_anim' };
       if (type === 'GIANT') return { texture: 'm_giant_walk', useAnim: true, scale: 0.54, animKey: 'm_giant_walk_anim' };
       if (type === 'FLOATER') return { texture: 'spider_walk', useAnim: true, scale: 0.31, animKey: 'spider_walk_anim' };
-      return { texture: 'grunt_walking', useAnim: true, scale: 0.46, animKey: 'grunt_walk' };
+      return { texture: 'grunt_walking', useAnim: true, scale: 0.24, animKey: 'grunt_walk' };
     }
 
     function getMonsterClass(type: MonsterType): EnemyClass {
@@ -4106,7 +4055,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function getDifficultyScaledEnemyHp(baseHp: number) {
-      return Math.max(1, Math.round(baseHp * difficultyTuning.enemyHpMultiplier));
+      return regularEnemyHealth(Math.max(1, Math.round(baseHp * difficultyTuning.enemyHpMultiplier)));
     }
 
     function getDifficultyScaledBossHp(baseHp: number) {
@@ -4241,13 +4190,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     function triggerSectionWave(scene: Phaser.Scene) {
       isFightingWave = true;
       pendingWaveSpawns = 0;
-      const camera = scene.cameras.main;
-      const camX = Phaser.Math.Clamp(camera.scrollX, 0, 4096 - SCREEN_WIDTH);
-      // A section is a proper arena: freeze the viewport while the wave is
-      // active so the player cannot scroll past enemies or skip the fight.
-      lockedArenaCameraX = camX;
-      camera.stopFollow();
-      camera.setScroll(camX, 0);
+      const camX = scene.cameras.main.scrollX;
       scene.physics.world.setBounds(camX, WALK_ZONE_TOP, SCREEN_WIDTH, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
       const levelCards = LEVEL_PROFILES[getLevelKey(currentLevel)].sectionCards;
       const activeCard = levelCards[Math.min(currentSectionIndex, levelCards.length - 1)];
@@ -4360,8 +4303,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
         } else if (visual.useAnim) {
           m.setScale(visual.scale).setOrigin(0.5, 0.9);
           m.setFlipX(!fromRear);
-          m.setSize(136, 210);
-          m.setOffset(84, 128);
+          m.setSize(230, 360);
+          m.setOffset(142, 220);
           const animToPlay = visual.animKey ?? 'grunt_walk';
           if (scene.anims.exists(animToPlay)) {
             m.play(animToPlay);
@@ -4392,7 +4335,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const bossStartX = isDarkDragonBoss ? camX + 620 : camX + 800;
       const boss = monsters.create(bossStartX, (HORIZON_Y + FLOOR_BOTTOM) / 2, textureOrFallback(scene, bossTexture, 'fallback_boss'));
       if (boss) {
-        const bossHp = getDifficultyScaledBossHp(currentLevel === 1 ? 40 : currentLevel === 2 ? 120 : currentLevel === 3 ? 72 : 104);
+        const bossHp = getDifficultyScaledBossHp(currentLevel === 1 ? 40 : currentLevel === 2 ? 56 : currentLevel === 3 ? 72 : 104);
         const baseScale = isDarkDragonBoss ? DARK_DRAGON.scale : isKillinasBoss ? KILLINAS_DAUGHTER.scale : isVoidRegentBoss ? VOID_REGENT.scale : isInkBehemothBoss ? INK_BEHEMOTH.scale : currentLevel === 3 ? 4.1 : 3.5;
         boss.setScale(baseScale).setData({
           type: 'BOSS',
@@ -4411,9 +4354,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
           facingRight: false,
           activeFireballs: 0,
           hoverSeed: Phaser.Math.Between(0, 2000),
-          baseFacing: isDarkDragonBoss || isKillinasBoss ? 'right' : 'left'
+          baseFacing: isKillinasBoss ? 'right' : 'left'
         });
-        boss.setCollideWorldBounds(!isDarkDragonBoss).setTint(currentLevel === 3 ? 0xffd4d4 : currentLevel === 2 ? 0xdbeafe : 0xcccccc);
+        boss.setCollideWorldBounds(true).setTint(currentLevel === 3 ? 0xffd4d4 : currentLevel === 2 ? 0xdbeafe : 0xcccccc);
         if (isDarkDragonBoss) {
           boss.clearTint();
           updateBossFacing(boss);
@@ -4626,9 +4569,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
       const swordWalkAvailable = isXGod && hasFlameSword && scene.textures.exists('player_sword_walk') && scene.anims.exists('sword_walk');
       const xGodJumpTexture = isXGod && useXGodBlenderJump && scene.textures.exists('player_jump_blender_test')
         ? 'player_jump_blender_test'
-        : 'player_jump_anim';
-      const xGodJumpAvailable = isXGod && scene.textures.exists(xGodJumpTexture);
-      const swordJumpAvailable = isXGod && hasFlameSword && scene.textures.exists('player_sword_jump');
+        : null;
       const hasAnims = scene.anims.exists('walk') || scene.anims.exists('sword_walk');
       if (hasAnims && player.anims) {
         player.setFlipX(facingDirection === -1);
@@ -4639,7 +4580,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             if (player.texture.key !== slamTexture) {
               player.setTexture(slamTexture);
             }
-          } else if (xGodJumpAvailable) {
+          } else if (xGodJumpTexture) {
             // These poses are chosen from the real vertical velocity rather than
             // replayed on a timer, keeping the animation in sync with the jump arc.
             const jumpFrame = teleportHolding
@@ -4650,27 +4591,16 @@ const GameEngine: React.FC<GameEngineProps> = ({
                     : jumpVelocity > -6 ? 3
                       : jumpVelocity > -13 ? 4
                         : 5;
-            const jumpTexture = swordJumpAvailable ? 'player_sword_jump' : xGodJumpTexture;
-            if (player.texture.key !== jumpTexture || String(player.frame.name) !== String(jumpFrame)) {
+            if (player.texture.key !== xGodJumpTexture || String(player.frame.name) !== String(jumpFrame)) {
               player.anims.stop();
-              player.setTexture(jumpTexture, jumpFrame);
+              player.setTexture(xGodJumpTexture, jumpFrame);
             }
           } else {
-            const jumpTexture = swordWalkAvailable ? 'player_sword_walk' : defaultWalkTexture;
-            const jumpAnim = swordWalkAvailable ? 'sword_idle' : 'jump_pose';
-            if (player.texture.key !== jumpTexture) {
-              player.anims.stop();
-              player.setTexture(jumpTexture);
-            }
-            if ((!player.anims.currentAnim || player.anims.currentAnim.key !== jumpAnim) && scene.anims.exists(jumpAnim)) {
-              player.anims.play(jumpAnim, true);
-            }
+            player.setTexture(!isXGod && scene.textures.exists('character_jump') ? 'character_jump' : 'player_jump');
           }
         } else if (isDashing) {
           const dashTexture = isXGod && useXGodBlenderDash && scene.textures.exists('player_dash_blender_test')
             ? 'player_dash_blender_test'
-            : isXGod && scene.textures.exists('player_dash_xgod')
-            ? 'player_dash_xgod'
             : (!isXGod && scene.textures.exists('character_dash') ? 'character_dash' : 'player_dash');
           if (player.texture.key !== dashTexture) {
             player.setTexture(dashTexture, 0);
@@ -4685,18 +4615,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
               player.setTexture('character_attack');
               player.anims.play('character_attack_anim', true);
             }
-          } else if (isXGod && !hasFlameSword && scene.textures.exists('player_unarmed_attack')) {
-            if (player.texture.key !== 'player_unarmed_attack') {
-              player.anims.stop();
-              player.setTexture('player_unarmed_attack', 0);
-              player.anims.play('player_unarmed_attack_anim', true);
-            }
           } else if (hasFlameSword && scene.textures.exists('player_sword_attack')) {
             player.anims.stop();
-            const swordFrame = SWORD_COMBO_FRAMES[swordComboStep];
-            if (player.texture.key !== 'player_sword_attack' || String(player.frame.name) !== String(swordFrame)) {
-              player.setTexture('player_sword_attack', swordFrame);
-            }
+            player.setTexture('player_sword_attack', SWORD_COMBO_FRAMES[swordComboStep]);
           } else {
             player.anims.stop();
             player.setTexture('player_attack');
@@ -4722,6 +4643,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       if (!teleportHolding && (Phaser.Input.Keyboard.JustDown(jumpKey) || Phaser.Input.Keyboard.JustDown(jumpAltKey) || touchJumpJustDown) && !isJumping) {
         isJumping = true; jumpVelocity = FEEL.jumpVelocity; sounds.jump();
+        playPlayerScalePulse(scene, PLAYER_SCALE * 1.2, PLAYER_SCALE * 0.8, 100);
       }
       if (!teleportHolding && isJumping && !isSlamming && (Phaser.Input.Keyboard.JustDown(attackKey) || touchAttackJustDown)) {
         isSlamming = true; jumpVelocity = FEEL.slamVelocity;
@@ -4738,6 +4660,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
           if (wasSlamming) {
             performSlamImpact(scene);
             playPlayerScalePulse(scene, PLAYER_SCALE * 1.4, PLAYER_SCALE * 0.5, 150);
+          } else {
+            playPlayerScalePulse(scene, PLAYER_SCALE * 1.2, PLAYER_SCALE * 0.6, 100);
           }
         }
       }
@@ -4775,9 +4699,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         }
       }
 
-      const usingEmbeddedSwordArt = player.texture.key === 'player_sword_walk'
-        || player.texture.key === 'player_sword_attack'
-        || player.texture.key === 'player_sword_jump';
+      const usingEmbeddedSwordArt = player.texture.key === 'player_sword_walk' || player.texture.key === 'player_sword_attack';
       const sScale = Math.max(0.3, 1 - (jumpZ / 400));
       playerShadow
         .setPosition(player.x, player.y + 6)
@@ -4806,23 +4728,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
       } else if (!playerInvulnerable) {
         player.setAlpha(1);
       }
-      const nextSectionGate = currentSectionIndex < fightSections.length
-        ? Math.max(fightSections[currentSectionIndex], sectionReleaseX)
-        : Number.POSITIVE_INFINITY;
-      if (!isFightingWave && currentTime >= sectionAdvanceReadyAt && player.x >= nextSectionGate) {
-        triggerSectionWave(scene);
-      }
+      if (!isFightingWave && currentSectionIndex < fightSections.length && player.x >= fightSections[currentSectionIndex]) triggerSectionWave(scene);
       if (isFightingWave && pendingWaveSpawns === 0 && monsters.countActive() === 0) {
         isFightingWave = false;
         currentSectionIndex++;
-        lockedArenaCameraX = null;
         scene.physics.world.setBounds(0, WALK_ZONE_TOP, 4096, WALK_ZONE_BOTTOM - WALK_ZONE_TOP);
-        scene.cameras.main.startFollow(player, true, FEEL.cameraLerp, FEEL.cameraLerp);
-        sectionAdvanceReadyAt = currentTime + SECTION_RELEASE_DELAY_MS;
-        sectionReleaseX = Math.min(4096, player.x + SECTION_RELEASE_DISTANCE);
         lastMovementTime = currentTime;
         pulseFeedbackFlash(scene, 0x22c55e, 0.1, 220);
-        showSectionCard(scene, 'AREA CLEARED', currentSectionIndex >= fightSections.length ? 'THE STREET GOES QUIET' : 'PATH OPEN — ADVANCE', 900);
+        showSectionCard(scene, 'PATH CLEARED', currentSectionIndex >= fightSections.length ? 'THE STREET GOES QUIET' : 'KEEP PUSHING FORWARD', 800);
       }
       keepMovingPrompt.setVisible(!isFightingWave && currentSectionIndex < fightSections.length && currentTime - lastMovementTime > 5000);
 
@@ -5209,13 +5122,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           updateMonsterFacing(monster);
           syncMonsterWalkRate(monster);
           applyMonsterSeparation(monster);
-          const healthBarWidth = Phaser.Math.Clamp(monster.displayWidth * 0.76, 54, 78);
-          const healthBarY = monster.y - Math.max(56, monster.displayHeight * 0.56);
-          const telegraphingAttack = ['WINDUP', 'DASHING', 'RANGE_WINDUP', 'JUMP_PREP', 'JUMPING', 'SLAM'].includes(state);
-          if (telegraphingAttack) {
-            drawThreatMarker(healthGraphics, monster.x, healthBarY - 18, state === 'DASHING');
-          }
-          drawBar(healthGraphics, monster.x - (healthBarWidth / 2), healthBarY, healthBarWidth, hp / maxHp);
+          drawBar(healthGraphics, monster.x - 20, monster.y - 45, 40, hp / maxHp);
         }
         monster.setDepth(monster.y);
       });
@@ -5243,9 +5150,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
       // Continuous background strip scrolling
       if (backgroundStrip) {
-        if (lockedArenaCameraX !== null) {
-          scene.cameras.main.setScroll(lockedArenaCameraX, 0);
-        }
         const maxCameraScroll = Math.max(1, 4096 - SCREEN_WIDTH);
         let scrollProgress = Phaser.Math.Clamp(scene.cameras.main.scrollX / maxCameraScroll, 0, 1);
         if (currentLevel === 4 && currentSectionIndex >= fightSections.length - 1) {
@@ -5259,19 +5163,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
     }
 
     function drawBar(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, p: number, isBoss: boolean = false) {
-      const h = isBoss ? 14 : 8;
-      g.fillStyle(0x0f172a, 0.82).fillRect(x - 2, y - 2, w + 4, h + 4);
-      g.lineStyle(1.5, 0xffffff, 0.88).strokeRect(x - 2, y - 2, w + 4, h + 4);
+      const h = isBoss ? 12 : 6; g.fillStyle(0x000000, 0.3).fillRect(x, y, w, h);
       const color = isBoss ? 0x9333ea : (p > 0.5 ? 0x22c55e : (p > 0.25 ? 0xfacc15 : 0xef4444));
       g.fillStyle(color, 1).fillRect(x + 1, y + 1, (w - 2) * p, h - 2);
-    }
-
-    function drawThreatMarker(g: Phaser.GameObjects.Graphics, x: number, y: number, isDashing: boolean) {
-      const color = isDashing ? 0xfacc15 : 0xef4444;
-      g.fillStyle(0x0f172a, 0.9).fillCircle(x, y, 14);
-      g.lineStyle(2, 0xffffff, 0.92).strokeCircle(x, y, 14);
-      g.fillStyle(color, 1).fillTriangle(x, y - 9, x - 8, y + 7, x + 8, y + 7);
-      g.fillStyle(0x0f172a, 1).fillRect(x - 1.5, y - 3, 3, 7).fillCircle(x, y + 4, 1.8);
     }
 
     function renderGameToText() {
@@ -5493,7 +5387,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   return (
     <div className="unknown-universe-game relative flex h-full w-full items-center justify-center bg-slate-800">
-      <div ref={gameContainerRef} className="h-full w-full overflow-hidden bg-slate-900 shadow-2xl lg:rounded-lg lg:border-8 lg:border-slate-700" />
+      <div ref={gameContainerRef} className="h-full w-full overflow-hidden bg-slate-900 shadow-2xl lg:h-auto lg:w-auto lg:rounded-lg lg:border-8 lg:border-slate-700" />
     </div>
   );
 };

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "l1-01-flame-sword",
+    "title": "The Flame Sword",
+    "image": "/cutscenes/level1-v1/l1-01-flame-sword.png",
+    "speaker": "X GOD",
+    "caption": [
+      "The Dragon was beaten.",
+      "The Flame Sword was finally mine."
+    ],
+    "alt": "X God claims the Flame Sword on the school rooftop while Dark Dragon lies defeated beside the freight crates."
+  },
+  {
+    "id": "l1-02-the-mark",
+    "title": "The mark on the meteor",
+    "image": "/cutscenes/level1-v1/l1-02-the-mark.png",
+    "speaker": "X GOD",
+    "caption": [
+      "That mark... I'd seen it before.",
+      "It was carved into the meteor."
+    ],
+    "alt": "X God recognizes the meteor's broken gold-circle mark on a blackened freight seal."
+  },
+  {
+    "id": "l1-03-schoolmate",
+    "title": "A familiar face",
+    "image": "/cutscenes/level1-v1/l1-03-schoolmate.png",
+    "speaker": "BARRETT",
+    "caption": [
+      "X! You made it too!",
+      "I saw that mark on a Graveyard cart."
+    ],
+    "alt": "X God and his surviving Earthior schoolmate Barrett greet each other with a friendly fist bump."
+  },
+  {
+    "id": "l1-04-graveyard-road",
+    "title": "Toward the Graveyard",
+    "image": "/cutscenes/level1-v1/l1-04-graveyard-road.png",
+    "speaker": "X GOD",
+    "caption": [
+      "Then the Graveyard is our next stop.",
+      "We find answers. We find our friends."
+    ],
+    "alt": "The school friends X God and Barrett set off together toward the distant moonlit Graveyard."
+  }
+]

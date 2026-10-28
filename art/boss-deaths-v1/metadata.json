@@ -1,0 +1,266 @@
+{
+  "dark_dragon": {
+    "source": "dark_dragon-source.png",
+    "seed": "dark_dragon-seed.png",
+    "scale": 0.3641509433962264,
+    "logicalFrame": [
+      640,
+      640
+    ],
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bounds": [
+      [
+        227,
+        407,
+        412,
+        600
+      ],
+      [
+        223,
+        427,
+        417,
+        600
+      ],
+      [
+        201,
+        482,
+        438,
+        600
+      ],
+      [
+        191,
+        498,
+        449,
+        600
+      ]
+    ],
+    "atlas": [
+      503,
+      319
+    ],
+    "decodedBytes": 641828
+  },
+  "killinas_daughter": {
+    "source": "killinas_daughter-source.png",
+    "seed": "killinas_daughter-seed.png",
+    "scale": 0.49122807017543857,
+    "logicalFrame": [
+      640,
+      640
+    ],
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bounds": [
+      [
+        208,
+        320,
+        431,
+        600
+      ],
+      [
+        221,
+        390,
+        418,
+        600
+      ],
+      [
+        152,
+        444,
+        487,
+        600
+      ],
+      [
+        146,
+        507,
+        493,
+        600
+      ]
+    ],
+    "atlas": [
+      690,
+      444
+    ],
+    "decodedBytes": 1225440
+  },
+  "ink_behemoth": {
+    "source": "ink_behemoth-source.png",
+    "seed": "ink_behemoth-seed.png",
+    "scale": 0.6356589147286822,
+    "logicalFrame": [
+      640,
+      640
+    ],
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bounds": [
+      [
+        114,
+        272,
+        526,
+        600
+      ],
+      [
+        135,
+        310,
+        505,
+        600
+      ],
+      [
+        109,
+        346,
+        530,
+        600
+      ],
+      [
+        87,
+        414,
+        552,
+        600
+      ]
+    ],
+    "atlas": [
+      894,
+      590
+    ],
+    "decodedBytes": 2109840
+  },
+  "kilina": {
+    "source": "kilina-source.png",
+    "seed": "kilina-seed.png",
+    "scale": 0.6016806722689075,
+    "logicalFrame": [
+      640,
+      640
+    ],
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bounds": [
+      [
+        177,
+        242,
+        462,
+        600
+      ],
+      [
+        157,
+        341,
+        483,
+        600
+      ],
+      [
+        105,
+        385,
+        535,
+        600
+      ],
+      [
+        100,
+        483,
+        539,
+        600
+      ]
+    ],
+    "atlas": [
+      877,
+      581
+    ],
+    "decodedBytes": 2038148
+  },
+  "void_regent": {
+    "source": "void_regent-source.png",
+    "seed": "void_regent-seed.png",
+    "scale": 0.6365280289330922,
+    "logicalFrame": [
+      640,
+      640
+    ],
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bounds": [
+      [
+        87,
+        248,
+        552,
+        600
+      ],
+      [
+        117,
+        315,
+        522,
+        600
+      ],
+      [
+        97,
+        366,
+        543,
+        600
+      ],
+      [
+        81,
+        435,
+        558,
+        600
+      ]
+    ],
+    "atlas": [
+      950,
+      594
+    ],
+    "decodedBytes": 2257200
+  },
+  "pursuer": {
+    "source": "pursuer-source.png",
+    "seed": "pursuer-seed.png",
+    "scale": 0.5974754558204769,
+    "logicalFrame": [
+      640,
+      400
+    ],
+    "origin": [
+      0.5,
+      0.5
+    ],
+    "bounds": [
+      [
+        107,
+        50,
+        533,
+        349
+      ],
+      [
+        103,
+        50,
+        537,
+        349
+      ],
+      [
+        107,
+        52,
+        533,
+        348
+      ],
+      [
+        102,
+        50,
+        537,
+        349
+      ]
+    ],
+    "atlas": [
+      869,
+      606
+    ],
+    "decodedBytes": 2106456
+  }
+}

@@ -1,0 +1,1003 @@
+{
+  "sampleRate": 32000,
+  "channels": 1,
+  "provenance": "Original deterministic layered synthesis; no recorded or third-party samples",
+  "files": [
+    {
+      "name": "blaster",
+      "file": "blaster-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.077,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "blaster",
+      "file": "blaster-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0763,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "blaster",
+      "file": "blaster-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0819,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipLaser",
+      "file": "shipLaser-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0806,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipLaser",
+      "file": "shipLaser-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0728,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipLaser",
+      "file": "shipLaser-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0828,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipLance",
+      "file": "shipLance-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0971,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "lance harmonic tail",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipLance",
+      "file": "shipLance-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0998,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "lance harmonic tail",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipMissile",
+      "file": "shipMissile-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0944,
+      "layers": [
+        "rocket propellant rush",
+        "launch thump",
+        "accelerating motor",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipMissile",
+      "file": "shipMissile-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0938,
+      "layers": [
+        "rocket propellant rush",
+        "launch thump",
+        "accelerating motor",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "enemyLaser",
+      "file": "enemyLaser-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0865,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "enemyLaser",
+      "file": "enemyLaser-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0808,
+      "layers": [
+        "trigger snap",
+        "pressure body",
+        "modulated energy discharge",
+        "barrel air and electric grit",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "jump",
+      "file": "jump-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0685,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "jump",
+      "file": "jump-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0602,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "jump",
+      "file": "jump-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0733,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "doubleJump",
+      "file": "doubleJump-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0855,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "second-jump shimmer",
+        "air twist",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "doubleJump",
+      "file": "doubleJump-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0797,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "second-jump shimmer",
+        "air twist",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "doubleJump",
+      "file": "doubleJump-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0918,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "second-jump shimmer",
+        "air twist",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "landing",
+      "file": "landing-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0641,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "landing",
+      "file": "landing-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0827,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamCharge",
+      "file": "slamCharge-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1113,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "downward commitment cue",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamCharge",
+      "file": "slamCharge-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1102,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "downward commitment cue",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamXgod",
+      "file": "slamXgod-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1085,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamXgod",
+      "file": "slamXgod-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1134,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamBarrett",
+      "file": "slamBarrett-1.wav",
+      "seconds": 0.7,
+      "peak": 0.74,
+      "rms": 0.0962,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamBarrett",
+      "file": "slamBarrett-2.wav",
+      "seconds": 0.7,
+      "peak": 0.74,
+      "rms": 0.1045,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamNico",
+      "file": "slamNico-1.wav",
+      "seconds": 0.68,
+      "peak": 0.74,
+      "rms": 0.1079,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamNico",
+      "file": "slamNico-2.wav",
+      "seconds": 0.68,
+      "peak": 0.74,
+      "rms": 0.1133,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamEzra",
+      "file": "slamEzra-1.wav",
+      "seconds": 0.72,
+      "peak": 0.74,
+      "rms": 0.1167,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "rising flame roar",
+        "flame pressure rise",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamEzra",
+      "file": "slamEzra-2.wav",
+      "seconds": 0.72,
+      "peak": 0.74,
+      "rms": 0.1157,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "rising flame roar",
+        "flame pressure rise",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamTeleport",
+      "file": "slamTeleport-1.wav",
+      "seconds": 0.65,
+      "peak": 0.74,
+      "rms": 0.1091,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "inward portal warp",
+        "vortex air",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamTeleport",
+      "file": "slamTeleport-2.wav",
+      "seconds": 0.65,
+      "peak": 0.74,
+      "rms": 0.1174,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "inward portal warp",
+        "vortex air",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamZgod",
+      "file": "slamZgod-1.wav",
+      "seconds": 0.85,
+      "peak": 0.74,
+      "rms": 0.1004,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "star power chord",
+        "radiant wave",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "slamZgod",
+      "file": "slamZgod-2.wav",
+      "seconds": 0.85,
+      "peak": 0.74,
+      "rms": 0.1065,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "star power chord",
+        "radiant wave",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0898,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0996,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1038,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.069,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0707,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0767,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "swordSwing",
+      "file": "swordSwing-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0908,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "swordSwing",
+      "file": "swordSwing-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.092,
+      "layers": [
+        "shaped air sweep",
+        "motion body",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "swordHit",
+      "file": "swordHit-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0812,
+      "layers": [
+        "edge contact",
+        "hit weight",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "swordHit",
+      "file": "swordHit-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0848,
+      "layers": [
+        "edge contact",
+        "hit weight",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.069,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0669,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0678,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "explosion",
+      "file": "explosion-1.wav",
+      "seconds": 0.65,
+      "peak": 0.74,
+      "rms": 0.106,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "explosion",
+      "file": "explosion-2.wav",
+      "seconds": 0.65,
+      "peak": 0.74,
+      "rms": 0.1018,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "explosion",
+      "file": "explosion-3.wav",
+      "seconds": 0.65,
+      "peak": 0.74,
+      "rms": 0.1083,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipHit",
+      "file": "shipHit-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0773,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "settling debris",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipHit",
+      "file": "shipHit-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0705,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "settling debris",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipExplosion",
+      "file": "shipExplosion-1.wav",
+      "seconds": 1.05,
+      "peak": 0.74,
+      "rms": 0.0989,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "secondary rupture",
+        "wreckage tail",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "shipExplosion",
+      "file": "shipExplosion-2.wav",
+      "seconds": 1.05,
+      "peak": 0.74,
+      "rms": 0.0955,
+      "layers": [
+        "impact pressure and sub body",
+        "phone-speaker impact harmonic",
+        "leading impact snap",
+        "low debris roll",
+        "inharmonic resonance",
+        "staggered settling fragments",
+        "blast bloom",
+        "secondary rupture",
+        "wreckage tail",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "frost",
+      "file": "frost-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0774,
+      "layers": [
+        "ice hiss",
+        "inharmonic resonance",
+        "cold discharge",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "frost",
+      "file": "frost-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0708,
+      "layers": [
+        "ice hiss",
+        "inharmonic resonance",
+        "cold discharge",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "ember",
+      "file": "ember-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1125,
+      "layers": [
+        "thrust and flame rush",
+        "boot motor",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "ember",
+      "file": "ember-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1199,
+      "layers": [
+        "thrust and flame rush",
+        "boot motor",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "storm",
+      "file": "storm-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1076,
+      "layers": [
+        "electrical crack",
+        "thunder body",
+        "thunder roll",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "storm",
+      "file": "storm-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1056,
+      "layers": [
+        "electrical crack",
+        "thunder body",
+        "thunder roll",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "teleport",
+      "file": "teleport-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1413,
+      "layers": [
+        "portal inhale",
+        "portal release",
+        "phase texture",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "teleport",
+      "file": "teleport-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1424,
+      "layers": [
+        "portal inhale",
+        "portal release",
+        "phase texture",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "teleport",
+      "file": "teleport-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1501,
+      "layers": [
+        "portal inhale",
+        "portal release",
+        "phase texture",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "stomp",
+      "file": "stomp-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0861,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "settling debris",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "stomp",
+      "file": "stomp-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0787,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "settling debris",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "stomp",
+      "file": "stomp-3.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0812,
+      "layers": [
+        "low impact weight",
+        "contact crack",
+        "body grit",
+        "inharmonic resonance",
+        "settling debris",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "spring",
+      "file": "spring-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0774,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "spring",
+      "file": "spring-2.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0859,
+      "layers": [
+        "shoe push and fabric air",
+        "rising elastic body",
+        "foot push",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
+    }
+  ]
+}

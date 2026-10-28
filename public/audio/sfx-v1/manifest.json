@@ -1,0 +1,240 @@
+{
+  "sampleRate": 44100,
+  "channels": 1,
+  "files": [
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-1.wav",
+      "seconds": 0.145,
+      "peak": 0.8
+    },
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-2.wav",
+      "seconds": 0.145,
+      "peak": 0.8
+    },
+    {
+      "name": "punchSwing",
+      "file": "punchSwing-3.wav",
+      "seconds": 0.145,
+      "peak": 0.8
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-1.wav",
+      "seconds": 0.175,
+      "peak": 0.8
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-2.wav",
+      "seconds": 0.175,
+      "peak": 0.8
+    },
+    {
+      "name": "punchHit",
+      "file": "punchHit-3.wav",
+      "seconds": 0.175,
+      "peak": 0.8
+    },
+    {
+      "name": "swordSwing",
+      "file": "swordSwing-1.wav",
+      "seconds": 0.235,
+      "peak": 0.8
+    },
+    {
+      "name": "swordSwing",
+      "file": "swordSwing-2.wav",
+      "seconds": 0.235,
+      "peak": 0.8
+    },
+    {
+      "name": "swordHit",
+      "file": "swordHit-1.wav",
+      "seconds": 0.265,
+      "peak": 0.8
+    },
+    {
+      "name": "swordHit",
+      "file": "swordHit-2.wav",
+      "seconds": 0.265,
+      "peak": 0.8
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-1.wav",
+      "seconds": 0.135,
+      "peak": 0.8
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-2.wav",
+      "seconds": 0.135,
+      "peak": 0.8
+    },
+    {
+      "name": "enemyHit",
+      "file": "enemyHit-3.wav",
+      "seconds": 0.135,
+      "peak": 0.8
+    },
+    {
+      "name": "playerHit",
+      "file": "playerHit-1.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "playerHit",
+      "file": "playerHit-2.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "playerDeath",
+      "file": "playerDeath-1.wav",
+      "seconds": 0.745,
+      "peak": 0.8
+    },
+    {
+      "name": "enemyDeath",
+      "file": "enemyDeath-1.wav",
+      "seconds": 0.235,
+      "peak": 0.8
+    },
+    {
+      "name": "enemyDeath",
+      "file": "enemyDeath-2.wav",
+      "seconds": 0.235,
+      "peak": 0.8
+    },
+    {
+      "name": "bossDeath",
+      "file": "bossDeath-1.wav",
+      "seconds": 1.065,
+      "peak": 0.8
+    },
+    {
+      "name": "blaster",
+      "file": "blaster-1.wav",
+      "seconds": 0.125,
+      "peak": 0.8
+    },
+    {
+      "name": "blaster",
+      "file": "blaster-2.wav",
+      "seconds": 0.125,
+      "peak": 0.8
+    },
+    {
+      "name": "shipHit",
+      "file": "shipHit-1.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "shipHit",
+      "file": "shipHit-2.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "shipExplosion",
+      "file": "shipExplosion-1.wav",
+      "seconds": 0.935,
+      "peak": 0.8
+    },
+    {
+      "name": "explosion",
+      "file": "explosion-1.wav",
+      "seconds": 0.445,
+      "peak": 0.8
+    },
+    {
+      "name": "explosion",
+      "file": "explosion-2.wav",
+      "seconds": 0.445,
+      "peak": 0.8
+    },
+    {
+      "name": "pickup",
+      "file": "pickup-1.wav",
+      "seconds": 0.275,
+      "peak": 0.8
+    },
+    {
+      "name": "powerup",
+      "file": "powerup-1.wav",
+      "seconds": 0.4,
+      "peak": 0.8
+    },
+    {
+      "name": "frost",
+      "file": "frost-1.wav",
+      "seconds": 0.305,
+      "peak": 0.8
+    },
+    {
+      "name": "ember",
+      "file": "ember-1.wav",
+      "seconds": 0.315,
+      "peak": 0.8
+    },
+    {
+      "name": "storm",
+      "file": "storm-1.wav",
+      "seconds": 0.365,
+      "peak": 0.8
+    },
+    {
+      "name": "teleport",
+      "file": "teleport-1.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "teleport",
+      "file": "teleport-2.wav",
+      "seconds": 0.255,
+      "peak": 0.8
+    },
+    {
+      "name": "shield",
+      "file": "shield-1.wav",
+      "seconds": 0.295,
+      "peak": 0.8
+    },
+    {
+      "name": "jump",
+      "file": "jump-1.wav",
+      "seconds": 0.135,
+      "peak": 0.8
+    },
+    {
+      "name": "jump",
+      "file": "jump-2.wav",
+      "seconds": 0.135,
+      "peak": 0.8
+    },
+    {
+      "name": "stomp",
+      "file": "stomp-1.wav",
+      "seconds": 0.195,
+      "peak": 0.8
+    },
+    {
+      "name": "stomp",
+      "file": "stomp-2.wav",
+      "seconds": 0.195,
+      "peak": 0.8
+    },
+    {
+      "name": "spring",
+      "file": "spring-1.wav",
+      "seconds": 0.295,
+      "peak": 0.8
+    }
+  ]
+}
