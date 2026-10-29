@@ -3,6 +3,7 @@ import type { CharacterId } from '../types';
 import { SIGNATURE_SPECIALS, beginSignature, createSignatureState, signatureFrame } from './signatureSpecials';
 import { playSfx } from '../audio/gameAudio';
 import {KaiThunderfall} from './kaiThunderfall';
+import {ELYTRON_ART} from './elytron';
 
 type Enemy=Phaser.Physics.Arcade.Sprite;
 interface Hooks {
@@ -31,10 +32,15 @@ export class SignatureSpecialRuntime {
   private effect:{kind:'x'|'quake'|'rocket'|'rift'|'star';x:number;y:number;at:number}|null=null;
   private castDirection=1;
   private alive=true;
+  private pulseShots=new Set<Enemy>();
+  private pulsesRemaining=0;
+  private nextPulseAt=0;
+  private pulsesFired=0;
 
   constructor(private scene:Phaser.Scene,readonly hero:CharacterId,private hooks:Hooks){
     this.actor=scene.add.sprite(0,0,'signature_special','0').setOrigin(.5,220/256)
       .setScale(.88).setDepth(24).setVisible(false);
+    if(hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
     this.art=scene.add.graphics().setDepth(23);
     if(hero==='killer_kai')this.thunder=new KaiThunderfall(scene,{enemies:hooks.enemies,projectiles:hooks.projectiles,
       floor:hooks.floor,damage:(enemy,amount)=>{const hit=hooks.damage(enemy,amount,true);if(hit)this.state.hits++;return hit;}});
@@ -56,7 +62,7 @@ export class SignatureSpecialRuntime {
     }
     if(!beginSignature(this.state,this.hero,now))return false;
     this.visited.clear();this.chainDone=false;this.lastHopAt=now;this.castDirection=this.hooks.facing();
-    this.hooks.lockMovement(this.hero==='killer_kai'?this.state.until:now+SIGNATURE_SPECIALS[this.hero].windup);
+    this.hooks.lockMovement(this.hero==='killer_kai'||this.hero==='elytron'?this.state.until:now+SIGNATURE_SPECIALS[this.hero].windup);
     this.hooks.player.setVelocityX(0);
     if(this.hero==='teleportation_c')this.state.invulnerableUntil=now+650;
     if(this.hero==='zgod')this.state.invulnerableUntil=this.state.until;
@@ -79,6 +85,20 @@ export class SignatureSpecialRuntime {
       }
     }
     this.thunder?.update(now);
+    if(this.hero==='elytron'){
+      for(const shot of this.pulseShots)if(!shot.active)this.pulseShots.delete(shot);
+      while(this.casting&&this.pulsesRemaining>0&&now>=this.nextPulseAt){
+        const body=this.hooks.player.body as Phaser.Physics.Arcade.Body;
+        const lane=(6-this.pulsesRemaining)%3-1;
+        const shot=this.hooks.projectiles.create(body.center.x+this.castDirection*45,body.bottom-90+lane*8,'elytron_fx','0') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+        shot.setScale(.14).setDepth(24).setFlipX(this.castDirection<0)
+          .setData('damage',2).setData('elytronPulse',true).setData('playerShotExpiresAt',now+1400)
+          .setVelocity(this.castDirection*680,lane*22).play('elytron_pulse');
+        (shot.body as Phaser.Physics.Arcade.Body).setSize(260,270,true).setAllowGravity(false);
+        this.pulseShots.add(shot);this.pulsesRemaining--;this.pulsesFired++;this.nextPulseAt+=110;
+        playSfx('storm',{volume:.35,pitch:1.1+lane*.08});
+      }
+    }
     const readyIn=Math.max(0,this.state.readyAt-now);
     this.hud.setText(`X / SP: ${SIGNATURE_SPECIALS[this.hero].name.toUpperCase()} · ${readyIn?`${(readyIn/1000).toFixed(1)}s`:'READY'}`)
       .setColor(readyIn?'#d5c5df':'#fff1a3');
@@ -121,7 +141,9 @@ export class SignatureSpecialRuntime {
   private impact(){
     const player=this.hooks.player,body=player.body as Phaser.Physics.Arcade.Body;
     const now=this.scene.time.now,x=body.center.x,y=body.bottom,d=this.castDirection;
-    if(this.hero==='xgod'){
+    if(this.hero==='elytron'){
+      this.pulsesRemaining=6;this.nextPulseAt=now;
+    }else if(this.hero==='xgod'){
       const area=new Phaser.Geom.Rectangle(d>0?x-15:x-405,y-235,420,245);
       this.hitArea(area,5);
       for(const child of [...this.hooks.projectiles.getChildren()]){
@@ -229,11 +251,15 @@ export class SignatureSpecialRuntime {
     }
   }
 
+  recordPulseHit(hit:boolean){if(this.hero==='elytron'&&hit)this.state.hits++;}
+
   read(){const now=this.scene.time.now;return {name:SIGNATURE_SPECIALS[this.hero].name,...this.state,
+    pulseStorm:this.hero==='elytron'?{fired:this.pulsesFired,remaining:this.pulsesRemaining,activeShots:[...this.pulseShots].filter(s=>s.active).length}:null,
     active:this.casting,cooldownRemainingMs:Math.max(0,this.state.readyAt-now),
     frame:this.actor.visible?Number(this.actor.frame.name):null,thunderfall:this.thunder?.read()??null,zone:this.zone?{...this.zone}:null};}
 
   cancel(restore=true){
+    this.pulsesRemaining=0;for(const shot of this.pulseShots)if(shot.active)shot.destroy();this.pulseShots.clear();
     this.thunder?.cancel();
     this.state.until=0;this.state.invulnerableUntil=0;this.zone=null;this.effect=null;
     this.actor.setVisible(false);this.art.clear();

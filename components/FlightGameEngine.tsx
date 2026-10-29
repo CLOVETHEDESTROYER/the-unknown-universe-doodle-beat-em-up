@@ -15,6 +15,7 @@ import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWi
 import { playSfx } from '../audio/gameAudio';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import {HeroCelebration,loadHeroCelebrationAssets,FLIGHT_VICTORY_START,HERO_VICTORY_DURATION} from '../gameplay/heroCelebration';
+import {ELYTRON_ART} from '../gameplay/elytron';
 
 interface Props {
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
@@ -70,6 +71,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const drawnXgod=xgod&&params.get('xgodArt')!=='model';
     const zgod=selectedCharacterId==='zgod';
     const kai=selectedCharacterId==='killer_kai';
+    const elytron=selectedCharacterId==='elytron';
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
@@ -530,10 +532,15 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         loadGameImage(this.load, 'flight_planet','platformer/void-regent-pencil-panorama-generated.png');
         loadGameImage(this.load, 'flight_pad','platformer/graveyard-moss-block.png');
         loadGameImage(this.load, 'flight_impact','doodles/impact-vfx-generated.png');
+        if(elytron){
+          this.load.multiatlas('flight_hero',ELYTRON_ART.folder+'locomotion.json',ELYTRON_ART.folder);
+          this.load.multiatlas('flight_head',ELYTRON_ART.folder+'movement.json',ELYTRON_ART.folder);
+        }else{
         loadGameSheet(this.load, 'flight_hero',kai?'characters/killer-kai-v1/flight-run.webp':zgod?'characters/z-god-v1/hands-run.png':drawnXgod?`characters/xgod/drawn-v1/${initialStats.hasFlameSword?'sword':'blaster'}-run.png`:xgod?initialStats.hasFlameSword?'xgod_side_scroll_fire_sword_run_v1.png':'characters/xgod/motion-v2/blaster-run.png':`characters/${selectedCharacterId}/walk.png`,
           {frameWidth:kai?384:zgod||drawnXgod?768:xgod?512:256,frameHeight:kai?256:zgod||xgod?512:360});
         loadGameSheet(this.load, 'flight_head',kai?'characters/killer-kai-v1/flight-idle.webp':zgod?'characters/z-god-v1/hands-idle.png':drawnXgod?'characters/xgod/drawn-v1/idle.png':xgod?'characters/xgod/motion-v2/blaster-idle.png':`characters/${selectedCharacterId}/walk.png`,
           {frameWidth:kai?384:zgod||drawnXgod?768:xgod?512:256,frameHeight:kai?256:zgod||xgod?512:360});
+        }
       },create(this:Phaser.Scene){
         scene=this;
         witch=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-40));
@@ -549,10 +556,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(zgod)pilot.setCrop(280,210,220,190).setPosition(12,-18);
         if(drawnXgod)pilot.setCrop(270,135,245,220).setPosition(12,-6);
         if(kai)pilot.setCrop(140,35,100,110).setPosition(12,-6);
+        if(elytron)pilot.setCrop(225,105,190,180).setScale(.17).setPosition(12,-6);
         const glass=this.add.ellipse(15,-11,54,23,0x92d4ef,.15);
         ship=this.add.container(state.x,state.y,[exhaust,shipHull,pilot,glass]).setDepth(15);
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
-        this.anims.create({key:'flight_board_walk',frames:this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
+        if(elytron)walker.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
+        this.anims.create({key:'flight_board_walk',frames:elytron?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
         walker.play('flight_board_walk');
         flightVictory=new HeroCelebration(this,selectedCharacterId);
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};

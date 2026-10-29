@@ -1,7 +1,7 @@
 
 import type { PowerupLoadout } from './gameplay/powerups';
 export type DifficultyMode = "EASY" | "HARD" | "X-GOD";
-export type CharacterId = "xgod" | "barrett" | "nico" | "ezra" | "teleportation_c" | "zgod" | "killer_kai";
+export type CharacterId = "xgod" | "barrett" | "nico" | "ezra" | "teleportation_c" | "zgod" | "killer_kai" | "elytron";
 export type TouchControlKey = 'left' | 'right' | 'up' | 'down' | 'attack' | 'shoot' | 'jump' | 'dash' | 'recall';
 export type TouchControlState = Record<TouchControlKey, boolean> & { axisX: number; axisY: number };
 declare global {

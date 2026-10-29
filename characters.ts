@@ -19,6 +19,12 @@ export interface CharacterConfig {
 export const ROSTER_UNLOCK_STORAGE_KEY = "unknownUniverse.xGodClear.v1";
 
 export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
+  elytron: {
+    id: 'elytron', name: 'Elytron', subtitle: 'Electrical Spirit',
+    cardImage: '/cards/elytron-card.png', hudColor: 'yellow', rewardName: 'Pulse Storm',
+    rewardSubtitle: 'Unleash a barrage of electrical pulses.',
+    stats: {strength:74,speed:90,defense:68,spirit:96}
+  },
   zgod: {
     id: "zgod",
     name: "Z-God",
@@ -94,6 +100,7 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
 export const CHARACTER_IDS = Object.keys(CHARACTER_CONFIGS) as CharacterId[];
 
 export const isCharacterId = (value: string | null | undefined): value is CharacterId =>
+  value === 'elytron' ||
   value === "killer_kai" ||
   value === "zgod" ||
   value === "xgod" ||

@@ -306,6 +306,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     dashCooldownMultiplier: number;
     specialCooldownMs: number;
   }> = {
+    elytron: {speedMultiplier:1.1,damageTakenMultiplier:1,attackDamageMultiplier:1,attackDurationMultiplier:1,attackReachBonus:5,dashCooldownMultiplier:.85,specialCooldownMs:1300},
     killer_kai: {speedMultiplier:1.05,damageTakenMultiplier:.9,attackDamageMultiplier:1.1,attackDurationMultiplier:1,attackReachBonus:10,dashCooldownMultiplier:.9,specialCooldownMs:1300},
     zgod: {
       speedMultiplier: 1.1, damageTakenMultiplier: 0, attackDamageMultiplier: 1000,

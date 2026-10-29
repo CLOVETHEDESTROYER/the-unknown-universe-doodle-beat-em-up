@@ -39,4 +39,4 @@ export const SOUND_BANK = {
 export type SoundName=keyof typeof SOUND_BANK;
 const enhanced=new Set<string>(['blaster','shipLaser','shipLance','shipMissile','enemyLaser','jump','doubleJump','landing','slamCharge','slamXgod','slamBarrett','slamNico','slamEzra','slamTeleport','slamZgod','punchSwing','punchHit','swordSwing','swordHit','enemyHit','explosion','shipHit','shipExplosion','frost','ember','storm','teleport','stomp','spring']);
 export const soundPath=(name:SoundName,variant:number)=>`/audio/sfx-${enhanced.has(name)?'v2':'v1'}/${name}-${variant+1}.wav`;
-export const SLAM_SOUNDS = {killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;
+export const SLAM_SOUNDS = {elytron:'slamTeleport',killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;

@@ -3,6 +3,7 @@ import { playSfx } from '../audio/gameAudio';
 import {SLAM_SOUNDS} from '../audio/soundBank';
 import type {CharacterId} from '../types';
 import {HERO_MOBILITY,hasNewMobilityArt} from './heroMobility';
+import {ELYTRON_ART} from './elytron';
 
 type Enemy = Phaser.Physics.Arcade.Sprite;
 type BombPhase = 'ready' | 'windup' | 'diving' | 'landing';
@@ -40,6 +41,7 @@ export class AirborneMoves {
     this.actor = scene.add.sprite(0, 0, hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
       .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:hero==='killer_kai'?.88:.72).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
+    if(hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }
   get busy() { return this.phase !== 'ready'; }
@@ -174,7 +176,7 @@ export class AirborneMoves {
     if (!this.alive || !this.hooks.player.active) return;
     const now = this.scene.time.now, age = now-this.jumpAt;
     const spin = age < 420;
-    const duck=Boolean(crouch)&&hasNewMobilityArt(this.hero)&&!this.busy;
+    const duck=Boolean(crouch)&&hasNewMobilityArt(this.hero)&&this.hero!=='elytron'&&!this.busy;
     const visible = !obscured && (this.busy || spin || duck);
     this.actor.setVisible(visible);
     if (visible) {
@@ -186,6 +188,7 @@ export class AirborneMoves {
         :this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105));
       this.actor.setTexture(hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(hasNewMobilityArt(this.hero)?newFrame:frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
+      if(this.hero==='elytron')this.actor.setFrame(String(this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105))));
       this.hooks.player.setVisible(false); this.hidden = true;
     } else if (this.hidden) {
       // An obscuring attack/death visual owns player visibility until it ends.

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elytron animation review</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#171b23;color:#f4f2e8;font:16px system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:24px}h1{margin:0;color:#ffda39}p{color:#b6becb;line-height:1.5}.controls{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}button,select{font:inherit;color:inherit;background:#303744;border:1px solid #657084;border-radius:7px;padding:10px}button{cursor:pointer}button:focus,select:focus{outline:2px solid #ffda39}#stage{background:repeating-conic-gradient(#424957 0% 25%,#3c4350 0% 50%) 0/32px 32px;border:1px solid #626c7c;border-radius:12px;overflow:hidden}canvas{display:block;width:100%!important;height:auto!important}#status{font-variant-numeric:tabular-nums}a{color:#ffda39}
+</style>
+</head>
+<body><main>
+<h1>ELYTRON</h1><p>Option 01 · animation review · electricity / Pulse Storm</p>
+<div class="controls"><select id="animation" aria-label="Animation"></select><button id="pause">Pause</button><button id="flip">Face left</button><select id="speed" aria-label="Playback speed"><option value="0.5">Half speed</option><option value="1" selected>Normal speed</option><option value="1.5">1.5× speed</option></select></div>
+<div id="stage"></div><p id="status">Loading sheets…</p>
+<p><a href="animation-overview.jpg">View every sequence</a> · <a href="../../public/characters/elytron-v1/manifest.json">Frame manifest</a></p>
+</main>
+<script type="module">
+import * as Phaser from '/node_modules/phaser/dist/phaser.esm.js';
+const manifest = await fetch('/characters/elytron-v1/manifest.json').then(r=>r.json());
+const choice=document.querySelector('#animation'), status=document.querySelector('#status');
+for(const name of Object.keys(manifest.animations)){const option=document.createElement('option');option.value=name;option.textContent=name.replaceAll('-',' ').toUpperCase();choice.append(option)}
+let hero, pulses, current='idle', paused=false;
+const errors=[];
+function play(){
+  current=choice.value; const a=manifest.animations[current];
+  hero.setTexture(a.atlas,String(a.start)).setVisible(true).play(current,true);
+  hero.anims.timeScale=Number(document.querySelector('#speed').value);
+  if(paused)hero.anims.pause();
+}
+const game=new Phaser.Game({type:Phaser.CANVAS,width:960,height:550,parent:'stage',transparent:true,banner:false,
+scene:{
+preload(){
+  this.load.on('loaderror',file=>errors.push(file.src));
+  for(const group of Object.keys(manifest.sheets))this.load.multiatlas(group,`/characters/elytron-v1/${group}.json`,'/characters/elytron-v1/');
+},
+create(){
+  for(const [name,a] of Object.entries(manifest.animations))this.anims.create({key:name,frames:this.anims.generateFrameNames(a.atlas,{start:a.start,end:a.end}),frameRate:a.frameRate,repeat:-1,repeatDelay:a.repeat===0?450:0});
+  this.add.line(0,0,0,490,960,490,0xffda39,.35).setOrigin(0);
+  hero=this.add.sprite(440,490,'movement','0').setOrigin(.5,manifest.origin[1]);
+  pulses=this.add.group();
+  this.time.addEvent({delay:150,loop:true,callback:()=>{
+    if(current!=='pulse-storm'||paused||!hero.anims.currentFrame||![4,5,6].includes(Number(hero.frame.name)))return;
+    const left=hero.flipX, projectile=this.add.sprite(hero.x+(left?-115:115),hero.y-175,'fx','0').setScale(.28).setFlipX(left);
+    projectile.play('pulse-projectile');pulses.add(projectile);
+    this.tweens.add({targets:projectile,x:left?-100:1060,duration:1000,onComplete:()=>projectile.destroy()});
+  }});
+  play(); window.elytronPreviewReady=true;
+},
+update(){if(hero)status.textContent=`${current.toUpperCase()} · frame ${hero.frame.name} · ${manifest.animations[current].frames} frames · ${manifest.totalFrames} total frames`;}
+}});
+choice.addEventListener('change',play);
+document.querySelector('#pause').onclick=event=>{paused=!paused;if(paused)hero.anims.pause();else hero.anims.resume();event.target.textContent=paused?'Play':'Pause';game.scene.scenes[0].tweens.timeScale=paused?0:1;};
+document.querySelector('#flip').onclick=event=>{hero.setFlipX(!hero.flipX);event.target.textContent=hero.flipX?'Face right':'Face left';};
+document.querySelector('#speed').onchange=()=>hero.anims.timeScale=Number(document.querySelector('#speed').value);
+window.elytronPreviewState=()=>({ready:!!hero,animation:current,frame:hero?.frame.name,paused,flipX:hero?.flipX,errors,animations:Object.keys(manifest.animations),totalFrames:manifest.totalFrames});
+</script></body></html>

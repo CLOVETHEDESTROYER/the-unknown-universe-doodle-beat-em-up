@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type {CharacterId} from '../types';
+import {ELYTRON_ART} from './elytron';
 
 export type CelebrationKind = 'victory' | 'sword';
 export const HERO_VICTORY_DURATION = 1400;
@@ -10,6 +11,9 @@ const SWORD_STEPS = [0, 280, 640, 1020, 1620, 2020];
 const FOLDER = '/characters/celebrations-v1/';
 
 export function loadHeroCelebrationAssets(load:Phaser.Loader.LoaderPlugin,hero:CharacterId,sword=false,reuseKai=false){
+  if(hero==='elytron'){
+    load.multiatlas('hero_victory',ELYTRON_ART.folder+'reactions.json',ELYTRON_ART.folder);return;
+  }
   if(hero==='killer_kai'){
     if(!reuseKai)load.multiatlas('kai_reactions','/characters/killer-kai-v1/reactions.json','/characters/killer-kai-v1/');
   }else load.multiatlas('hero_victory',FOLDER+hero+'.json',FOLDER);
@@ -43,6 +47,7 @@ export class HeroCelebration {
     this.kind=kind;this.elapsed=0;this.running=true;this.cuePlayed=false;this.counts[kind]++;
     this.actor.setTexture(key).setOrigin(.5,this.hero==='killer_kai'&&kind==='victory'?240/256:352/384)
       .setScale(this.hero==='killer_kai'&&kind==='victory'?.782:1).setAlpha(1);
+    if(this.hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
     this.seek(0,x,feet,facing);return true;
   }
   update(delta:number,x:number,feet:number,facing=1){
@@ -56,7 +61,7 @@ export class HeroCelebration {
     }
     const steps=this.kind==='sword'?SWORD_STEPS:VICTORY_STEPS;
     this.frame=steps.reduce((frame,t,index)=>this.elapsed>=t?index:frame,0);
-    this.actor.setFrame(String(this.frame+(this.hero==='killer_kai'&&this.kind==='victory'?8:0)))
+    this.actor.setFrame(String(this.frame+(this.hero==='elytron'?12:this.hero==='killer_kai'&&this.kind==='victory'?8:0)))
       .setPosition(x,feet).setFlipX(facing<0).setVisible(true);
     this.light.clear();
     if(this.kind==='sword'){

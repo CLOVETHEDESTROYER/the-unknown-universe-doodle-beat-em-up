@@ -1,0 +1,988 @@
+{
+  "character": "Elytron",
+  "design": "option-01",
+  "facing": "right",
+  "frameWidth": 640,
+  "frameHeight": 512,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "integration": "platformer-and-flight",
+  "animations": {
+    "idle": {
+      "atlas": "movement",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 6,
+      "repeat": -1,
+      "strip": "idle.png"
+    },
+    "jump": {
+      "atlas": "movement",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 10,
+      "repeat": 0,
+      "strip": "jump.png"
+    },
+    "run": {
+      "atlas": "locomotion",
+      "start": 0,
+      "end": 7,
+      "frames": 8,
+      "frameRate": 12,
+      "repeat": -1,
+      "strip": "run.png"
+    },
+    "attack": {
+      "atlas": "combat",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "attack.png"
+    },
+    "crouch": {
+      "atlas": "combat",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 6,
+      "repeat": -1,
+      "strip": "crouch.png"
+    },
+    "crouch-attack": {
+      "atlas": "combat",
+      "start": 8,
+      "end": 11,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "crouch-attack.png"
+    },
+    "pulse-cast": {
+      "atlas": "combat",
+      "start": 12,
+      "end": 15,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "pulse-cast.png"
+    },
+    "double-jump": {
+      "atlas": "mobility",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "double-jump.png"
+    },
+    "butt-bomb": {
+      "atlas": "mobility",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "butt-bomb.png"
+    },
+    "dash": {
+      "atlas": "mobility",
+      "start": 8,
+      "end": 11,
+      "frames": 4,
+      "frameRate": 14,
+      "repeat": -1,
+      "strip": "dash.png"
+    },
+    "skid": {
+      "atlas": "mobility",
+      "start": 12,
+      "end": 13,
+      "frames": 2,
+      "frameRate": 10,
+      "repeat": 0,
+      "strip": "skid.png"
+    },
+    "land": {
+      "atlas": "mobility",
+      "start": 14,
+      "end": 15,
+      "frames": 2,
+      "frameRate": 10,
+      "repeat": 0,
+      "strip": "land.png"
+    },
+    "damage": {
+      "atlas": "reactions",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "damage.png"
+    },
+    "dazed": {
+      "atlas": "reactions",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 8,
+      "repeat": -1,
+      "strip": "dazed.png"
+    },
+    "death": {
+      "atlas": "reactions",
+      "start": 8,
+      "end": 11,
+      "frames": 4,
+      "frameRate": 8,
+      "repeat": 0,
+      "strip": "death.png"
+    },
+    "celebrate": {
+      "atlas": "reactions",
+      "start": 12,
+      "end": 15,
+      "frames": 4,
+      "frameRate": 8,
+      "repeat": -1,
+      "strip": "celebrate.png"
+    },
+    "pulse-storm": {
+      "atlas": "special",
+      "start": 0,
+      "end": 7,
+      "frames": 8,
+      "frameRate": 12,
+      "repeat": 0,
+      "strip": "pulse-storm.png"
+    },
+    "arrival": {
+      "atlas": "extras",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 10,
+      "repeat": 0,
+      "strip": "arrival.png"
+    },
+    "reward": {
+      "atlas": "extras",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 8,
+      "repeat": 0,
+      "strip": "reward.png"
+    },
+    "pulse-projectile": {
+      "atlas": "fx",
+      "start": 0,
+      "end": 3,
+      "frames": 4,
+      "frameRate": 14,
+      "repeat": -1,
+      "strip": "pulse-projectile.png"
+    },
+    "pulse-impact": {
+      "atlas": "fx",
+      "start": 4,
+      "end": 7,
+      "frames": 4,
+      "frameRate": 16,
+      "repeat": 0,
+      "strip": "pulse-impact.png"
+    },
+    "charge": {
+      "atlas": "fx",
+      "start": 8,
+      "end": 11,
+      "frames": 4,
+      "frameRate": 12,
+      "repeat": -1,
+      "strip": "charge.png"
+    },
+    "slam-wave": {
+      "atlas": "fx",
+      "start": 12,
+      "end": 15,
+      "frames": 4,
+      "frameRate": 14,
+      "repeat": 0,
+      "strip": "slam-wave.png"
+    }
+  },
+  "sheets": {
+    "movement": {
+      "frames": 8,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 1.094224924012158,
+      "sourceBounds": [
+        [
+          105,
+          0,
+          318,
+          329
+        ],
+        [
+          395,
+          0,
+          599,
+          330
+        ],
+        [
+          706,
+          8,
+          916,
+          327
+        ],
+        [
+          1039,
+          0,
+          1238,
+          326
+        ],
+        [
+          65,
+          960,
+          322,
+          1185
+        ],
+        [
+          379,
+          904,
+          633,
+          1185
+        ],
+        [
+          711,
+          906,
+          939,
+          1142
+        ],
+        [
+          1023,
+          902,
+          1269,
+          1186
+        ]
+      ],
+      "pages": [
+        {
+          "image": "movement-0.webp",
+          "width": 1024,
+          "height": 991
+        }
+      ]
+    },
+    "locomotion": {
+      "frames": 8,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 0.7547169811320755,
+      "sourceBounds": [
+        [
+          13,
+          35,
+          420,
+          512
+        ],
+        [
+          431,
+          47,
+          767,
+          516
+        ],
+        [
+          827,
+          23,
+          1114,
+          512
+        ],
+        [
+          1168,
+          29,
+          1516,
+          515
+        ],
+        [
+          12,
+          530,
+          428,
+          995
+        ],
+        [
+          443,
+          538,
+          780,
+          1000
+        ],
+        [
+          827,
+          540,
+          1106,
+          996
+        ],
+        [
+          1177,
+          527,
+          1507,
+          1004
+        ]
+      ],
+      "pages": [
+        {
+          "image": "locomotion-0.webp",
+          "width": 1024,
+          "height": 748
+        },
+        {
+          "image": "locomotion-1.webp",
+          "width": 1024,
+          "height": 364
+        }
+      ]
+    },
+    "combat": {
+      "frames": 16,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 1.094224924012158,
+      "sourceBounds": [
+        [
+          25,
+          0,
+          295,
+          342
+        ],
+        [
+          308,
+          5,
+          604,
+          324
+        ],
+        [
+          627,
+          8,
+          965,
+          345
+        ],
+        [
+          935,
+          1,
+          1195,
+          328
+        ],
+        [
+          23,
+          342,
+          309,
+          653
+        ],
+        [
+          314,
+          359,
+          601,
+          657
+        ],
+        [
+          618,
+          374,
+          888,
+          643
+        ],
+        [
+          937,
+          353,
+          1204,
+          644
+        ],
+        [
+          22,
+          656,
+          301,
+          948
+        ],
+        [
+          308,
+          671,
+          618,
+          949
+        ],
+        [
+          608,
+          672,
+          963,
+          963
+        ],
+        [
+          950,
+          657,
+          1218,
+          949
+        ],
+        [
+          0,
+          939,
+          285,
+          1268
+        ],
+        [
+          284,
+          942,
+          601,
+          1268
+        ],
+        [
+          627,
+          940,
+          971,
+          1268
+        ],
+        [
+          968,
+          938,
+          1203,
+          1266
+        ]
+      ],
+      "pages": [
+        {
+          "image": "combat-0.webp",
+          "width": 1024,
+          "height": 744
+        },
+        {
+          "image": "combat-1.webp",
+          "width": 1024,
+          "height": 1014
+        },
+        {
+          "image": "combat-2.webp",
+          "width": 1024,
+          "height": 363
+        }
+      ]
+    },
+    "mobility": {
+      "frames": 16,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 1.282798833819242,
+      "sourceBounds": [
+        [
+          80,
+          0,
+          350,
+          343
+        ],
+        [
+          418,
+          14,
+          693,
+          325
+        ],
+        [
+          718,
+          14,
+          1022,
+          302
+        ],
+        [
+          1082,
+          16,
+          1347,
+          325
+        ],
+        [
+          82,
+          315,
+          311,
+          605
+        ],
+        [
+          406,
+          354,
+          652,
+          599
+        ],
+        [
+          712,
+          381,
+          1051,
+          627
+        ],
+        [
+          1110,
+          329,
+          1330,
+          619
+        ],
+        [
+          42,
+          614,
+          356,
+          873
+        ],
+        [
+          412,
+          616,
+          673,
+          879
+        ],
+        [
+          698,
+          632,
+          1037,
+          881
+        ],
+        [
+          1084,
+          616,
+          1346,
+          875
+        ],
+        [
+          27,
+          883,
+          338,
+          1125
+        ],
+        [
+          364,
+          902,
+          663,
+          1117
+        ],
+        [
+          765,
+          929,
+          1021,
+          1132
+        ],
+        [
+          1112,
+          869,
+          1311,
+          1129
+        ]
+      ],
+      "pages": [
+        {
+          "image": "mobility-0.webp",
+          "width": 1024,
+          "height": 848
+        },
+        {
+          "image": "mobility-1.webp",
+          "width": 1024,
+          "height": 756
+        },
+        {
+          "image": "mobility-2.webp",
+          "width": 1024,
+          "height": 995
+        },
+        {
+          "image": "mobility-3.webp",
+          "width": 1024,
+          "height": 338
+        }
+      ]
+    },
+    "reactions": {
+      "frames": 16,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 1.1920529801324504,
+      "sourceBounds": [
+        [
+          65,
+          0,
+          321,
+          302
+        ],
+        [
+          430,
+          0,
+          676,
+          304
+        ],
+        [
+          765,
+          44,
+          994,
+          303
+        ],
+        [
+          1137,
+          15,
+          1353,
+          304
+        ],
+        [
+          87,
+          290,
+          309,
+          590
+        ],
+        [
+          422,
+          304,
+          658,
+          585
+        ],
+        [
+          766,
+          307,
+          987,
+          587
+        ],
+        [
+          1153,
+          294,
+          1334,
+          592
+        ],
+        [
+          63,
+          588,
+          307,
+          812
+        ],
+        [
+          368,
+          617,
+          647,
+          816
+        ],
+        [
+          692,
+          663,
+          1045,
+          820
+        ],
+        [
+          1058,
+          680,
+          1412,
+          812
+        ],
+        [
+          79,
+          803,
+          285,
+          1086
+        ],
+        [
+          414,
+          804,
+          641,
+          1088
+        ],
+        [
+          769,
+          807,
+          981,
+          1087
+        ],
+        [
+          1131,
+          805,
+          1329,
+          1086
+        ]
+      ],
+      "pages": [
+        {
+          "image": "reactions-0.webp",
+          "width": 1024,
+          "height": 732
+        },
+        {
+          "image": "reactions-1.webp",
+          "width": 1024,
+          "height": 947
+        },
+        {
+          "image": "reactions-2.webp",
+          "width": 1024,
+          "height": 339
+        }
+      ]
+    },
+    "special": {
+      "frames": 8,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 0.7741935483870968,
+      "sourceBounds": [
+        [
+          19,
+          35,
+          354,
+          506
+        ],
+        [
+          393,
+          24,
+          718,
+          488
+        ],
+        [
+          769,
+          32,
+          1168,
+          486
+        ],
+        [
+          1157,
+          33,
+          1536,
+          500
+        ],
+        [
+          27,
+          559,
+          406,
+          996
+        ],
+        [
+          397,
+          549,
+          804,
+          994
+        ],
+        [
+          805,
+          533,
+          1132,
+          998
+        ],
+        [
+          1180,
+          529,
+          1499,
+          994
+        ]
+      ],
+      "pages": [
+        {
+          "image": "special-0.webp",
+          "width": 1024,
+          "height": 739
+        },
+        {
+          "image": "special-1.webp",
+          "width": 1024,
+          "height": 364
+        }
+      ]
+    },
+    "extras": {
+      "frames": 8,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 0.7692307692307693,
+      "sourceBounds": [
+        [
+          13,
+          157,
+          392,
+          504
+        ],
+        [
+          411,
+          86,
+          779,
+          496
+        ],
+        [
+          779,
+          24,
+          1111,
+          496
+        ],
+        [
+          1195,
+          26,
+          1510,
+          496
+        ],
+        [
+          46,
+          527,
+          367,
+          990
+        ],
+        [
+          417,
+          524,
+          750,
+          990
+        ],
+        [
+          777,
+          521,
+          1156,
+          992
+        ],
+        [
+          1181,
+          512,
+          1519,
+          980
+        ]
+      ],
+      "pages": [
+        {
+          "image": "extras-0.webp",
+          "width": 1024,
+          "height": 737
+        },
+        {
+          "image": "extras-1.webp",
+          "width": 1024,
+          "height": 366
+        }
+      ]
+    },
+    "fx": {
+      "frames": 16,
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "baseline": 480,
+      "sharedScale": 1.0869565217391304,
+      "sourceBounds": [
+        [
+          19,
+          21,
+          384,
+          276
+        ],
+        [
+          384,
+          19,
+          768,
+          276
+        ],
+        [
+          768,
+          11,
+          1152,
+          276
+        ],
+        [
+          1152,
+          17,
+          1522,
+          276
+        ],
+        [
+          0,
+          276,
+          384,
+          552
+        ],
+        [
+          384,
+          276,
+          768,
+          552
+        ],
+        [
+          768,
+          276,
+          1152,
+          552
+        ],
+        [
+          1152,
+          276,
+          1524,
+          552
+        ],
+        [
+          17,
+          552,
+          384,
+          824
+        ],
+        [
+          384,
+          552,
+          768,
+          824
+        ],
+        [
+          768,
+          552,
+          1152,
+          824
+        ],
+        [
+          1152,
+          552,
+          1526,
+          824
+        ],
+        [
+          17,
+          824,
+          384,
+          1024
+        ],
+        [
+          384,
+          824,
+          768,
+          1024
+        ],
+        [
+          768,
+          824,
+          1152,
+          1024
+        ],
+        [
+          1152,
+          824,
+          1532,
+          1024
+        ]
+      ],
+      "pages": [
+        {
+          "image": "fx-0.webp",
+          "width": 1024,
+          "height": 883
+        },
+        {
+          "image": "fx-1.webp",
+          "width": 1024,
+          "height": 908
+        },
+        {
+          "image": "fx-2.webp",
+          "width": 1024,
+          "height": 442
+        }
+      ]
+    }
+  },
+  "totalFrames": 96
+}

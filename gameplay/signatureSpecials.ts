@@ -1,6 +1,8 @@
 import type { CharacterId } from '../types';
 
 export const SIGNATURE_SPECIALS = {
+  elytron: {name:'Pulse Storm',cooldown:6000,windup:320,duration:1300,color:0xffda39,
+    description:'Unleash six traveling electrical pulses toward enemies.'},
   killer_kai: {name:'Thunderfall',cooldown:7000,windup:650,duration:1600,color:0x57dcff,
     description:'Charge in a crouch, punch the ground, and call down three waves of electrical beams.'},
   xgod: {name:'X Breaker',cooldown:5500,windup:230,duration:650,color:0xffa43b,
@@ -33,6 +35,7 @@ export function beginSignature(state:SignatureState,hero:CharacterId,now:number)
 }
 
 export function signatureFrame(hero:CharacterId,elapsed:number){
+  if(hero==='elytron')return elapsed<320?Math.min(2,Math.floor(elapsed/110)):elapsed<1000?3+Math.floor((elapsed-320)/90)%3:elapsed<1150?6:7;
   const spec=SIGNATURE_SPECIALS[hero];
   if(elapsed<spec.windup*.5)return 0;
   if(elapsed<spec.windup)return 1;

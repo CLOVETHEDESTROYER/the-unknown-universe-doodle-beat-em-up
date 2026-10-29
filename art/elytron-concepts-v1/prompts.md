@@ -1,0 +1,9 @@
+# Elytron concept explorations
+
+Generated with the built-in image_gen tool. Style references: public/characters/playable-v3/nico-idle.png and public/characters/xgod/drawn-v1/idle.png.
+
+Shared prompt: Create a single full-body character concept for Elytron, an electrical spirit in a hand-drawn doodle beat-em-up game. Match the provided game art references: bold irregular black ink contours, scratchy pencil/crayon fill texture, simple cel shading, oversized expressive head, small compact body, chunky hands and shoes, charming scrappy cartoon attitude, readable game silhouette. NOT realistic, NOT 3D, NOT polished anime, NOT pixel art. White paper background, entire character visible with generous margins, three-quarter view facing right. This is one design exploration, not an animation sheet. Mandatory features: clearly visible shaggy BLACK MOP-TOP hair in rounded messy locks (not spikes); a face-covering robot MASK with unmistakable alternating YELLOW AND BLACK STRIPES, rounded wraparound dark visor and smooth curved cheek/jaw shape loosely inspired by Guy-Manuel de Homem-Christo's Daft Punk robot, but original character design and hair exposed above the mask. Yellow electrical sparks and a supernatural electrical spirit identity. Restrained yellow, black, warm white palette.
+
+Option 01: Compact grounded street fighter, rounded striped mask, narrow yellow visor, loose black jacket, off-white shirt, baggy dark pants, oversized yellow-accented sneakers, clenched electrical fists, pale-yellow spirit limbs. Caption ELYTRON — 01.
+
+Option 02: Compact floating electrical spirit, oversized mop-haired head, rounded striped visor mask, off-white lightning shirt, black shorts, detached gloves connected by arcs, electrical wisp instead of solid legs, floating sneakers, spark in open hand. Caption ELYTRON — 02.

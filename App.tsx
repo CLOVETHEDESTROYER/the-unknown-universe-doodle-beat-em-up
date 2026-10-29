@@ -223,7 +223,7 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
@@ -279,7 +279,7 @@ const App: React.FC = () => {
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
-  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai';
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
@@ -704,7 +704,7 @@ const App: React.FC = () => {
     });
     setIsPaused(false);
     setTitlePanel(null);
-    const legacyRun = requestedLegacyBrawler && characterId !== 'zgod' && characterId !== 'killer_kai';
+    const legacyRun = requestedLegacyBrawler && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron';
     storyTransitionRef.current = !legacyRun;
     setStoryChapter(legacyRun ? null : 'prologue');
     setAppPhase(legacyRun ? 'intro' : 'story');

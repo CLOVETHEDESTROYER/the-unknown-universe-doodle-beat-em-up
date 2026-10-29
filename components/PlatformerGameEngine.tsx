@@ -24,6 +24,7 @@ import {companionStride,stepCompanionGround} from '../gameplay/companionMotion';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import { addTerrainTiles } from '../gameplay/terrainTextures';
 import {KAI_ART,killerKaiPose} from '../gameplay/killerKai';
+import {ELYTRON_ART,elytronPose} from '../gameplay/elytron';
 import { SignatureSpecialRuntime } from '../gameplay/signatureSpecialRuntime';
 import { AirborneMoves } from '../gameplay/airborneMoves';
 import {hasNewMobilityArt} from '../gameplay/heroMobility';
@@ -912,6 +913,7 @@ const CHARACTER_FEEL: Record<CharacterId, {
   attackRange: number;
 }> = {
   killer_kai: {runSpeed:350,acceleration:2350,braking:2900,turnAcceleration:3200,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:280,attackRange:520},
+  elytron: {runSpeed:365,acceleration:2450,braking:2950,turnAcceleration:3250,airAcceleration:1450,airBraking:450,jumpVelocity:780,attackCooldown:320,attackRange:125},
   zgod: { runSpeed: 365, acceleration: 2550, braking: 2800, turnAcceleration: 3100, airAcceleration: 1500, airBraking: 450, jumpVelocity: 780, attackCooldown: 340, attackRange: 145 },
   xgod: { runSpeed: 350, acceleration: 2300, braking: 2900, turnAcceleration: 3200, airAcceleration: 1350, airBraking: 450, jumpVelocity: 760, attackCooldown: 440, attackRange: 105 },
   barrett: { runSpeed: 300, acceleration: 2050, braking: 2700, turnAcceleration: 2900, airAcceleration: 1150, airBraking: 400, jumpVelocity: 750, attackCooldown: 430, attackRange: 128 },
@@ -982,6 +984,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const isXGod = selectedCharacterId === "xgod";
     const isZGod = selectedCharacterId === "zgod";
     const isKai = selectedCharacterId === 'killer_kai';
+    const isElytron = selectedCharacterId === 'elytron';
     const heroBodyWidth = isKai ? 48 : isZGod ? 80 : 96;
     const heroBodyHeight = isKai ? 135 : isZGod ? 210 : 270;
     let zGodDashUntil = -9999, zGodDashReadyAt = 0, zGodReactUntil = -9999, zGodReactReadyAt = 0, zGodVictoryUntil = -9999;
@@ -1256,7 +1259,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(useDrawnXGod)this.load.multiatlas('ember_xgod_dash','/powerups/ember-jets-v1/xgod.json','/powerups/ember-jets-v1/');
       }
       this.load.spritesheet('fire_blade','/powerups/fire-blade-v1/blade.png',{frameWidth:128,frameHeight:224});
-      this.load.multiatlas('signature_special',isKai?'/characters/kai-thunderfall-v1/special.json':`/characters/signature-specials-v1/${selectedCharacterId}.json`,isKai?'/characters/kai-thunderfall-v1/':'/characters/signature-specials-v1/');
+      this.load.multiatlas('signature_special',isElytron?ELYTRON_ART.folder+'special.json':isKai?'/characters/kai-thunderfall-v1/special.json':`/characters/signature-specials-v1/${selectedCharacterId}.json`,isElytron?ELYTRON_ART.folder:isKai?'/characters/kai-thunderfall-v1/':'/characters/signature-specials-v1/');
       if(isKai)this.load.multiatlas('kai_thunder_beam','/characters/kai-thunderfall-v1/beams.json','/characters/kai-thunderfall-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
       this.load.on("loaderror", (file: { key?: string }) => {
@@ -1331,7 +1334,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "end_gate", "platformer/end-gate-generated.png");
       loadGameImage(this.load, "gold_pickup", "gold_pickup.png");
       loadGameImage(this.load, "heart", "heart_sprite.png");
-      loadGameImage(this.load, "power_pickup", isKai ? "characters/killer-kai-v1/reward.webp" : isZGod ? 'characters/z-god-v1/reward.png' : isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
+      loadGameImage(this.load, "power_pickup", isElytron?'characters/elytron-v1/reward-icon.webp':isKai ? "characters/killer-kai-v1/reward.webp" : isZGod ? 'characters/z-god-v1/reward.png' : isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
@@ -1354,7 +1357,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "shadow", "doodles/shadow_oval.png");
       loadGameImage(this.load, "enemy_hit_impact", "doodles/impact-vfx-generated.png");
       loadGameImage(this.load, "boss_tell_ring", "doodles/tell-ring-generated.png");
-      loadGameImage(this.load, "projectile_static", isKai || isZGod || isXGod ? "doodles/attack_slash.png" : `characters/${selectedCharacterId}/projectile.png`);
+      loadGameImage(this.load, "projectile_static", isElytron || isKai || isZGod || isXGod ? "doodles/attack_slash.png" : `characters/${selectedCharacterId}/projectile.png`);
       loadGameImage(this.load, "boss_fire_orb", "bosses/boss_fire_orb_v2.png");
       loadGameImage(this.load, "boss_ink_orb", "bosses/boss_ink_orb_v2.png");
       loadGameImage(this.load, "boss_bullet", "bosses/boss_bullet_v2.png");
@@ -1382,7 +1385,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameImage(this.load, backgroundKey, path);
       });
 
-      if(hasNewMobilityArt(selectedCharacterId))this.load.multiatlas('hero_mobility',isKai?KAI_ART.folder+'mobility.json':`/characters/mobility-v2/${selectedCharacterId}.json`,isKai?KAI_ART.folder:'/characters/mobility-v2/');
+      if(hasNewMobilityArt(selectedCharacterId))this.load.multiatlas('hero_mobility',isElytron?ELYTRON_ART.folder+'mobility.json':isKai?KAI_ART.folder+'mobility.json':`/characters/mobility-v2/${selectedCharacterId}.json`,isElytron?ELYTRON_ART.folder:isKai?KAI_ART.folder:'/characters/mobility-v2/');
       if (isZGod) {
         this.load.json('hero_equipment_meta', 'characters/z-god-v1/metadata.json');
         for (const power of availablePowers) for (const action of ['run','jump','idle','attack','crouch']) {
@@ -1395,6 +1398,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         for (const action of ['idle','crouch','dash','react','victory']) {
           loadGameSheet(this.load, `z_${action}`, `characters/z-god-v1/extras-${action}.png`, {frameWidth:768,frameHeight:512});
         }
+      } else if (isElytron) {
+        for(const sheet of ['movement','locomotion','combat','reactions','fx','extras','mobility'])this.load.multiatlas('elytron_'+sheet,ELYTRON_ART.folder+sheet+'.json',ELYTRON_ART.folder);
       } else if (isKai) {
         for(const sheet of ['movement','combat','reactions','sword','fx'])this.load.multiatlas('kai_'+sheet,KAI_ART.folder+sheet+'.json',KAI_ART.folder);
       } else if (!isXGod) {
@@ -1524,6 +1529,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         scene.anims.create({key:'kai_pellet',frames:[0,1,2,3].map(frame=>({key:'kai_fx',frame:String(frame)})),frameRate:18,repeat:-1});
         scene.anims.create({key:'kai_victory',frames:[8,9,10,11].map(frame=>({key:'kai_reactions',frame:String(frame)})),frameRate:7,repeat:-1});
       }
+      if(isElytron)scene.anims.create({key:'elytron_pulse',frames:[0,1,2,3].map(frame=>({key:'elytron_fx',frame:String(frame)})),frameRate:14,repeat:-1});
       if(currentLevel===FINAL_LEVEL){
         regentRifts=new RegentRiftEffects(scene);
         scene.events.on(Phaser.Scenes.Events.RESUME,()=>{regentResumePending=true;});
@@ -1535,7 +1541,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const playerScale = isXGod
         ? (useSideScrollXGodRun ? 0.3 : 0.36)
         : 0.34;
-      player.setScale(isKai?KAI_ART.scale:playerScale * PLAYER_VISUAL_SCALE_MULTIPLIER);
+      player.setScale(isElytron?ELYTRON_ART.scale:isKai?KAI_ART.scale:playerScale * PLAYER_VISUAL_SCALE_MULTIPLIER);
       player.body.setSize(isXGod ? 58 : 70, isXGod ? 126 : 132, true);
       if(!isXGod){
         const baseline=isKai?KAI_ART.baseline:selectedCharacterId==='teleportation_c'?344:480;
@@ -1637,6 +1643,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const damage = Number(projectile.getData("damage")) || (selectedCharacterId === "nico" ? 3 : 2);
         const isPlayerShot = Boolean(projectile.getData("playerShotExpiresAt"));
         const frost=Boolean(projectile.getData('frostShot'));
+        const elytronPulse=Boolean(projectile.getData('elytronPulse'));
         const companion=projectile.getData('companion') as 'dinio'|'doghost'|undefined;
         const enemy=enemyObj as Phaser.Physics.Arcade.Sprite;
         const targets=projectile.getData('companionTargets') as Set<Phaser.Physics.Arcade.Sprite>|undefined;
@@ -1644,7 +1651,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         targets?.add(enemy);
         const pierces=Number(projectile.getData('companionPierces')??1);
         if(pierces<=1)projectileObj.destroy();else projectile.setData('companionPierces',pierces-1);
-        const damaged=damageEnemy(scene,enemy,damage,isPlayerShot||Boolean(companion));
+        const damaged=damageEnemy(scene,enemy,damage,isPlayerShot||Boolean(companion),false,false,elytronPulse);
+        if(elytronPulse)signature?.recordPulseHit(damaged);
         if(companion&&damaged){if(companion==='dinio')dinioHits++;else doghostHits++;}
         if(companion&&!damaged&&projectile.active)projectile.destroy();
         if(damaged&&frost&&enemy.active&&enemy.getData('kind')!=='boss'){
@@ -2220,6 +2228,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function getPlayerWalkTexture(scene: Phaser.Scene) {
+      if(isElytron)return 'elytron_movement';
       if(isKai)return 'kai_movement';
       if (!isXGod && scene.textures.exists("character_walk")) return "character_walk";
       if (playerSprite && scene.textures.exists("player_walk")) return "player_walk";
@@ -2623,7 +2632,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const count=projectiles.getChildren().filter(p=>p.active&&p.getData('frostShot')).length;
       if(count>=3)return false;
       const body=player.body as Phaser.Physics.Arcade.Body;
-      if(!isXGod&&!isKai){
+      if(!isXGod&&!isKai&&!isElytron){
         updatePlayerVisual(scene,isPlayerGrounded(body),0);
         if(!isCrouching&&isPlayerGrounded(body))player.setTexture('hero_frost_attack',0);
       }
@@ -2670,13 +2679,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       powerHud.setText(`${POWERUPS[equipment.active].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(equipment.active==='hands'?0:3-equipment.hits)}\n${POWERUPS[equipment.active].hint}`)
         .setColor('#'+POWERUPS[equipment.active].color.toString(16).padStart(6,'0'));
       if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE · X / SP: THUNDERFALL`).setColor('#8feaff');
+      if(isElytron&&equipment.active==='hands')powerHud.setText('ELECTRIC FISTS\nX / SP: PULSE STORM').setColor('#ffda39');
       if (isZGod) powerHud.setText(`INVINCIBLE · ONE-HIT POWER · ${POWERUPS[equipment.active].name.toUpperCase()}`).setColor('#ffd0e5');
       powerAura.clear();
       if(now>=emberUntil)body.setMaxVelocity(520,900);
       if(selectedCharacterId==='teleportation_c'&&teleport.anchor){
         powerAura.lineStyle(3,0xb9a0ff,.8).strokeEllipse(teleport.anchor.x,teleport.anchor.y-5,46+Math.sin(now/90)*4,12);
       }
-      if((isXGod||isKai)&&['frost','ember','storm'].includes(equipment.active)){
+      if((isXGod||isKai||isElytron)&&['frost','ember','storm'].includes(equipment.active)){
         const color=POWERUPS[equipment.active].color;
         if(equipment.active==='storm'){
           powerAura.lineStyle(3,color,.9).strokeEllipse(player.x,body.top-12,50,14);
@@ -3844,7 +3854,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (activeShots >= 3) return false;
 
       const body = player.body as Phaser.Physics.Arcade.Body;
-      if(!isXGod&&!isKai){
+      if(!isXGod&&!isKai&&!isElytron){
         updatePlayerVisual(scene,isPlayerGrounded(body),0);
         if(!isCrouching&&isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
       }
@@ -3954,6 +3964,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }else if(jumpVisualAirborne){
           if(lastAirborneVelocity>180)landingVisualStartedAt=scene.time.now;
           jumpVisualAirborne=false;
+        }
+        if(isElytron){
+          const now=scene.time.now;
+          characterStride=Math.abs(body.velocity.x)>18?characterStride+Math.abs(body.velocity.x)*delta/1000:0;
+          const pose=elytronPose({now,grounded,velocityX:body.velocity.x,velocityY:body.velocity.y,stride:characterStride,
+            jumpAge:now-jumpVisualStartedAt,landingAge:now-landingVisualStartedAt,shotAge:now-lastShotAt,hurtAge:now-lastDamageAt,
+            attackAge:now-attackStartedAt,attacking:now<attackVisualUntil,dashing:now<emberUntil,skidding:isSkidding,equipment:equipment.active,crouching:isCrouching});
+          player.anims.stop();player.setTexture(pose.key,String(pose.frame)).setAngle(0).setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height);
+          const height=isCrouching?150:heroBodyHeight;
+          body.setSize(heroBodyWidth,height,false).setOffset((player.width-heroBodyWidth)/2,ELYTRON_ART.baseline-height);
+          return;
         }
         if(!isZGod&&isCrouching){
           player.anims.stop();player.setAngle(0).setAlpha(1);
@@ -4390,7 +4411,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(isBoss&&isButtBomb)enemy.setData('buttBombHits',Number(enemy.getData('buttBombHits')??0)+1);
       const impact = scene.add.image(targetBody.center.x, targetBody.top + targetBody.height * 0.35, "enemy_hit_impact")
         .setDepth(25).setAlpha(0.9);
-      if(electric)impact.setDisplaySize(44,44).setTintFill(0x8aeaff);
+      if(electric)impact.setDisplaySize(44,44).setTintFill(isElytron?0xffda39:0x8aeaff);
       else if (currentLevel !== 3) impact.setDisplaySize(isLightShot ? 32 : 50, isLightShot ? 32 : 50);
       else impact.setScale(isLightShot ? 0.34 : 0.52);
       if (!electric && currentLevel >= 4 && enemy.getData("kind") === "boss") impact.setTint(currentLevel === 4 ? 0xf04c86 : 0xc084fc);
@@ -4414,7 +4435,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         });
         if (hp > 0 && enemy.getData("phase") === 1 && hp <= Number(enemy.getData("maxHp")) / 2) enemy.setData("phasePending", true);
       } else if (isLightShot||electric) {
-        enemy.setTint(electric?0x8aeaff:0xfff5b1);
+        enemy.setTint(electric?(isElytron?0xffda39:0x8aeaff):0xfff5b1);
         scene.time.delayedCall(85, () => { if (enemy.active) enemy.clearTint(); });
       } else {
         if(isRestoredEnemy(enemy.getData('kind')))clearEnemyIntent(enemy);
@@ -4744,13 +4765,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       body.setVelocity(0,0);body.enable=false;
       player.anims.stop();player.setVisible(false).setAlpha(1).clearTint();
       powerAura.clear();playerHealth=0;
-      if(!scene.anims.exists('hero_collapse'))scene.anims.create({key:'hero_collapse',frames:isKai?[4,5,6,7].map(frame=>({key:'kai_reactions',frame:String(frame)})):scene.anims.generateFrameNumbers('hero_death',{start:0,end:3}),frameRate:5,repeat:0});
-      heroDeathVisual=scene.add.sprite(player.x,feet,isKai?'kai_reactions':'hero_death',isKai?'4':0).setOrigin(.5,isKai?KAI_ART.baseline/KAI_ART.height:480/512)
+      if(!scene.anims.exists('hero_collapse'))scene.anims.create({key:'hero_collapse',frames:isElytron?[8,9,10,11].map(frame=>({key:'elytron_reactions',frame:String(frame)})):isKai?[4,5,6,7].map(frame=>({key:'kai_reactions',frame:String(frame)})):scene.anims.generateFrameNumbers('hero_death',{start:0,end:3}),frameRate:5,repeat:0});
+      heroDeathVisual=scene.add.sprite(player.x,feet,isElytron?'elytron_reactions':isKai?'kai_reactions':'hero_death',isElytron?'8':isKai?'4':0).setOrigin(.5,isKai?KAI_ART.baseline/KAI_ART.height:480/512)
         .setScale(player.scaleX,player.scaleY).setFlipX(facingDirection<0).setDepth(25).play('hero_collapse');
       const death=heroDeathVisual;
       scene.time.delayedCall(1100,()=>{
         if(heroDeathVisual!==death||!player?.active)return;
-        death.anims.stop();death.setFrame(isKai?'7':3);
+        death.anims.stop();death.setFrame(isElytron?'11':isKai?'7':3);
         if(playerLives<=0){
           isRespawning=false;isLevelClearing=true;
           syncStats({isDying:false,isGameOver:true});
@@ -5041,7 +5062,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           name: selectedCharacter.name,
           rewardName: selectedCharacter.rewardName,
           rewardUnlocked: characterPowerUnlocked,
-          spriteArt: isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
+          spriteArt: isElytron?'elytron-v1':isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
           invincible: isZGod,
           oneHitPower: isZGod,
           starComet: isZGod ? signature?.read() ?? null : null
