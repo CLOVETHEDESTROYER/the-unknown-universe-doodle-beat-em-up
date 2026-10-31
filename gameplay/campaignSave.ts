@@ -1,3 +1,4 @@
+import { isEncounterId } from './routeEncounters';
 import type { GameStats, DifficultyMode } from '../types';
 import { isCharacterId } from '../characters';
 import { isPowerup, restoreLoadout } from './powerups';
@@ -22,6 +23,10 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     if (!s.equipment || !isPowerup(s.equipment.active) || !Number.isFinite(s.equipment.hits) || !Array.isArray(s.equipment.unlocked)) return null;
     stats.equipment = restoreLoadout(s.equipment, 'hands');
     stats.isDying = false; stats.activeBossId = null;
+    if (s.completedEncounters !== undefined) {
+      if (!Array.isArray(s.completedEncounters) || !s.completedEncounters.every(isEncounterId)) return null;
+      stats.completedEncounters = [...new Set<string>(s.completedEncounters)];
+    }
     const cp = s.campaignCheckpoint;
     if (cp && cp.level === s.level && Number.isInteger(cp.index) && cp.index >= -1 && cp.index < 100) stats.campaignCheckpoint = {level:cp.level,index:cp.index};
     const f = s.flightSave;

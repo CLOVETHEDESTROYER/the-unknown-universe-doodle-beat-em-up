@@ -13,7 +13,7 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'output/pdf';OUT.mkdir(parents=True,exist_ok=True)
 URL='https://the-unknown-universe-doodle-beat-em.vercel.app/'
 BACK=ROOT/'art/printable-cards/card-back.png'
-fronts=[('X God','xgod-current-v2.webp'),('Barrett','barrett-card.png'),('Nico','nico-card.png'),('Ezra','ezra-card.png'),('Teleportation C','teleportation-c-card.png'),('Z-God','z-god-card.png'),('Killer Kai','killer-kai-card-v2.webp'),('Elytron','elytron-card.png')]
+fronts=[('X God','xgod-current-v2.webp'),('Barrett','barrett-card.png'),('Nico','nico-card.png'),('Ezra','ezra-card.png'),('Teleportation C','teleportation-c-card.png'),('Z-God','z-god-card.png'),('Killer Kai','killer-kai-card-v2.webp'),('Kaden','kaden-card.png')]
 CW,CH=180,252
 
 def art(c,p,x,y):
@@ -66,5 +66,5 @@ for path in [pdf,individual]:
     decoded,_,_=cv2.QRCodeDetector().detectAndDecode(img);assert decoded==URL
  results.append({'file':path.name,'pages':len(doc)})
 (OUT/'verification.json').write_text(json.dumps({'url':URL,'checks':results},indent=2))
-(OUT/'PRINT-INSTRUCTIONS.txt').write_text('US Letter paper. Print unknown-universe-eight-hero-cards-duplex.pdf at Actual size / 100%, portrait, flip on LONG edge.\nPage 1 fronts; page 2 mirrored backs. Eight 2.5 x 3.5 inch trim boxes; one empty position.\nElytron: bottom-center front and matching bottom-center QR back.\nSeparate fronts and backs PDFs are also included for manual duplex printing.\nDo not fit or scale to page. Test one sheet on plain paper before cardstock.\nCard art is contained without cropping; white margins preserve differing source proportions.\nIndividual PDF: alternating front/back pages at 2.5 x 3.5 inches for print shops.\nQR codes open '+URL+'\n')
+(OUT/'PRINT-INSTRUCTIONS.txt').write_text('US Letter paper. Print unknown-universe-eight-hero-cards-duplex.pdf at Actual size / 100%, portrait, flip on LONG edge.\nPage 1 fronts; page 2 mirrored backs. Eight 2.5 x 3.5 inch trim boxes; one empty position.\nKaden: bottom-center front and matching bottom-center QR back.\nSeparate fronts and backs PDFs are also included for manual duplex printing.\nDo not fit or scale to page. Test one sheet on plain paper before cardstock.\nCard art is contained without cropping; white margins preserve differing source proportions.\nIndividual PDF: alternating front/back pages at 2.5 x 3.5 inches for print shops.\nQR codes open '+URL+'\n')
 print(json.dumps(results,indent=2))

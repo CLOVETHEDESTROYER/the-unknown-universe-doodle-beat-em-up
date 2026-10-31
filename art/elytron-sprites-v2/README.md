@@ -1,4 +1,6 @@
-# Elytron sprite set
+# Kaden - Electric Ninja sprite set
+
+Renamed from Elytron to Kaden. Electric Ninja is his descriptor; internal sprite IDs stay stable.
 
 Approved option 01: electrical spirit, shaggy black hair, striped yellow/black robot mask, black jacket, off-white shirt, cargo pants, charged fists and chunky sneakers.
 

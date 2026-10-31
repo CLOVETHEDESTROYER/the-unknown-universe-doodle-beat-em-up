@@ -3,6 +3,8 @@ import { playSfx } from '../audio/gameAudio';
 import {SLAM_SOUNDS} from '../audio/soundBank';
 import type {CharacterId} from '../types';
 import {HERO_MOBILITY,hasNewMobilityArt} from './heroMobility';
+import {sizeCharacter} from './characterSizing';
+import {SHADOW_ART} from './shadowKid';
 import {ELYTRON_ART} from './elytron';
 
 type Enemy = Phaser.Physics.Arcade.Sprite;
@@ -12,6 +14,7 @@ interface Hooks {
   enemies: Phaser.Physics.Arcade.Group;
   projectiles: Phaser.Physics.Arcade.Group;
   facing: () => number;
+  equipment?:()=>string;
   canUse: () => boolean;
   clearLine: (enemy: Enemy) => boolean;
   damage: (enemy: Enemy, amount: number) => boolean;
@@ -41,7 +44,9 @@ export class AirborneMoves {
     this.actor = scene.add.sprite(0, 0, hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
       .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:hero==='killer_kai'?.88:.72).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
+    if(hero==='shadow_kid')this.actor.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
     if(hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
+    sizeCharacter(this.actor,hero,'mobility');
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }
   get busy() { return this.phase !== 'ready'; }
@@ -189,6 +194,16 @@ export class AirborneMoves {
       this.actor.setTexture(hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(hasNewMobilityArt(this.hero)?newFrame:frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       if(this.hero==='elytron')this.actor.setFrame(String(this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105))));
+      if(this.hero==='xgod'){
+        if(this.hooks.equipment?.()==='frost'){
+          const crouched=this.phase==='windup'||this.phase==='landing';
+          this.actor.setTexture(crouched?'hero_frost_crouch':'hero_frost_jump',String(crouched?1:this.phase==='diving'?3:Math.min(2,1+Math.floor(age/200))))
+            .setOrigin(.5,480/512);
+          sizeCharacter(this.actor,this.hero);
+        }else{
+          this.actor.setOrigin(.5,220/256);sizeCharacter(this.actor,this.hero,'mobility');
+        }
+      }
       this.hooks.player.setVisible(false); this.hidden = true;
     } else if (this.hidden) {
       // An obscuring attack/death visual owns player visibility until it ends.

@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Shadow kid — animation drafts</title>
+<style>
+body{margin:32px;background:#eae3d8;color:#30293a;font:16px system-ui}h1{font-size:24px}.grid{display:flex;flex-wrap:wrap;gap:20px}figure{margin:0;background:#d8cdbd;border-radius:12px;overflow:hidden}canvas{width:384px;height:288px;display:block}figcaption{padding:12px}button{padding:8px 16px;margin-bottom:20px}a{color:#643a87}
+</style>
+<h1>Unnamed shadow kid — first animation drafts</h1>
+<p>Approved version B. Run cycle needs leg-alternation polish. Jump and throw loop here for review.</p>
+<button id="toggle">Pause</button><div class="grid" id="grid"></div>
+<p><a href="approved-design.png">Approved reference</a> · <a href="animation-preview.jpg">All 24 frames</a></p>
+<script>
+let paused=false, clock=0, previous=0;
+document.querySelector('#toggle').onclick=e=>{paused=!paused;e.target.textContent=paused?'Play':'Pause'};
+const specs=[['idle',4,6],['jump',4,9],['run',8,12],['throw',8,10]];
+const views=specs.map(([name,count,fps])=>{
+ const figure=document.createElement('figure'), canvas=document.createElement('canvas'), caption=document.createElement('figcaption');
+ canvas.width=512;canvas.height=384;caption.textContent=`${name} · ${count} frames · ${fps} fps`;
+ figure.append(canvas,caption);document.querySelector('#grid').append(figure);
+ const image=new Image();image.src=`../../public/characters/shadow-kid-v1/${name}.png`;
+ return {canvas,image,count,fps};
+});
+function render(time){if(previous&&!paused)clock+=time-previous;previous=time;
+ for(const v of views){const ctx=v.canvas.getContext('2d');ctx.clearRect(0,0,512,384);const f=Math.floor(clock*v.fps/1000)%v.count;if(v.image.complete&&v.image.naturalWidth)ctx.drawImage(v.image,(f%4)*512,Math.floor(f/4)*384,512,384,0,0,512,384)}requestAnimationFrame(render)}requestAnimationFrame(render);
+</script>

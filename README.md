@@ -13,7 +13,11 @@ A hand-drawn side-scrolling action platformer built with React, Phaser and Vite.
 | 5 | Starbreak Run — spaceship flight | Pursuer |
 | 6 | Dread Planet | Void Regent |
 
-X God is the starting hero. Barrett, Nico, Ezra and Teleportation C form the unlocked playable roster. Collect companion orbs to release Dinio, Doghost and Teleportation C on their stages. Heroes can equip the blaster, flame sword, frost gauntlet, ember boots or storm halo; three unblocked hits remove the equipped powerup. The flight stage has destructible ships/asteroids and separate weapon upgrades.
+The nine-character roster includes X God, Z-God, Barrett, Nico, Ezra, Teleportation C, Killer Kai, Kaden (Electric Ninja), and the unnamed Shadow Kid (displayed as ???). X God and Z-God are available from the start; the others follow the roster unlock rules. Main heroes share a 160px standing-height reference; Z-God is much shorter at 105px. Shadow Kid throws black holes and uses Void Burst as his special. Collect companion orbs to release Dinio, Doghost and Teleportation C on their stages. Heroes can equip the blaster, flame sword, frost gauntlet, ember boots or storm halo; three unblocked hits remove the equipped powerup. Drawn X God has dedicated Ice Gauntlet movement, casting and hurt art. The flight stage has destructible ships/asteroids and separate weapon upgrades.
+
+## Encounters along the route
+
+The Scratch has a cracking rooftop escape, the Graveyard has a guarded Doghost rescue, and Witchwood has a two-wave moving-ferry ambush. Each has a warning, objective and one-time reward. They do not lock the route to the boss. Completed encounters are remembered by Save and Continue. See [encounter notes](docs/route-encounters-v1.md) for previews and checks.
 
 ## Run locally
 

@@ -12,6 +12,8 @@ This project currently uses doodle stand-in SVGs in [`public/doodles/`](C:/Users
 
 ## Characters And Enemies
 
+Playable campaign heroes use a shared **160px standing-height reference**, with **Z-God at 105px**. Measure visible artwork, not PNG dimensions. Keep pose proportions intact within each animation family. Runtime calibration and rebuild instructions are in `docs/character-sizing-v1.md`; run `python scripts/audit_character_sizes.py` after replacing source artwork.
+
 | File | Use | Current placeholder canvas | Recommended final export |
 | --- | --- | --- | --- |
 | `p_happy.svg` | fallback player icon | `96x96` | `256x256` PNG |

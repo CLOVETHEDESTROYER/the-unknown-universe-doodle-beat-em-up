@@ -28,6 +28,7 @@ try {
   assert(titleBytes<1024*1024,`Title response budget: ${titleBytes} bytes`);
   await page.getByRole('button',{name:'Start game',exact:true}).click();
   await page.locator('[data-character-id="xgod"]').click();
+  await page.getByRole('button',{name:'Skip story',exact:true}).click();
   await page.waitForFunction(()=>{
     try {return document.querySelector('[data-phase="game"]')&&JSON.parse(window.render_game_to_text()).player.grounded;}
     catch {return false;}

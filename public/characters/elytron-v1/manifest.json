@@ -1,5 +1,5 @@
 {
-  "character": "Elytron",
+  "character": "Kaden",
   "design": "option-01",
   "facing": "right",
   "frameWidth": 640,
@@ -984,5 +984,6 @@
       ]
     }
   },
-  "totalFrames": 96
+  "totalFrames": 96,
+  "descriptor": "Electric Ninja"
 }

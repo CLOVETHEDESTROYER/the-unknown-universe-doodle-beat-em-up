@@ -1,6 +1,6 @@
-# Playable Elytron
+# Playable Kaden - Electric Ninja
 
-Elytron uses the approved option 01 design and the yellow-and-black selection card. He follows the existing roster unlock rules. The normal attack is a charged-fist melee combo; crouch, jump, double jump, Butt Bomb, equipment pickups, damage, death/respawn, boss victory and boarding/piloting/disembarking all retain his own artwork.
+Kaden (formerly Elytron) uses the approved option 01 design and the yellow-and-black selection card. His descriptor is Electric Ninja, shown smaller beneath KADEN on the card. The roster, HUD and game labels use Kaden. The internal `elytron` ID and sprite paths remain stable for compatibility with saved games and existing links. He follows the existing roster unlock rules. The normal attack is a charged-fist melee combo; crouch, jump, double jump, Butt Bomb, equipment pickups, damage, death/respawn, boss victory and boarding/piloting/disembarking all retain his own artwork.
 
 Pulse Storm uses the existing X key / SP touch button. It charges for 320 ms, fires six yellow electrical pulses 110 ms apart, then recovers. Each traveling pulse deals 2 damage through the ordinary projectile collision and boss-guard rules. Cooldown is six seconds. Facing is captured when the cast begins. The scene clock controls the whole volley, so pause freezes firing; cancellation on damage/death or scene teardown clears owned shots. Pulse Storm does not consume equipped weapon durability.
 

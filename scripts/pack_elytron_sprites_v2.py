@@ -180,7 +180,7 @@ def main():
                                   'frameRate': fps, 'repeat': -1 if loop else 0, 'strip': f'{action}.png'}
             overview_rows.append((action, frames[start:start+length]))
         print(f'{group}: {count} complete alpha frames packed', flush=True)
-    manifest = {'character': 'Elytron', 'design': 'option-01', 'facing': 'right', 'frameWidth': W,
+    manifest = {'character': 'Kaden', 'descriptor': 'Electric Ninja', 'design': 'option-01', 'facing': 'right', 'frameWidth': W,
                 'frameHeight': H, 'origin': [0.5, BASELINE/H], 'integration': 'platformer-and-flight',
                 'animations': animations, 'sheets': sheets,
                 'totalFrames': sum(g['frames'] for g in sheets.values())}

@@ -1,0 +1,74 @@
+[
+  {
+    "hero": "xgod",
+    "sourceStandingHeight": 348,
+    "previousScale": 0.4,
+    "previousVisibleHeight": 139.2,
+    "targetHeight": 160,
+    "newScale": 0.45977
+  },
+  {
+    "hero": "barrett",
+    "sourceStandingHeight": 305,
+    "previousScale": 0.391,
+    "previousVisibleHeight": 119.3,
+    "targetHeight": 160,
+    "newScale": 0.52459
+  },
+  {
+    "hero": "nico",
+    "sourceStandingHeight": 281,
+    "previousScale": 0.391,
+    "previousVisibleHeight": 109.9,
+    "targetHeight": 160,
+    "newScale": 0.569395
+  },
+  {
+    "hero": "ezra",
+    "sourceStandingHeight": 326,
+    "previousScale": 0.391,
+    "previousVisibleHeight": 127.5,
+    "targetHeight": 160,
+    "newScale": 0.490798
+  },
+  {
+    "hero": "teleportation_c",
+    "sourceStandingHeight": 293,
+    "previousScale": 0.391,
+    "previousVisibleHeight": 114.6,
+    "targetHeight": 160,
+    "newScale": 0.546075
+  },
+  {
+    "hero": "killer_kai",
+    "sourceStandingHeight": 190,
+    "previousScale": 0.782,
+    "previousVisibleHeight": 148.6,
+    "targetHeight": 160,
+    "newScale": 0.842105
+  },
+  {
+    "hero": "elytron",
+    "sourceStandingHeight": 343,
+    "previousScale": 0.46,
+    "previousVisibleHeight": 157.8,
+    "targetHeight": 160,
+    "newScale": 0.466472
+  },
+  {
+    "hero": "shadow_kid",
+    "sourceStandingHeight": 277,
+    "previousScale": 0.68,
+    "previousVisibleHeight": 188.4,
+    "targetHeight": 160,
+    "newScale": 0.577617
+  },
+  {
+    "hero": "zgod",
+    "sourceStandingHeight": 243,
+    "previousScale": 0.391,
+    "previousVisibleHeight": 95.0,
+    "targetHeight": 105,
+    "newScale": 0.432099
+  }
+]

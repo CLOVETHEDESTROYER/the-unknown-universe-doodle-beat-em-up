@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import {characterScale} from './characterSizing';
 
 export const EMBER_DASH = { speed: 700, duration: 600, damage: 3, frameMs: 70 } as const;
 
@@ -9,7 +10,7 @@ export class EmberJets {
   private hidden = false;
   constructor(scene: Phaser.Scene, private player: Phaser.Physics.Arcade.Sprite, drawnXGod: boolean) {
     this.jets=scene.add.sprite(0,0,'ember_jets','0').setDepth(19).setVisible(false);
-    this.actor=drawnXGod?scene.add.sprite(0,0,'ember_xgod_dash','0').setOrigin(.5,220/256).setScale(.78).setDepth(24).setVisible(false):null;
+    this.actor=drawnXGod?scene.add.sprite(0,0,'ember_xgod_dash','0').setOrigin(.5,220/256).setScale(characterScale('xgod','','mobility')).setDepth(24).setVisible(false):null;
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>{this.jets.destroy();this.actor?.destroy();});
   }
   present(active: boolean, elapsed: number, direction: number, obscured: boolean, hidePlayer: boolean) {

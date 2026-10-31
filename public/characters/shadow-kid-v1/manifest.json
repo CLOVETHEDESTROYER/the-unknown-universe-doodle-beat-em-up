@@ -1,0 +1,654 @@
+{
+  "status": "first playable integration",
+  "cellWidth": 512,
+  "cellHeight": 384,
+  "anchor": [
+    256,
+    352
+  ],
+  "facing": "right",
+  "scale": 0.56,
+  "animations": {
+    "idle": {
+      "file": "idle.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 6,
+      "loop": true,
+      "source": "idle-jump-source.png",
+      "poses": [
+        {
+          "bounds": [
+            178,
+            73,
+            334,
+            352
+          ],
+          "sourceBounds": [
+            63,
+            22,
+            341,
+            521
+          ]
+        },
+        {
+          "bounds": [
+            176,
+            69,
+            334,
+            352
+          ],
+          "sourceBounds": [
+            439,
+            15,
+            722,
+            521
+          ]
+        },
+        {
+          "bounds": [
+            180,
+            89,
+            336,
+            352
+          ],
+          "sourceBounds": [
+            815,
+            51,
+            1094,
+            521
+          ]
+        },
+        {
+          "bounds": [
+            179,
+            84,
+            331,
+            352
+          ],
+          "sourceBounds": [
+            1214,
+            41,
+            1485,
+            520
+          ]
+        }
+      ]
+    },
+    "jump": {
+      "file": "jump.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 9,
+      "loop": false,
+      "source": "idle-jump-source.png",
+      "poses": [
+        {
+          "bounds": [
+            172,
+            129,
+            350,
+            352
+          ],
+          "sourceBounds": [
+            47,
+            609,
+            365,
+            1007
+          ]
+        },
+        {
+          "bounds": [
+            180,
+            90,
+            356,
+            313
+          ],
+          "sourceBounds": [
+            408,
+            538,
+            722,
+            936
+          ]
+        },
+        {
+          "bounds": [
+            184,
+            87,
+            400,
+            318
+          ],
+          "sourceBounds": [
+            771,
+            531,
+            1156,
+            944
+          ]
+        },
+        {
+          "bounds": [
+            168,
+            141,
+            351,
+            352
+          ],
+          "sourceBounds": [
+            1182,
+            630,
+            1508,
+            1007
+          ]
+        }
+      ]
+    },
+    "run": {
+      "file": "run.png",
+      "frames": 8,
+      "columns": 4,
+      "fps": 12,
+      "loop": true,
+      "source": "run-source.png",
+      "poses": [
+        {
+          "bounds": [
+            154,
+            85,
+            358,
+            352
+          ],
+          "sourceBounds": [
+            17,
+            16,
+            382,
+            493
+          ]
+        },
+        {
+          "bounds": [
+            197,
+            93,
+            396,
+            352
+          ],
+          "sourceBounds": [
+            406,
+            18,
+            762,
+            481
+          ]
+        },
+        {
+          "bounds": [
+            177,
+            86,
+            394,
+            352
+          ],
+          "sourceBounds": [
+            746,
+            14,
+            1134,
+            489
+          ]
+        },
+        {
+          "bounds": [
+            72,
+            94,
+            300,
+            352
+          ],
+          "sourceBounds": [
+            1124,
+            20,
+            1531,
+            481
+          ]
+        },
+        {
+          "bounds": [
+            151,
+            87,
+            356,
+            352
+          ],
+          "sourceBounds": [
+            18,
+            526,
+            384,
+            999
+          ]
+        },
+        {
+          "bounds": [
+            191,
+            87,
+            393,
+            352
+          ],
+          "sourceBounds": [
+            398,
+            527,
+            758,
+            1001
+          ]
+        },
+        {
+          "bounds": [
+            171,
+            84,
+            387,
+            352
+          ],
+          "sourceBounds": [
+            749,
+            520,
+            1134,
+            998
+          ]
+        },
+        {
+          "bounds": [
+            143,
+            90,
+            366,
+            352
+          ],
+          "sourceBounds": [
+            1123,
+            526,
+            1522,
+            993
+          ]
+        }
+      ]
+    },
+    "throw": {
+      "file": "throw.png",
+      "frames": 8,
+      "columns": 4,
+      "fps": 10,
+      "loop": false,
+      "source": "throw-source.png",
+      "poses": [
+        {
+          "bounds": [
+            166,
+            83,
+            347,
+            352
+          ],
+          "sourceBounds": [
+            23,
+            30,
+            346,
+            510
+          ]
+        },
+        {
+          "bounds": [
+            163,
+            83,
+            347,
+            352
+          ],
+          "sourceBounds": [
+            396,
+            31,
+            725,
+            512
+          ]
+        },
+        {
+          "bounds": [
+            161,
+            84,
+            365,
+            352
+          ],
+          "sourceBounds": [
+            758,
+            31,
+            1123,
+            510
+          ]
+        },
+        {
+          "bounds": [
+            155,
+            97,
+            364,
+            352
+          ],
+          "sourceBounds": [
+            1152,
+            54,
+            1525,
+            509
+          ]
+        },
+        {
+          "bounds": [
+            166,
+            103,
+            411,
+            352
+          ],
+          "sourceBounds": [
+            9,
+            549,
+            447,
+            994
+          ]
+        },
+        {
+          "bounds": [
+            159,
+            103,
+            438,
+            352
+          ],
+          "sourceBounds": [
+            336,
+            551,
+            834,
+            995
+          ]
+        },
+        {
+          "bounds": [
+            154,
+            106,
+            401,
+            352
+          ],
+          "sourceBounds": [
+            732,
+            556,
+            1173,
+            995
+          ]
+        },
+        {
+          "bounds": [
+            165,
+            87,
+            346,
+            352
+          ],
+          "sourceBounds": [
+            1190,
+            538,
+            1513,
+            1012
+          ]
+        }
+      ],
+      "releaseFrame": 5
+    },
+    "crouch": {
+      "file": "crouch.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 7,
+      "loop": true,
+      "source": "reactions-source.png",
+      "poses": [
+        {
+          "bounds": [
+            176,
+            112,
+            406,
+            352
+          ],
+          "sourceBounds": [
+            47,
+            20,
+            316,
+            301
+          ]
+        },
+        {
+          "bounds": [
+            153,
+            160,
+            386,
+            352
+          ],
+          "sourceBounds": [
+            332,
+            72,
+            605,
+            297
+          ]
+        },
+        {
+          "bounds": [
+            134,
+            129,
+            372,
+            352
+          ],
+          "sourceBounds": [
+            647,
+            39,
+            926,
+            300
+          ]
+        },
+        {
+          "bounds": [
+            178,
+            105,
+            385,
+            352
+          ],
+          "sourceBounds": [
+            993,
+            11,
+            1235,
+            300
+          ]
+        }
+      ]
+    },
+    "hurt": {
+      "file": "hurt.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 7,
+      "loop": false,
+      "source": "reactions-source.png",
+      "poses": [
+        {
+          "bounds": [
+            110,
+            87,
+            339,
+            352
+          ],
+          "sourceBounds": [
+            27,
+            310,
+            295,
+            620
+          ]
+        },
+        {
+          "bounds": [
+            95,
+            106,
+            343,
+            352
+          ],
+          "sourceBounds": [
+            333,
+            333,
+            623,
+            621
+          ]
+        },
+        {
+          "bounds": [
+            176,
+            114,
+            388,
+            352
+          ],
+          "sourceBounds": [
+            670,
+            343,
+            918,
+            621
+          ]
+        },
+        {
+          "bounds": [
+            167,
+            85,
+            340,
+            352
+          ],
+          "sourceBounds": [
+            1008,
+            309,
+            1210,
+            621
+          ]
+        }
+      ]
+    },
+    "death": {
+      "file": "death.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 7,
+      "loop": false,
+      "source": "reactions-source.png",
+      "poses": [
+        {
+          "bounds": [
+            178,
+            110,
+            398,
+            352
+          ],
+          "sourceBounds": [
+            37,
+            624,
+            294,
+            907
+          ]
+        },
+        {
+          "bounds": [
+            156,
+            159,
+            387,
+            352
+          ],
+          "sourceBounds": [
+            340,
+            678,
+            610,
+            904
+          ]
+        },
+        {
+          "bounds": [
+            131,
+            186,
+            391,
+            352
+          ],
+          "sourceBounds": [
+            633,
+            708,
+            937,
+            902
+          ]
+        },
+        {
+          "bounds": [
+            128,
+            239,
+            386,
+            352
+          ],
+          "sourceBounds": [
+            955,
+            767,
+            1257,
+            899
+          ]
+        }
+      ]
+    },
+    "victory": {
+      "file": "victory.png",
+      "frames": 4,
+      "columns": 4,
+      "fps": 7,
+      "loop": true,
+      "source": "reactions-source.png",
+      "poses": [
+        {
+          "bounds": [
+            168,
+            82,
+            343,
+            352
+          ],
+          "sourceBounds": [
+            65,
+            913,
+            270,
+            1229
+          ]
+        },
+        {
+          "bounds": [
+            159,
+            85,
+            354,
+            352
+          ],
+          "sourceBounds": [
+            367,
+            915,
+            595,
+            1228
+          ]
+        },
+        {
+          "bounds": [
+            144,
+            85,
+            352,
+            352
+          ],
+          "sourceBounds": [
+            666,
+            918,
+            909,
+            1231
+          ]
+        },
+        {
+          "bounds": [
+            166,
+            84,
+            346,
+            352
+          ],
+          "sourceBounds": [
+            1008,
+            917,
+            1219,
+            1231
+          ]
+        }
+      ]
+    }
+  }
+}

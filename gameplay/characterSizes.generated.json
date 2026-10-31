@@ -1,0 +1,163 @@
+{
+  "xgod": {
+    "base": 348,
+    "equipment": {
+      "hands": 348,
+      "blaster": 330,
+      "sword": 348,
+      "frost": 325
+    },
+    "textures": {},
+    "special": 146,
+    "victory": 164,
+    "mobility": 170,
+    "death": 348,
+    "flight": 330,
+    "target": 160
+  },
+  "barrett": {
+    "base": 305,
+    "equipment": {
+      "blaster": 303,
+      "sword": 347,
+      "frost": 305,
+      "ember": 319,
+      "storm": 346
+    },
+    "textures": {},
+    "special": 138,
+    "victory": 164,
+    "mobility": 170,
+    "death": 305,
+    "flight": 275,
+    "target": 160
+  },
+  "nico": {
+    "base": 281,
+    "equipment": {
+      "hands": 281,
+      "blaster": 280,
+      "sword": 284,
+      "frost": 281,
+      "ember": 280,
+      "storm": 288
+    },
+    "textures": {},
+    "special": 150,
+    "victory": 164,
+    "mobility": 170,
+    "death": 281,
+    "flight": 311,
+    "target": 160
+  },
+  "ezra": {
+    "base": 326,
+    "equipment": {
+      "blaster": 323,
+      "sword": 361,
+      "frost": 323,
+      "ember": 327,
+      "storm": 376
+    },
+    "textures": {},
+    "special": 149,
+    "victory": 164,
+    "mobility": 170,
+    "death": 326,
+    "flight": 325,
+    "target": 160
+  },
+  "teleportation_c": {
+    "base": 293,
+    "equipment": {
+      "blaster": 289,
+      "sword": 323,
+      "frost": 292,
+      "ember": 295,
+      "storm": 344
+    },
+    "textures": {
+      "character_walk": 292,
+      "character_attack": 292,
+      "teleportation_c_dash": 292,
+      "teleportation_c_walk": 292,
+      "teleportation_c_attack": 292
+    },
+    "special": 147,
+    "victory": 164,
+    "mobility": 170,
+    "death": 293,
+    "flight": 292,
+    "target": 160
+  },
+  "killer_kai": {
+    "base": 190,
+    "equipment": {},
+    "textures": {
+      "kai_movement": 190,
+      "kai_combat": 190,
+      "kai_sword": 190,
+      "kai_reactions": 190
+    },
+    "special": 160,
+    "mobility": 170,
+    "victory": 190,
+    "death": 190,
+    "flight": 190,
+    "target": 160
+  },
+  "elytron": {
+    "base": 343,
+    "equipment": {},
+    "textures": {
+      "elytron_movement": 343,
+      "elytron_locomotion": 355,
+      "elytron_combat": 345,
+      "elytron_reactions": 322,
+      "elytron_special": 354,
+      "elytron_mobility": 397.5609756097561
+    },
+    "mobility": 397.5609756097561,
+    "special": 354,
+    "death": 322,
+    "victory": 318,
+    "flight": 355,
+    "target": 160
+  },
+  "shadow_kid": {
+    "base": 277,
+    "equipment": {},
+    "textures": {
+      "shadow_idle": 277,
+      "shadow_run": 277,
+      "shadow_jump": 277,
+      "shadow_throw": 277,
+      "shadow_crouch": 277,
+      "shadow_hurt": 277
+    },
+    "special": 277,
+    "mobility": 277,
+    "death": 277,
+    "victory": 277,
+    "flight": 277,
+    "target": 160
+  },
+  "zgod": {
+    "base": 243,
+    "equipment": {
+      "hands": 243,
+      "blaster": 241,
+      "sword": 252,
+      "frost": 241,
+      "ember": 242,
+      "storm": 242
+    },
+    "textures": {},
+    "special": 128,
+    "victory": 148,
+    "mobility": 170,
+    "death": 243,
+    "flight": 243,
+    "target": 105
+  }
+}

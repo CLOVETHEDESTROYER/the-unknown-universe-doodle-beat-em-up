@@ -1,6 +1,7 @@
 import type {CharacterId} from '../types';
 
 export const HERO_MOBILITY = {
+  shadow_kid: {name:'Void Drop',radius:200,height:135,direct:6,wave:4,stun:550,launch:280,color:0xb16eff},
   elytron: {name:'Butt Bomb',radius:190,height:135,direct:6,wave:4,stun:500,launch:300,color:0xffda39},
   killer_kai: {name:'Jet Slam',radius:220,height:150,direct:7,wave:5,stun:550,launch:320,color:0x57dcff},
   xgod: {name:'Butt Bomb',radius:180,height:125,direct:6,wave:4,stun:450,launch:280,color:0xffcb69},

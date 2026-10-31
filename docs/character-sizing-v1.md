@@ -1,0 +1,11 @@
+# Roster sizing
+
+The active campaign uses a shared standing-height reference: **160 world pixels** for X God, Barrett, Nico, Ezra, Teleportation C, Killer Kai, Kaden and the unnamed shadow kid; **105 pixels** for Z-God (about 66% of the others). Broad builds, tall hair, weapons, raised arms, jumping and crouching retain their authored proportions.
+
+`scripts/audit_character_sizes.py` measures opaque pixels in upright reference frames, ignoring transparent canvas padding and faint aura. It writes `gameplay/characterSizes.generated.json` and a before/after lineup in `art/character-sizing-v1/`. Original artwork stays untouched. Re-run it after replacing source art, inspect the lineup and review animation-family references when adding new sets.
+
+`gameplay/characterSizing.ts` supplies one uniform scale per animation family. All frames in a family keep the same scale: no pose-by-pose stretching. Equipment sets have separate upright references so a pickup cannot accidentally shrink the hero because its sheet was packed differently. Main bodies, special actors, double jump/slam/crouch actors, victory/reward actors, defeat art, X God's drawn damage/Ember Dash and flight boarding/disembark use the shared policy. Teleportation C's companion uses the same scale as his playable legacy ink sprites. Cockpit portraits fit their existing cockpit rather than adopting full-body world dimensions.
+
+Ground collision bodies stay stable across texture changes: 40×108 world pixels for the main roster (40×60 crouched); Z-God uses 30×76 (30×48 crouched). Feet retain each art set's existing baseline. Scaling therefore cannot change the collider merely because an animation uses a different canvas size. Custom/model X God and the retired brawler renderer retain their existing presentation; canonical campaign art is the drawn roster.
+
+Review the alpha-based capture metrics (`player.visibleHeight`, `player.visualScale`), `art/character-sizing-v1/roster-before-after.jpg`, and the in-game screenshot grid. `scripts/test_character_sizes_v1.mjs` exercises each hero's idle/run/crouch/jump, equipment and attacks, special, defeat/respawn, victory and flight. Tests use real browser input and retain evidence in ignored `output/character-sizing/`.

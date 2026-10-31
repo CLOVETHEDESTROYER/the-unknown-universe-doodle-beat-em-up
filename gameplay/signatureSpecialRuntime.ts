@@ -3,6 +3,8 @@ import type { CharacterId } from '../types';
 import { SIGNATURE_SPECIALS, beginSignature, createSignatureState, signatureFrame } from './signatureSpecials';
 import { playSfx } from '../audio/gameAudio';
 import {KaiThunderfall} from './kaiThunderfall';
+import {sizeCharacter} from './characterSizing';
+import {SHADOW_ART} from './shadowKid';
 import {ELYTRON_ART} from './elytron';
 
 type Enemy=Phaser.Physics.Arcade.Sprite;
@@ -40,7 +42,9 @@ export class SignatureSpecialRuntime {
   constructor(private scene:Phaser.Scene,readonly hero:CharacterId,private hooks:Hooks){
     this.actor=scene.add.sprite(0,0,'signature_special','0').setOrigin(.5,220/256)
       .setScale(.88).setDepth(24).setVisible(false);
+    if(hero==='shadow_kid')this.actor.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
     if(hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
+    sizeCharacter(this.actor,hero,'special');
     this.art=scene.add.graphics().setDepth(23);
     if(hero==='killer_kai')this.thunder=new KaiThunderfall(scene,{enemies:hooks.enemies,projectiles:hooks.projectiles,
       floor:hooks.floor,damage:(enemy,amount)=>{const hit=hooks.damage(enemy,amount,true);if(hit)this.state.hits++;return hit;}});
@@ -62,7 +66,7 @@ export class SignatureSpecialRuntime {
     }
     if(!beginSignature(this.state,this.hero,now))return false;
     this.visited.clear();this.chainDone=false;this.lastHopAt=now;this.castDirection=this.hooks.facing();
-    this.hooks.lockMovement(this.hero==='killer_kai'||this.hero==='elytron'?this.state.until:now+SIGNATURE_SPECIALS[this.hero].windup);
+    this.hooks.lockMovement(this.hero==='killer_kai'||this.hero==='elytron'||this.hero==='shadow_kid'?this.state.until:now+SIGNATURE_SPECIALS[this.hero].windup);
     this.hooks.player.setVelocityX(0);
     if(this.hero==='teleportation_c')this.state.invulnerableUntil=now+650;
     if(this.hero==='zgod')this.state.invulnerableUntil=this.state.until;
@@ -141,7 +145,14 @@ export class SignatureSpecialRuntime {
   private impact(){
     const player=this.hooks.player,body=player.body as Phaser.Physics.Arcade.Body;
     const now=this.scene.time.now,x=body.center.x,y=body.bottom,d=this.castDirection;
-    if(this.hero==='elytron'){
+    if(this.hero==='shadow_kid'){
+      const shot=this.hooks.projectiles.create(x+d*48,y-90,'projectile_static') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+      shot.setDisplaySize(80,80).setDepth(24).setData('damage',7).setData('shadowHole',true).setData('shadowSpecial',true)
+        .setData('companionPierces',3).setData('companionTargets',new Set<Enemy>())
+        .setData('playerShotExpiresAt',now+2000).setVelocityX(d*420).setAngularVelocity(100);
+      (shot.body as Phaser.Physics.Arcade.Body).setSize(shot.width*.65,shot.height*.65,true).setAllowGravity(false);
+      this.pulseShots.add(shot);playSfx('teleport');
+    }else if(this.hero==='elytron'){
       this.pulsesRemaining=6;this.nextPulseAt=now;
     }else if(this.hero==='xgod'){
       const area=new Phaser.Geom.Rectangle(d>0?x-15:x-405,y-235,420,245);
@@ -251,12 +262,12 @@ export class SignatureSpecialRuntime {
     }
   }
 
-  recordPulseHit(hit:boolean){if(this.hero==='elytron'&&hit)this.state.hits++;}
+  recordPulseHit(hit:boolean){if((this.hero==='elytron'||this.hero==='shadow_kid')&&hit)this.state.hits++;}
 
   read(){const now=this.scene.time.now;return {name:SIGNATURE_SPECIALS[this.hero].name,...this.state,
     pulseStorm:this.hero==='elytron'?{fired:this.pulsesFired,remaining:this.pulsesRemaining,activeShots:[...this.pulseShots].filter(s=>s.active).length}:null,
     active:this.casting,cooldownRemainingMs:Math.max(0,this.state.readyAt-now),
-    frame:this.actor.visible?Number(this.actor.frame.name):null,thunderfall:this.thunder?.read()??null,zone:this.zone?{...this.zone}:null};}
+    visualScale:this.actor.scaleY,frame:this.actor.visible?Number(this.actor.frame.name):null,thunderfall:this.thunder?.read()??null,zone:this.zone?{...this.zone}:null};}
 
   cancel(restore=true){
     this.pulsesRemaining=0;for(const shot of this.pulseShots)if(shot.active)shot.destroy();this.pulseShots.clear();

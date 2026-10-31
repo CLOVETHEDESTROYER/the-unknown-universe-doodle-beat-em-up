@@ -1,6 +1,7 @@
 import type { CharacterId } from '../types';
 
 export const SIGNATURE_SPECIALS = {
+  shadow_kid: {name:'Void Burst',cooldown:5000,windup:500,duration:800,color:0xb16eff,description:'Hurl a powerful black hole through up to three enemies.'},
   elytron: {name:'Pulse Storm',cooldown:6000,windup:320,duration:1300,color:0xffda39,
     description:'Unleash six traveling electrical pulses toward enemies.'},
   killer_kai: {name:'Thunderfall',cooldown:7000,windup:650,duration:1600,color:0x57dcff,
@@ -35,6 +36,7 @@ export function beginSignature(state:SignatureState,hero:CharacterId,now:number)
 }
 
 export function signatureFrame(hero:CharacterId,elapsed:number){
+  if(hero==='shadow_kid')return Math.min(7,Math.floor(elapsed/100));
   if(hero==='elytron')return elapsed<320?Math.min(2,Math.floor(elapsed/110)):elapsed<1000?3+Math.floor((elapsed-320)/90)%3:elapsed<1150?6:7;
   const spec=SIGNATURE_SPECIALS[hero];
   if(elapsed<spec.windup*.5)return 0;

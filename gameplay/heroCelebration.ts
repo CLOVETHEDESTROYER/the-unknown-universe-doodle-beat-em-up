@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import type {CharacterId} from '../types';
+import {sizeCharacter} from './characterSizing';
+import {SHADOW_ART} from './shadowKid';
 import {ELYTRON_ART} from './elytron';
 
 export type CelebrationKind = 'victory' | 'sword';
@@ -11,6 +13,7 @@ const SWORD_STEPS = [0, 280, 640, 1020, 1620, 2020];
 const FOLDER = '/characters/celebrations-v1/';
 
 export function loadHeroCelebrationAssets(load:Phaser.Loader.LoaderPlugin,hero:CharacterId,sword=false,reuseKai=false){
+  if(hero==='shadow_kid'){load.multiatlas('hero_victory',SHADOW_ART.folder+'victory.json',SHADOW_ART.folder);return;}
   if(hero==='elytron'){
     load.multiatlas('hero_victory',ELYTRON_ART.folder+'reactions.json',ELYTRON_ART.folder);return;
   }
@@ -47,7 +50,9 @@ export class HeroCelebration {
     this.kind=kind;this.elapsed=0;this.running=true;this.cuePlayed=false;this.counts[kind]++;
     this.actor.setTexture(key).setOrigin(.5,this.hero==='killer_kai'&&kind==='victory'?240/256:352/384)
       .setScale(this.hero==='killer_kai'&&kind==='victory'?.782:1).setAlpha(1);
+    if(this.hero==='shadow_kid')this.actor.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
     if(this.hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
+    sizeCharacter(this.actor,this.hero,'victory');
     this.seek(0,x,feet,facing);return true;
   }
   update(delta:number,x:number,feet:number,facing=1){
@@ -75,7 +80,7 @@ export class HeroCelebration {
   cancel(){this.running=false;this.actor.setVisible(false);this.light.clear();}
   read(){return {active:this.running,kind:this.kind,elapsedMs:Math.round(this.elapsed),durationMs:this.duration,
     frame:this.frame,stage:this.kind==='sword'?['reach','claim','ignite','raise','settle','ready'][this.frame]:['ready','windup','cheer','settle'][this.frame],
-    texture:this.actor.texture.key,visible:this.actor.visible,feet:Math.round(this.feet),x:Math.round(this.x),facing:this.facing,
+    texture:this.actor.texture.key,visible:this.actor.visible,visualScale:this.actor.scaleY,feet:Math.round(this.feet),x:Math.round(this.x),facing:this.facing,
     played:{...this.counts},completed:{...this.finished}};}
   destroy(){this.actor.destroy();this.light.destroy();}
 }

@@ -15,6 +15,9 @@ import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWi
 import { playSfx } from '../audio/gameAudio';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import {HeroCelebration,loadHeroCelebrationAssets,FLIGHT_VICTORY_START,HERO_VICTORY_DURATION} from '../gameplay/heroCelebration';
+import {sizeCharacter,characterScale} from '../gameplay/characterSizing';
+import {XGOD_FROST_FOLDER} from '../gameplay/xgodFrost';
+import {SHADOW_ART} from '../gameplay/shadowKid';
 import {ELYTRON_ART} from '../gameplay/elytron';
 
 interface Props {
@@ -69,8 +72,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const hero=CHARACTER_CONFIGS[selectedCharacterId];
     const xgod=selectedCharacterId==='xgod';
     const drawnXgod=xgod&&params.get('xgodArt')!=='model';
+    const frostXgod=drawnXgod&&initialStats.equipment?.active==='frost';
     const zgod=selectedCharacterId==='zgod';
     const kai=selectedCharacterId==='killer_kai';
+    const shadow=selectedCharacterId==='shadow_kid';
     const elytron=selectedCharacterId==='elytron';
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
@@ -532,7 +537,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         loadGameImage(this.load, 'flight_planet','platformer/void-regent-pencil-panorama-generated.png');
         loadGameImage(this.load, 'flight_pad','platformer/graveyard-moss-block.png');
         loadGameImage(this.load, 'flight_impact','doodles/impact-vfx-generated.png');
-        if(elytron){
+        if(frostXgod){
+          this.load.multiatlas('flight_hero',XGOD_FROST_FOLDER+'run.json',XGOD_FROST_FOLDER);
+          this.load.multiatlas('flight_head',XGOD_FROST_FOLDER+'idle.json',XGOD_FROST_FOLDER);
+        }else if(shadow){
+          this.load.multiatlas('flight_hero',SHADOW_ART.folder+'run.json',SHADOW_ART.folder);
+          this.load.multiatlas('flight_head',SHADOW_ART.folder+'idle.json',SHADOW_ART.folder);
+        }else if(elytron){
           this.load.multiatlas('flight_hero',ELYTRON_ART.folder+'locomotion.json',ELYTRON_ART.folder);
           this.load.multiatlas('flight_head',ELYTRON_ART.folder+'movement.json',ELYTRON_ART.folder);
         }else{
@@ -556,12 +567,17 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(zgod)pilot.setCrop(280,210,220,190).setPosition(12,-18);
         if(drawnXgod)pilot.setCrop(270,135,245,220).setPosition(12,-6);
         if(kai)pilot.setCrop(140,35,100,110).setPosition(12,-6);
+        if(shadow)pilot.setCrop(180,70,160,150).setScale(.21).setPosition(12,-6);
         if(elytron)pilot.setCrop(225,105,190,180).setScale(.17).setPosition(12,-6);
         const glass=this.add.ellipse(15,-11,54,23,0x92d4ef,.15);
         ship=this.add.container(state.x,state.y,[exhaust,shipHull,pilot,glass]).setDepth(15);
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
+        if(shadow)walker.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
         if(elytron)walker.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
-        this.anims.create({key:'flight_board_walk',frames:elytron?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
+        this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
+        sizeCharacter(walker,selectedCharacterId,'flight');
+        if(frostXgod)walker.setScale(characterScale('xgod','hero_frost_run'));
+        if(!xgod&&!zgod&&!kai&&!shadow&&!elytron)walker.setOrigin(.5,344/360);
         walker.play('flight_board_walk');
         flightVictory=new HeroCelebration(this,selectedCharacterId);
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};
@@ -597,6 +613,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       mode:state.phase==='gameover'?'gameover':paused.current?'paused':state.phase,level:FLIGHT_LEVEL,chapter:'STARBREAK RUN',
       section:state.distance<5000?'Canopy Climb':state.distance<11500?'High Orbit':'Void Approach',failedAssets,
       selectedCharacter:{id:selectedCharacterId,name:hero.name},
+      boardingVisual:{visible:walker?.visible??false,iceGauntlets:frostXgod,texture:walker?.texture.key??null,scale:walker?.scaleY??0},
       player:ready?{x:Math.round(state.x),y:Math.round(state.y),velocityX:Math.round(state.vx),velocityY:Math.round(state.vy),health:state.hull,lives:state.lives,texture:'flight_ship',frame:0}:null,
       ship:{hull:state.hull,bank:ship?.angle??0,collisionHalfWidth:46,collisionHalfHeight:16,impacts:state.impacts,pilotVisible:pilot?.visible??false,invulnerable:state.clock<state.invulnerableUntil,visible:ship?.visible??false},
       shipDeath:{...shipDeathPose(state.death,state.clock),active:Boolean(shipDeathPose(state.death,state.clock)?.visible),fragments:deathChunks.filter(image=>image.visible&&image.alpha>0).length},
