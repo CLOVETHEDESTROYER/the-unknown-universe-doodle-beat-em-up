@@ -21,6 +21,8 @@ The Scratch has a cracking rooftop escape, the Graveyard has a guarded Doghost r
 
 ## Run locally
 
+`npm run typecheck` checks the application TypeScript. `npm run build` runs that check before creating the production bundle. Generated files and old project exports under `output/` are excluded from compilation.
+
 Use Node.js 20 or 22, then:
 
 ```sh

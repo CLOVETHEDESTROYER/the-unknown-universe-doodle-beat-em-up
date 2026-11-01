@@ -151,7 +151,7 @@ declare global {
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
     __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
-    __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy';cooldown?:boolean;regentMove?:string;phase?:1|2;hp?:number})=>void;
+    __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy';cooldown?:boolean;regentMove?:string;stageMove?:'cinder_bound'|'witch_step';phase?:1|2;hp?:number})=>void;
     advanceTime?: (ms: number) => Promise<void>;
     render_game_to_text?: () => string;
   }
@@ -1813,15 +1813,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const floor=Number(boss.getData('floorY')),x=boss.x,id=boss.getData('bossId') as BossId;
         setBossArenaCamera(scene,null,false);placePlayerOnPlatform(x-260,floor);placeBossAt(boss,x,floor);
         boss.setData('left',x-180).setData('right',x+200).setData('floorY',floor).setData('engaged',true)
-          .setData('phase',1).setData('phasePending',false).setData('hp',Math.max(1,options.hp??100)).setData('maxHp',Math.max(1,options.hp??100))
+          .setData('phase',options.phase??1).setData('phasePending',false).setData('hp',Math.max(1,options.hp??100)).setData('maxHp',Math.max(1,options.hp??100))
           .setData('hurtUntil',-9999).setData('damageReadyAt',options.cooldown?scene.time.now+10000:0).setData('buttBombHits',0);
         if(id==='void_regent'&&options.regentMove){
           if(!isRegentMove(options.regentMove))throw Error('Unknown Regent attack');
           boss.setData('left',level.endX-1080).setData('right',level.endX-200)
             .setData('phase',options.phase??1).setData('phasePending',false);
         }
+        if(options.stageMove&&!(id==='ink_behemoth'&&options.stageMove==='cinder_bound'||id==='kilina'&&options.stageMove==='witch_step'))throw Error('Attack does not belong to this boss');
         if(id==='killinas_daughter')beginKilinaMove(scene,boss,'cannon_burst');
-        else beginStageBossMove(scene,boss,id==='ink_behemoth'?'ember_rain':id==='kilina'?'witch_hex':id==='void_regent'&&options.regentMove?options.regentMove:id==='void_regent'?'star_fan':'fire_volley');
+        else beginStageBossMove(scene,boss,options.stageMove??(id==='ink_behemoth'?'ember_rain':id==='kilina'?'witch_hex':id==='void_regent'&&options.regentMove?options.regentMove:id==='void_regent'?'star_fan':'fire_volley'));
         if(options.state==='recover'){
           if(id==='killinas_daughter')recoverKilina(scene,boss);else recoverStageBoss(scene,boss);
         }else{
@@ -2284,7 +2285,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function makeCinderShockwaveTexture(scene: Phaser.Scene) {
       if (scene.textures.exists("cinder_quake_wave")) return;
-      const art = scene.make.graphics({ x: 0, y: 0, add: false });
+      const art = scene.make.graphics({ x: 0, y: 0 }, false);
       art.fillStyle(0xf97316, 0.28).fillEllipse(48, 25, 92, 34);
       art.lineStyle(8, 0xff8a1f, 0.96).strokeEllipse(48, 25, 84, 24);
       art.lineStyle(3, 0xffe089, 0.95).strokeEllipse(48, 23, 56, 12);
@@ -3515,9 +3516,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (move === "dragon_lunge" || move === "cinder_bound" || move === "shadow_dash" || move === "witch_step") {
           duration -= phaseTwo ? 100 : 0;
           const travelDuration=duration;
-          // Keep the final boss guarded briefly after landing so his warned
-          // low waves have an actual damage interval before the safe opening.
-          if(id==='void_regent'&&move==='shadow_dash'&&phaseTwo)duration+=450;
+          // Warned landing waves need an active interval before recovery clears
+          // boss projectiles. Keep the full counter window safe afterward.
+          if(move==='cinder_bound'||move==='witch_step'||id==='void_regent'&&move==='shadow_dash'&&phaseTwo)duration+=450;
           const t = Phaser.Math.Clamp(elapsed / travelDuration, 0, 1);
           const height = move === "cinder_bound" ? 165 : move === "witch_step" ? 125 : move === "dragon_lunge" ? 90 : 24;
           placeBossAt(boss, Phaser.Math.Linear(startX, targetX, Phaser.Math.SmoothStep(t, 0, 1)), floor - Math.sin(t * Math.PI) * height);
@@ -3765,7 +3766,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       round.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 11)
         .setData("bossShotExpiresAt", scene.time.now + 2200).setDepth(18).setDisplaySize(30, 18).setRotation(angle).setTint(0xe4b0ff)
         .setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-      round.body.setSize(round.width * 0.75, round.height * 0.65, true).setAllowGravity(false);
+      (round.body as Phaser.Physics.Arcade.Body).setSize(round.width * 0.75, round.height * 0.65, true).setAllowGravity(false);
       const flash = scene.add.ellipse(muzzleX, muzzleY, 26, 18, 0xf6cdff, 0.9).setDepth(19);
       scene.tweens.add({ targets: flash, alpha: 0, scale: 1.8, duration: 100, onComplete: () => flash.destroy() });
       boss.setData("lastBurstAt", scene.time.now);
@@ -3783,7 +3784,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           wave.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("kilinaShot", true).setData("damage", 10)
             .setData("bossShotExpiresAt", scene.time.now + 1300).setDisplaySize(54, 26).setTint(0xd8a4ff).setDepth(18)
             .setVelocityX(direction * 280);
-          wave.body.setSize(wave.width * 0.75, wave.height * 0.6, true).setAllowGravity(false);
+          (wave.body as Phaser.Physics.Arcade.Body).setSize(wave.width * 0.75, wave.height * 0.6, true).setAllowGravity(false);
         });
       }
       recoverKilina(scene, boss);
@@ -3954,7 +3955,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         .setDepth(22).setFlipX(facingDirection < 0).setVelocityX(facingDirection * 650);
       if(isKai)shot.setDisplaySize(42,22).play('kai_pellet');
       if (hasFlameSword) shot.setTint(0xffb35c);
-      shot.body.setSize(isKai?160:27, isKai?130:13, true).setAllowGravity(false);
+      (shot.body as Phaser.Physics.Arcade.Body).setSize(isKai?160:27, isKai?130:13, true).setAllowGravity(false);
 
       // An enemy inside the drawn barrel must be hit before the shot spawns past it.
       const barrelPath = new Phaser.Geom.Rectangle(facingDirection > 0 ? player.x + 16 : muzzleX,

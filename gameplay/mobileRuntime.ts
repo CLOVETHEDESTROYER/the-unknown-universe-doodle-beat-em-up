@@ -48,7 +48,6 @@ export function loadGameSheet(loader: Phaser.Loader.LoaderPlugin, key: string, p
 
 export function mobileGameOptions(): Partial<Phaser.Types.Core.GameConfig> {
   return isMobileGraphicsEnabled() ? {
-    resolution: 1,
     loader: { maxParallelDownloads: 2, imageLoadType: 'HTMLImageElement' },
   } : {};
 }

@@ -592,6 +592,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     const testWindow = window as Window & {
       advanceTime?: (ms: number) => Promise<void>;
       render_game_to_text?: () => string;
+      __unknownLegacyHitTest?: (damage?:number)=>{before:number;preserved:number;health:number;tint:number}|null;
       __unknownUniverseTouchControls?: Partial<Record<'left' | 'right' | 'up' | 'down' | 'attack' | 'jump' | 'dash', boolean>>;
     };
 
@@ -819,7 +820,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
         return;
       }
 
-      scene.tweens.killTweensOf(player, 'tint');
+      // Tint is cleared by the timer below; unrelated movement/attack tweens must keep running.
       player.setTint(color);
       scene.time.delayedCall(duration, () => {
         if (player && player.active && !isDazed) {
@@ -2035,6 +2036,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           : intent === 'DRAGON BREATH' ? '#fdba74'
           : intent === 'GUNFIRE' ? '#c4b5fd'
           : intent === 'AXE SWING' || intent === 'AXE RANGE' ? '#fca5a5'
+          : intent === 'GRAVITY BARRAGE' || intent === 'RIFT CHARGE' || intent === 'VOID STORM' ? '#c084fc'
           : intent === 'INK SPIT' ? '#fecdd3'
           : '#ddd6fe'
       );
@@ -3913,44 +3915,11 @@ const GameEngine: React.FC<GameEngineProps> = ({
       });
     }
 
-    function showSectionCard(scene: Phaser.Scene, title: string, subtitle: string, duration: number = 1050) {
-      const titleText = sectionCardOverlay.getAt(1) as Phaser.GameObjects.Text;
-      const subtitleText = sectionCardOverlay.getAt(2) as Phaser.GameObjects.Text;
-      titleText.setText(title);
-      subtitleText.setText(subtitle);
-      scene.tweens.killTweensOf(sectionCardOverlay);
-      sectionCardOverlay.setVisible(true).setAlpha(0).setY(-10);
-      scene.tweens.add({
-        targets: sectionCardOverlay,
-        alpha: SECTION_CARD_OPACITY,
-        y: 0,
-        duration: 160,
-        ease: 'Cubic.easeOut',
-        onComplete: () => {
-          scene.time.delayedCall(duration, () => {
-            scene.tweens.add({
-              targets: sectionCardOverlay,
-              alpha: 0,
-              y: -18,
-              duration: 190,
-              onComplete: () => sectionCardOverlay.setVisible(false).setY(0)
-            });
-          });
-        }
-      });
-    }
-
-    function pulseFeedbackFlash(scene: Phaser.Scene, color: number, alpha: number, duration: number) {
-      feedbackFlash.setFillStyle(color, alpha).setAlpha(alpha);
-      scene.tweens.add({
-        targets: feedbackFlash,
-        alpha: 0,
-        duration,
-        ease: 'Quad.easeOut'
-      });
-    }
-
-    function getWavePlan(sectionIndex: number) {
+    function getWavePlan(sectionIndex: number): {
+      primaryEnemy: MonsterType; supportEnemies: readonly MonsterType[];
+      baseCount: number; staggerMs: number;
+      supportSlots: readonly number[]; rearSlots: readonly number[];
+    } {
       const levelProfile = LEVEL_PROFILES[getLevelKey(currentLevel)];
       return levelProfile.wavePlans[Math.min(sectionIndex, levelProfile.wavePlans.length - 1)];
     }
@@ -4074,33 +4043,6 @@ const GameEngine: React.FC<GameEngineProps> = ({
       }
 
       monster.setScale(GHOST_FLOAT.scale).setOrigin(0.5, 0.84);
-    }
-
-    function updateBossHudDisplay(boss?: Phaser.Physics.Arcade.Sprite | null) {
-      if (!boss || !boss.active || boss.getData('state') === 'DEAD') {
-        bossHud.setVisible(false).setAlpha(0);
-        return;
-      }
-
-      const hp = boss.getData('hp') || 0;
-      const maxHp = boss.getData('maxHp') || 1;
-      const intent = boss.getData('intent') || 'STALKING';
-      const bossName = boss.getData('bossName') || 'INK BEHEMOTH';
-      const pct = Phaser.Math.Clamp(hp / maxHp, 0, 1);
-
-      bossHud.setVisible(true).setAlpha(1);
-      bossLabelText.setText(bossName);
-      bossBarFill.width = 204 * pct;
-      bossIntentText.setText(`Intent: ${intent}`);
-      bossIntentText.setColor(
-        intent === 'SHOCKWAVE' ? '#fde68a'
-          : intent === 'DRAGON BREATH' ? '#fdba74'
-          : intent === 'GUNFIRE' ? '#c4b5fd'
-          : intent === 'AXE SWING' || intent === 'AXE RANGE' ? '#fca5a5'
-          : intent === 'GRAVITY BARRAGE' || intent === 'RIFT CHARGE' || intent === 'VOID STORM' ? '#c084fc'
-          : intent === 'INK SPIT' ? '#fecdd3'
-          : '#ddd6fe'
-      );
     }
 
     function showBossWarning(scene: Phaser.Scene, title: string = 'INK BEHEMOTH') {
@@ -5185,7 +5127,8 @@ const GameEngine: React.FC<GameEngineProps> = ({
                 isJumping,
                 isSlamming,
                 isDashing,
-                isInvulnerable: playerInvulnerable
+                isInvulnerable: playerInvulnerable,
+                tint:player.tintTopLeft,scaleX:player.scaleX,scaleY:player.scaleY
               }
             : null,
           progress: {
@@ -5289,6 +5232,14 @@ const GameEngine: React.FC<GameEngineProps> = ({
       gameRef.current = new Phaser.Game(config);
       testWindow.render_game_to_text = renderGameToText;
       testWindow.advanceTime = advanceTime;
+      if(debugParams.get('capture')==='1')testWindow.__unknownLegacyHitTest=(damage)=>{
+        const scene=gameRef.current?.scene.getScenes(true)[0];
+        if(!scene||!player?.active)return null;
+        const existing=scene.tweens.getTweensOf(player);
+        if(damage!==undefined)takePlayerDamage(scene,damage);else flashPlayerHitTint(scene);
+        const remaining=scene.tweens.getTweensOf(player);
+        return {before:existing.length,preserved:existing.filter(tween=>remaining.includes(tween)).length,health:playerHealth,tint:player.tintTopLeft};
+      };
     } catch (e) {
       console.error("Phaser failed to initialize:", e);
     }
@@ -5296,6 +5247,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     return () => {
       delete testWindow.render_game_to_text;
       delete testWindow.advanceTime;
+      delete testWindow.__unknownLegacyHitTest;
       gameRef.current?.destroy(true);
       if (audioContextRef.current) {
         audioContextRef.current.close().catch(() => { });

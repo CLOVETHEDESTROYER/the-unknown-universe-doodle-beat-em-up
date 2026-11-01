@@ -103,7 +103,11 @@ async function observeMove(level,phase) {
   assert(b.vulnerable,`${locked.move} must finish and expose a recovery window`);
   const moved = Math.max(...positions.map(p=>p[0]))-Math.min(...positions.map(p=>p[0]));
   const raised = Math.min(...positions.map(p=>p[1]));
-  if(['dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) assert(moved>140,'Movement attack traverses its marked destination');
+  if(['dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) {
+    // A player near the boss can commit a short destination. Verify that
+    // destination, rather than requiring an unrelated minimum travel distance.
+    assert(Math.abs(b.x-locked.targetX)<10,'Movement attack reaches its committed destination');
+  }
   if(b.move==='cinder_bound') assert(raised<b.floorY-140);
   if(b.move==='dragon_lunge') assert(raised<b.floorY-70);
   if(b.move==='fire_volley' || b.move==='low_breath') assert.equal(maxShots,phase===2?4:3);
@@ -140,6 +144,14 @@ try {
     assert.equal(guarded.hp,hp,'Rear sword hits cannot bypass the guard');
     assert(guarded.guardedHits>0);
     assert.notEqual(guarded.attackState,'patrol','Guarded hits do not cancel an attack');
+    if(level===3||level===4){
+      // These bosses now have less campaign health than the original test.
+      // Give the phase-one observation sequence enough HP for three real counters.
+      await page.evaluate(()=>window.__unknownPlatformerBossRulesTest({state:'recover',hp:100}));
+      await page.evaluate(()=>window.__unknownPlatformerCollectPickup('sword'));
+      await wait(s=>s.equipment.active==='sword');
+      b=boss(await read());
+    }
     // Retreat/re-entry resets the cycle before independently observing all three moves.
     await place(b.left-400,b.floorY);
     await page.waitForTimeout(80);

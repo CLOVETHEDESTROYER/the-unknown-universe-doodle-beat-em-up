@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:loading": "node scripts/test_loading_v1.mjs",
     "test:game": "node scripts/run_game_test.mjs",
