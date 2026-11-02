@@ -1,0 +1,32 @@
+{
+  "frameSize": 640,
+  "columns": 4,
+  "rows": 3,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "displayScale": 0.68,
+  "sharedSourceScale": 1.0257879656160458,
+  "baseFacing": "right",
+  "poses": [
+    "frost-windup",
+    "frost-release",
+    "levitate",
+    "ice-storm",
+    "dash-windup",
+    "dash",
+    "dash-brake",
+    "rune-windup",
+    "rune-cast",
+    "hex-cast",
+    "recover",
+    "second-wind"
+  ],
+  "effects": [
+    "frost-hex",
+    "ice-shard",
+    "shadow-crescent",
+    "ice-prison"
+  ]
+}

@@ -40,7 +40,7 @@ async function slash(b) {
 }
 async function evade(b) {
   // Setup only: keep the player out of the committed landing and projectile lanes.
-  const x = ['cinder_bound','dragon_lunge','shadow_dash','witch_step'].includes(b.move)
+  const x = ['witch_dash','cinder_bound','dragon_lunge','shadow_dash','witch_step'].includes(b.move)
     ? b.targetX < (b.left+b.right)/2 ? b.right+80 : b.left-80
     : b.x-b.facing*280;
   await place(Math.max(b.left-175,Math.min(b.right+175,x)),b.floorY-160);
@@ -90,7 +90,7 @@ async function observeMove(level,phase) {
     }
     if(b.vulnerable) {
       const baseDuration = b.move==='blink_burst'?3000:['furnace_quake','cinder_bound','ember_rain','void_rain'].includes(b.move)?2800
-        : ['low_breath','rune_bloom','shadow_dash'].includes(b.move)?2700:2600;
+        : b.move==='ice_storm'?2800:['low_breath','rune_bloom','shadow_dash'].includes(b.move)?2700:2600;
       assert.equal(b.recoveryDurationMs,baseDuration-(phase===2?400:0),'The entire longer counter window is granted');
       assert(b.recoveryRemainingMs>0 && b.recoveryRemainingMs<=b.recoveryDurationMs);
       assert.equal(b.y,b.floorY);
@@ -103,7 +103,7 @@ async function observeMove(level,phase) {
   assert(b.vulnerable,`${locked.move} must finish and expose a recovery window`);
   const moved = Math.max(...positions.map(p=>p[0]))-Math.min(...positions.map(p=>p[0]));
   const raised = Math.min(...positions.map(p=>p[1]));
-  if(['dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) {
+  if(['witch_dash','dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) {
     // A player near the boss can commit a short destination. Verify that
     // destination, rather than requiring an unrelated minimum travel distance.
     assert(Math.abs(b.x-locked.targetX)<10,'Movement attack reaches its committed destination');
@@ -119,6 +119,9 @@ async function observeMove(level,phase) {
   if(b.move==='witch_hex') { assert.equal(maxShots,phase===2?5:3); assert(patterns.has('curved_hex')); }
   if(b.move==='rune_bloom') { assert.equal(maxShots,phase===2?2:1); assert(patterns.has('rune_pillar')); assert.deepEqual(b.markedXs,locked.markedXs); }
   if(b.move==='witch_step') { assert(raised<b.floorY-110); assert(patterns.has('witch_wisp')); }
+  if(b.move==='frost_hex'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('frost_hex'));}
+  if(b.move==='ice_storm'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('falling_ice'));assert(raised<b.floorY-85);}
+  if(b.move==='witch_dash'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('witch_crescent'));}
   const hp = b.hp;
   await slash(b);
   const counter = boss(await read());
@@ -152,14 +155,15 @@ try {
       await wait(s=>s.equipment.active==='sword');
       b=boss(await read());
     }
-    // Retreat/re-entry resets the cycle before independently observing all three moves.
+    // Kilina now has six moves; the other bosses retain their three-move cycles.
     await place(b.left-400,b.floorY);
     await page.waitForTimeout(80);
     assert.equal((await read()).bossArenaCamera.locked,false);
     await place(Math.max(b.left-150,b.x-350),b.floorY);
     const phaseOne = [];
-    for(let i=0;i<3;i++) phaseOne.push(await observeMove(level,1));
-    assert.equal(new Set(phaseOne.map(m=>m.move)).size,3);
+    const moveCount=level===4?6:3;
+    for(let i=0;i<moveCount;i++) phaseOne.push(await observeMove(level,1));
+    assert.equal(new Set(phaseOne.map(m=>m.move)).size,moveCount);
     s=await counterUntil((s,b)=>b.hp<=b.maxHp/2);
     assert(boss(s).vulnerable,'Half-health crossing preserves the current opening');
     assert.equal(boss(s).phase,1);
@@ -168,8 +172,8 @@ try {
     await slash(b);
     assert.equal(boss(await read()).hp,phaseHp,'The second-wind transition is protected');
     const phaseTwo=[];
-    for(let i=0;i<3;i++) phaseTwo.push(await observeMove(level,2));
-    assert.equal(new Set(phaseTwo.map(m=>m.move)).size,3);
+    for(let i=0;i<moveCount;i++) phaseTwo.push(await observeMove(level,2));
+    assert.equal(new Set(phaseTwo.map(m=>m.move)).size,moveCount);
     await page.setViewportSize({width:844,height:390});
     await page.waitForTimeout(1000);
     await shot(`level${level}-phone-opening`);
@@ -203,7 +207,7 @@ try {
     }
     evidence[level]={guarded,phaseOne,phaseTwo,defeat:true,exit:true};
     await fs.writeFile(new URL(`level${level}-results.json`,output),JSON.stringify({evidence:evidence[level],errors},null,2));
-    console.log(JSON.stringify({level,passed:true,checks:['guard','movement','threeMoves','phaseOneCounters','phaseTransition','phaseTwoPatterns','phone','defeat','exit']}));
+    console.log(JSON.stringify({level,passed:true,checks:['guard','movement',level===4?'sixMoves':'threeMoves','phaseOneCounters','phaseTransition','phaseTwoPatterns','phone','defeat','exit']}));
   }
   assert.deepEqual(errors,[]);
 } catch(e) {

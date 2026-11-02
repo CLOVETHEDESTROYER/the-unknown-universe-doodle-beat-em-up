@@ -9,6 +9,7 @@ declare global {
 }
 
 export interface GameStats {
+  seasonalTheme?: import('./gameplay/seasonalTheme').SeasonalTheme;
   completedEncounters?: string[];
   campaignCheckpoint?: { level: number; index: number };
   flightSave?: { checkpoint: number; weapon: 'twin' | 'spread' | 'lance' | 'homing'; hits: number; collectedWeapons: number[]; collected: number[]; seed: number };

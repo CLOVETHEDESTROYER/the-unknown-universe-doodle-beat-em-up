@@ -1,5 +1,7 @@
 # Original Kilina: Witchwood chapter
 
+The newer [frost and shadow combat pass](kilina-combat-v2.md) gives Kilina six moves, freezing hexes, an ice storm, a shadow dash, new battle art and 72 HP. The original encounter notes below are retained as design history.
+
 Update: the [ground obstacle pass](ground-obstacles-v1.md) extends Witchwood to 9,700 units with a second spring court, crumbling ledges, a sideways ferry, and two more checkpoints. Its original arena and final checkpoint move forward by 2,200 units. The design notes below record the original 7,500-unit version.
 
 ## Campaign

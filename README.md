@@ -42,6 +42,10 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 - P: pause. Options and Pause contain separate music/effects volume and mute controls.
 - Touch controls support phones/tablets; use landscape orientation. Slide your thumb across the D-pad to move or steer (diagonals supported). Up also jumps on ground stages; Down crouches or triggers an airborne slam. Phone controls sit in side rails outside the playfield so the hero stays visible.
 
+## Seasonal codes
+
+On **Pick Your Player**, enter `happyturkey` in **Secret code** and press **Apply code**, then choose a hero. Thanksgiving mode adds fall leaves and an autumn level-one skyline, and replaces Dark Dragon with a giant turkey that charges with its talons and blows players back with wing gusts. The **Turn off** button selects classic mode for the next new game. Continue preserves the saved campaign's theme. The original D-pad roster unlock still works. See [Thanksgiving notes](docs/thanksgiving-v1.md) for artwork and checks.
+
 ## Save and Continue
 
 Normal campaigns autosave to this browser as progress changes. Use **P → Save & Quit** to return to the title, then **Continue Game** (or Enter) to resume your hero, difficulty, health, lives, score, equipment, companions and last activated checkpoint. Story chapters between levels resume too. Enemies and hazards reset when loading; this is a checkpoint save rather than a frozen scene.

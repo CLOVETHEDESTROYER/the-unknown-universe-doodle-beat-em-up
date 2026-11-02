@@ -38,8 +38,12 @@ import { FLAME_SWORD, FireBlades } from '../gameplay/fireBlade';
 import { BossVulnerabilityCue } from '../gameplay/bossVulnerabilityCue';
 import { BOSS_DEATH_BASE_FACING, BOSS_DEFEAT_DURATION, bossCounterWindow, bossDeathPose, bossDeathTexture } from '../gameplay/bossPresentation';
 import {HeroCelebration,loadHeroCelebrationAssets,type CelebrationKind} from '../gameplay/heroCelebration';
+import {TURKEY_MOVES,turkeyFlight,makeTurkeyGustTexture,AutumnLeaves} from '../gameplay/turkeyBoss';
+import type {SeasonalTheme} from '../gameplay/seasonalTheme';
+import {KILINA_HEALTH,KILINA_NEW_MOVES,KILINA_PHASE_ONE,KILINA_PHASE_TWO,isKilinaNewMove,kilinaBattlePose,PlayerFreeze} from '../gameplay/kilinaCombat';
 
 interface PlatformerGameEngineProps {
+  seasonalTheme?: SeasonalTheme;
   initialEquipment?: PowerupLoadout;
   isPaused: boolean;
   initialLives?: number;
@@ -74,7 +78,7 @@ interface PlatformerGameEngineProps {
 
 type LevelNumber = 1 | 2 | 3 | 4 | 6;
 type EnemyKind = GroundFoe | "boss";
-type BossId = "dark_dragon" | "killinas_daughter" | "ink_behemoth" | "kilina" | "void_regent";
+type BossId = "dark_dragon" | "turkey" | "killinas_daughter" | "ink_behemoth" | "kilina" | "void_regent";
 type PickupKind = "coin" | "heart" | "power" | "shield" | "gravity" | "dinio" | "doghost" | "teleportation_c" | "rush_star" | EquippedPowerup;
 
 interface PlatformRect {
@@ -151,7 +155,7 @@ declare global {
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
     __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
-    __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy';cooldown?:boolean;regentMove?:string;stageMove?:'cinder_bound'|'witch_step';phase?:1|2;hp?:number})=>void;
+    __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy'|'freeze';cooldown?:boolean;regentMove?:string;stageMove?:'cinder_bound'|'witch_step'|'talon_charge'|'wing_gust'|'frost_hex'|'ice_storm'|'witch_dash'|'witch_hex'|'rune_bloom';phase?:1|2;hp?:number})=>void;
     advanceTime?: (ms: number) => Promise<void>;
     render_game_to_text?: () => string;
   }
@@ -195,6 +199,7 @@ const ENEMY_BODY_PROFILES: Record<Exclude<EnemyKind, "boss">, {
 };
 
 const BOSS_BODY_PROFILES: Record<BossId, { x: number; y: number; width: number; height: number }> = {
+  turkey: {x:.25,y:.49,width:.50,height:.4475},
   dark_dragon: { x: 0.35, y: 0.625, width: 0.30, height: 0.3125 },
   killinas_daughter: { x: 0.42, y: 0.54, width: 0.16, height: 0.3975 },
   kilina: { x: 0.41, y: 0.5075, width: 0.18, height: 0.43 },
@@ -206,9 +211,10 @@ const BOSS_ATTACK_VISUALS: Record<BossId, {
   path: string; frameWidth: number; frameHeight: number;
   originX: number; originY: number; facesRight: boolean;
 }> = {
+  turkey: {path:'seasonal/thanksgiving-v1/turkey.png',frameWidth:512,frameHeight:512,originX:.5,originY:480/512,facesRight:false},
   dark_dragon: { path: "bosses/encounters-v2/dark_dragon/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
   killinas_daughter: { path: "bosses/kilina-v3/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
-  kilina: { path: "bosses/kilina-witch-v1/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
+  kilina: { path: "bosses/kilina-combat-v2/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
   ink_behemoth: { path: "bosses/encounters-v2/ink_behemoth/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
   void_regent: { path: "bosses/encounters-v2/void_regent/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: false }
 };
@@ -230,6 +236,11 @@ const BOSS_DEFINITIONS: Record<BossId, {
   tellMs: number;
   attackMs: number;
 }> = {
+  turkey: {
+    name:'GIANT TURKEY',textureKey:'boss_turkey',assetPath:'seasonal/thanksgiving-v1/turkey.png',
+    frameWidth:512,frameHeight:512,frameCount:1,scale:.85,maxHp:32,tint:0xe49a37,
+    attackName:'TALON CHARGE',attackStyle:'rush',projectileKey:'turkey_gust',attackInterval:2200,tellMs:1100,attackMs:1900
+  },
   dark_dragon: {
     name: "DARK DRAGON",
     textureKey: "boss_dark_dragon",
@@ -289,7 +300,7 @@ const BOSS_DEFINITIONS: Record<BossId, {
     frameHeight: 640,
     frameCount: 4,
     scale: 0.68,
-    maxHp: 52,
+    maxHp: KILINA_HEALTH,
     tint: 0xf04c86,
     attackName: "WITCH HEX",
     attackStyle: "burst",
@@ -319,6 +330,8 @@ const BOSS_DEFINITIONS: Record<BossId, {
 
 // All attacks commit their aim/destination during the warning. Durations are milliseconds.
 const BOSS_MOVES: Record<string, { tell: number; attack: number; recovery: number; hint: string }> = {
+  ...TURKEY_MOVES,
+  ...KILINA_NEW_MOVES,
   fire_volley: { tell: 750, attack: 1100, recovery: 2600, hint: "FIRE VOLLEY - MOVE!" },
   dragon_lunge: { tell: 800, attack: 700, recovery: 2600, hint: "LUNGE - MOVE CLEAR!" },
   low_breath: { tell: 850, attack: 1050, recovery: 2700, hint: "LOW FIRE - JUMP!" },
@@ -933,6 +946,7 @@ const levelKey = (level: number): LevelNumber => (level === 5 ? FINAL_LEVEL : Ma
 const pointValueForPickup = (kind: PickupKind) => kind === "rush_star" ? 0 : kind === "heart" ? 125 : kind === "coin" ? 100 : 700;
 
 const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
+  seasonalTheme,
   initialEquipment,
   isPaused,
   initialLives = 3,
@@ -1007,12 +1021,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       && !["1", "true", "yes"].includes(params.get("manualRun") ?? "");
     const playFeel = CHARACTER_FEEL[selectedCharacterId];
     const originalLevel = LEVELS[levelKey(currentLevel)];
+    const thanksgiving = seasonalTheme === 'thanksgiving';
     const replacements = new Map<EnemyPlan, RestoredEnemyKind>();
     for (const [kind,index,replacement] of ENEMY_REINTRODUCTIONS[currentLevel] ?? []) {
       const plan = originalLevel.enemies.filter(enemy => enemy.kind === kind && !enemy.bounceLane)[index];
       if (plan) replacements.set(plan,replacement);
     }
     const level = {...originalLevel,enemies:originalLevel.enemies.map((enemy,index) => ({...enemy,
+      bossId:thanksgiving&&currentLevel===1&&enemy.bossId==='dark_dragon'?'turkey':enemy.bossId,
       kind:enemy===originalLevel.enemies.find(e=>e.kind==='walker')?'walker':localEnemyKind(currentLevel,replacements.get(enemy)??enemy.kind,index) as EnemyKind}))};
     const encounterPlans = encountersForLevel(currentLevel);
     // Replace existing patrols inside the set pieces, keeping total pressure readable.
@@ -1046,6 +1062,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let signature: SignatureSpecialRuntime | null = null;
     let regentRifts:RegentRiftEffects|null=null;
     let regentResumePending=false;
+    let autumnLeaves:AutumnLeaves|null=null;
+    let playerFreeze:PlayerFreeze|null=null;
+    let freezeTapQueued=false;
     let mobility: AirborneMoves | null = null;
     let emberJets: EmberJets | null = null;
     let fireBlades: FireBlades | null = null;
@@ -1292,7 +1311,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       if (currentLevel === 1) {
         loadGameImage(this.load, "platform_school_block", "platformer/school-rooftop-block.png");
-        loadGameImage(this.load, "school_rooftop_panorama", "platformer/school-rooftop-panorama.png");
+        loadGameImage(this.load, "school_rooftop_panorama", thanksgiving?'seasonal/thanksgiving-v1/autumn-skyline.webp':"platformer/school-rooftop-panorama.png");
         loadGameImage(this.load, "platform_ink_hazard", "platformer/ink-hazard-generated.png");
         loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
       }
@@ -1307,6 +1326,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameImage(this.load, "rooftop_spring_pad", "platformer/rooftop-spring-pad-generated.png");
       }
       if (currentLevel === 4) {
+        for(const [key,path] of [['kilina_frost_hex','frost-hex'],['kilina_ice_shard','ice-shard'],['kilina_shadow_crescent','shadow-crescent'],['kilina_ice_prison','ice-prison']])loadGameImage(this.load,key,`bosses/kilina-combat-v2/${path}.png`);
         loadGameImage(this.load, "platform_witchwood_block", "platformer/graveyard-moss-block.png");
         loadGameImage(this.load, "platform_witchwood_hazard", "platformer/fog-hazard-generated.png");
         loadGameImage(this.load, "witchwood_panorama", "platformer/witchwood-panorama-generated.png");
@@ -1382,6 +1402,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         loadGameSheet(this.load, 'teleportation_c_dash','characters/teleportation_c/dash.png',{frameWidth:256,frameHeight:360});
         loadGameSheet(this.load, 'teleportation_c_attack','characters/teleportation_c/attack.png',{frameWidth:480,frameHeight:360});
       }
+      if(thanksgiving)loadGameSheet(this.load,'autumn_leaves','seasonal/thanksgiving-v1/leaves.png',{frameWidth:128,frameHeight:128});
       loadGameImage(this.load, "shadow", "doodles/shadow_oval.png");
       loadGameImage(this.load, "enemy_hit_impact", "doodles/impact-vfx-generated.png");
       loadGameImage(this.load, "boss_tell_ring", "doodles/tell-ring-generated.png");
@@ -1399,7 +1420,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       level.enemies.filter(enemy => enemy.bossId).forEach(enemy => {
         const bossId = enemy.bossId as BossId;
         const visual = BOSS_ATTACK_VISUALS[bossId];
-        this.load.multiatlas(bossDeathTexture(bossId), `/bosses/deaths-v1/${bossId}.json`, '/bosses/deaths-v1/');
+        if(bossId==='turkey')loadGameSheet(this.load,bossDeathTexture(bossId),visual.path,{frameWidth:512,frameHeight:512});
+        else this.load.multiatlas(bossDeathTexture(bossId), `/bosses/deaths-v1/${bossId}.json`, '/bosses/deaths-v1/');
         loadGameSheet(this.load, `boss_attack_${bossId}`, visual.path, {
           frameWidth: visual.frameWidth,
           frameHeight: visual.frameHeight
@@ -1563,11 +1585,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(isElytron)scene.anims.create({key:'elytron_pulse',frames:[0,1,2,3].map(frame=>({key:'elytron_fx',frame:String(frame)})),frameRate:14,repeat:-1});
       if(currentLevel===FINAL_LEVEL){
         regentRifts=new RegentRiftEffects(scene);
-        scene.events.on(Phaser.Scenes.Events.RESUME,()=>{regentResumePending=true;});
       }
+      if(currentLevel===FINAL_LEVEL||currentLevel===4||thanksgiving&&currentLevel===1)scene.events.on(Phaser.Scenes.Events.RESUME,()=>{regentResumePending=true;});
       const playerKey = getPlayerWalkTexture(scene);
       player = scene.physics.add.sprite(checkpoint.x, checkpoint.y, playerKey, 0);
       player.setDepth(20).setCollideWorldBounds(false).setDragX(0).setMaxVelocity(520, 900);
+      if(currentLevel===4)playerFreeze=new PlayerFreeze(scene,player);
       heroCelebration=new HeroCelebration(scene,selectedCharacterId,()=>playSfx('swordSwing',{volume:.35,pitch:.85}));
       const playerScale = isXGod
         ? (useSideScrollXGodRun ? 0.3 : 0.36)
@@ -1721,10 +1744,31 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       scene.physics.add.overlap(player, projectiles, (_, projectileObj) => {
         const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
         if (!projectile.getData("enemyProjectile")) return;
+        if(projectile.getData('pattern')==='turkey_gust'){
+          const source=projectile.getData('sourceBoss') as Phaser.Physics.Arcade.Sprite;
+          const direction=Math.sign((projectile.body as Phaser.Physics.Arcade.Body).velocity.x);
+          projectile.destroy();
+          if(!bossCanDamage(source,scene.time.now)||isRespawning||signature?.invulnerable||heroCelebration?.active||scene.time.now-lastDamageAt<850)return;
+          const shielded=inkShieldReady;
+          damagePlayer(scene,7,false,source);
+          if(!shielded&&!isZGod&&!isRespawning&&!(selectedCharacterId==='teleportation_c'&&scene.time.now<teleport.phaseUntil)){
+            mobility?.cancel();player.setVelocity(direction*480,-135);
+            movementLockedUntil=scene.time.now+320;
+            source.setData('gustPushes',Number(source.getData('gustPushes')??0)+1);
+          }
+          return;
+        }
         const damage = Number(projectile.getData("damage"));
         const sourceBoss=projectile.getData("sourceBoss") as Phaser.Physics.Arcade.Sprite|undefined;
+        const freezes=projectile.getData('pattern')==='frost_hex';
         projectile.destroy();
+        const healthBefore=playerHealth;
         damagePlayer(scene, Number.isFinite(damage) && damage > 0 ? damage : 10, false, sourceBoss);
+        if(freezes&&playerHealth<healthBefore&&!isRespawning&&playerHealth>0&&playerFreeze?.start()){
+          signature?.cancel(false);mobility?.cancel();stopEmber();fireBlades?.clear();player.setVelocityX(0);setCrouching(false,scene.time.now);
+          projectiles.getChildren().filter(shot=>shot.getData('sourceBoss')===sourceBoss).forEach(shot=>shot.destroy());
+          playSfx('frost',{pitch:.7,volume:.65});
+        }
       });
 
       if (debugCheckpoint && level.checkpoints[0]) {
@@ -1809,31 +1853,33 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         enemies.getChildren().slice().filter(e=>e!==boss).forEach(e=>e.destroy());
         projectiles.getChildren().slice().forEach(e=>e.destroy());
         mobility?.cancel(true);signature?.cancel(false);movementLockedUntil=lastDamageAt=-9999;playerHealth=100;
+        playerFreeze?.clear();
         equipment=equipPowerup(equipment,'blaster',currentLevel);
         const floor=Number(boss.getData('floorY')),x=boss.x,id=boss.getData('bossId') as BossId;
         setBossArenaCamera(scene,null,false);placePlayerOnPlatform(x-260,floor);placeBossAt(boss,x,floor);
         boss.setData('left',x-180).setData('right',x+200).setData('floorY',floor).setData('engaged',true)
           .setData('phase',options.phase??1).setData('phasePending',false).setData('hp',Math.max(1,options.hp??100)).setData('maxHp',Math.max(1,options.hp??100))
           .setData('hurtUntil',-9999).setData('damageReadyAt',options.cooldown?scene.time.now+10000:0).setData('buttBombHits',0);
+        if(id==='turkey'||id==='kilina')boss.setData('left',x-480).setData('right',x+200);
         if(id==='void_regent'&&options.regentMove){
           if(!isRegentMove(options.regentMove))throw Error('Unknown Regent attack');
           boss.setData('left',level.endX-1080).setData('right',level.endX-200)
             .setData('phase',options.phase??1).setData('phasePending',false);
         }
-        if(options.stageMove&&!(id==='ink_behemoth'&&options.stageMove==='cinder_bound'||id==='kilina'&&options.stageMove==='witch_step'))throw Error('Attack does not belong to this boss');
+        if(options.stageMove&&!(id==='turkey'&&Object.hasOwn(TURKEY_MOVES,options.stageMove)||id==='ink_behemoth'&&options.stageMove==='cinder_bound'||id==='kilina'&&(KILINA_PHASE_ONE.includes(options.stageMove)||isKilinaNewMove(options.stageMove))))throw Error('Attack does not belong to this boss');
         if(id==='killinas_daughter')beginKilinaMove(scene,boss,'cannon_burst');
-        else beginStageBossMove(scene,boss,options.stageMove??(id==='ink_behemoth'?'ember_rain':id==='kilina'?'witch_hex':id==='void_regent'&&options.regentMove?options.regentMove:id==='void_regent'?'star_fan':'fire_volley'));
+        else beginStageBossMove(scene,boss,options.stageMove??(id==='turkey'?'talon_charge':id==='ink_behemoth'?'ember_rain':id==='kilina'?'witch_hex':id==='void_regent'&&options.regentMove?options.regentMove:id==='void_regent'?'star_fan':'fire_volley'));
         if(options.state==='recover'){
           if(id==='killinas_daughter')recoverKilina(scene,boss);else recoverStageBoss(scene,boss);
         }else{
-          const tell=options.state==='tell'?(id==='void_regent'&&options.regentMove?BOSS_MOVES[options.regentMove].tell-((options.phase??1)===2?120:0):10000):0;
+          const tell=options.state==='tell'?(id==='turkey'||id==='kilina'&&options.stageMove||id==='void_regent'&&options.regentMove?BOSS_MOVES[options.stageMove??options.regentMove??'talon_charge'].tell-((options.phase??1)===2?120:0):10000):0;
           boss.setData('tellDuration',tell).setData('attackTellUntil',scene.time.now+tell);
         }
         if(options.contact)placePlayerOnPlatform(boss.x,floor);
         if(options.shot){
           placeBossAt(player,player.x,player.y);
           const body=player.body as Phaser.Physics.Arcade.Body;
-          const p=stageBossProjectile(scene,boss,body.center.x,body.center.y,0,0,'rule_test',32,11);
+          const p=stageBossProjectile(scene,boss,body.center.x,body.center.y,0,0,options.shot==='freeze'?'frost_hex':'rule_test',32,options.shot==='freeze'?8:11);
           placeBossAt(p,p.x,p.y);
           if(options.shot==='enemy')p.setData('sourceBoss',undefined).setData('sourceKind','walker');
         }
@@ -1922,6 +1968,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
+      autumnLeaves?.update(delta);
       if (!player || !player.active || isLevelClearing || isRespawning) { signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
 
       const now = scene.time.now;
@@ -1942,6 +1989,19 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body = player.body as Phaser.Physics.Arcade.Body;
       const touch = window.__unknownUniverseTouchControls ?? {};
       const grounded = isPlayerGrounded(body);
+      const wasFrozen=Boolean(playerFreeze?.active);
+      const escapeHeld=jumpKey.isDown||jumpAltKey.isDown||attackKey.isDown||shootKey.isDown||Boolean(touch.jump||touch.up||touch.attack||touch.shoot)
+        ||performance.now()-jumpQueuedAt<180||performance.now()-equipmentAttackQueuedAt<180;
+      playerFreeze?.update(delta,escapeHeld,freezeTapQueued);freezeTapQueued=false;
+      if(wasFrozen){
+        jumpQueuedAt=downQueuedAt=specialQueuedAt=blinkQueuedAt=recallQueuedAt=equipmentAttackQueuedAt=jumpBufferedAt=-9999;
+        jumpWasHeld=jumpKey.isDown||jumpAltKey.isDown||Boolean(touch.jump||touch.up);
+        downWasHeld=cursors.down.isDown||crouchKey.isDown||Boolean(touch.down);
+        blinkHeld=dashKey.isDown||Boolean(touch.dash);recallHeld=recallKey.isDown||Boolean(touch.recall);
+        Phaser.Input.Keyboard.JustDown(dashKey);Phaser.Input.Keyboard.JustDown(attackKey);
+        body.setVelocityX(0);updatePlayerVisual(scene,grounded,0);player.anims.stop();
+        playerFreeze?.present();updateWorldCombat(scene,delta);return;
+      }
       if(grounded&&!heroCelebration?.active&&celebrationQueue.length){
         const kind=celebrationQueue.shift()!;
         signature?.cancel(false);mobility?.cancel(true);stopEmber();fireBlades?.clear();
@@ -2134,6 +2194,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (xgodDamagePose?.active) {
         xgodDamagePose.setPosition(player.x, (player.body as Phaser.Physics.Arcade.Body).bottom).setFlipX(facingDirection < 0);
       }
+      updateWorldCombat(scene,delta);
+    }
+
+    function updateWorldCombat(scene:Phaser.Scene,delta:number){
       updateEnemies(scene);
       if (!hitStopActive) routeEncounters.forEach(encounter=>encounter.update(delta));
       updateDinioCompanion(scene, delta);
@@ -2150,6 +2214,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function makeBackground(scene: Phaser.Scene) {
+      if(thanksgiving)autumnLeaves=new AutumnLeaves(scene,viewport.width);
       if (currentLevel <= 2) {
         for (let index = 0; index < 3; index++) {
           scene.add.image(index * 1728, 0, currentLevel === 1 ? "school_rooftop_panorama" : "graveyard_moonlit_panorama").setOrigin(0).setDisplaySize(1728, 576).setFlipX(index % 2 === 1).setScrollFactor(0.28, 0).setDepth(-30);
@@ -3048,7 +3113,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           .setData("engaged", false).setData("attackIndex", 0).setData("move", "axe_dash")
           .setData("facing", -1).setData("damageReadyAt", 0).setData("guardedHits", 0).setData("openingHits", 0)
           .setData("attacksCompleted", 0).setData("phasePending", false).setData("teleportsCompleted",0).setData("teleportsThisMove",0)
-          .setData("move", plan.bossId === "dark_dragon" ? "fire_volley" : plan.bossId === "ink_behemoth" ? "furnace_quake"
+          .setData("move", plan.bossId === 'turkey' ? 'talon_charge' : plan.bossId === "dark_dragon" ? "fire_volley" : plan.bossId === "ink_behemoth" ? "furnace_quake"
             : plan.bossId === "void_regent" ? "blink_burst" : plan.bossId === "kilina" ? "witch_hex" : "axe_dash");
       }
       if (boss && plan.bossId && scene.textures.exists(`boss_attack_${plan.bossId}`)) {
@@ -3308,6 +3373,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function showStageBossPose(boss: Phaser.Physics.Arcade.Sprite, frame: number, angle = 0, stretch = 1) {
       const id = boss.getData("bossId") as BossId;
+      if(id==='kilina')frame=kilinaBattlePose(String(boss.getData('move')),String(boss.getData('attackState')),boss.scene.time.now-Number(boss.getData('stateStartedAt')));
       const facing = Number(boss.getData("facing"));
       setBossAttackPose(boss, id, facing, frame);
       boss.setFlipX(id === "ink_behemoth" || id === "kilina" ? facing < 0 : facing > 0);
@@ -3324,7 +3390,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const teleportX = boss.getData('bossId')==='void_regent'?regentTeleportTarget(boss.x,left,right,viewport.width):boss.x < (left + right) / 2 ? right - 25 : left + 25;
       const targetX = move === "blink_burst" ? teleportX : move === "cinder_bound" || move === "witch_step" ? player.x
         : boss.x + direction * Phaser.Math.Clamp(Math.abs(player.x - boss.x) + 70, 280, 420);
-      const travels = ["dragon_lunge", "cinder_bound", "shadow_dash", "witch_step"].includes(move);
+      const travels = ["witch_dash", "talon_charge", "dragon_lunge", "cinder_bound", "shadow_dash", "witch_step"].includes(move);
       let destination = Phaser.Math.Clamp(targetX, left + 15, right - 15);
       // Reposition across the yard when cornered instead of performing a motionless charge.
       if (travels && Math.abs(destination - boss.x) < 180) destination = boss.x < (left + right) / 2 ? right - 15 : left + 15;
@@ -3332,7 +3398,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         .setData("facing", move === "blink_burst" ? player.x < teleportX ? -1 : 1 : travels ? Math.sign(destination - boss.x) : direction)
         .setData("stateStartedAt", scene.time.now).setData("tellDuration", spec.tell - (phaseTwo ? 120 : 0))
         .setData("startX", boss.x).setData("targetX", destination)
-        .setData("aimX", player.x).setData("aimY", player.y - 85).setData("shotsInBurst", 0)
+        .setData("aimX", player.x).setData("aimY", player.y - (move==='frost_hex'?105:85)).setData("shotsInBurst", 0)
         .setData("lastAfterimageAt", -9999).setData("landingFired", false).setData("teleportsThisMove",0)
         .setData("returnX",regentTeleportTarget(teleportX,left,right,viewport.width))
         .setData("markedXs", (phaseTwo ? [-260, -130, 0, 130, 260] : [-170, 0, 170])
@@ -3353,6 +3419,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function recoverStageBoss(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
+      if(boss.getData('bossId')==='kilina'&&playerFreeze?.active)playerFreeze.thaw();
       const duration = bossCounterWindow(Number(boss.getData('phase')), BOSS_MOVES[boss.getData("move") as string].recovery);
       placeBossAt(boss, boss.x, Number(boss.getData("floorY")));
       boss.setData("attackState", "recover").setData("stateStartedAt", scene.time.now)
@@ -3368,15 +3435,23 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function stageBossProjectile(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite, x: number, y: number,
       vx: number, vy: number, kind: string, size = 32, damage = 10) {
       const config = BOSS_DEFINITIONS[boss.getData("bossId") as BossId];
-      const key = kind === "quake" ? "cinder_quake_wave" : config.projectileKey;
+      if(kind==='turkey_gust')makeTurkeyGustTexture(scene);
+      const key = kind==='frost_hex'?'kilina_frost_hex':kind==='falling_ice'?'kilina_ice_shard':kind==='witch_crescent'?'kilina_shadow_crescent':kind === "quake" ? "cinder_quake_wave" : config.projectileKey;
       const orb = projectiles.create(x, y, key) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       orb.setData("sourceBoss",boss).setData("enemyProjectile", true).setData("damage", damage).setData("bossMove", boss.getData("move"))
         .setData("bossShotExpiresAt", scene.time.now + (kind === "quake" ? 1900 : 2600))
         .setData("quakeWave", kind === "quake").setData("pattern", kind).setDepth(18)
-        .setDisplaySize(kind === "quake" ? 86 : size, kind === "quake" ? 34 : size)
-        .setTint(config.tint).setVelocity(vx, vy);
+        .setDisplaySize(kind === 'turkey_gust' ? 160 : kind === "quake" ? 86 : size, kind === 'turkey_gust' ? 120 : kind === "quake" ? 34 : size)
+        .setTint(kind==='turkey_gust'?0xffffff:config.tint).setVelocity(vx, vy);
       (orb.body as Phaser.Physics.Arcade.Body).setSize(orb.width * 0.65, orb.height * 0.65, true).setAllowGravity(false);
       if (kind === "quake") orb.setFlipX(vx < 0);
+      if(kind==='turkey_gust')orb.setFlipX(vx<0).setData('bossShotExpiresAt',scene.time.now+1050);
+      if(kind==='frost_hex')orb.setDisplaySize(46,46).clearTint().setData('bossShotExpiresAt',scene.time.now+1650);
+      if(kind==='falling_ice'){
+        orb.setDisplaySize(60,104).clearTint().setData('bossShotExpiresAt',scene.time.now+1150);
+        orb.body.setSize(orb.width*.3,orb.height*.8,true);
+      }
+      if(kind==='witch_crescent')orb.setDisplaySize(86,105).clearTint().setFlipX(vx<0).setData('bossShotExpiresAt',scene.time.now+1000);
       return orb;
     }
 
@@ -3411,9 +3486,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const floor = Number(boss.getData("floorY"));
       const target = Number(boss.getData("targetX"));
       const move = boss.getData("move") as string;
-      const color = BOSS_DEFINITIONS[boss.getData("bossId") as BossId].tint;
+      const color = move==='frost_hex'||move==='ice_storm'?0x8ceeff:BOSS_DEFINITIONS[boss.getData("bossId") as BossId].tint;
       bossAttackWarning.lineStyle(3, color, 0.4 + progress * 0.5);
-      if (move === "ember_rain" || move === "void_rain") {
+      if (move === 'ice_storm' || move === "ember_rain" || move === "void_rain") {
         (boss.getData("markedXs") as number[]).forEach(x => {
           bossAttackWarning.fillStyle(color, 0.08 + progress * 0.13).fillRect(x - 22, floor - 460, 44, 460);
           bossAttackWarning.strokeEllipse(x, floor - 5, 58, 22);
@@ -3432,7 +3507,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             .lineStyle(2,color,.25).lineBetween(Number(boss.getData('startX')),floor-18,target,floor-18);
           if(boss.getData('phase')===2)bossAttackWarning.strokeEllipse(Number(boss.getData('returnX')),floor-105,60,200);
         }
-      } else if (move === "dragon_lunge" || move === "shadow_dash") {
+      } else if(move==='wing_gust'){
+        const direction=Number(boss.getData('facing'));
+        bossAttackWarning.fillStyle(0xb8efff,.08+progress*.06).fillRect(direction<0?boss.x-650:boss.x+80,floor-200,570,185);
+        for(let i=0;i<3;i++)bossAttackWarning.lineBetween(boss.x+direction*110,floor-50-i*50,boss.x+direction*550,floor-50-i*50);
+      } else if (move === 'witch_dash' || move === 'talon_charge' || move === "dragon_lunge" || move === "shadow_dash") {
         bossAttackWarning.lineBetween(boss.x, floor - 14, target, floor - 14);
         bossAttackWarning.strokeEllipse(target, floor - 10, 115, 25);
       } else if (move === "low_breath" || move === "furnace_quake") {
@@ -3446,7 +3525,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function updateStageBoss(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite, now: number) {
       const id = boss.getData("bossId") as BossId;
-      if(id==='void_regent'){
+      if(id==='void_regent'||id==='turkey'||id==='kilina'){
         if(regentResumePending){
           // Phaser Clock.now follows wall time on resume; preserve this fight's
           // warning, teleport and full counter window instead of skipping ahead.
@@ -3468,6 +3547,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       bossAttackWarning?.clear();
       bossTellMarker?.setVisible(false);
       if (distance > 1150 || player.x < left - (boss.getData("engaged") ? 280 : 200)) {
+        if(id==='kilina')playerFreeze?.clear();
         if (boss.getData("engaged")) projectiles.getChildren().filter(p => p.getData("enemyProjectile")).forEach(p => p.destroy());
         placeBossAt(boss, Phaser.Math.Clamp(boss.x, left, right), floor);
         boss.setData("engaged", false).setData("attackState", "patrol").setAlpha(1);
@@ -3491,7 +3571,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (boss.getData("phasePending") && (state === "patrol" || state === "recover" && now >= Number(boss.getData("recoverUntil")))) {
         boss.setData("phase", 2).setData("phasePending", false).setData("attackState", "phase").setData("stateStartedAt", now);
         state = "phase";
-        if(id==='void_regent')boss.setData('attackIndex',0);
+        if(id==='void_regent'||id==='kilina')boss.setData('attackIndex',0);
         scene.cameras.main.shake(180, 0.003);
       }
       if (state === "phase") {
@@ -3503,7 +3583,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if (state === "tell") {
         const progress = Phaser.Math.Clamp(elapsed / Number(boss.getData("tellDuration")), 0, 1);
-        showStageBossPose(boss, id === "dark_dragon" || id === "kilina" ? 0 : 1, -facing * progress * 4, 1 - Math.sin(progress * Math.PI) * 0.025);
+        if(id==='turkey'){
+          showStageBossPose(boss,move==='wing_gust'?6:progress<.45?1:2,-facing*progress*3);
+          if(move==='talon_charge')placeBossAt(boss,Number(boss.getData('startX')),floor-Math.max(0,(progress-.45)/.55)*45);
+        }else showStageBossPose(boss, id === "dark_dragon" || id === "kilina" ? 0 : 1, -facing * progress * 4, 1 - Math.sin(progress * Math.PI) * 0.025);
         drawStageBossWarning(boss, progress);
         if (progress >= 1) boss.setData("attackState", "attack").setData("stateStartedAt", now);
         return;
@@ -3513,7 +3596,53 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const startX = Number(boss.getData("startX"));
         const targetX = Number(boss.getData("targetX"));
         let fired = Number(boss.getData("shotsInBurst"));
-        if (move === "dragon_lunge" || move === "cinder_bound" || move === "shadow_dash" || move === "witch_step") {
+        if(move==='frost_hex'){
+          const count=phaseTwo?2:1;
+          if(fired<count&&elapsed>=140+fired*520){
+            const x=boss.x+facing*92,y=floor-145;
+            const aim=Phaser.Math.Clamp(Math.atan2(Number(boss.getData('aimY'))-y,Math.max(120,Math.abs(Number(boss.getData('aimX'))-x))),-.45,.45);
+            stageBossProjectile(scene,boss,x,y,facing*Math.cos(aim)*350,Math.sin(aim)*350,'frost_hex',46,8);
+            boss.setData('shotsInBurst',fired+1);playSfx('frost',{pitch:.8});
+          }
+          showStageBossPose(boss,1);
+        }else if(move==='ice_storm'){
+          const pulses=phaseTwo?2:1;
+          drawStageBossWarning(boss,.8);
+          placeBossAt(boss,startX,floor-Math.min(1,elapsed/280)*95);
+          showStageBossPose(boss,3,Math.sin(now/180));
+          if(fired<pulses&&elapsed>=250+fired*950){
+            for(const x of new Set(boss.getData('markedXs') as number[]))stageBossProjectile(scene,boss,x,floor-450,0,510,'falling_ice',38,13);
+            boss.setData('shotsInBurst',fired+1);playSfx('frost',{pitch:.6,volume:.7});
+          }
+        }else if(move==='witch_dash'){
+          const t=Phaser.Math.Clamp(elapsed/(phaseTwo?340:430),0,1);
+          placeBossAt(boss,Phaser.Math.Linear(startX,targetX,t),floor);
+          showStageBossPose(boss,t<1?5:6);
+          if(t<1&&now-Number(boss.getData('lastAfterimageAt'))>75&&bossAttackVisual){
+            boss.setData('lastAfterimageAt',now);
+            const echo=scene.add.image(boss.x,boss.y,bossAttackVisual.texture.key,bossAttackVisual.frame.name)
+              .setOrigin(.5,600/640).setScale(Number(boss.getData('baseScale'))).setFlipX(bossAttackVisual.flipX).setTint(0xb69aff).setAlpha(.35).setDepth(11);
+            scene.tweens.add({targets:echo,alpha:0,duration:220,onComplete:()=>echo.destroy()});
+          }
+          if(fired<(phaseTwo?2:1)&&elapsed>=610+fired*320){
+            stageBossProjectile(scene,boss,boss.x+facing*90,floor-58,facing*360,0,'witch_crescent',86,13);
+            boss.setData('shotsInBurst',fired+1);playSfx('swordSwing',{pitch:.65});
+          }
+        }else if(move==='talon_charge'){
+          const flight=turkeyFlight(elapsed,phaseTwo);
+          placeBossAt(boss,Phaser.Math.Linear(startX,targetX,flight.travel),floor-flight.lift);
+          showStageBossPose(boss,flight.frame,flight.leg==='retreat'?Math.sin(now/110)*3:0);
+          boss.setData('flightLeg',flight.leg);
+        }else if(move==='wing_gust'){
+          placeBossAt(boss,startX,floor);
+          const cycle=elapsed%360;
+          showStageBossPose(boss,elapsed>1450?8:cycle<110?6:cycle<245?7:8);
+          const count=phaseTwo?4:3;
+          if(fired<count&&elapsed>=160+fired*360){
+            stageBossProjectile(scene,boss,boss.x+facing*145,floor-65,facing*480,0,'turkey_gust',160,7);
+            boss.setData('shotsInBurst',fired+1);playSfx('swordSwing',{volume:.35,pitch:.65});
+          }
+        }else if (move === "dragon_lunge" || move === "cinder_bound" || move === "shadow_dash" || move === "witch_step") {
           duration -= phaseTwo ? 100 : 0;
           const travelDuration=duration;
           // Warned landing waves need an active interval before recovery clears
@@ -3622,14 +3751,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if (state === "recover") {
         const remaining = Number(boss.getData("recoverUntil")) - now;
-        showStageBossPose(boss, id === "dark_dragon" ? 0 : 3, facing * Math.max(0, 1 - elapsed / 700) * 3);
+        showStageBossPose(boss, id==='turkey'?now<Number(boss.getData('hurtUntil'))?10:9:id === "dark_dragon" ? 0 : 3, facing * Math.max(0, 1 - elapsed / 700) * 3);
         if (remaining <= 0) boss.setData("attackState", "patrol").setData("nextAttackAt", now + (phaseTwo ? 350 : 600));
         return;
       }
       const direction = player.x < boss.x ? -1 : 1;
       boss.setData("facing", direction).setFlipX(id === "ink_behemoth" || id === "kilina" ? direction < 0 : direction > 0);
       setBossAttackPose(boss, id, direction, null);
-      const desired = distance > 350 ? direction * (id === "ink_behemoth" ? 46 : id === "kilina" ? phaseTwo ? 155 : 120 : id === "void_regent" ? 95 : 75)
+      const desired = distance > 350 ? direction * (id === "ink_behemoth" ? 46 : id === "kilina" ? phaseTwo ? 185 : 140 : id === "void_regent" ? 95 : 75)
         : distance < 210 ? -direction * (id === "kilina" ? 105 : 65) : 0;
       boss.setVelocityX((boss.x <= left + 2 && desired < 0 || boss.x >= right - 2 && desired > 0) ? 0 : desired);
       if (id === "kilina" && Math.abs((boss.body as Phaser.Physics.Arcade.Body).velocity.x) < 1) {
@@ -3640,9 +3769,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         boss.anims.timeScale = phaseTwo ? 1.2 : 0.9;
       }
       if (now >= Number(boss.getData("nextAttackAt"))) {
-        const pattern = id === "dark_dragon" ? ["fire_volley", "dragon_lunge", "low_breath"]
+        const pattern = id === 'turkey' ? ['talon_charge','wing_gust'] : id === "dark_dragon" ? ["fire_volley", "dragon_lunge", "low_breath"]
           : id === "ink_behemoth" ? ["furnace_quake", "cinder_bound", "ember_rain"]
-            : id === "kilina" ? ["witch_hex", "rune_bloom", "witch_step"] : phaseTwo?REGENT_PHASE_TWO:REGENT_PHASE_ONE;
+            : id === "kilina" ? phaseTwo?KILINA_PHASE_TWO:KILINA_PHASE_ONE : phaseTwo?REGENT_PHASE_TWO:REGENT_PHASE_ONE;
         const index = Number(boss.getData("attackIndex"));
         boss.setData("attackIndex", index + 1);
         beginStageBossMove(scene, boss, pattern[index % pattern.length]);
@@ -3717,6 +3846,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function bossCanDamage(boss:Phaser.Physics.Arcade.Sprite,now:number) {
+      if(boss.getData('bossId')==='turkey'){
+        if(!boss.getData('engaged')||boss.getData('attackState')!=='attack')return false;
+        if(boss.getData('move')==='talon_charge'&&turkeyFlight(now-Number(boss.getData('stateStartedAt')),boss.getData('phase')===2).leg!=='charge')return false;
+      }
       const phasing=boss.getData('bossId')==='void_regent'&&boss.getData('move')==='blink_burst'&&boss.getData('attackState')==='attack'
         &&!regentBlinkFrame(now-Number(boss.getData('stateStartedAt')),Number(boss.getData('phase'))).contact;
       return boss.active && Number(boss.getData('hp'))>0 && !phasing && now>=Number(boss.getData('arrivalSafeUntil')??0) && !isBossVulnerable(boss,now);
@@ -4575,6 +4708,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function playBossDefeat(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite) {
+      playerFreeze?.clear();
       playSfx('bossDeath');
       regentRifts?.clear();
       const bossId = enemy.getData("bossId") as BossId;
@@ -4582,7 +4716,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const floorY = Number(enemy.getData('floorY'));
       const startY = Math.min(enemy.y, floorY);
       const facing = Number(enemy.getData('facing')) < 0 ? -1 : 1;
-      bossDeathVisual = scene.add.sprite(bossX, startY, bossDeathTexture(bossId), '0')
+      bossDeathVisual = scene.add.sprite(bossX, startY, bossDeathTexture(bossId), bossId==='turkey'?10:'0')
         .setOrigin(.5, 600/640).setScale(BOSS_DEFINITIONS[bossId].scale)
         .setFlipX(BOSS_DEATH_BASE_FACING[bossId] !== facing).setDepth(14);
       const death = bossDeathVisual;
@@ -4611,7 +4745,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           if (!death.active) return;
           const elapsed = tween.getValue() ?? 0, pose = bossDeathPose(elapsed);
           bossDeathStage = pose.stage;
-          death.setFrame(String(pose.frame)).setAlpha(pose.alpha)
+          death.setFrame(bossId==='turkey'?pose.frame===0?10:11:String(pose.frame)).setAlpha(pose.alpha)
             .setY(Phaser.Math.Linear(startY, floorY, Math.min(1, elapsed/540)));
         },
         onComplete: () => {
@@ -4774,6 +4908,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         heroCelebration?.cancel();celebrationQueue.length=0;player.setVisible(true);
       }
       if(!forceRespawn&&sourceBoss&&!bossCanDamage(sourceBoss,scene.time.now))return;
+      if(!forceRespawn&&sourceBoss&&playerFreeze?.protected)return;
       if(!forceRespawn&&signature?.invulnerable)return;
       const now = scene.time.now;
       if (isZGod) {
@@ -4821,6 +4956,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         scene.time.delayedCall(160, () => player?.clearTint());
       }
       if (forceRespawn || playerHealth <= 0) {
+        playerFreeze?.clear();
         resetTeleport(teleport);blinkQueuedAt=recallQueuedAt=-9999;allyReturnAt=now;allyAssistAt=now+1200;
         // Lost equipment stays lost; nearby supply pickups become available on the retry.
         powerStations.forEach(p=>{if(p.nextAt)p.nextAt=now+800;});
@@ -5099,6 +5235,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           move: enemy.getData("move") ?? null,
           facing: enemy.getData("facing") ?? null,
           targetX: enemy.getData("targetX") != null ? Math.round(enemy.getData("targetX")) : null,
+          startX:enemy.getData('startX')??null,
           vulnerable: enemy.getData("kind") === "boss" && isBossVulnerable(enemy, latestSceneTime),
           recoveryRemainingMs: enemy.getData("kind") === "boss" && isBossVulnerable(enemy, latestSceneTime)
             ? Math.max(0, Math.round(Number(enemy.getData("recoverUntil")) - latestSceneTime)) : 0,
@@ -5121,6 +5258,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           arrivalSafeRemainingMs:Math.max(0,Number(enemy.getData('arrivalSafeUntil')??0)-latestSceneTime),
           engaged:Boolean(enemy.getData('engaged')),
           returnX:enemy.getData('returnX')??null,
+          flightLeg:enemy.getData('flightLeg')??null,
+          gustPushes:enemy.getData('gustPushes')??0,
           canDamage:enemy.getData('kind')==='boss'?bossCanDamage(enemy,latestSceneTime):true,
           attackName: enemy.getData("kind") === "boss" ? enemy.getData("move")
             : isRestoredEnemy(enemy.getData('kind')) ? enemy.getData('move') : null,
@@ -5173,6 +5312,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         engine: "platformer",
         viewport: {...viewport},
         mode: isPausedRef.current ? "paused" : isLevelClearing ? "transition" : "platforming",
+        seasonalTheme:seasonalTheme??null,
+        playerFreeze:playerFreeze?.read()??null,
+        autumnLeafCount:autumnLeaves?.count??0,
         special: signature?.read() ?? null,
         autoRun: isAutoRun,
         level: currentLevel,
@@ -5308,12 +5450,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
     window.addEventListener('unknown-universe:special',queueSpecial);
     const queueJump = () => {
+      if(playerFreeze?.active&&!isPausedRef.current)freezeTapQueued=true;
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active) jumpQueuedAt=performance.now();
     };
     const queueDown = () => {
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active) downQueuedAt=performance.now();
     };
     const queueEquipmentAttack=()=>{
+      if(playerFreeze?.active&&!isPausedRef.current)freezeTapQueued=true;
       if((equipment.active==='ember'||equipment.active==='sword'||isShadow&&equipment.active==='hands')&&!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active)equipmentAttackQueuedAt=performance.now();
     };
     window.addEventListener('unknown-universe:jump',queueJump);
@@ -5335,6 +5479,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const unwatchViewport = watchGameViewport(gameRef.current, gameContainerRef.current, next => {
       const changed=viewport.width!==next.width;
       viewport=next;
+      autumnLeaves?.resize(next.width);
       const scene=gameRef.current?.scene.getScene('PlatformerScene');
       const camera=scene?.cameras?.main;
       if(!camera)return;
@@ -5406,6 +5551,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerSpecialTest = undefined;
       window.__unknownPlatformerEnemyTest = undefined;
       window.__unknownPlatformerBossRulesTest = undefined;
+      autumnLeaves?.destroy();autumnLeaves=null;
+      playerFreeze?.destroy();playerFreeze=null;
       routeEncounters.forEach(encounter=>encounter.destroy());routeEncounters=[];
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;
@@ -5419,6 +5566,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
   }, [
     currentLevel,
+    seasonalTheme,
     difficulty,
     selectedCharacterId,
     playerSprite

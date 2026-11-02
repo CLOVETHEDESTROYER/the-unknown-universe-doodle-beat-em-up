@@ -23,6 +23,8 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     if (!s.equipment || !isPowerup(s.equipment.active) || !Number.isFinite(s.equipment.hits) || !Array.isArray(s.equipment.unlocked)) return null;
     stats.equipment = restoreLoadout(s.equipment, 'hands');
     stats.isDying = false; stats.activeBossId = null;
+    if (s.seasonalTheme !== undefined && s.seasonalTheme !== 'thanksgiving') return null;
+    stats.seasonalTheme = s.seasonalTheme;
     if (s.completedEncounters !== undefined) {
       if (!Array.isArray(s.completedEncounters) || !s.completedEncounters.every(isEncounterId)) return null;
       stats.completedEncounters = [...new Set<string>(s.completedEncounters)];

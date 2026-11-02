@@ -1,0 +1,26 @@
+{
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "columns": 4,
+  "rows": 3,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "baseFacing": "left",
+  "sharedScale": 1.2275132275132274,
+  "frames": {
+    "0": "idle",
+    "1": "takeoff",
+    "2": "talons-ready",
+    "3": "talon-charge",
+    "4": "retreat",
+    "5": "landing",
+    "6": "gust-windup",
+    "7": "gust-flap",
+    "8": "gust-follow",
+    "9": "recover",
+    "10": "hurt",
+    "11": "defeated"
+  }
+}

@@ -2,6 +2,8 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import RosterUnlockPad from "./components/RosterUnlockPad";
+import SecretCodeEntry from './components/SecretCodeEntry';
+import {readThanksgivingEnabled,storeThanksgivingEnabled} from './gameplay/seasonalTheme';
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
@@ -223,6 +225,7 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
+    seasonalTheme: readThanksgivingEnabled() ? 'thanksgiving' : undefined,
     level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
@@ -263,6 +266,8 @@ const App: React.FC = () => {
   const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
+  const [thanksgivingEnabled,setThanksgivingEnabled] = useState(readThanksgivingEnabled);
+  const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
   const storyTransitionRef = React.useRef(false);
@@ -411,6 +416,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleFullscreenToggle = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
       if (event.repeat || event.key.toLowerCase() !== "f") {
         return;
       }
@@ -603,6 +609,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: targetLevel,
+      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
       equipment:createLoadout(hasSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
       score: 0,
       souls: targetLevel >= 2 ? 3 : 0,
@@ -646,6 +653,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: currentLevel,
+      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
       equipment:createLoadout(xGodPowered?'sword':characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands'),
       health: DEFAULT_STATS.maxHealth,
       lives: DEFAULT_STATS.maxLives,
@@ -672,7 +680,7 @@ const App: React.FC = () => {
     setCampaignActive(false);setRestoreCheckpoint(undefined);
     storyTransitionRef.current = false;
     setStoryChapter(null);
-    setStats({ ...DEFAULT_STATS, selectedCharacterId, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:thanksgivingEnabled?'thanksgiving':undefined, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -699,6 +707,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       selectedCharacterId: characterId,
+      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
       characterPowerUnlocked: characterId === 'zgod',
       equipment:createLoadout(characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands')
     });
@@ -786,6 +795,7 @@ const App: React.FC = () => {
               key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
+            seasonalTheme={stats.seasonalTheme}
             initialLives={stats.lives}
             initialHealth={stats.health}
             initialCheckpoint={restoreCheckpoint}
@@ -998,6 +1008,7 @@ const App: React.FC = () => {
                 </button>
               </div>
 
+              <SecretCodeEntry enabled={thanksgivingEnabled} onChange={changeThanksgiving} />
               <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];

@@ -7,7 +7,7 @@ export function pursuerCounterWindow(phase: number) { return phase >= 2 ? 2600 :
 
 export const BOSS_DEFEAT_DURATION = 2350;
 export const BOSS_DEATH_BASE_FACING = {
-  dark_dragon: -1, killinas_daughter: 1, ink_behemoth: 1,
+  dark_dragon: -1, turkey: -1, killinas_daughter: 1, ink_behemoth: 1,
   kilina: 1, void_regent: -1, pursuer: -1,
 } as const;
 export type BossDeathId = keyof typeof BOSS_DEATH_BASE_FACING;
