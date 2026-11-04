@@ -1,6 +1,7 @@
 import type { CharacterId } from '../types';
 
 export const SIGNATURE_SPECIALS = {
+  turkey_king:{name:'Royal Turkey Toss',cooldown:850,windup:110,duration:380,color:0xffb347,description:'Throw an animated turkey. Space strikes with the staff; C or X throws.'},
   shadow_kid: {name:'Void Burst',cooldown:5000,windup:500,duration:800,color:0xb16eff,description:'Hurl a powerful black hole through up to three enemies.'},
   elytron: {name:'Pulse Storm',cooldown:6000,windup:320,duration:1300,color:0xffda39,
     description:'Unleash six traveling electrical pulses toward enemies.'},

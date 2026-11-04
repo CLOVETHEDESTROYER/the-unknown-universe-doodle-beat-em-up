@@ -3,6 +3,7 @@ import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSa
 import TouchControls from "./components/TouchControls";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
+import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
 import {readThanksgivingEnabled,storeThanksgivingEnabled} from './gameplay/seasonalTheme';
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
@@ -126,9 +127,12 @@ const getInitialCharacterId = (): CharacterId => {
 
   const params = new URLSearchParams(window.location.search);
   const requested = params.get("character");
+  if(acceptsTurkeyKingCode(params.get('code')??'')){unlockTurkeyKing();storeThanksgivingEnabled(true);return 'turkey_king';}
+  if(!requested&&readTurkeyKingSelected())return 'turkey_king';
   if (!isCharacterId(requested)) {
     return "xgod";
   }
+  if(requested==='turkey_king')return readTurkeyKingUnlocked()?requested:'xgod';
 
   if (requested === "xgod" || requested === "zgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
     return requested;
@@ -226,7 +230,7 @@ const getInitialStats = (): GameStats => {
   return {
     ...DEFAULT_STATS,
     seasonalTheme: readThanksgivingEnabled() ? 'thanksgiving' : undefined,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
@@ -267,6 +271,8 @@ const App: React.FC = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [thanksgivingEnabled,setThanksgivingEnabled] = useState(readThanksgivingEnabled);
+  const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
+  const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
   const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
@@ -284,7 +290,7 @@ const App: React.FC = () => {
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
-  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid';
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
@@ -696,7 +702,7 @@ const App: React.FC = () => {
   };
 
   const beginRunWithCharacter = (characterId: CharacterId) => {
-    const canSelect = characterId === "xgod" || characterId === "zgod" || isRosterUnlocked;
+    const canSelect = characterId==='turkey_king'?turkeyKingUnlocked:characterId === "xgod" || characterId === "zgod" || isRosterUnlocked;
     if (!canSelect) {
       return;
     }
@@ -704,6 +710,7 @@ const App: React.FC = () => {
     setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     setCampaignActive(!requestedLegacyBrawler && !window.location.search && !playerSprite);
     setSelectedCharacterId(characterId);
+    selectTurkeyKing(characterId==='turkey_king');
     setStats({
       ...DEFAULT_STATS,
       selectedCharacterId: characterId,
@@ -713,7 +720,7 @@ const App: React.FC = () => {
     });
     setIsPaused(false);
     setTitlePanel(null);
-    const legacyRun = requestedLegacyBrawler && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron' && characterId !== 'shadow_kid';
+    const legacyRun = requestedLegacyBrawler && characterId !== 'turkey_king' && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron' && characterId !== 'shadow_kid';
     storyTransitionRef.current = !legacyRun;
     setStoryChapter(legacyRun ? null : 'prologue');
     setAppPhase(legacyRun ? 'intro' : 'story');
@@ -1008,11 +1015,11 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <SecretCodeEntry enabled={thanksgivingEnabled} onChange={changeThanksgiving} />
+              <SecretCodeEntry enabled={thanksgivingEnabled} onChange={changeThanksgiving} onTurkeyKing={activateTurkeyKing} />
               <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
-                  const locked = characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
+                  const locked = characterId==='turkey_king'?!turkeyKingUnlocked:characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
                   return (
                     <button
                       key={character.id}
@@ -1020,7 +1027,7 @@ const App: React.FC = () => {
                       disabled={locked}
                       data-character-id={character.id}
                       autoFocus={character.id === selectedCharacterId}
-                      aria-label={`${character.name}: ${locked ? 'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
+                      aria-label={`${character.name}: ${locked ? characterId==='turkey_king'?'Locked. Enter his secret code to unlock.':'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
                       onClick={() => beginRunWithCharacter(character.id)}
                       className={`character-card group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
                         locked
@@ -1107,7 +1114,7 @@ const App: React.FC = () => {
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
                 <p className="mb-3 text-base text-slate-700">Hold Down / S or D-pad Down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
               )}
-              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
+              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C or X / SP: throw a turkey. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
               <button
                 onClick={togglePause}

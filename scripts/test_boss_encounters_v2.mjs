@@ -40,7 +40,7 @@ async function slash(b) {
 }
 async function evade(b) {
   // Setup only: keep the player out of the committed landing and projectile lanes.
-  const x = ['witch_dash','cinder_bound','dragon_lunge','shadow_dash','witch_step'].includes(b.move)
+  const x = ['void_crash','witch_dash','cinder_bound','dragon_lunge','shadow_dash','witch_step'].includes(b.move)
     ? b.targetX < (b.left+b.right)/2 ? b.right+80 : b.left-80
     : b.x-b.facing*280;
   await place(Math.max(b.left-175,Math.min(b.right+175,x)),b.floorY-160);
@@ -72,6 +72,19 @@ async function observeMove(level,phase) {
   const active = await wait((s,b) => b?.attackState==='attack');
   assert.equal(boss(active).facing,locked.facing);
   assert.equal(boss(active).targetX,locked.targetX);
+  // Sample in-page while screenshots are captured, so short-lived waves and
+  // leap peaks cannot disappear between host-side reads on a busy machine.
+  await page.evaluate(()=>{
+    window.__encounterSamples={patterns:[],positions:[]};
+    window.__encounterSampler=setInterval(()=>{
+      const s=JSON.parse(window.render_game_to_text()),b=s.enemies.find(e=>e.kind==='boss');
+      if(!b||b.attackState!=='attack')return;
+      window.__encounterSamples.positions.push([b.x,b.y]);
+      for(const p of s.projectiles.filter(p=>p.enemyProjectile)){
+        if(!window.__encounterSamples.patterns.includes(p.pattern))window.__encounterSamples.patterns.push(p.pattern);
+      }
+    },16);
+  });
   const positions = [];
   const patterns = new Set();
   let maxShots = 0;
@@ -89,9 +102,7 @@ async function observeMove(level,phase) {
       await shot(`level${level}-phase${phase}-${b.move}-attack`); captured = true;
     }
     if(b.vulnerable) {
-      const baseDuration = b.move==='blink_burst'?3000:['furnace_quake','cinder_bound','ember_rain','void_rain'].includes(b.move)?2800
-        : b.move==='ice_storm'?2800:['low_breath','rune_bloom','shadow_dash'].includes(b.move)?2700:2600;
-      assert.equal(b.recoveryDurationMs,baseDuration-(phase===2?400:0),'The entire longer counter window is granted');
+      assert.equal(b.recoveryDurationMs,3000,'The entire counter window is granted');
       assert(b.recoveryRemainingMs>0 && b.recoveryRemainingMs<=b.recoveryDurationMs);
       assert.equal(b.y,b.floorY);
       assert(s.bossCues.statusVisible,'The counter window has a visible cue');
@@ -100,22 +111,27 @@ async function observeMove(level,phase) {
     await evade(b);
     await page.waitForTimeout(25);
   }
+  const samples=await page.evaluate(()=>{clearInterval(window.__encounterSampler);return window.__encounterSamples;});
+  samples.patterns.forEach(p=>patterns.add(p));positions.push(...samples.positions);
   assert(b.vulnerable,`${locked.move} must finish and expose a recovery window`);
   const moved = Math.max(...positions.map(p=>p[0]))-Math.min(...positions.map(p=>p[0]));
   const raised = Math.min(...positions.map(p=>p[1]));
-  if(['witch_dash','dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) {
+  if(['void_crash','witch_dash','dragon_lunge','cinder_bound','shadow_dash','blink_burst','witch_step'].includes(b.move)) {
     // A player near the boss can commit a short destination. Verify that
     // destination, rather than requiring an unrelated minimum travel distance.
-    assert(Math.abs(b.x-locked.targetX)<10,'Movement attack reaches its committed destination');
+    const destination=b.move==='blink_burst'&&phase===2?b.returnX:locked.targetX;
+    assert(Math.abs(b.x-destination)<10,'Movement attack reaches its committed destination');
   }
   if(b.move==='cinder_bound') assert(raised<b.floorY-140);
   if(b.move==='dragon_lunge') assert(raised<b.floorY-70);
   if(b.move==='fire_volley' || b.move==='low_breath') assert.equal(maxShots,phase===2?4:3);
   if(b.move==='furnace_quake') { assert.equal(maxShots,phase===2?2:1); assert(patterns.has('quake')); }
   if(b.move==='ember_rain') {assert.equal(maxShots,phase===2?5:3);assert(patterns.has('falling_ember'));assert.deepEqual(b.markedXs,locked.markedXs);}
-  if(b.move==='star_fan')assert.equal(maxShots,phase===2?3:2);
-  if(b.move==='blink_burst')assert.equal(maxShots,phase===2?2:1);
-  if(b.move==='shadow_dash' && phase===2) assert(patterns.has('shadow_wave'));
+  if(b.move==='star_fan')assert.equal(maxShots,phase+1);
+  if(b.move==='blink_burst')assert.equal(maxShots,phase);
+  if(b.move==='shadow_dash' && phase>=2) assert(patterns.has('shadow_wave'));
+  if(b.move==='crown_nova'){assert.equal(maxShots,phase+1);assert(patterns.has('regent_nova'));}
+  if(b.move==='void_crash'){assert.equal(maxShots,phase);assert(raised<b.floorY-130);assert(patterns.has('regent_crash_wave'));}
   if(b.move==='witch_hex') { assert.equal(maxShots,phase===2?5:3); assert(patterns.has('curved_hex')); }
   if(b.move==='rune_bloom') { assert.equal(maxShots,phase===2?2:1); assert(patterns.has('rune_pillar')); assert.deepEqual(b.markedXs,locked.markedXs); }
   if(b.move==='witch_step') { assert(raised<b.floorY-110); assert(patterns.has('witch_wisp')); }
@@ -123,6 +139,8 @@ async function observeMove(level,phase) {
   if(b.move==='ice_storm'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('falling_ice'));assert(raised<b.floorY-85);}
   if(b.move==='witch_dash'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('witch_crescent'));}
   const hp = b.hp;
+  // Observe the whole final rotation before delivering its finishing counters.
+  if(phase===3)return {move:locked.move,locked,maxShots,patterns:[...patterns],moved,raised,counterDeferred:true};
   await slash(b);
   const counter = boss(await read());
   assert(counter.hp<hp,'An actual sword counter damages the exposed boss');
@@ -155,17 +173,17 @@ try {
       await wait(s=>s.equipment.active==='sword');
       b=boss(await read());
     }
-    // Kilina now has six moves; the other bosses retain their three-move cycles.
+    // Kilina and Regent have six-move cycles; other bosses retain three moves.
     await place(b.left-400,b.floorY);
     await page.waitForTimeout(80);
     assert.equal((await read()).bossArenaCamera.locked,false);
     await place(Math.max(b.left-150,b.x-350),b.floorY);
     const phaseOne = [];
-    const moveCount=level===4?6:3;
+    const moveCount=level===4||level===6?6:3;
     for(let i=0;i<moveCount;i++) phaseOne.push(await observeMove(level,1));
     assert.equal(new Set(phaseOne.map(m=>m.move)).size,moveCount);
-    s=await counterUntil((s,b)=>b.hp<=b.maxHp/2);
-    assert(boss(s).vulnerable,'Half-health crossing preserves the current opening');
+    s=await counterUntil((s,b)=>b.hp<=b.maxHp*(level===6?2/3:1/2));
+    assert(boss(s).vulnerable,'Health threshold crossing preserves the current opening');
     assert.equal(boss(s).phase,1);
     s=await wait((s,b)=>b.phase===2 && b.attackState==='phase'); b=boss(s);
     const phaseHp=b.hp;
@@ -174,6 +192,14 @@ try {
     const phaseTwo=[];
     for(let i=0;i<moveCount;i++) phaseTwo.push(await observeMove(level,2));
     assert.equal(new Set(phaseTwo.map(m=>m.move)).size,moveCount);
+    const phaseThree=[];
+    if(level===6){
+      s=await counterUntil((s,b)=>b.hp<=b.maxHp/3);assert(boss(s).vulnerable);assert.equal(boss(s).phase,2);
+      s=await wait((s,b)=>b.phase===3&&b.attackState==='phase');const hp=boss(s).hp;
+      await slash(boss(s));assert.equal(boss(await read()).hp,hp,'Final ascension remains guarded');
+      for(let i=0;i<moveCount;i++)phaseThree.push(await observeMove(level,3));
+      assert.equal(new Set(phaseThree.map(m=>m.move)).size,moveCount);
+    }
     await page.setViewportSize({width:844,height:390});
     await page.waitForTimeout(1000);
     await shot(`level${level}-phone-opening`);
@@ -205,9 +231,9 @@ try {
       await page.getByRole('button',{name:'Skip story',exact:true}).click();
       await page.getByRole('heading',{name:'Universe Saved',exact:true}).waitFor({state:'visible'});
     }
-    evidence[level]={guarded,phaseOne,phaseTwo,defeat:true,exit:true};
+    evidence[level]={guarded,phaseOne,phaseTwo,phaseThree,defeat:true,exit:true};
     await fs.writeFile(new URL(`level${level}-results.json`,output),JSON.stringify({evidence:evidence[level],errors},null,2));
-    console.log(JSON.stringify({level,passed:true,checks:['guard','movement',level===4?'sixMoves':'threeMoves','phaseOneCounters','phaseTransition','phaseTwoPatterns','phone','defeat','exit']}));
+    console.log(JSON.stringify({level,passed:true,checks:['guard','movement',level===4||level===6?'sixMoves':'threeMoves','phaseOneCounters','phaseTransition','phaseTwoPatterns',...(level===6?['phaseThree']:[]),'phone','defeat','exit']}));
   }
   assert.deepEqual(errors,[]);
 } catch(e) {

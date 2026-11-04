@@ -1,9 +1,10 @@
 /** Shared scene-clock timings keep counter cues and both boss renderers in sync. */
-export const BOSS_COUNTER_BASE_MS = 2600;
-export function bossCounterWindow(phase: number, base = BOSS_COUNTER_BASE_MS) {
-  return base - (phase === 2 ? 400 : 0);
+export const BOSS_COUNTER_BASE_MS = 3000;
+export const BOSS_STUN_MS = 2000;
+export function bossCounterWindow(_phase: number, _base = BOSS_COUNTER_BASE_MS) {
+  return BOSS_COUNTER_BASE_MS;
 }
-export function pursuerCounterWindow(phase: number) { return phase >= 2 ? 2600 : 3000; }
+export function pursuerCounterWindow(phase: number, stunned=false) { return stunned?BOSS_STUN_MS:BOSS_COUNTER_BASE_MS; }
 
 export const BOSS_DEFEAT_DURATION = 2350;
 export const BOSS_DEATH_BASE_FACING = {

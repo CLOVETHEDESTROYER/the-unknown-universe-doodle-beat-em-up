@@ -33,7 +33,7 @@ for(const difficulty of ['EASY','HARD','X-GOD'])for(const phase of [1,2,3]){
    for(const y of [e.safeY-50,e.safeY,e.safeY+50])assert(fired.every(b=>Math.abs(b.y-y)>21),'Marked corridor clears the real projectile hitbox');
    assert(Math.abs(e.safeY-mark.aimY)/340+0.18<tell/1000,'The lane is reachable before firing');
   }
-  const duration=phase===1?3000:2600;
+  const duration=3000;
   while(e.phaseMs<duration-20)tick();assert.equal(e.phase,'recover');
   seen.push({move,shots:c.enemyShots-shots,tell,duration,xRange:[Math.min(...positions.map(p=>p[0])),Math.max(...positions.map(p=>p[0]))],yRange:[Math.min(...positions.map(p=>p[1])),Math.max(...positions.map(p=>p[1]))]});
   while(e.phase==='recover')tick();
@@ -49,7 +49,7 @@ for(const difficulty of ['EASY','HARD','X-GOD'])for(const phase of [1,2,3]){
  tick(100);assert.equal(e.phase,'transition');assert.equal(e.phaseNumber,2);
  c.bolts.push({id:c.nextId++,owner:'player',x:e.x-5,y:e.y,vx:0,vy:0,damage:99,expires:s.clock+1000});tick(10);assert.equal(e.hp,45);assert(c.guardedHits>0);
  e.phase='recover';e.phaseMs=0;e.hp=20;e.startX=e.x;e.startY=e.y;
- for(let n=0;n<250;n++)tick(10);assert.equal(e.phaseNumber,2);assert.equal(e.phase,'recover');tick(100);assert.equal(e.phaseNumber,3);assert.equal(e.phase,'transition');
+ for(let n=0;n<290;n++)tick(10);assert.equal(e.phaseNumber,2);assert.equal(e.phase,'recover');tick(100);assert.equal(e.phaseNumber,3);assert.equal(e.phase,'transition');
 }
 // A stationary pilot is pressured, while the committed green corridor is safe.
 {

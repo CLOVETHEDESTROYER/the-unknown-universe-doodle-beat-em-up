@@ -1,7 +1,7 @@
 import {chromium,webkit,devices} from 'playwright';
 import assert from 'node:assert/strict';import fs from 'node:fs/promises';
 const engine=process.env.GAME_TEST_BROWSER||'chromium',origin=process.env.GAME_TEST_URL||'http://127.0.0.1:4381';
-const out=new URL(`../output/boss-fairness/${engine}/`,import.meta.url);await fs.mkdir(out,{recursive:true});
+const out=new URL(process.env.BOSS_TEST_OUTPUT||`../output/boss-fairness/${engine}/`,import.meta.url);await fs.mkdir(out,{recursive:true});
 const browser=await ({chromium,webkit})[engine].launch({headless:true,...process.env.GAME_TEST_EXECUTABLE?{executablePath:process.env.GAME_TEST_EXECUTABLE}:{}});
 const page=await browser.newPage({...devices['iPhone 13 landscape'],deviceScaleFactor:1}),errors=[],evidence=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))errors.push(`${r.status()} ${r.url()}`);});

@@ -52,7 +52,7 @@ try{
    await page.keyboard.up('Space');await place(100,dodgeY(s,e));
    if(e.phaseMs>400&&!captured.has(`attack-${key}`)){await shot(`attack-${key.replace(':','-')}`);captured.add(`attack-${key}`);}
   }else if(e.phase==='recover'){
-   assert.equal(e.recoveryDurationMs,e.phaseNumber===1?3000:2600);assert(e.vulnerable);
+   assert.equal(e.recoveryDurationMs,e.counterStunned?2000:3000);assert(e.vulnerable);
    if(oldPhase!=='recover'){
     recovery=`${e.phaseNumber}:${e.attacks}`;openingHp=e.hp;opening={phase:e.phaseNumber,clock:s.flight.travel,first:e.phaseMs};openings.push({phase:e.phaseNumber,duration:e.recoveryDurationMs});
     if(!captured.has(`opening-${e.phaseNumber}`)){await shot(`opening-${e.phaseNumber}`);captured.add(`opening-${e.phaseNumber}`);}

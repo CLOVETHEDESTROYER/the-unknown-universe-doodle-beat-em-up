@@ -14,6 +14,7 @@ export interface FlightEnemy {
   move?:PursuerMove;phaseNumber?:number;attacks?:number;volley?:number;
   attackIndex?:number;launchY?:number;targetY?:number;safeY?:number;tellDurationMs?:number;
   hitUntil?:number;
+  counterStunned?:boolean;
   entry?:FlightEntry;entryDelayMs?:number;stageX?:number;
   chargeX?:number;chargeY?:number;
 }
@@ -253,6 +254,9 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
     spendHit(b,target.id);
     const appliedDamage=s.invincible?target.hp:target.kind==='pursuer'&&b.weapon==='spread'?b.damage*.5:b.damage;
     target.hp=Math.max(0,target.hp-appliedDamage);target.hitUntil=s.clock+100;c.hits++;effect(c,s,'hit',b.x,b.y,45);
+    if(target.kind==='pursuer'&&target.hp>0&&target.phase==='recover'&&!target.counterStunned){
+      target.counterStunned=true;target.phaseMs=0;
+    }
     if(target.hp<=0){
       effect(c,s,'destroy',target.x,target.y,target.kind==='pursuer'?190:target.kind==='gunship'?155:115,target.kind);
       if(!c.defeated.includes(target.id)){

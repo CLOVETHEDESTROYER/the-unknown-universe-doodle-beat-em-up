@@ -54,7 +54,7 @@ function move(e: FlightEnemy, s: CombatHost) {
   e.tellDurationMs=pursuerTellDuration(e,s.difficulty);
 }
 function recover(e: FlightEnemy) {
-  e.phase='recover';e.phaseMs=0;e.startX=e.x;e.startY=e.y;
+  e.phase='recover';e.phaseMs=0;e.startX=e.x;e.startY=e.y;e.counterStunned=false;
 }
 function bolt(s: CombatHost, c: FlightCombat, x: number, y: number, angle: number, speed: number) {
   c.bolts.push({id:c.nextId++,owner:'enemy',sourceId:PURSUER_ID,x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
@@ -128,8 +128,8 @@ export function stepPursuer(s: CombatHost, c: FlightCombat, e: FlightEnemy, ms: 
     }
     if(t===1)recover(e);
   }else if(e.phase==='recover'){
-    const t=smooth(e.phaseMs/350);e.x=lerp(e.startX,835,t);e.y=lerp(e.startY,300,t);
-    if(e.phaseMs>=pursuerCounterWindow(phase)){
+    e.x=e.startX;e.y=e.startY;
+    if(e.phaseMs>=pursuerCounterWindow(phase,e.counterStunned)){
       e.attacks=(e.attacks??0)+1;e.attackIndex=(e.attackIndex??0)+1;
       if(phase<3&&e.hp<=e.maxHp*(phase===1?.68:.34)){
         e.phaseNumber=phase+1;e.phase='transition';e.phaseMs=0;e.attackIndex=0;

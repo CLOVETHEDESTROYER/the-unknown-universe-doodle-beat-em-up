@@ -77,6 +77,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const kai=selectedCharacterId==='killer_kai';
     const shadow=selectedCharacterId==='shadow_kid';
     const elytron=selectedCharacterId==='elytron';
+    const turkeyKing=selectedCharacterId==='turkey_king';
+    state.noPowerups=turkeyKing;
+    if(turkeyKing){state.combat.weapon=state.checkpointWeapon='twin';state.weaponHits=0;}
     let scene:Phaser.Scene;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
@@ -238,7 +241,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       hint.setText(death?.visible?'SHIP LOST'
         :boss?boss.phase==='dying'?'PURSUER DEFEATED — APPROACH CLEAR'
         :boss.phase==='transition'?`${PURSUER_PHASE_NAMES[(boss.phaseNumber??1)-1]} — GUARD UP!`
-        :boss.phase==='recover'?`ATTACK! — ${Math.max(0,(pursuerCounterWindow(boss.phaseNumber??1)-boss.phaseMs)/1000).toFixed(1)}s`
+        :boss.phase==='recover'?`${boss.counterStunned?'STUNNED — ATTACK!':'STALLED — HIT TO STUN!'} ${Math.max(0,(pursuerCounterWindow(boss.phaseNumber??1,boss.counterStunned)-boss.phaseMs)/1000).toFixed(1)}s`
         :boss.phase==='enter'?'PURSUER BLOCKING THE LANDING CORRIDOR'
         :pursuerAttackHint(boss)
         :flying&&state.clock-state.weaponChangedAt<1900?`${weapon.name.toUpperCase()}  •  ${weapon.description}`
@@ -289,6 +292,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         art?.setPosition(x,b.y).setVisible(visible).setAlpha(.75+Math.sin(state.clock/140+id)*.2);
       }
       for(const p of FLIGHT_WEAPON_PICKUPS){
+        if(turkeyKing)continue;
         const x=p.distance-state.distance,y=weaponPickupY(p,state.clock),def=FLIGHT_WEAPONS[p.weapon];
         const visible=flying&&!state.collectedWeapons.includes(p.id)&&x>-90&&x<1150;
         let view=weaponViews.get(p.id);
@@ -382,6 +386,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           :e.phase==='enter'&&e.entry&&e.entry!=='front'?(e.entry==='above'?-18:18):Math.cos(e.age/360)*7;
         art.setVisible(e.phase!=='incoming').setFlipX(facingRight).setPosition(e.x,e.y).setAngle(angle).setTint(state.clock<(e.hitUntil??0)?0xffc2a1:open?0xffe2a0:0xffffff);
         if(e.kind==='pursuer') {
+          if(open&&e.counterStunned){
+            art.setAngle(Math.sin(e.phaseMs/180)*5);
+            for(let i=0;i<3;i++){
+              const a=i*Math.PI*2/3+e.phaseMs/450;
+              combatArt.fillStyle(0xffdc69,1).fillCircle(e.x+Math.cos(a)*65,e.y-85+Math.sin(a)*12,5);
+            }
+          }
           const death = bossDeathPose(e.phaseMs);
           art.setTexture(e.phase==='dying'?bossDeathTexture('pursuer'):'flight_pursuer',
             e.phase==='dying'?String(death.frame):['tell','attack','charge'].includes(e.phase)?1:0)
@@ -540,6 +551,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(frostXgod){
           this.load.multiatlas('flight_hero',XGOD_FROST_FOLDER+'run.json',XGOD_FROST_FOLDER);
           this.load.multiatlas('flight_head',XGOD_FROST_FOLDER+'idle.json',XGOD_FROST_FOLDER);
+        }else if(turkeyKing){
+          loadGameSheet(this.load,'flight_hero','characters/turkey-king-v2/flight-walk.png',{frameWidth:640,frameHeight:640});
+          loadGameImage(this.load,'flight_head','characters/turkey-king-v2/idle.png');
         }else if(shadow){
           this.load.multiatlas('flight_hero',SHADOW_ART.folder+'run.json',SHADOW_ART.folder);
           this.load.multiatlas('flight_head',SHADOW_ART.folder+'idle.json',SHADOW_ART.folder);
@@ -569,6 +583,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(kai)pilot.setCrop(140,35,100,110).setPosition(12,-6);
         if(shadow)pilot.setCrop(180,70,160,150).setScale(.21).setPosition(12,-6);
         if(elytron)pilot.setCrop(225,105,190,180).setScale(.17).setPosition(12,-6);
+        if(turkeyKing)pilot.setCrop(230,130,170,160).setScale(.19).setPosition(12,-6);
         const glass=this.add.ellipse(15,-11,54,23,0x92d4ef,.15);
         ship=this.add.container(state.x,state.y,[exhaust,shipHull,pilot,glass]).setDepth(15);
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
@@ -577,7 +592,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
         sizeCharacter(walker,selectedCharacterId,'flight');
         if(frostXgod)walker.setScale(characterScale('xgod','hero_frost_run'));
-        if(!xgod&&!zgod&&!kai&&!shadow&&!elytron)walker.setOrigin(.5,344/360);
+        if(turkeyKing)walker.setOrigin(.5,600/640);
+        if(!turkeyKing&&!xgod&&!zgod&&!kai&&!shadow&&!elytron)walker.setOrigin(.5,344/360);
         walker.play('flight_board_walk');
         flightVictory=new HeroCelebration(this,selectedCharacterId);
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};
@@ -619,7 +635,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       shipDeath:{...shipDeathPose(state.death,state.clock),active:Boolean(shipDeathPose(state.death,state.clock)?.visible),fragments:deathChunks.filter(image=>image.visible&&image.alpha>0).length},
       weapon:{id:state.combat.weapon,hits:state.weaponHits,maxHits:3,name:FLIGHT_WEAPONS[state.combat.weapon].name,description:FLIGHT_WEAPONS[state.combat.weapon].description,
         collected:state.collectedWeapons,checkpoint:state.checkpointWeapon,changedAt:state.weaponChangedAt},
-      weaponPickups:FLIGHT_WEAPON_PICKUPS.filter(p=>!state.collectedWeapons.includes(p.id)).map(p=>({...p,x:p.distance-state.distance,y:weaponPickupY(p,state.clock)})).filter(p=>p.x>-100&&p.x<1400),
+      weaponPickups:FLIGHT_WEAPON_PICKUPS.filter(p=>!turkeyKing&&!state.collectedWeapons.includes(p.id)).map(p=>({...p,x:p.distance-state.distance,y:weaponPickupY(p,state.clock)})).filter(p=>p.x>-100&&p.x<1400),
       visualMotion:{parallax:FLIGHT_PARALLAX,streaks:state.phase==='flight'?34:0,cloudOffset:state.travel*FLIGHT_PARALLAX.clouds,starTravel:state.travel+state.clock*.08},
       flight:{phase:state.phase,phaseMs:Math.round(state.phaseMs),distance:Math.round(state.distance),travel:Math.round(state.travel),endDistance:FLIGHT_END,checkpoint:state.checkpoint,beacons:state.collected.length,
         finaleStarted:state.combat.finaleStarted,finaleDefeated:state.combat.finaleDefeated,asteroidSeed:state.asteroidSeed,totalAsteroids:state.rocks.length,destroyedAsteroidIds:state.rocks.filter(r=>r.hp<=0).map(r=>r.id)},
@@ -636,7 +652,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         entryWarnings:state.combat.enemies.filter(e=>e.entry&&e.entry!=='front'&&(e.phase==='incoming'||e.phase==='enter')).map(e=>({id:e.id,edge:e.entry,x:e.stageX,remainingMs:Math.max(0,(e.phase==='incoming'?(e.entryDelayMs??950):1250)-e.phaseMs)}))},
       enemies:state.combat.enemies.map(e=>({...e,vulnerable:e.kind!=='pursuer'||e.phase==='recover',
         visualFrame:Number(enemyViews.get(e.id)?.frame.name??0),
-        recoveryDurationMs:e.kind==='pursuer'?pursuerCounterWindow(e.phaseNumber??1):null,
+        recoveryDurationMs:e.kind==='pursuer'?pursuerCounterWindow(e.phaseNumber??1,e.counterStunned):null,
         death:e.kind==='pursuer'&&e.phase==='dying'?{...bossDeathPose(e.phaseMs),texture:bossDeathTexture('pursuer'),elapsedMs:e.phaseMs}:null})),
       effects:state.combat.effects.map(fx=>({...fx,progress:Math.min(1,(state.clock-fx.born)/fx.duration),visualFrame:explosions.get(fx.id)?.frame.name??null})),
       projectiles:state.combat.bolts.map(b=>({...b,playerShot:b.owner==='player',enemyProjectile:b.owner==='enemy'})),repairs:state.combat.repairs});

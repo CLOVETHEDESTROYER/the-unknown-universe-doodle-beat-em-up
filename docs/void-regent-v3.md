@@ -1,5 +1,8 @@
 # Void Regent: final-boss revision
 
+Historical two-phase revision. Current behavior and validation are documented
+in [the three-phase finale](void-regent-v4.md).
+
 The final boss has **84 HP**, up from 56, and an 880px movement arena on the
 existing continuous floor. Portal landing points adapt to viewport width so
 the drawing stays visible while moving between opposite screen sides.

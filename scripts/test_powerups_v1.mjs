@@ -15,7 +15,7 @@ for(const [id,level] of [['blaster',1],['sword',1],['frost',2],['ember',3],['sto
  assert.equal(restoreLoadout(s,'hands').active,id);
  if(level>1)assert.equal(equipPowerup(createLoadout('hands'),id,level-1).active,'hands');
 }
-assert.deepEqual(levelPowerupPool(1),['blaster']);assert.equal(levelPowerupPool(6).length,5);evidence.threeHitLossRefillDeathAndStageGates=true;
+assert.deepEqual(levelPowerupPool(1),['blaster','sword']);assert.deepEqual(levelPowerupPool(6),['blaster','storm']);evidence.threeHitLossRefillDeathAndStageGates=true;
 {
  const s=createFlight(3,0,'EASY',20261016);s.phase='flight';s.combat.weapon='lance';s.weaponHits=3;s.checkpointWeapon='lance';
  for(let i=0;i<3;i++){s.clock=i*1800;assert(damageShip(s,5));assert.equal(s.weaponHits,2-i);assert.equal(damageShip(s,5),false);}
@@ -39,7 +39,7 @@ const collect=kind=>page.evaluate(kind=>window.__unknownPlatformerCollectPickup(
 async function face(direction=1){await page.keyboard.down(direction>0?'ArrowRight':'ArrowLeft');await page.waitForTimeout(35);await page.keyboard.up(direction>0?'ArrowRight':'ArrowLeft');}
 try{
  const stations={};
- for(const [level,first] of [[1,'blaster'],[2,'frost'],[3,'ember'],[4,'storm'],[6,'storm']]){
+ for(const [level,first] of [[1,'blaster'],[2,'blaster'],[3,'blaster'],[4,'blaster'],[6,'blaster']]){
   await boot(level,'&powerupPreview=1');let s=await read();stations[level]=s.powerStations;assert(s.powerStations.length>=3);assert.equal(s.powerStations[0].kind,first);
   assert(s.powerStations.every(p=>levelPowerupPool(level).includes(p.kind)));
   for(const p of s.powerStations){assert(s.terrain.platforms.some(r=>p.x>=r.x&&p.x<=r.x+r.w&&Math.abs(p.y+62-r.y)<1),'Pickup has support');}
@@ -75,7 +75,7 @@ try{
  await boot(2,'&finishLevel=1');await collect('frost');s=await read();e=s.enemies.find(e=>e.bossId==='killinas_daughter');
  await place(e.x-180,e.bodyBottom);await face();await page.keyboard.down('Space');s=await wait(s=>s.enemies.find(e=>e.bossId==='killinas_daughter')?.guardedHits>0);await page.keyboard.up('Space');
  e=s.enemies.find(e=>e.bossId==='killinas_daughter');assert.equal(e.hp,e.maxHp);assert.equal(e.frozenRemainingMs,0);evidence.newPowerRespectsBossGuard=true;
- await page.setViewportSize({width:844,height:390});await boot(4,'&powerupPreview=1&character=barrett&unlockRoster=1');await page.keyboard.down('ArrowRight');await wait(s=>s.equipment.active==='storm');await page.keyboard.up('ArrowRight');
+ await page.setViewportSize({width:844,height:390});await boot(4,'&powerupPreview=1&character=barrett&unlockRoster=1');await collect('storm');await wait(s=>s.equipment.active==='storm');
  const attack=page.locator('[data-touch-control="attack"]');await attack.dispatchEvent('pointerdown',{pointerId:8,pointerType:'touch',bubbles:true});await wait(s=>s.equipment.uses>0);await attack.dispatchEvent('pointercancel',{pointerId:8,pointerType:'touch',bubbles:true});s=await read();const uses=s.equipment.uses;
  await shot('phone-barrett-storm');await page.waitForTimeout(950);assert.equal((await read()).equipment.uses,uses);evidence.alternateHeroPhoneAttackAndCancel=true;
  await page.keyboard.press('KeyP');await page.waitForTimeout(90);s=await read();const recharge=s.powerStations.map(p=>p.rechargeMs);await page.waitForTimeout(500);assert.deepEqual((await read()).powerStations.map(p=>p.rechargeMs),recharge);await page.keyboard.press('KeyP');evidence.pauseFreezesSupplyTimers=true;

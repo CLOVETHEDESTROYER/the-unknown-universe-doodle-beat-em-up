@@ -1,0 +1,26 @@
+{
+  "frameSize": 640,
+  "columns": 4,
+  "rows": 3,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "displayScale": 0.9,
+  "sharedSourceScale": 1.1507692307692308,
+  "baseFacing": "left",
+  "poses": [
+    "star-windup",
+    "star-release",
+    "nova-charge",
+    "nova-release",
+    "crash-windup",
+    "crash-rise",
+    "crash-dive",
+    "crash-impact",
+    "shadow-dash",
+    "rift-cast",
+    "recover",
+    "ascension"
+  ]
+}

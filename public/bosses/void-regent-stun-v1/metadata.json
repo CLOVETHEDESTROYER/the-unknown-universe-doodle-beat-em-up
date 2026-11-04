@@ -1,0 +1,15 @@
+{
+  "frameSize": 640,
+  "frames": 4,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sharedSourceScale": 0.8134715025906736,
+  "poses": [
+    "recoil",
+    "dazed-left",
+    "dazed-right",
+    "slump"
+  ]
+}

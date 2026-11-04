@@ -35,7 +35,7 @@ export const STORY_CHAPTERS: Record<StoryChapterId, StoryChapter> = {
   level3: {id:'level3', title:'After the Furnace', continueLabel:'Enter Witchwood', musicLevel:3, scenes:delivery(furnaceEnding)},
   level4: {id:'level4', title:'After Witchwood', continueLabel:'Begin Starbreak Run', musicLevel:4, scenes:delivery(witchwoodEnding)},
   level5: {id:'level5', title:'After Starbreak Run', continueLabel:'Enter Dread Planet', musicLevel:5, scenes:delivery(starbreakEnding)},
-  level6: {id:'level6', title:'What Remains', continueLabel:'View victory', musicLevel:6, scenes:delivery(finale)}
+  level6: {id:'level6', title:'What Remains', continueLabel:'View victory', musicLevel:1, scenes:delivery(finale)}
 };
 
 // Final victory has its own boundary: it reports isVictory rather than level 7.

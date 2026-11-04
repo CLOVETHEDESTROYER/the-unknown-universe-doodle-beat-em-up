@@ -306,6 +306,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
     dashCooldownMultiplier: number;
     specialCooldownMs: number;
   }> = {
+    turkey_king:{speedMultiplier:.95,damageTakenMultiplier:.9,attackDamageMultiplier:1.6,attackDurationMultiplier:1,attackReachBonus:35,dashCooldownMultiplier:1,specialCooldownMs:850},
     shadow_kid: {speedMultiplier:1.1,damageTakenMultiplier:1,attackDamageMultiplier:1,attackDurationMultiplier:1,attackReachBonus:5,dashCooldownMultiplier:.85,specialCooldownMs:1300},
     elytron: {speedMultiplier:1.1,damageTakenMultiplier:1,attackDamageMultiplier:1,attackDurationMultiplier:1,attackReachBonus:5,dashCooldownMultiplier:.85,specialCooldownMs:1300},
     killer_kai: {speedMultiplier:1.05,damageTakenMultiplier:.9,attackDamageMultiplier:1.1,attackDurationMultiplier:1,attackReachBonus:10,dashCooldownMultiplier:.9,specialCooldownMs:1300},

@@ -21,6 +21,7 @@ export const FLIGHT_BEACONS = [
 ];
 export interface FlightState {
   invincible?: boolean;
+  noPowerups?:boolean;
   phase: FlightPhase; phaseMs: number; clock: number; distance: number;
   x: number; y: number; vx: number; vy: number; hull: number; lives: number;
   checkpoint: number; invulnerableUntil: number; impacts: number; score: number;
@@ -116,6 +117,7 @@ export function stepFlight(s:FlightState, ms:number, input:{x:number;y:number;fi
     if(nextCheckpoint===PURSUER_CHECKPOINT)s.hull=Math.min(100,s.hull+25);
   }
   for(const pickup of FLIGHT_WEAPON_PICKUPS){
+    if(s.noPowerups)continue;
     if(s.collectedWeapons.includes(pickup.id))continue;
     if(Math.abs(pickup.distance-s.distance-s.x)<76&&Math.abs(weaponPickupY(pickup,s.clock)-s.y)<44){
       s.collectedWeapons.push(pickup.id);s.combat.weapon=pickup.weapon;s.weaponHits=3;s.combat.nextShotAt=0;s.weaponChangedAt=s.clock;

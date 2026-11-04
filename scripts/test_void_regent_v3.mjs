@@ -22,13 +22,13 @@ async function boot(hero='xgod',extra=''){
   assert.deepEqual((await read()).failedAssets,[]);
 }
 try{
-  await boot('zgod');let s=await read(),b=boss(s);assert.equal(b.maxHp,84);assert.equal(b.right-b.left,880);
+  await boot('zgod');let s=await read(),b=boss(s);assert.equal(b.maxHp,120);assert.equal(b.right-b.left,880);
   const moves=[];let previous=-1;
-  while(moves.length<4){
+  while(moves.length<6){
     s=await wait((s,b)=>b.attackState==='tell'&&b.attacksCompleted>previous,40000);b=boss(s);previous=b.attacksCompleted;moves.push(b.move);
     await wait((s,b)=>b.vulnerable,12000);
   }
-  assert.deepEqual(moves,['star_fan','blink_burst','shadow_dash','void_rain']);evidence.push({naturalRotation:moves,hp:84});
+  assert.deepEqual(moves,['star_fan','void_crash','blink_burst','crown_nova','shadow_dash','void_rain']);evidence.push({naturalRotation:moves,hp:120});
   for(const phase of [1,2]){
     await boot();await fixture({state:'tell',regentMove:'blink_burst',phase});s=await wait((s,b)=>b.attackState==='tell'&&b.stateElapsedMs>=50&&s.bossCues.warningVisible);b=boss(s);
     const from=b.x,to=b.targetX,center=(b.left+b.right)/2;
@@ -41,7 +41,7 @@ try{
     // Escape after checking the safe arrival, before the visible boss becomes solid.
     await place(center,b.floorY);
     if(phase===2){s=await wait((s,b)=>b.teleportsThisMove===2);b=boss(s);assert.equal(b.x,b.returnX);assert(Math.abs(b.x-to)>650);assert.equal(b.canDamage,false);await snap('phase-2-return');}
-    s=await wait((s,b)=>b.vulnerable&&s.bossCues.vulnerability.attackPromptVisible);b=boss(s);assert.equal(b.shotsInBurst,phase===1?1:2);assert.equal(b.recoveryDurationMs,phase===1?3000:2600);
+    s=await wait((s,b)=>b.vulnerable&&s.bossCues.vulnerability.attackPromptVisible);b=boss(s);assert.equal(b.shotsInBurst,phase===1?1:2);assert.equal(b.recoveryDurationMs,3000);
     assert(!s.projectiles.some(p=>p.sourceBoss==='void_regent'));assert(s.bossCues.vulnerability.attackPromptVisible);assert.equal(b.canDamage,false);
     const hp=b.hp;await place(b.x-110,b.floorY);await page.keyboard.press('ArrowRight',{delay:20});await page.keyboard.down('Space');await wait((s,b)=>b.hp<hp);await page.keyboard.up('Space');await snap('phase-'+phase+'-counter');
     evidence.push({phase,quickOppositeTeleport:true,doubleBlink:phase===2,safeArrival:true,pause:true,fullCounter:true});

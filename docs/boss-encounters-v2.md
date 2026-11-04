@@ -6,15 +6,20 @@ The campaign now has five bosses with distinct movement and attack patterns, com
 
 | Level | Boss | Attacks | Second phase | HP | Recovery |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Dark Dragon | Aimed sequential fireballs, an arcing lunge, low creeping fire | Four shots instead of three; faster lunge | 32 | 2.6–2.7 s; 2.2–2.3 s in phase two |
-| 2 | Kilina's Daughter | Axe dash, aimed cannon, marked leap slam | Warned return dash, five cannon shots, low slam waves | 44 | 2.6 s; 2.2 s in phase two |
-| 3 | Cinder Colossus | Outward floor quake, bounding slam with landing waves, marked falling embers | Double quake, five ember lanes, faster bound | 48 | 2.8 s; 2.4 s in phase two |
-| 4 | Kilina | Freezing hex, ice storm, shadow dash/crescent, ballistic hexes, rune pillars, evasive leap/wisps | Faster pursuit/dash, double frost/crescents, five ice lanes and two storm volleys, stronger old patterns | 72 | 2.6–2.8 s; 2.2–2.4 s in phase two |
-| 6 | Void Regent | Cross-arena teleport, repeated star fans, shadow dash, marked void rain | Double teleport with two seven-star bursts; triple fans, five rain lanes, active low dash waves | 84 | 2.6–3.0 s; 2.2–2.6 s in phase two |
+| 1 | Dark Dragon | Aimed sequential fireballs, an arcing lunge, low creeping fire | Four shots instead of three; faster lunge | 32 | 3 s stall; 2 s stun on hit |
+| 2 | Kilina's Daughter | Axe dash, aimed cannon, marked leap slam | Warned return dash, five cannon shots, low slam waves | 44 | 3 s stall; 2 s stun on hit |
+| 3 | Cinder Colossus | Outward floor quake, bounding slam with landing waves, marked falling embers | Double quake, five ember lanes, faster bound | 48 | 3 s stall; 2 s stun on hit |
+| 4 | Kilina | Freezing hex, ice storm, shadow dash/crescent, ballistic hexes, rune pillars, evasive leap/wisps | Faster pursuit/dash, double frost/crescents, five ice lanes and two storm volleys, stronger old patterns | 72 | 3 s stall; 2 s stun on hit |
+| 6 | Void Regent | Crown nova, diving crash/shockwaves, rift bursts, star fans, shadow dash, marked rain | Three phases: up to three teleports, four nova/fan bursts, three crash waves and two seven-lane rain passes | 120 | 3 s stall; 2 s stun on hit |
 
-The Dragon's oversized painted flame cone is excluded from its individual-shot animation. Its mouth and neck recoil while the actual fireballs show where damage is possible. Cinder's heavy poses, root motion, leap arc, and impact shake give the giant weight. The Regent vanishes through a marked portal and snaps to the opposite side of a wider arena in about 160ms. Phase two adds a second warned crossing. Portal rings, a fading departure echo and a brief arrival grace period make the instant move readable. See [the revised final fight](void-regent-v3.md).
+The Dragon's oversized painted flame cone is excluded from its individual-shot animation. Its mouth and neck recoil while the actual fireballs show where damage is possible. Cinder's heavy poses, root motion, leap arc, and impact shake give the giant weight. The Regent vanishes through a marked portal and snaps to the opposite side of a wider arena in about 160ms. Later phases add second and third warned crossings. Portal rings, a fading departure echo and a brief body-arrival grace period make the instant move readable. See [the revised final fight](void-regent-v4.md) for current moves, new art, three phases and verification.
 
 ## Shared fairness rules
+
+Current counter behavior follows [the shared stall/stun rule](boss-stun-v1.md):
+three seconds to hit a stalled boss, then a two-second stun on the first hit.
+Repeated hits do not extend the stun. The timing applies in every phase,
+including the flight Pursuer and seasonal turkey.
 
 - Purple status/health bar and GUARDED advice block ordinary weapon, companion and head-stomp damage. X God's butt bomb bypasses this guard; Z God's screen clear retains its existing power. During the counter window, the boss gains a slow coral-red highlight and a bold yellow **ATTACK!** sign with a draining time bar. Gold rings, a shrinking arc, and the OPEN countdown reinforce the same opening. The sign stays visible for the whole opening and vanishes as soon as armor returns, including between guarded phase-two follow-up attacks.
 - The highlight tracks the currently rendered boss pose without changing its original tint, alpha, collider or movement. The sign follows the head, stays within the camera and below the HUD, and moves beside tall bosses when needed. Reduced-motion preferences use a steady red highlight. The cue is shared by all five on-foot bosses, including Dark Dragon and Kilina's Daughter, and clears on retreat, death and scene transitions.
