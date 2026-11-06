@@ -155,8 +155,8 @@ try{
     evidence.push({viewport,finalPhaseReadable:true,threeMovesShown:true});
   }
   await fresh();await boot();await fixture({state:'attack',regentMove:'blink_burst',phase:3});s=await wait((s,b)=>b.teleportsThisMove===1);
-  await place(boss(s).left-400,boss(s).floorY);s=await wait((s,b)=>!b.engaged&&!s.bossArenaCamera.locked);
-  assert.equal(s.regentRiftEffects,0);assert(!s.projectiles.some(p=>p.sourceBoss==='void_regent'));evidence.push({retreatClearsRiftsAndStars:true});
+  await page.evaluate(()=>window.__unknownPlatformerForceFall());s=await wait((s,b)=>!b.engaged&&!s.bossArenaCamera.locked);
+  assert.equal(s.regentRiftEffects,0);assert(!s.projectiles.some(p=>p.sourceBoss==='void_regent'));evidence.push({retryClearsRiftsAndStars:true});
   assert.deepEqual(errors,[]);await fs.writeFile(path.join(out,'results.json'),JSON.stringify({passed:true,evidence,errors},null,2));console.log(JSON.stringify({passed:true,out,evidence,errors}));
 }catch(error){await fs.writeFile(path.join(out,'failure.json'),JSON.stringify({error:String(error),state:await read().catch(()=>null),evidence,errors},null,2));await shot('failure').catch(()=>{});throw error;}
 finally{await browser.close();}

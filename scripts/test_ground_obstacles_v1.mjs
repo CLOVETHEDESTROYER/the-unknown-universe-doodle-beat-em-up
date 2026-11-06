@@ -34,15 +34,16 @@ try{
     }
   }
   evidence.lengthsAssetsAndCheckpoints=true;
-  await boot(3);let s=await read(),ledge=s.crumblingPlatforms[0];
+  await boot(3);let s=await read(),ledge=s.crumblingPlatforms.find(p=>p.x>=s.terrain.obstacleStart);
+  const testedLedge=s=>s.crumblingPlatforms.find(p=>p.x===ledge.x);
   await place(ledge.x+ledge.w/2,ledge.y);
-  s=await wait(s=>s.crumblingPlatforms[0].phase==='shaking');await shot('crumble-warning');
+  s=await wait(s=>testedLedge(s).phase==='shaking');await shot('crumble-warning');
   await page.keyboard.press('KeyP');await page.waitForTimeout(100);const paused=await read();await page.waitForTimeout(450);
-  assert.equal((await read()).crumblingPlatforms[0].elapsed,paused.crumblingPlatforms[0].elapsed);
+  assert.equal(testedLedge(await read()).elapsed,testedLedge(paused).elapsed);
   await page.keyboard.press('KeyP');await page.waitForTimeout(80);
-  s=await wait(s=>s.crumblingPlatforms[0].phase==='gone');assert(!s.crumblingPlatforms[0].solid);
+  s=await wait(s=>testedLedge(s).phase==='gone');assert(!testedLedge(s).solid);
   await shot('crumble-dropped');
-  await wait(s=>s.crumblingPlatforms[0].phase==='ready');assert((await read()).crumblingPlatforms[0].solid);
+  await wait(s=>testedLedge(s).phase==='ready');assert(testedLedge(await read()).solid);
   evidence.crumbleDropRestoreAndPause=true;
 
   s=await read();const shuttle=s.movingPlatforms.find(p=>p.axis==='x');

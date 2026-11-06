@@ -139,8 +139,8 @@ async function observeMove(level,phase) {
   if(b.move==='ice_storm'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('falling_ice'));assert(raised<b.floorY-85);}
   if(b.move==='witch_dash'){assert.equal(maxShots,phase===2?2:1);assert(patterns.has('witch_crescent'));}
   const hp = b.hp;
-  // Observe the whole final rotation before delivering its finishing counters.
-  if(phase===3)return {move:locked.move,locked,maxShots,patterns:[...patterns],moved,raised,counterDeferred:true};
+  // Keep the boss alive through the full rotation before delivering finishing counters.
+  if(phase===3||level===1&&phase===2)return {move:locked.move,locked,maxShots,patterns:[...patterns],moved,raised,counterDeferred:true};
   await slash(b);
   const counter = boss(await read());
   assert(counter.hp<hp,'An actual sword counter damages the exposed boss');
@@ -173,10 +173,10 @@ try {
       await wait(s=>s.equipment.active==='sword');
       b=boss(await read());
     }
-    // Kilina and Regent have six-move cycles; other bosses retain three moves.
+    // Verify the arena stays active at the entrance before observing the rotation.
     await place(b.left-400,b.floorY);
     await page.waitForTimeout(80);
-    assert.equal((await read()).bossArenaCamera.locked,false);
+    s=await read();assert(s.bossArenaCamera.locked&&s.player.x>=s.bossArenaCamera.minX);
     await place(Math.max(b.left-150,b.x-350),b.floorY);
     const phaseOne = [];
     const moveCount=level===4||level===6?6:3;
@@ -190,8 +190,9 @@ try {
     await slash(b);
     assert.equal(boss(await read()).hp,phaseHp,'The second-wind transition is protected');
     const phaseTwo=[];
-    for(let i=0;i<moveCount;i++) phaseTwo.push(await observeMove(level,2));
+    for(let i=0;i<(level===1?4:moveCount);i++) phaseTwo.push(await observeMove(level,2));
     assert.equal(new Set(phaseTwo.map(m=>m.move)).size,moveCount);
+    if(level===1)assert.equal(phaseTwo.filter(m=>m.move==='dragon_lunge').length,2);
     const phaseThree=[];
     if(level===6){
       s=await counterUntil((s,b)=>b.hp<=b.maxHp/3);assert(boss(s).vulnerable);assert.equal(boss(s).phase,2);

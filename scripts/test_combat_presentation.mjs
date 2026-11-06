@@ -89,7 +89,7 @@ try {
 
   await boot();
   let boss = (await read()).enemies.find((enemy) => enemy.bossId === "dark_dragon");
-  assert.equal(boss.maxHp, 32);
+  assert.equal(boss.maxHp, 40);
   await page.evaluate((x) => window.__unknownPlatformerSetPlayerPosition(x + 300, 480), boss.x);
   const fightDeadline = Date.now() + 100000;
   while (boss && Date.now() < fightDeadline) {

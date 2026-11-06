@@ -62,8 +62,8 @@ try{
     if(move==='shadow_dash'&&phase===2)assert(seen.has('shadow_wave'));
     await snap('phase-'+phase+'-'+move);evidence.push({phase,move,maxBursts,patterns:[...seen],counter:true});
   }
-  // Teleport retreat clears portals and restores a fully opaque, ordinary pose.
+  // A checkpoint retry clears portals and restores the ordinary pose.
   await boot();await fixture({state:'tell',regentMove:'blink_burst',phase:2});await wait((s,b)=>b.teleportsThisMove===1);
-  b=boss(await read());await place(b.left-400,b.floorY);await wait((s,b)=>!b.engaged&&!s.bossArenaCamera.locked);assert.equal((await read()).regentRiftEffects,0);evidence.push({retreatCleanup:true});
+  await page.evaluate(()=>window.__unknownPlatformerForceFall());await wait((s,b)=>!b.engaged&&!s.bossArenaCamera.locked);assert.equal((await read()).regentRiftEffects,0);evidence.push({retryCleanup:true});
   assert.deepEqual(errors,[]);await fs.writeFile(new URL('results.json',out),JSON.stringify({passed:true,engine,evidence,errors},null,2));console.log(JSON.stringify({passed:true,engine,evidence,errors}));
 }catch(e){await snap('failure').catch(()=>{});await fs.writeFile(new URL('failure.json',out),JSON.stringify({error:String(e),state:await read().catch(()=>null),evidence,errors},null,2));throw e;}finally{await browser.close();}

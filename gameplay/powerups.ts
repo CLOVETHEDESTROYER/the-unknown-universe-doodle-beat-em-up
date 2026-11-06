@@ -36,14 +36,19 @@ export function hitPowerup(s:PowerupLoadout,fatal=false):PowerupLoadout {
 export function upgradeGun(s:PowerupLoadout,mode:GunUpgradeId):PowerupLoadout{
   return s.active==='blaster'&&isGunUpgrade(mode)?{...s,gunUpgrade:mode}:s;
 }
-export const LEVEL_SPECIAL:Record<number,EquippedPowerup>={1:'sword',2:'frost',3:'ember',4:'storm',6:'storm'};
-export const levelPowerupPool = (level:number):EquippedPowerup[] =>LEVEL_SPECIAL[level]?['blaster',LEVEL_SPECIAL[level]]:[];
+const LEVEL_SPECIAL:Partial<Record<number,EquippedPowerup>>={2:'frost',3:'ember',4:'storm',6:'storm'};
+export function levelPowerupPool(level:number):EquippedPowerup[] {
+  const special=LEVEL_SPECIAL[level];
+  return special ? ['blaster',special] : level===1 ? ['blaster'] : [];
+}
 export interface PowerupRoute {platforms:{x:number;y:number;w:number;h:number}[];hazards:{x:number;y:number;w:number;h:number}[];checkpoints:{x:number;y:number}[];spawn:{x:number;y:number};endX:number}
 export function powerupRoute(level:number,route:PowerupRoute){
-  if(!LEVEL_SPECIAL[level])return [];
+  const pool=levelPowerupPool(level);
+  if(!pool.length)return [];
   const length=route.endX-route.spawn.x;
-  const points=routePickupPoints(route,[route.spawn.x+180,route.spawn.x+length*.38,route.endX-1150]);
-  return points.map((p,i)=>({...p,kind:(i===1?LEVEL_SPECIAL[level]:'blaster') as EquippedPowerup}));
+  const anchors=[route.spawn.x+180,route.endX-1150];
+  if(pool.length>1)anchors.splice(1,0,route.spawn.x+length*.38);
+  return routePickupPoints(route,anchors).map((p,i)=>({...p,kind:pool[i]??pool[0]}));
 }
 export function routePickupPoints(route:PowerupRoute,anchors:number[],avoid:{x:number}[]=[]){
   const used=[...avoid],points:{x:number;y:number}[]=[];

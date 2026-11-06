@@ -6,8 +6,8 @@ export function createAsteroidField(seed:number):Rock[]{
   let value=seed>>>0;
   const random=()=>{value=(value+0x6d2b79f5)>>>0;let n=value;n=Math.imul(n^(n>>>15),n|1);n^=n+Math.imul(n^(n>>>7),n|61);return((n^(n>>>14))>>>0)/4294967296;};
   const rocks:Rock[]=[];
-  const add=(distance:number,y:number)=>{
-    const radius=Math.round(29+random()*27),maxHp=radius<38?3:radius<48?4:6;
+  const add=(distance:number,y:number,fragmentRadius?:number)=>{
+    const radius=fragmentRadius??Math.round(29+random()*27),maxHp=radius<38?3:radius<48?4:6;
     rocks.push({id:rocks.length,distance:Math.round(distance),y:Math.round(y),radius,
       bob:8+random()*14,sway:5+random()*13,phase:random()*Math.PI*2,hp:maxHp,maxHp});
   };
@@ -19,6 +19,12 @@ export function createAsteroidField(seed:number):Rock[]{
       // Separated staggered pairs leave a wide passage, rather than a solid vertical wall.
       const otherY=y<310?425+random()*55:150+random()*65;
       add(distance+170+random()*130,otherY);
+    }
+  }
+  // Small fragments flank the existing field without closing a route or core lane.
+  for (const [distance, y] of [[4700, 460], [8200, 160], [10600, 455], [13100, 165]]) {
+    if (rocks.every(rock => Math.abs(rock.distance - distance) > 220 || Math.abs(rock.y - y) > 160)) {
+      add(distance, y, 25);
     }
   }
   return rocks;

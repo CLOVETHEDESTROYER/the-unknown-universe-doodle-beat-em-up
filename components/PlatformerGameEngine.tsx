@@ -28,7 +28,7 @@ import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear,
 import { playSfx } from '../audio/gameAudio';
 import {companionStride,stepCompanionGround} from '../gameplay/companionMotion';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
-import { addTerrainTiles } from '../gameplay/terrainTextures';
+import { addBackdropDetail, addTerrainTiles, drawTerrainDetail } from '../gameplay/terrainTextures';
 import {KAI_ART,killerKaiPose} from '../gameplay/killerKai';
 import {sizePlayerBody,sizeCharacter,CHARACTER_SIZES,standingBodyHeight,visibleCharacterHeight} from '../gameplay/characterSizing';
 import {XGOD_FROST_FOLDER,XGOD_FROST_ACTIONS,xgodFrostPose} from '../gameplay/xgodFrost';
@@ -166,6 +166,8 @@ declare global {
 }
 
 const SCREEN_HEIGHT = 576;
+const BOSS_ARENA_WIDTH = 1024;
+const DRAGON_LUNGE_HEIGHT = 112;
 const WORLD_HEIGHT = 720;
 const MAX_LEVEL = FINAL_LEVEL;
 const FRAME_WIDTH = 200;
@@ -254,7 +256,7 @@ const BOSS_DEFINITIONS: Record<BossId, {
     frameHeight: 640,
     frameCount: 7,
     scale: 1.05,
-    maxHp: 32,
+    maxHp: 40,
     tint: 0xff7a45,
     attackName: "FIRE VOLLEY",
     attackStyle: "volley",
@@ -339,7 +341,7 @@ const BOSS_MOVES: Record<string, { tell: number; attack: number; recovery: numbe
   ...KILINA_NEW_MOVES,
   ...REGENT_NEW_MOVES,
   fire_volley: { tell: 750, attack: 1100, recovery: 2600, hint: "FIRE VOLLEY - MOVE!" },
-  dragon_lunge: { tell: 800, attack: 700, recovery: 2600, hint: "LUNGE - MOVE CLEAR!" },
+  dragon_lunge: { tell: 800, attack: 670, recovery: 2600, hint: "LUNGE - MOVE CLEAR!" },
   low_breath: { tell: 850, attack: 1050, recovery: 2700, hint: "LOW FIRE - JUMP!" },
   furnace_quake: { tell: 850, attack: 1550, recovery: 2800, hint: "QUAKE - JUMP!" },
   cinder_bound: { tell: 950, attack: 1100, recovery: 2800, hint: "BOUND - LEAVE THE RING!" },
@@ -386,6 +388,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 5040, y: 390, w: 300, h: 42 },
       // 5. A second stretch combines a low wall, ink puddle, and optional lift route.
       { x: 5290, y: 480, w: 860, h: 240 },
+      { x: 5385, y: 420, w: 105, h: 38 },
       { x: 5520, y: 397, w: 92, h: 83 },
       { x: 5650, y: 345, w: 245, h: 42 },
       { x: 6080, y: 390, w: 300, h: 42 },
@@ -393,11 +396,13 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 6340, y: 480, w: 540, h: 240 },
       { x: 6590, y: 407, w: 100, h: 73 },
       { x: 6700, y: 345, w: 190, h: 42 },
+      { x: 6800, y: 268, w: 115, h: 36 },
       // 7. The boss yard preserves its original open space for dodging Fire Volley.
       { x: 6880, y: 480, w: 1770, h: 240 },
       { x: 7440, y: 385, w: 240, h: 42 },
       { x: 7870, y: 385, w: 240, h: 42 }
     ],
+    crumblingPlatforms: [{ x: 4935, y: 305, w: 110, h: 34, crumbleMs: 850 }, { x: 6030, y: 296, w: 128, h: 34 }],
     movingPlatforms: [
       { x: 2390, y: 395, w: 200, h: 42, travel: 28, period: 3400 },
       { x: 4800, y: 375, w: 165, h: 42, travel: 42, period: 4200 },
@@ -485,6 +490,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 6560, y: 480, w: 580, h: 240 },
       { x: 7140, y: 480, w: 1510, h: 240 },
       { x: 980, y: 385, w: 250, h: 42 },
+      { x: 1255, y: 407, w: 126, h: 40 },
       { x: 1570, y: 375, w: 270, h: 42 },
       { x: 2220, y: 390, w: 350, h: 42 },
       { x: 2740, y: 365, w: 240, h: 42 },
@@ -496,6 +502,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 4860, y: 350, w: 230, h: 42 },
       { x: 5270, y: 390, w: 330, h: 42 },
       { x: 5730, y: 397, w: 90, h: 83 },
+      { x: 5610, y: 425, w: 105, h: 36 },
       { x: 5860, y: 340, w: 250, h: 42 },
       { x: 6300, y: 390, w: 340, h: 42 },
       { x: 6740, y: 350, w: 220, h: 42 },
@@ -504,6 +511,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 7440, y: 385, w: 240, h: 42 },
       { x: 7870, y: 385, w: 240, h: 42 }
     ],
+    crumblingPlatforms: [{ x: 1310, y: 326, w: 135, h: 36 }, { x: 6155, y: 314, w: 130, h: 36 }],
     movingPlatforms: [
       { x: 510, y: 380, w: 360, h: 42, travel: 55, period: 4800 },
       { x: 1880, y: 370, w: 300, h: 42, travel: 60, period: 4400, phase: 0.5 },
@@ -563,11 +571,14 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 2920, y: 520, w: 820, h: 120 },
       { x: 3960, y: 520, w: 1770, h: 120 },
       { x: 620, y: 385, w: 320, h: 42 },
+      { x: 1035, y: 425, w: 160, h: 42 },
       { x: 1280, y: 315, w: 320, h: 42 },
       { x: 2200, y: 350, w: 420, h: 42 },
+      { x: 2090, y: 435, w: 126, h: 38 },
       { x: 3270, y: 300, w: 360, h: 42 },
       { x: 4520, y: 340, w: 450, h: 42 }
     ],
+    crumblingPlatforms: [{ x: 1135, y: 357, w: 126, h: 36 }, { x: 3025, y: 409, w: 148, h: 38 }],
     hazards: [
       { x: 780, y: 552, w: 150, h: 38 },
       { x: 1780, y: 552, w: 180, h: 38 },
@@ -602,6 +613,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       // Entry ruins teach the new route over a forgiving lower floor.
       { x: 0, y: 520, w: 1700, h: 200 },
       { x: 430, y: 450, w: 90, h: 70 }, { x: 650, y: 385, w: 260, h: 42 },
+      { x: 927, y: 414, w: 130, h: 38 },
       { x: 1070, y: 335, w: 230, h: 42 }, { x: 1450, y: 405, w: 230, h: 42 },
       // A short gap, then jump onto the broad ruined wall and its rooftop coins.
       { x: 1840, y: 520, w: 1450, h: 200 },
@@ -611,11 +623,13 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 3420, y: 520, w: 650, h: 200 }, { x: 4230, y: 520, w: 650, h: 200 },
       { x: 3700, y: 405, w: 220, h: 42 }, { x: 4480, y: 350, w: 270, h: 42 },
       { x: 5020, y: 520, w: 760, h: 200 }, { x: 5220, y: 395, w: 250, h: 42 },
+      { x: 5475, y: 420, w: 110, h: 40 },
       { x: 5600, y: 335, w: 240, h: 42 },
       // Breathing room and a final safe checkpoint before the sanctuary arena.
       { x: 5920, y: 520, w: 1880, h: 200 }, { x: 6120, y: 405, w: 210, h: 42 },
       { x: 6580, y: 345, w: 190, h: 42 }, { x: 7140, y: 345, w: 190, h: 42 }
     ],
+    crumblingPlatforms: [{ x: 1190, y: 267, w: 128, h: 36 }, { x: 5475, y: 326, w: 112, h: 36 }],
     movingPlatforms: [
       { x: 3210, y: 405, w: 155, h: 42, travel: 42, period: 3700 },
       { x: 4040, y: 390, w: 160, h: 42, travel: 50, period: 4100, phase: 0.3 },
@@ -665,11 +679,14 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { x: 2860, y: 520, w: 780, h: 120 },
       { x: 3880, y: 520, w: 1890, h: 120 },
       { x: 700, y: 365, w: 300, h: 42 },
+      { x: 1050, y: 429, w: 170, h: 42 },
       { x: 1350, y: 300, w: 330, h: 42 },
       { x: 2250, y: 335, w: 380, h: 42 },
+      { x: 2905, y: 435, w: 145, h: 42 },
       { x: 3300, y: 285, w: 380, h: 42 },
       { x: 4520, y: 330, w: 520, h: 42 }
     ],
+    crumblingPlatforms: [{ x: 1210, y: 363, w: 120, h: 36 }, { x: 3085, y: 355, w: 155, h: 36 }],
     hazards: [
       { x: 840, y: 550, w: 130, h: 40 },
       { x: 1700, y: 550, w: 160, h: 40 },
@@ -911,7 +928,7 @@ extendLevelRoute(LEVELS[4], {
 extendLevelRoute(LEVELS[6], {
   insertionX:5524,bridgeStartX:5524,addedLength:2500,newEndX:9624,floorY:520,groundHeight:120,
   ground:[{x:5524,y:520,w:730,h:120},{x:6414,y:520,w:640,h:120},{x:7224,y:520,w:800,h:120}],
-  platforms:[{x:5980,y:335,w:200,h:42},{x:6500,y:350,w:250,h:42},
+  platforms:[{x:5980,y:335,w:200,h:42},{x:6500,y:350,w:250,h:42},{x:7080,y:462,w:115,h:38},
     {x:7320,y:435,w:110,h:85},{x:7420,y:355,w:260,h:42}],
   hazards:[{x:6254,y:552,w:160,h:38},{x:7054,y:552,w:170,h:38}],
   springPads:[{x:5860,y:520,width:100,launchSpeed:800}],
@@ -1083,6 +1100,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
+    let terrainDetail: Phaser.GameObjects.Graphics;
+    const distantPanoramas: Array<{ image: Phaser.GameObjects.Image; minWidth: number }> = [];
+    const rockTerrain = currentLevel === 3 || currentLevel === FINAL_LEVEL;
     const lifts: Array<{ plan: MovingPlatformPlan; sprite: Phaser.GameObjects.TileSprite; body: Phaser.Physics.Arcade.Body }> = [];
     const crumbleLedges: Array<{plan:CrumblingPlatformPlan;state:CrumbleState;art:Phaser.GameObjects.TileSprite;cracks:Phaser.GameObjects.Graphics;body:Phaser.Physics.Arcade.StaticBody}> = [];
     const vents: Array<{plan:TimedVentPlan;art:Phaser.GameObjects.Image;warning:Phaser.GameObjects.Graphics;body:Phaser.Physics.Arcade.StaticBody;phase:string}> = [];
@@ -1123,6 +1143,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let bossVulnerabilityCue: BossVulnerabilityCue | null = null;
     let bossArenaCameraLocked = false;
     let bossArenaCenterX: number | null = null;
+    let bossArenaBounds: Phaser.Geom.Rectangle | null = null;
+    let bossArenaWall: Phaser.GameObjects.Rectangle | null = null;
     let levelTitle: Phaser.GameObjects.Text | null = null;
     let bossDeathVisual: Phaser.GameObjects.Sprite | null = null;
     let bossDeathStage: "none" | "recoil" | "collapse" | "fallen" | "finished" = "none";
@@ -1394,7 +1416,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "end_gate", "platformer/end-gate-generated.png");
       loadGameImage(this.load, "gold_pickup", "gold_pickup.png");
       loadGameImage(this.load, "heart", "heart_sprite.png");
-      loadGameImage(this.load, "power_pickup", isTurkeyKing?'characters/turkey-king-v2/idle.png':isShadow?"characters/shadow-kid-v1/black-hole.png":isElytron?'characters/elytron-v1/reward-icon.webp':isKai ? "characters/killer-kai-v1/reward.webp" : isZGod ? 'characters/z-god-v1/reward.png' : isXGod ? "xgod_sword_reward_fit.png" : `characters/${selectedCharacterId}/reward.png`);
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
@@ -1558,6 +1579,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       shotArtwork.destroy();
       checkpoints = scene.physics.add.staticGroup();
 
+      terrainDetail = scene.add.graphics().setDepth(2);
       level.platforms.forEach((rect) => addPlatform(scene, rect));
       level.hazards.forEach((rect) => addHazard(scene, rect));
       level.checkpoints.forEach((point, index) => addCheckpoint(scene, point.x, point.y, index));
@@ -2236,33 +2258,26 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function makeBackground(scene: Phaser.Scene) {
+      addBackdropDetail(scene, currentLevel, worldWidth * .44 + 1600);
+      const panorama = (key: string, depth: number, y = 0, alpha = 1, minWidth = 2520) => {
+        const image = scene.add.image(0, y, key).setOrigin(0).setDepth(depth).setAlpha(alpha);
+        distantPanoramas.push({ image, minWidth });
+        layoutDistantPanoramas();
+      };
       if(thanksgiving)autumnLeaves=new AutumnLeaves(scene,viewport.width);
       if (currentLevel <= 2) {
-        for (let index = 0; index < 3; index++) {
-          scene.add.image(index * 1728, 0, currentLevel === 1 ? "school_rooftop_panorama" : "graveyard_moonlit_panorama").setOrigin(0).setDisplaySize(1728, 576).setFlipX(index % 2 === 1).setScrollFactor(0.28, 0).setDepth(-30);
-        }
+        panorama(currentLevel === 1 ? 'school_rooftop_panorama' : 'graveyard_moonlit_panorama', -30);
         return;
       }
       if (currentLevel === 4) {
         scene.add.rectangle(0, 0, worldWidth, SCREEN_HEIGHT, 0x746184).setOrigin(0).setDepth(-50);
-        for (let index = 0; index < 3; index++) {
-          scene.add.image(index * 1728, 0, "witchwood_panorama").setOrigin(0).setDisplaySize(1728, 576)
-            .setFlipX(index % 2 === 1).setScrollFactor(0.18, 0).setDepth(-40);
-          scene.add.image(index * 1728, -45, "witchwood_parallax").setOrigin(0).setDisplaySize(1728, 576)
-            .setFlipX(index % 2 === 1).setScrollFactor(0.45, 0).setAlpha(0.35).setDepth(-25);
-        }
+        panorama('witchwood_panorama', -40);
+        panorama('witchwood_parallax', -25, -45, .35, 2920);
         return;
       }
       if (currentLevel === FINAL_LEVEL) {
         scene.add.rectangle(0, 0, worldWidth, SCREEN_HEIGHT, 0x111022).setOrigin(0).setDepth(-50);
-        for (let index = 0; index < 3; index++) {
-          scene.add.image(index * 1728, 0, "void_regent_pencil_panorama")
-            .setOrigin(0)
-            .setDisplaySize(1728, 576)
-            .setFlipX(index % 2 === 1)
-            .setScrollFactor(0.28, 0)
-            .setDepth(-30);
-        }
+        panorama('void_regent_pencil_panorama', -30);
         return;
       }
       scene.add.rectangle(0, 0, worldWidth, SCREEN_HEIGHT, 0x0f172a).setOrigin(0).setDepth(-50);
@@ -2280,6 +2295,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         bgIndex += 1;
       }
       scene.add.rectangle(0, 520, worldWidth, 220, 0x020617, 0.16).setOrigin(0).setDepth(-15);
+    }
+
+    function layoutDistantPanoramas() {
+      const travel = Math.max(1, worldWidth - viewport.width);
+      for (const { image, minWidth } of distantPanoramas) {
+        const width = Math.max(minWidth, viewport.width + 320);
+        image.setDisplaySize(width, SCREEN_HEIGHT).setScrollFactor((width - viewport.width) / travel, 0);
+      }
     }
 
     function canStandUp() {
@@ -2411,18 +2434,29 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function addPlatform(scene: Phaser.Scene, rect: PlatformRect) {
-      if (currentLevel <= 2 || currentLevel === 4) {
+      if (!rockTerrain) {
         const texture = scene.textures.get(level.blockKey);
         if (!texture.has("cap")) {
           const image = texture.getSourceImage();
           texture.add("cap", 0, 0, 0, image.width, 196);
           texture.add("bricks", 0, 0, 196, image.width, image.height - 196);
         }
-        addTerrainTiles(scene, rect.x, rect.y, rect.w, Math.min(20, rect.h), level.blockKey, "cap", 0.22, 20 / 196).setOrigin(0).setDepth(1);
-        if (rect.h > 20) addTerrainTiles(scene, rect.x, rect.y + 20, rect.w, rect.h - 20, level.blockKey, "bricks", 0.22).setOrigin(0).setDepth(1);
+        const tint = currentLevel === 4 ? 0xd4deac : 0xffffff;
+        addTerrainTiles(scene, rect.x, rect.y, rect.w, Math.min(20, rect.h), level.blockKey, "cap", .26, 20 / 196).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0).setTint(tint);
+        if (rect.h > 20) addTerrainTiles(scene, rect.x, rect.y + 20, rect.w, rect.h - 20, level.blockKey, "bricks", .26).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0).setTint(tint);
       } else {
-        addTerrainTiles(scene, rect.x, rect.y, rect.w, rect.h, level.blockKey).setOrigin(0).setDepth(1);
+        const texture = scene.textures.get(level.blockKey);
+        if (!texture.has('rock')) {
+          const inset = currentLevel === FINAL_LEVEL ? 240 : 75;
+          const width = texture.getSourceImage().width - 2 * inset;
+          texture.add('rockCap', 0, inset, 0, width, 52);
+          texture.add('rock', 0, inset, 52, width, 204);
+        }
+        const lip = Math.min(12, rect.h);
+        addTerrainTiles(scene, rect.x, rect.y, rect.w, lip, level.blockKey, 'rockCap', .52, lip / 52).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0);
+        if (rect.h > lip) addTerrainTiles(scene, rect.x, rect.y + lip, rect.w, rect.h - lip, level.blockKey, 'rock', .52, Math.min(.44, (rect.h - lip) / 204)).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0);
       }
+      drawTerrainDetail(terrainDetail, rect, currentLevel);
       const body = scene.add.rectangle(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w, rect.h, 0xffffff, 0);
       scene.physics.add.existing(body, true);
       body.setData("oneWay", rect.h <= 56);
@@ -2438,7 +2472,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       else for (const x of [plan.x + 14, plan.x + plan.w - 14]) {
         scene.add.rectangle(x, plan.y + plan.h / 2, 4, plan.travel * 2 + plan.h, 0x577b72, 0.4).setDepth(0);
       }
-      const sprite = addTerrainTiles(scene, plan.x+(horizontal?displacement:0), startY, plan.w, plan.h, level.blockKey, undefined, 0.22, 0.1)
+      const sprite = addTerrainTiles(scene, plan.x+(horizontal?displacement:0), startY, plan.w, plan.h, level.blockKey, rockTerrain ? 'rock' : undefined, rockTerrain ? .52 : .22, rockTerrain ? .22 : .1)
         .setOrigin(0).setTint(0xd8fff0).setDepth(3);
       scene.physics.add.existing(sprite);
       const body = sprite.body as Phaser.Physics.Arcade.Body;
@@ -2453,7 +2487,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function addCrumblingPlatform(scene:Phaser.Scene,plan:CrumblingPlatformPlan){
-      const art=addTerrainTiles(scene,plan.x,plan.y,plan.w,plan.h,level.blockKey,undefined,.22,.1)
+      const art=addTerrainTiles(scene,plan.x,plan.y,plan.w,plan.h,level.blockKey,rockTerrain ? 'rock' : undefined,rockTerrain ? .52 : .22,rockTerrain ? .2 : .1)
         .setOrigin(0).setTint(0xe8d3b6).setDepth(3);
       const cracks=scene.add.graphics().setPosition(plan.x,plan.y).setDepth(4);
       cracks.lineStyle(2,0x392c3e,.85);
@@ -2699,9 +2733,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         ...crumbleLedges.filter(l=>l.body.enable).map(l=>l.plan)];
       const solids=rectangles.filter(r=>r.h>56);
       if(bossBarrier?.active&&bossBarrier.body){const b=bossBarrier.body as Phaser.Physics.Arcade.StaticBody;if(b.enable)solids.push({x:b.x,y:b.y,w:b.width,h:b.height});}
-      const boss=enemies.getChildren().find(e=>e.active&&e.getData('kind')==='boss'&&e.getData('engaged'));
       return {solids,supports:rectangles,hazards:[...level.hazards,...vents.filter(v=>v.phase==='active').map(v=>({x:v.body.x,y:v.body.y,w:v.body.width,h:v.body.height}))],
-        left:bossArenaCameraLocked&&boss?Number(boss.getData('left'))-160:0,right:bossArenaCameraLocked&&boss?Number(boss.getData('right'))+160:level.endX,
+        left:bossArenaBounds?.left??0,right:bossArenaBounds?.right??level.endX,
         halfWidth:body.width/2,height:body.height};
     }
 
@@ -2713,7 +2746,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         return to?{...to,facing:facingDirection}:null;
       }
       const target=enemy.body as Phaser.Physics.Arcade.Body;
-      const enemyDirection=Number(enemy.getData('direction'))||(enemy.flipX?-1:1);
+      const enemyDirection=enemy.getData('kind')==='boss' ? Number(enemy.getData('facing')) : enemy.flipX ? 1 : -1;
       const direction=behind?enemyDirection:Math.sign(target.center.x-player.x)||facingDirection;
       const x=target.center.x-direction*(target.width/2+body.width/2+14);
       const y=getPlatformStandY(x);
@@ -2898,11 +2931,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function addPickup(scene: Phaser.Scene, pickup: PickupPlan) {
       if(isTurkeyKing&&!['coin','heart','rush_star'].includes(pickup.kind))return;
-      if(pickup.kind==='power'||['blaster','sword','frost','ember','storm'].includes(pickup.kind))return;
-      const texture = pickup.kind === "heart" ? "heart" : pickup.kind === "shield" ? "shield_pickup" : pickup.kind === "gravity" ? "gravity_pickup" : pickup.kind === "dinio" ? "dinio_pickup" : pickup.kind === "doghost" ? "doghost_pickup" : pickup.kind === "teleportation_c" ? "teleportation_c_pickup" : "gold_pickup";
+      if((pickup.kind==='power'&&!pickup.requiresBossDefeat)||['blaster','sword','frost','ember','storm'].includes(pickup.kind))return;
+      const texture = pickup.kind === "power" ? "equipment_sword" : pickup.kind === "heart" ? "heart" : pickup.kind === "shield" ? "shield_pickup" : pickup.kind === "gravity" ? "gravity_pickup" : pickup.kind === "dinio" ? "dinio_pickup" : pickup.kind === "doghost" ? "doghost_pickup" : pickup.kind === "teleportation_c" ? "teleportation_c_pickup" : "gold_pickup";
       const sprite = pickups.create(pickup.x, pickup.y, texture) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       const scale = pickup.kind === "dinio" ? 0.31 : pickup.kind === "doghost" ? 0.2 : pickup.kind === "teleportation_c" ? 0.3 : 0.36;
       sprite.setData("kind", pickup.kind).setData("bounceReward", Boolean(pickup.bounceReward)).setDepth(9).setScale(scale);
+      if (pickup.kind === "power") sprite.setDisplaySize(64, 64);
       if (pickup.bounceReward) sprite.setDisplaySize(54, 54);
       if (pickup.kind === "rush_star") sprite.setTexture("rooftop_rush_star").setDisplaySize(44, 44);
       sprite.body.setSize(sprite.width * 0.65, sprite.height * 0.75, true);
@@ -3236,24 +3270,23 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
         if(isUniqueEnemy(kind)){
           updateUniqueEnemy(scene,enemy,kind,now,{player,projectiles,clearIntent:clearEnemyIntent,floorAt:getPlatformStandY});
-          return;
-        }
-        if(isRestoredEnemy(kind)){
+        } else if(isRestoredEnemy(kind)){
           updateRestoredEnemy(scene,enemy,kind,now);
-          return;
-        }
-        if (enemy.getData("bounceLane")) {
+        } else if (enemy.getData("bounceLane")) {
           enemy.x=Phaser.Math.Clamp(enemy.x,left,right);
           if(enemy.x<=left+1)direction=1;if(enemy.x>=right-1)direction=-1;
           enemy.setData('direction',direction).setVelocityX(direction*28);
           enemy.anims.play(foeWalk(kind as GroundFoe),true);enemy.anims.timeScale=.65;
           faceNormalEnemy(enemy,kind,direction);return;
+        } else {
+          updateLocalEnemy(scene,enemy,kind as GroundFoe,now,{level:currentLevel,player,projectiles,place:placeBossAt,
+            damage:amount=>damagePlayer(scene,amount,false),clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),
+            clearIntent:clearEnemyIntent,showIntent:(enemy,kind)=>showEnemyIntent(scene,enemy,kind),
+            firePulse:(enemy,damage,color,speed,target)=>fireEnemyPulse(scene,enemy,damage,color,speed,target)});
         }
-        updateLocalEnemy(scene,enemy,kind as GroundFoe,now,{level:currentLevel,player,projectiles,place:placeBossAt,
-          damage:amount=>damagePlayer(scene,amount,false),clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),
-          clearIntent:clearEnemyIntent,showIntent:(enemy,kind)=>showEnemyIntent(scene,enemy,kind),
-          firePulse:(enemy,damage,color,speed,target)=>fireEnemyPulse(scene,enemy,damage,color,speed,target)});
-
+        const state = enemy.getData('attackState');
+        if (state === 'tell' || state === 'attack') enemy.setFlipX(Number(enemy.getData('attackDirection')) > 0);
+        if (state === 'recover' && Math.abs(player.x - enemy.x) > 12) enemy.setFlipX(player.x > enemy.x);
       });
     }
 
@@ -3394,16 +3427,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
     }
 
-    function setBossAttackPose(boss: Phaser.Physics.Arcade.Sprite, bossId: BossId, direction: number, frame: number | null) {
+    function setBossAttackPose(boss: Phaser.Physics.Arcade.Sprite, bossId: BossId, direction: number, frame: number | null, dragonWalkPose = false) {
       if (!bossAttackVisual?.active) return;
       boss.setVisible(frame === null);
       bossAttackVisual.setVisible(frame !== null);
       if (frame === null) return;
       const visual = BOSS_ATTACK_VISUALS[bossId];
-      const flipX = visual.facesRight ? direction < 0 : direction > 0;
+      const flipX = visual.facesRight && !dragonWalkPose ? direction < 0 : direction > 0;
       const stunned=boss.getData('attackState')==='recover'&&Boolean(boss.getData('counterStunned'));
       const stunElapsed=boss.scene.time.now-Number(boss.getData('stateStartedAt'));
-      bossAttackVisual.setTexture(bossId==='void_regent'&&stunned?'boss_stun_void_regent':`boss_attack_${bossId}`);
+      bossAttackVisual.setTexture(dragonWalkPose ? 'boss_dark_dragon' : bossId==='void_regent'&&stunned?'boss_stun_void_regent':`boss_attack_${bossId}`);
       if(bossId==='void_regent'&&stunned)frame=stunElapsed<160?0:1+Math.floor((stunElapsed-160)/240)%3;
       bossAttackVisual.setPosition(boss.x, boss.y).setAngle(0).setAlpha(1).setScale(boss.getData("baseScale") as number)
         .setOrigin(flipX ? 1 - visual.originX : visual.originX, visual.originY)
@@ -3412,6 +3445,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function updateBoss(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite, now: number) {
       preserveBossClock(scene,boss,now);
+      const state = boss.getData('attackState');
+      if (state !== 'tell' && state !== 'attack' && !(state === 'recover' && boss.getData('counterStunned')) && Math.abs(player.x - boss.x) > 12) {
+        boss.setData('facing', player.x < boss.x ? -1 : 1);
+      }
       const bossId = boss.getData("bossId") as BossId;
       if (bossId === "killinas_daughter") {
         updateKilina(scene, boss, now);
@@ -3420,12 +3457,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       updateStageBoss(scene, boss, now);
     }
 
-    function showStageBossPose(boss: Phaser.Physics.Arcade.Sprite, frame: number, angle = 0, stretch = 1) {
+    function showStageBossPose(boss: Phaser.Physics.Arcade.Sprite, frame: number, angle = 0, stretch = 1, dragonWalkPose = false) {
       const id = boss.getData("bossId") as BossId;
       if(id==='kilina')frame=kilinaBattlePose(String(boss.getData('move')),String(boss.getData('attackState')),boss.scene.time.now-Number(boss.getData('stateStartedAt')));
       if(id==='void_regent')frame=regentBattlePose(String(boss.getData('move')),String(boss.getData('attackState')),boss.scene.time.now-Number(boss.getData('stateStartedAt')));
       const facing = Number(boss.getData("facing"));
-      setBossAttackPose(boss, id, facing, frame);
+      setBossAttackPose(boss, id, facing, frame, dragonWalkPose);
       boss.setFlipX(id === "ink_behemoth" || id === "kilina" ? facing < 0 : facing > 0);
       bossAttackVisual?.setAngle(angle).setScale(Number(boss.getData("baseScale")) / stretch,
         Number(boss.getData("baseScale")) * stretch);
@@ -3578,7 +3615,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const direction=Number(boss.getData('facing'));
         bossAttackWarning.fillStyle(0xb8efff,.08+progress*.06).fillRect(direction<0?boss.x-650:boss.x+80,floor-200,570,185);
         for(let i=0;i<3;i++)bossAttackWarning.lineBetween(boss.x+direction*110,floor-50-i*50,boss.x+direction*550,floor-50-i*50);
-      } else if (move === 'witch_dash' || move === 'talon_charge' || move === "dragon_lunge" || move === "shadow_dash") {
+      } else if (move === 'dragon_lunge') {
+        const start = Number(boss.getData('startX'));
+        const points = Array.from({ length: 13 }, (_, i) => {
+          const t = i / 12;
+          return new Phaser.Math.Vector2(Phaser.Math.Linear(start, target, Phaser.Math.SmoothStep(t, 0, 1)), floor - 28 - Math.sin(t * Math.PI) * DRAGON_LUNGE_HEIGHT);
+        });
+        bossAttackWarning.strokePoints(points).strokeEllipse(target, floor - 10, 150, 28);
+      } else if (move === 'witch_dash' || move === 'talon_charge' || move === "shadow_dash") {
         bossAttackWarning.lineBetween(boss.x, floor - 14, target, floor - 14);
         bossAttackWarning.strokeEllipse(target, floor - 10, 115, 25);
       } else if (move === "low_breath" || move === "furnace_quake") {
@@ -3613,7 +3657,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const distance = Math.abs(player.x - boss.x);
       bossAttackWarning?.clear();
       bossTellMarker?.setVisible(false);
-      if (distance > 1150 || player.x < left - (boss.getData("engaged") ? 280 : 200)) {
+      if (!bossArenaCameraLocked && (distance > 1150 || player.x < bossArenaEntry(left, right))) {
         if(id==='kilina')playerFreeze?.clear();
         if (boss.getData("engaged")) projectiles.getChildren().filter(p => p.getData("enemyProjectile")).forEach(p => p.destroy());
         placeBossAt(boss, Phaser.Math.Clamp(boss.x, left, right), floor);
@@ -3644,8 +3688,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         scene.cameras.main.shake(180, 0.003);
       }
       if (state === "phase") {
-        showStageBossPose(boss, id === "dark_dragon" || id === "kilina" ? 0 : 1, Math.sin(now / 95) * 2);
-        if (now - Number(boss.getData("stateStartedAt")) >= 950) {
+        const phaseAge = now - Number(boss.getData('stateStartedAt'));
+        if (id === 'dark_dragon') {
+          const roaring = phaseAge >= 180 && phaseAge < 700;
+          showStageBossPose(boss, roaring ? 0 : phaseAge < 180 ? 6 : 3, Math.sin(phaseAge / 52) * 3, roaring ? 1.05 : 1, !roaring);
+        } else showStageBossPose(boss, id === 'kilina' ? 0 : 1, Math.sin(now / 95) * 2);
+        if (phaseAge >= 950) {
           boss.setData("attackState", "patrol").setData("nextAttackAt", now + 300);
         }
         return;
@@ -3655,7 +3703,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(id==='turkey'){
           showStageBossPose(boss,move==='wing_gust'?6:progress<.45?1:2,-facing*progress*3);
           if(move==='talon_charge')placeBossAt(boss,Number(boss.getData('startX')),floor-Math.max(0,(progress-.45)/.55)*45);
-        }else showStageBossPose(boss, id === "dark_dragon" || id === "kilina" ? 0 : 1, -facing * progress * 4, 1 - Math.sin(progress * Math.PI) * 0.025);
+        } else if (id === 'dark_dragon') {
+          const frame = progress < .3 ? 3 : move === 'fire_volley' ? 6 : 5;
+          showStageBossPose(boss, frame, -facing * progress * 7, 1 - progress * .06, true);
+        } else showStageBossPose(boss, id === 'kilina' || id === 'ink_behemoth' && progress < .45 ? 0 : 1, -facing * progress * 4, 1 - Math.sin(progress * Math.PI) * 0.025);
         drawStageBossWarning(boss, progress);
         if (progress >= 1) boss.setData("attackState", "attack").setData("stateStartedAt", now);
         return;
@@ -3744,9 +3795,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           // boss projectiles. Keep the full counter window safe afterward.
           if(move==='cinder_bound'||move==='witch_step'||id==='void_regent'&&move==='shadow_dash'&&phaseTwo)duration+=450;
           const t = Phaser.Math.Clamp(elapsed / travelDuration, 0, 1);
-          const height = move === "cinder_bound" ? 165 : move === "witch_step" ? 125 : move === "dragon_lunge" ? 90 : 24;
+          const height = move === "cinder_bound" ? 165 : move === "witch_step" ? 125 : move === "dragon_lunge" ? DRAGON_LUNGE_HEIGHT : 24;
           placeBossAt(boss, Phaser.Math.Linear(startX, targetX, Phaser.Math.SmoothStep(t, 0, 1)), floor - Math.sin(t * Math.PI) * height);
-          showStageBossPose(boss, id === "dark_dragon" ? 0 : t < 0.7 ? 2 : 3, facing * Math.sin(t * Math.PI) * 4);
+          if (move === 'dragon_lunge') {
+            showStageBossPose(boss, t < .18 ? 6 : t < .68 ? 0 : 5, facing * (t - .48) * 25, 1 + Math.sin(t * Math.PI) * .075, t < .18 || t >= .68);
+          } else if (move === 'cinder_bound') {
+            showStageBossPose(boss, t < .24 ? 1 : t < .84 ? 0 : elapsed < travelDuration + 160 ? 2 : 3, facing * Math.sin(t * Math.PI) * 6);
+          } else showStageBossPose(boss, t < 0.7 ? 2 : 3, facing * Math.sin(t * Math.PI) * 4);
           if (move === "cinder_bound" || move === "witch_step") drawStageBossWarning(boss, 1);
           if (move === "shadow_dash" && now - Number(boss.getData("lastAfterimageAt")) >= 100 && bossAttackVisual) {
             boss.setData("lastAfterimageAt", now);
@@ -3763,27 +3818,32 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           }
         } else if (move === "fire_volley" || move === "low_breath") {
           const count = phaseTwo ? 4 : 3;
-          if (fired < count && elapsed >= fired * 230 + 100) {
-            if (move === "low_breath") stageBossProjectile(scene, boss, boss.x + facing * 115, floor - 18, facing * 290, 0, "low_fire", 34);
+          const cadence = phaseTwo ? 195 : 230;
+          if (fired < count && elapsed >= fired * cadence + 110) {
+            if (move === "low_breath") stageBossProjectile(scene, boss, boss.x + facing * 115, floor - 18, facing * (phaseTwo ? 370 : 310), 0, "low_fire", 34);
             else {
               const aim = Math.atan2(Number(boss.getData("aimY")) - (floor - 135), Math.max(130, Math.abs(Number(boss.getData("aimX")) - boss.x)));
               const angle = (facing > 0 ? 0 : Math.PI) + (Phaser.Math.Clamp(aim, -0.4, 0.4) + (fired - (count - 1) / 2) * 0.12) * facing;
-              stageBossProjectile(scene, boss, boss.x + facing * 95, floor - 135, Math.cos(angle) * 340, Math.sin(angle) * 340, "fire_volley", 30);
+              const speed = phaseTwo ? 410 : 355;
+              stageBossProjectile(scene, boss, boss.x + facing * 95, floor - 135, Math.cos(angle) * speed, Math.sin(angle) * speed, "fire_volley", 30);
             }
             boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
           }
           const recoil = Math.max(0, 1 - (now - Number(boss.getData("lastBurstAt") ?? -9999)) / 170);
           placeBossAt(boss, Phaser.Math.Clamp(startX - facing * recoil * 9, left, right), floor);
-          // The old breath poses contain a large painted flame cone. Using that
-          // for individual rounds falsely makes the whole cone look damaging.
-          showStageBossPose(boss, 0, -facing * recoil * 5, 1 + recoil * 0.02);
+          // Keep the actual projectiles legible against the original painted flame cone.
+          const shooting = recoil > .35;
+          showStageBossPose(boss, shooting ? 0 : move === 'low_breath' ? 5 : 6,
+            facing * (move === 'low_breath' ? 8 - recoil * 7 : -recoil * 9), 1 + recoil * .055, !shooting);
         } else if (move === "furnace_quake") {
           const count = phaseTwo ? 2 : 1;
           if (fired < count && elapsed >= 260 + fired * 280) {
             stageBossWaves(scene, boss);
-            boss.setData("shotsInBurst", ++fired);
+            boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
           }
-          showStageBossPose(boss, elapsed < 240 ? 1 : elapsed < 650 ? 2 : 3, facing * Math.sin(Math.min(1, elapsed / 650) * Math.PI) * 4);
+          const sinceImpact = now - Number(boss.getData('lastBurstAt'));
+          showStageBossPose(boss, sinceImpact < 170 ? 2 : fired < count ? 1 : 3,
+            sinceImpact < 170 ? facing * Math.sin(sinceImpact / 170 * Math.PI) * 6 : 0);
         } else if (move === "ember_rain" || move === "void_rain") {
           const lanes = boss.getData("markedXs") as number[];
           drawStageBossWarning(boss, 0.4);
@@ -3851,14 +3911,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if (state === "recover") {
         const remaining = Number(boss.getData("recoverUntil")) - now;
-        showStageBossPose(boss, id==='turkey'?now<Number(boss.getData('hurtUntil'))?10:9:id === "dark_dragon" ? 0 : 3, facing * Math.max(0, 1 - elapsed / 700) * 3);
-        if (remaining <= 0) boss.setData("attackState", "patrol").setData("nextAttackAt", now + (id==='void_regent'?phase===3?180:phaseTwo?300:500:phaseTwo?350:600));
+        showStageBossPose(boss, id==='turkey'?now<Number(boss.getData('hurtUntil'))?10:9:id === 'dark_dragon' ? elapsed < 300 ? 5 : 3 : 3,
+          facing * Math.max(0, 1 - elapsed / 700) * 3, 1, id === 'dark_dragon');
+        if (remaining <= 0) boss.setData("attackState", "patrol").setData("nextAttackAt", now + (id==='void_regent'?phase===3?180:phaseTwo?300:500:id==='dark_dragon'?phaseTwo?160:360:phaseTwo?350:600));
         return;
       }
-      const direction = player.x < boss.x ? -1 : 1;
-      boss.setData("facing", direction).setFlipX(id === "ink_behemoth" || id === "kilina" ? direction < 0 : direction > 0);
+      const direction = facing;
+      boss.setFlipX(id === "ink_behemoth" || id === "kilina" ? direction < 0 : direction > 0);
       setBossAttackPose(boss, id, direction, null);
-      const desired = distance > 350 ? direction * (id === "ink_behemoth" ? 46 : id === "kilina" ? phaseTwo ? 185 : 140 : id === "void_regent" ? phase===3?185:phaseTwo?155:120 : 75)
+      const desired = distance > 350 ? direction * (id === "ink_behemoth" ? 46 : id === "kilina" ? phaseTwo ? 185 : 140 : id === "void_regent" ? phase===3?185:phaseTwo?155:120 : id==='dark_dragon'?phaseTwo?150:110:75)
         : distance < 210 ? -direction * (id === "kilina" ? 105 : 65) : 0;
       boss.setVelocityX((boss.x <= left + 2 && desired < 0 || boss.x >= right - 2 && desired > 0) ? 0 : desired);
       if (id === "kilina" && Math.abs((boss.body as Phaser.Physics.Arcade.Body).velocity.x) < 1) {
@@ -3869,7 +3930,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         boss.anims.timeScale = phaseTwo ? 1.2 : 0.9;
       }
       if (now >= Number(boss.getData("nextAttackAt"))) {
-        const pattern = id === 'turkey' ? ['talon_charge','wing_gust'] : id === "dark_dragon" ? ["fire_volley", "dragon_lunge", "low_breath"]
+        const pattern = id === 'turkey' ? ['talon_charge','wing_gust'] : id === "dark_dragon" ? (phaseTwo ? ['dragon_lunge', 'fire_volley', 'dragon_lunge', 'low_breath'] : ['fire_volley', 'dragon_lunge', 'low_breath'])
           : id === "ink_behemoth" ? ["furnace_quake", "cinder_bound", "ember_rain"]
             : id === "kilina" ? phaseTwo?KILINA_PHASE_TWO:KILINA_PHASE_ONE : phase===3?REGENT_PHASE_THREE:phaseTwo?REGENT_PHASE_TWO:REGENT_PHASE_ONE;
         const index = Number(boss.getData("attackIndex"));
@@ -3896,6 +3957,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       body.prevFrame.copy(body.position);
     }
 
+    function bossArenaPlayerWidth(left: number, right: number) {
+      // Keep the hero's art inside the camera while leaving room to dodge past wide bosses.
+      const margin = Phaser.Math.Clamp((BOSS_ARENA_WIDTH - (right - left)) / 4, 0, 52);
+      return BOSS_ARENA_WIDTH - 2 * margin;
+    }
+
+    function bossArenaEntry(left: number, right: number) {
+      const body = player.body as Phaser.Physics.Arcade.Body;
+      return Math.max(left - 200, (left + right - bossArenaPlayerWidth(left, right)) / 2 + body.halfWidth);
+    }
+
     function setBossArenaCamera(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite | null, locked: boolean) {
       if (bossArenaCameraLocked === locked) return;
       bossArenaCameraLocked = locked;
@@ -3903,11 +3975,30 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       activeBossId = locked && boss ? boss.getData("bossId") as BossId : null;
       levelTitle?.setVisible(!locked);
       const camera = scene.cameras.main;
+      const body = player.body as Phaser.Physics.Arcade.Body;
       if (locked && boss) {
+        // The minimum viewport fits the whole arena, even after rotation or resizing.
+        const width = bossArenaPlayerWidth(Number(boss.getData('left')), Number(boss.getData('right')));
+        const left = bossArenaCenterX! - width / 2;
+        bossArenaBounds = new Phaser.Geom.Rectangle(left, -WORLD_HEIGHT * 2, width, WORLD_HEIGHT * 4);
+        body.setBoundsRectangle(bossArenaBounds).setCollideWorldBounds(true, 0, 0);
+        bossArenaWall = scene.add.rectangle(left + 4, SCREEN_HEIGHT / 2, 8, SCREEN_HEIGHT, 0x7c3aed, 0.5).setDepth(14);
         camera.stopFollow();
         camera.pan((Number(boss.getData("left")) + Number(boss.getData("right"))) / 2,
           SCREEN_HEIGHT / 2, 650, "Sine.easeInOut", true);
       } else {
+        bossArenaBounds = null;
+        body.setBoundsRectangle(null).setCollideWorldBounds(false);
+        bossArenaWall?.destroy();
+        bossArenaWall = null;
+        bossAttackWarning?.clear();
+        bossTellMarker?.setVisible(false);
+        bossGuardVisual?.clear();
+        bossVulnerabilityCue?.hide();
+        bossHudText?.setVisible(false);
+        bossHudFrame?.setVisible(false);
+        bossHudFill?.setVisible(false);
+        regentRifts?.clear();
         camera.panEffect.reset();
         camera.startFollow(player, true, 0.12, 0.12, 0, 45);
       }
@@ -4038,7 +4129,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const distance = Math.abs(player.x - boss.x);
       bossAttackWarning?.clear();
       bossTellMarker?.setVisible(false);
-      if (distance > 1100 || player.x < left - (boss.getData("engaged") ? 280 : 200)) {
+      if (!bossArenaCameraLocked && (distance > 1100 || player.x < bossArenaEntry(left, right))) {
         placeBossAt(boss, boss.x, floor);
         boss.setData("engaged", false).setData("attackState", "patrol");
         setBossArenaCamera(scene, boss, false);
@@ -4072,7 +4163,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         boss.setVelocity(0, 0);
         const progress = Phaser.Math.Clamp((now - Number(boss.getData("stateStartedAt")))
           / (Number(boss.getData("attackTellUntil")) - Number(boss.getData("stateStartedAt"))), 0, 1);
-        showKilinaPose(boss, move === "cannon_burst" ? 4 : 1, -facing * progress * (move === "cannon_burst" ? 2 : 7), 1 - Math.sin(progress * Math.PI) * 0.035);
+        showKilinaPose(boss, progress < .23 ? 0 : move === "cannon_burst" ? 4 : 1, -facing * progress * (move === "cannon_burst" ? 2 : 7), 1 - Math.sin(progress * Math.PI) * 0.035);
         const targetX = boss.getData("targetX") as number;
         if (move === "leap_slam") {
           bossTellMarker?.setPosition(targetX, floor - 5).setDisplaySize(224, 42).setTint(0xe9a8ff).setAlpha(0.45 + progress * 0.45).setVisible(true);
@@ -4095,7 +4186,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (move === "axe_dash") {
           const t = Phaser.Math.Clamp(elapsed / (phaseTwo ? 500 : 620), 0, 1);
           placeBossAt(boss, Phaser.Math.Linear(startX, targetX, 1 - (1 - t) ** 2), floor);
-          showKilinaPose(boss, t < 0.67 ? 2 : 3, facing * (t < 0.67 ? -5 : 4), 1 - Math.sin(t * Math.PI) * 0.025);
+          showKilinaPose(boss, t < .12 ? 1 : t < .67 ? 2 : 3, facing * (t < .67 ? -5 : 4), 1 - Math.sin(t * Math.PI) * .025);
           if (t > 0.12 && t < 0.78) hitKilinaAxe(scene, boss);
           if (t >= 1) {
             if (phaseTwo && !boss.getData("followUp") && Math.abs(player.x - boss.x) > 140) beginKilinaMove(scene, boss, "axe_dash", true);
@@ -4115,7 +4206,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         } else {
           const t = Phaser.Math.Clamp(elapsed / (phaseTwo ? 800 : 960), 0, 1);
           placeBossAt(boss, Phaser.Math.Linear(startX, targetX, Phaser.Math.SmoothStep(t, 0, 1)), floor - Math.sin(t * Math.PI) * 175);
-          showKilinaPose(boss, 6, facing * (t - 0.5) * 16, 1.025);
+          showKilinaPose(boss, t < .14 ? 1 : t < .9 ? 6 : 7, facing * (t - .5) * 16, 1.025);
           bossTellMarker?.setPosition(targetX, floor - 5).setDisplaySize(224, 42).setTint(0xe9a8ff).setVisible(true);
           if (t >= 1) landKilina(scene, boss);
         }
@@ -4125,15 +4216,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         boss.setVelocity(0, 0);
         const elapsed = now - Number(boss.getData("stateStartedAt"));
         const remaining = Number(boss.getData("recoverUntil")) - now;
-        showKilinaPose(boss, remaining < 220 || move === "cannon_burst" ? 0 : move === "leap_slam" ? 7 : 3,
+        showKilinaPose(boss, elapsed > 460 ? 0 : move === "cannon_burst" ? 4 : move === "leap_slam" ? 7 : 3,
           facing * Math.max(0, 1 - elapsed / 700) * 4, 1 - Math.sin(Math.min(1, elapsed / 700) * Math.PI) * 0.025);
         if (remaining <= 0) boss.setData("attackState", "patrol").setData("nextAttackAt", now + (phaseTwo ? 450 : 650));
         return;
       }
 
       boss.setY(floor);
-      const direction = player.x < boss.x ? -1 : 1;
-      boss.setData("facing", direction).setFlipX(direction < 0);
+      const direction = facing;
+      boss.setFlipX(direction < 0);
       const desired = distance > 345 ? direction * (phaseTwo ? 145 : 112) : distance < 225 ? -direction * 145 : 0;
       const velocity = boss.x <= left + 2 && desired < 0 || boss.x >= right - 2 && desired > 0 ? 0 : desired;
       boss.setVelocityX(velocity);
@@ -4255,9 +4346,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       // Keep the leaping boss's face clear of the health display.
       const kilinaHud = boss.getData("bossId") === "killinas_daughter";
       const compactHud = scene.scale.displaySize.height < 500;
-      bossHudText.setY(compactHud ? 96 : 24);
-      bossHudFrame?.setY(compactHud ? 126 : 49);
-      bossHudFill?.setY(compactHud ? 126 : 49);
+      bossHudText.setY(compactHud ? 96 : 56);
+      bossHudFrame?.setY(compactHud ? 126 : 83);
+      bossHudFill?.setY(compactHud ? 126 : 83);
       const ratio = Phaser.Math.Clamp((boss.getData("hp") as number) / (boss.getData("maxHp") as number), 0, 1);
       const state = boss.getData("attackState") as string;
       const phase = Number(boss.getData("phase") ?? 1);
@@ -5089,6 +5180,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         scene.time.delayedCall(160, () => player?.clearTint());
       }
       if (forceRespawn || playerHealth <= 0) {
+        if (!bossDeathVisual?.active) setBossArenaCamera(scene, null, false);
         playerFreeze?.clear();
         resetTeleport(teleport);blinkQueuedAt=recallQueuedAt=-9999;allyReturnAt=now;allyAssistAt=now+1200;
         // Lost equipment stays lost; nearby supply pickups become available on the retry.
@@ -5314,6 +5406,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isLevelClearing) return;
       if (!bossDefeated) return;
       if(heroCelebration?.active||celebrationQueue.length)return;
+      if (currentLevel===1 && !isTurkeyKing && !swordUnlocked) {
+        applyEquipment(scene, 'sword');
+        if (celebrationQueue.length) return;
+      }
       isLevelClearing = true;
       currentScore += 900;
       if(currentLevel===1)characterPowerUnlocked=true;
@@ -5381,6 +5477,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           shotsInBurst: enemy.getData("shotsInBurst") ?? null,
           followUp: enemy.getData("followUp") ?? null,
           visualFrame: enemy.getData("kind") === "boss" && bossAttackVisual?.visible ? Number(bossAttackVisual.frame.name) : Number(enemy.frame.name),
+          visualFlipX: enemy.getData("kind") === "boss" && bossAttackVisual?.visible ? bossAttackVisual.flipX : enemy.flipX,
           coreOpen: enemy.getData("bossId") === "ink_behemoth" && isBossVulnerable(enemy, latestSceneTime),
           floorY: enemy.getData("floorY") ?? null,
           markedXs: enemy.getData("markedXs") ?? null,
@@ -5570,7 +5667,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         pickups: activePickups,
         projectiles: activeProjectiles,
         regentRiftEffects:regentRifts?.count??0,
-        bossArenaCamera: { locked: bossArenaCameraLocked, left: Math.round(sceneCameraLeft()), width: viewport.width },
+        bossArenaCamera: { locked: bossArenaCameraLocked, left: Math.round(sceneCameraLeft()), width: viewport.width,
+          minX: bossArenaBounds?.left??null, maxX: bossArenaBounds?.right??null },
         bossCues: { warningVisible: Boolean(bossAttackWarning?.commandBuffer.length), statusVisible: Boolean(bossGuardVisual?.commandBuffer.length),
           vulnerability: bossVulnerabilityCue?.read() ?? null },
         touchControls: window.__unknownUniverseTouchControls ?? {}
@@ -5621,6 +5719,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const camera=scene?.cameras?.main;
       if(!camera)return;
       camera.setSize(next.width,next.height);
+      layoutDistantPanoramas();
       routeEncounters.forEach(encounter=>encounter.resize(next.width,Math.min(gameContainerRef.current!.clientWidth/next.width,gameContainerRef.current!.clientHeight/next.height)));
       powerHud?.setX(next.width-next.safeRight);
       teleportHud?.setX(next.width-next.safeRight);

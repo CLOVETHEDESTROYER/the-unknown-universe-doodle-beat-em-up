@@ -1,5 +1,13 @@
 Original prompt: take a look at this git and lets clone it and start working on it https://github.com/CLOVETHEDESTROYER/the-unknown-universe-doodle-beat-em-up.git
 
+## 2026-11-06 — Boss arenas, sword reward, and route art
+
+- Ground bosses and regular enemies turn during recovery. The warning and attack retain their committed aim. The Starbreak Pursuer and regular ships turn between attack sequences.
+- The Dark Dragon has 40 HP, a marked lunge arc, and faster volleys and more lunges in phase two. The first three bosses use more of their existing sprite frames for windup, attack, and recovery. A ground boss fight keeps the player in the camera frame through the full defeat animation. Checkpoint retries release the arena.
+- The Scratch route supplies blasters before its boss. The Flame Sword appears after the boss defeat sequence and is granted at the exit if the first reward was skipped.
+- The Scratch, Graveyard, Witchwood, and Dread Planet now scroll a continuous panorama. Platforms have irregular wear details. Furnace and Dread Planet reuse the textured interior of their rock art for both caps and side faces. Each ground level has at least two new ledges and two breakaway obstacles. Dread Planet also has a lower landing shelf at the shuttle crossing. Starbreak Run has drifting haze and small seeded asteroid fragments in the outer lanes.
+- `scripts/test_arena_and_routes.mjs` exercises the route ledges, boss poses and facing, arena boundaries, and reward in Chromium. Screenshots are under `output/enemy-facing/`.
+
 ## 2026-11-06 — Gameplay playtest and fixes
 
 - Confirmed that tapping Space, C, or the phone FIRE button just before cooldown ended dropped the next attack. Ground attacks now buffer one tap for up to 150 ms and consume it when the move starts. The focused browser test confirms a two-hit Barrett combo and a second blaster shot from both C and touch.

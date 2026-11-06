@@ -31,7 +31,7 @@ async function gun(){await page.evaluate(()=>window.__unknownPlatformerCollectPi
 async function upgrade(mode){let s=await read();const station=s.gunUpgradeStations.find(p=>p.mode===mode);await place(station.x,station.y+62);return wait(s=>s.equipment.gunUpgrade===mode);}
 try{
  for(const level of [1,2,3,4,6]){
-  const s=await boot(level);console.log('route',level);assert.equal(s.powerStations.filter(p=>p.kind!=='blaster').length,1);assert.equal(s.powerStations.filter(p=>p.kind==='blaster').length,2);assert.equal(s.gunUpgradeStations.length,3);
+  const s=await boot(level);console.log('route',level);assert.equal(s.powerStations.filter(p=>p.kind!=='blaster').length,level===1?0:1);assert.equal(s.powerStations.filter(p=>p.kind==='blaster').length,2);assert.equal(s.gunUpgradeStations.length,3);
   for(const station of [...s.powerStations,...s.gunUpgradeStations])assert(s.terrain.platforms.some(r=>station.x>=r.x&&station.x<=r.x+r.w&&Math.abs(station.y+62-r.y)<1));
   assert.deepEqual(s.failedAssets,[]);
  }

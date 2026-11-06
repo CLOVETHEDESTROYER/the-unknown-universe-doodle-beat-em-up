@@ -39,6 +39,15 @@ async function defeat(){
 async function watch(kind,label,pause=false){
   let s=await wait(s=>s.celebration?.active&&s.celebration.kind===kind);
   const frames=new Set(),saved={score:s.progress.score,health:s.player.health,equipment:structuredClone(s.equipment),x:s.player.x};
+  const renderedFrames=page.evaluate(kind=>new Promise(resolve=>{
+    const frames=new Set();
+    const sample=()=>{
+      const celebration=JSON.parse(window.render_game_to_text()).celebration;
+      if(!celebration?.active||celebration.kind!==kind){resolve([...frames]);return;}
+      frames.add(celebration.frame);requestAnimationFrame(sample);
+    };
+    sample();
+  }),kind);
   let paused=false,peak=false,guard=false;
   while(s.celebration.active){
     const c=s.celebration;frames.add(c.frame);
@@ -59,6 +68,7 @@ async function watch(kind,label,pause=false){
     }
     await page.waitForTimeout(12);s=await read();
   }
+  for(const frame of await renderedFrames)frames.add(frame);
   assert.deepEqual([...frames].sort(),kind==='sword'?[0,1,2,3,4,5]:[0,1,2,3]);
   assert.equal(s.celebration.completed[kind],1);assert.equal(s.player.visible,true);
   assert.equal(s.celebration.inputLocked,false);assert.equal(s.special.uses,0,'Inputs during the pose do not trigger a special');

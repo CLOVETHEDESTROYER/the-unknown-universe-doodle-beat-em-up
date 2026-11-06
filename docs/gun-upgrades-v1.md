@@ -1,16 +1,16 @@
 # Ground gun upgrades and level pickups
 
-Each on-foot stage has two Ink Blaster supply stations (early and before the boss) and exactly one special equipment station:
+Each on-foot stage has two Ink Blaster supply stations, early and before the boss. Later stages also have a special equipment station.
 
 | Level | Special |
 | --- | --- |
-| 1 | Flame Sword |
+| 1 | Flame Sword reward after the boss |
 | 2 | Frost Gauntlet |
 | 3 | Ember Boots |
 | 4 | Storm Halo |
 | 6 | Storm Halo |
 
-The flight stage retains its ship weapon system. Other hearts, coins, companions and defensive rewards remain available. Legacy sword pickups and the automatic first-boss weapon swap are removed; collecting the sword station still presents X God's sword celebration.
+The flight stage retains its ship weapon system. The Flame Sword appears after the Scratch boss defeat sequence. If the player reaches the exit before collecting their first sword, the game grants it before the story chapter. X God plays his sword celebration on first claim.
 
 Three upgrade pickups sit along each ground route, on supported platforms away from hazards. They appear only while carrying the Ink Blaster. The currently equipped upgrade is hidden. Only one mode is equipped at once:
 

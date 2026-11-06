@@ -15,7 +15,7 @@ for(const [id,level] of [['blaster',1],['sword',1],['frost',2],['ember',3],['sto
  assert.equal(restoreLoadout(s,'hands').active,id);
  if(level>1)assert.equal(equipPowerup(createLoadout('hands'),id,level-1).active,'hands');
 }
-assert.deepEqual(levelPowerupPool(1),['blaster','sword']);assert.deepEqual(levelPowerupPool(6),['blaster','storm']);evidence.threeHitLossRefillDeathAndStageGates=true;
+assert.deepEqual(levelPowerupPool(1),['blaster']);assert.deepEqual(levelPowerupPool(6),['blaster','storm']);evidence.threeHitLossRefillDeathAndStageGates=true;
 {
  const s=createFlight(3,0,'EASY',20261016);s.phase='flight';s.combat.weapon='lance';s.weaponHits=3;s.checkpointWeapon='lance';
  for(let i=0;i<3;i++){s.clock=i*1800;assert(damageShip(s,5));assert.equal(s.weaponHits,2-i);assert.equal(damageShip(s,5),false);}
@@ -40,7 +40,7 @@ async function face(direction=1){await page.keyboard.down(direction>0?'ArrowRigh
 try{
  const stations={};
  for(const [level,first] of [[1,'blaster'],[2,'blaster'],[3,'blaster'],[4,'blaster'],[6,'blaster']]){
-  await boot(level,'&powerupPreview=1');let s=await read();stations[level]=s.powerStations;assert(s.powerStations.length>=3);assert.equal(s.powerStations[0].kind,first);
+  await boot(level,'&powerupPreview=1');let s=await read();stations[level]=s.powerStations;assert.equal(s.powerStations.length,level===1?2:3);assert.equal(s.powerStations[0].kind,first);
   assert(s.powerStations.every(p=>levelPowerupPool(level).includes(p.kind)));
   for(const p of s.powerStations){assert(s.terrain.platforms.some(r=>p.x>=r.x&&p.x<=r.x+r.w&&Math.abs(p.y+62-r.y)<1),'Pickup has support');}
   await shot(`level-${level}-pickup`);await page.keyboard.down('ArrowRight');s=await wait(s=>s.equipment.active===first&&s.powerStations[0].available===false);await page.keyboard.up('ArrowRight');

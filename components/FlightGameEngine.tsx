@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { addTerrainTiles } from '../gameplay/terrainTextures';
+import { addBackdropDetail, addTerrainTiles } from '../gameplay/terrainTextures';
 import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport, landscapeGameViewport } from '../gameplay/mobileRuntime';
 import { CHARACTER_CONFIGS } from '../characters';
 import { FINAL_LEVEL, FLIGHT_LEVEL } from '../campaign';
@@ -93,6 +93,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let walker:Phaser.GameObjects.Sprite,pilot:Phaser.GameObjects.Sprite;
     let title:Phaser.GameObjects.Text,hint:Phaser.GameObjects.Text,banner:Phaser.GameObjects.Text,steeringLabel:Phaser.GameObjects.Text,bossLabel:Phaser.GameObjects.Text;
     let weaponLabel:Phaser.GameObjects.Text,weaponIcon:Phaser.GameObjects.Image,weaponHud:Phaser.GameObjects.Graphics,speedLines:Phaser.GameObjects.Graphics;
+    let atmosphere:Phaser.GameObjects.Graphics;
     let route:Phaser.GameObjects.Graphics,effects:Phaser.GameObjects.Graphics,combatArt:Phaser.GameObjects.Graphics,bossBar:Phaser.GameObjects.Graphics;
     let impact:Phaser.GameObjects.Image;
     let shipHull:Phaser.GameObjects.Image,deathArt:Phaser.GameObjects.Graphics;
@@ -192,6 +193,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       // Drift within one wide panorama so the destination planet never repeats at a tile seam.
       orbit.forEach(image=>image.setX(-gutter-Math.max(0,1728-viewport.width)/2*(1-Math.cos(offset/FLIGHT_PARALLAX.orbitPeriod))).setAlpha(departure*cosmic*(1-approach)));
       planet.forEach((image,i)=>image.setX((i-1)*1728-(offset*FLIGHT_PARALLAX.planet)%1728).setAlpha(cosmic*approach));
+      atmosphere.setX(-gutter-70+Math.cos(offset/1350)*65).setAlpha(.65+cosmic*.35);
       speedLines.clear();
       const speedStrength=flying?1:state.phase==='launch'?Math.min(1,state.phaseMs/1900):state.phase==='landing'?Math.max(0,1-state.phaseMs/2200):0;
       for(const streak of flightSpeedStreaks(offset,state.clock,speedStrength)){
@@ -383,7 +385,11 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           if(e.kind==='gunship'||(e.entry&&e.entry!=='front'))enemyLabels.set(e.id,scene.add.text(0,0,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'17px',color:'#fff1bd',stroke:'#241b39',strokeThickness:4}).setOrigin(.5).setDepth(17));
         }
         const open=(e.kind==='gunship'||e.kind==='prism'||e.kind==='pursuer')&&e.phase==='recover';
-        const end=flightChargeEnd(e),facingRight=e.kind==='interceptor'&&(e.phase==='tell'||e.phase==='charge')?end.x>e.startX:e.kind!=='pursuer'&&e.aimX>e.x;
+        const end=flightChargeEnd(e);
+        const canTurn=e.phase==='weave'||e.phase==='transition'||e.phase==='recover'&&!e.counterStunned;
+        const facingRight=e.phase==='recover'&&e.counterStunned ? art.flipX
+          : canTurn ? Math.abs(state.x-e.x)>12 ? state.x>e.x : art.flipX
+          : e.kind==='interceptor'&&(e.phase==='tell'||e.phase==='charge') ? end.x>e.startX : e.kind!=='pursuer'&&e.aimX>e.x;
         const angle=e.kind==='pursuer'?e.phase==='dying'?e.phaseMs/BOSS_DEFEAT_DURATION*24:e.phase==='charge'?Math.sin(e.phaseMs/350)*-14:e.phase==='attack'&&e.move==='strafe'?Math.sin(e.phaseMs/600)*10:Math.sin(e.age/700)*3
           :e.kind==='interceptor'&&e.phase==='charge'?Phaser.Math.RadToDeg(Math.atan2(end.y-e.startY,Math.abs(end.x-e.startX)))*(end.x>=e.startX?1:-1)
           :e.phase==='enter'&&e.entry&&e.entry!=='front'?(e.entry==='above'?-18:18):Math.cos(e.age/360)*7;
@@ -577,6 +583,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         orbit=[this.add.image(0,0,'flight_orbit').setOrigin(0).setDisplaySize(Math.max(1728,viewport.width),Math.max(1728,viewport.width)/3).setDepth(-39)];
         planet=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_planet').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-38));
         pads=[addTerrainTiles(this,-(viewport.width-1024)/2,492,viewport.width,84,'flight_pad',undefined,.24,.24).setOrigin(0).setDepth(5)];
+        atmosphere=addBackdropDetail(this,5,2400);
         exhaust=this.add.graphics();
         shipHull=this.add.image(0,0,'flight_ship').setDisplaySize(184,74);
         pilot=this.add.sprite(12,5,'flight_head',0).setOrigin(.5).setScale(kai?.26:xgod?.12:.13);
@@ -654,7 +661,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         wavesStarted:state.combat.spawnedWaves.length,totalWaves:FLIGHT_WAVES.length,
         entryWarnings:state.combat.enemies.filter(e=>e.entry&&e.entry!=='front'&&(e.phase==='incoming'||e.phase==='enter')).map(e=>({id:e.id,edge:e.entry,x:e.stageX,remainingMs:Math.max(0,(e.phase==='incoming'?(e.entryDelayMs??950):1250)-e.phaseMs)}))},
       enemies:state.combat.enemies.map(e=>({...e,vulnerable:e.kind!=='pursuer'||e.phase==='recover',
-        visualFrame:Number(enemyViews.get(e.id)?.frame.name??0),
+        visualFrame:Number(enemyViews.get(e.id)?.frame.name??0),visualFlipX:enemyViews.get(e.id)?.flipX??false,
         recoveryDurationMs:e.kind==='pursuer'?pursuerCounterWindow(e.phaseNumber??1,e.counterStunned):null,
         death:e.kind==='pursuer'&&e.phase==='dying'?{...bossDeathPose(e.phaseMs),texture:bossDeathTexture('pursuer'),elapsedMs:e.phaseMs}:null})),
       effects:state.combat.effects.map(fx=>({...fx,progress:Math.min(1,(state.clock-fx.born)/fx.duration),visualFrame:explosions.get(fx.id)?.frame.name??null})),
