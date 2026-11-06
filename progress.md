@@ -1,5 +1,12 @@
 Original prompt: take a look at this git and lets clone it and start working on it https://github.com/CLOVETHEDESTROYER/the-unknown-universe-doodle-beat-em-up.git
 
+## 2026-11-06 — Gameplay playtest and fixes
+
+- Confirmed that tapping Space, C, or the phone FIRE button just before cooldown ended dropped the next attack. Ground attacks now buffer one tap for up to 150 ms and consume it when the move starts. The focused browser test confirms a two-hit Barrett combo and a second blaster shot from both C and touch.
+- Confirmed that overlapping Left and Right turned a right-facing hero left while the movement input was neutral. Facing now uses the same resolved input as movement, so a shot during that overlap follows the previous aim.
+- Moved the Starbreak weapon panel above the steering area after reproducing it covering the ship at the upper-right edge. Verified the ship and weapon panel at the upper-right limit in desktop and phone screenshots under `output/gameplay-pass/flight-hud-fixed/`.
+- The build, phone D-pad, campaign save, and powerup checks passed. The older combat presentation check expects an alien and fails the same assertion on the original platformer code. The older flight pressure check reached its touch scenario and timed out looking for the former joystick control.
+
 ## 2026-11-03 — Adult Turkey King size and full Git delivery
 
 - User requested Turkey King at least 1.5x larger than the child heroes, followed by pushing all pending work. Changed shared target from 175px to 250px versus the children's 160px (1.5625x); regeneration script preserves 250. Shared calibration covers body/movement, victory, death and flight art. Existing traversal collider stays fixed. Added a minimum-240px browser assertion and documented the adult size.

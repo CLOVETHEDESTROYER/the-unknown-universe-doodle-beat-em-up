@@ -185,6 +185,7 @@ const GIANT_ENEMY_FRAME_HEIGHT = 420;
 const XGOD_PLATFORM_STAND_OFFSET = 11;
 const PLAYER_VISUAL_SCALE_MULTIPLIER = 1.15;
 const TURN_SKID_DURATION_MS = 108;
+const ATTACK_BUFFER_MS = 150;
 const TURN_SKID_DECELERATION = 900;
 const STOMP_HOP_SPEED = 420;
 const STOMP_BOOST_SPEED = 650;
@@ -1603,6 +1604,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         regentRifts=new RegentRiftEffects(scene);
       }
       scene.events.on(Phaser.Scenes.Events.RESUME,()=>{regentResumePending=true;});
+      scene.events.on(Phaser.Scenes.Events.PAUSE, () => { equipmentAttackQueuedAt = -9999; });
       const playerKey = getPlayerWalkTexture(scene);
       player = scene.physics.add.sprite(checkpoint.x, checkpoint.y, playerKey, 0);
       player.setDepth(20).setCollideWorldBounds(false).setDragX(0).setMaxVelocity(520, 900);
@@ -2078,17 +2080,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const wantsCrouch = grounded&&(specialCrouch||!signature?.casting&&!mobility?.busy&&now>=emberUntil&&downHeld);
       setCrouching(wantsCrouch, now);
 
-      const moveLeft = !isAutoRun && (cursors.left.isDown || Boolean(touch.left));
-      const moveRight = !isAutoRun && (cursors.right.isDown || Boolean(touch.right));
       // Auto-turn inside boss yards: a missed attack must never strand a mobile runner at the gate.
       if (isAutoRun && !bossDefeated && player.x > level.endX - 220) autoRunDirection = -1;
       if (bossDefeated || player.x < level.endX - 1080) autoRunDirection = 1;
       const keyboardAxis=Number(cursors.right.isDown)-Number(cursors.left.isDown);
       const touchAxis=touch.axisX??(Number(Boolean(touch.right))-Number(Boolean(touch.left)));
-      const targetVelocity = isCrouching ? 0 : isAutoRun ? playFeel.runSpeed * autoRunDirection : playFeel.runSpeed*(keyboardAxis||touchAxis);
-      if (isAutoRun) facingDirection = autoRunDirection;
-      if (moveRight) facingDirection = 1;
-      if (moveLeft) facingDirection = -1;
+      const moveAxis = isAutoRun ? autoRunDirection : keyboardAxis || touchAxis;
+      const targetVelocity = isCrouching ? 0 : playFeel.runSpeed * moveAxis;
+      if (moveAxis !== 0) facingDirection = Math.sign(moveAxis);
       if(now<emberUntil)facingDirection=emberDirection;
       const requestedDirection = Math.sign(targetVelocity);
       const currentDirection = Math.sign(body.velocity.x);
@@ -2154,7 +2153,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(queuedRecall||recallPressed||recallInput&&!recallHeld)tryTeleport(scene,true,grounded);
       }
       const queuedSpecial=performance.now()-specialQueuedAt<250;
-      if(isTurkeyKing)turkeyKing?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,shootKey.isDown||Phaser.Input.Keyboard.JustDown(shootKey)||Boolean(touch.shoot)||blinkInput||queuedSpecial||queuedBlink||blinkPressed);
+      if (isTurkeyKing) {
+        turkeyKing?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,shootKey.isDown||Phaser.Input.Keyboard.JustDown(shootKey)||Boolean(touch.shoot)||blinkInput||queuedSpecial||queuedBlink||blinkPressed);
+        equipmentAttackQueuedAt = -9999;
+      }
       specialQueuedAt=-9999;
       if(queuedSpecial||queuedBlink||blinkPressed||blinkInput&&!blinkHeld)signature?.trigger();
       signature?.update();
@@ -2163,20 +2165,19 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(teleportHud)teleportHud.setText(teleport.anchor?'R: RETURN TO PORTAL':'X / SP: RIFT AMBUSH');
 
       const blasterEquipped = equipment.active==='blaster'||equipment.active==='frost'||isKai&&equipment.active==='hands';
-      const shootHeld = shootKey.isDown || Boolean(touch.shoot)
-        || (blasterEquipped && (attackKey.isDown || Boolean(touch.attack)));
-      if (!signature?.casting && !mobility?.busy && blasterEquipped && shootHeld && now >= attackVisualUntil && now - lastShotAt >= (isKai&&equipment.active==='hands'?280:equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)) {
+      const attackQueued = performance.now() - equipmentAttackQueuedAt < ATTACK_BUFFER_MS;
+      const attackHeld = shootKey.isDown || Boolean(touch.attack || touch.shoot);
+      const canAttack = !signature?.casting && !mobility?.busy;
+      if (canAttack && blasterEquipped && (attackQueued || attackHeld || attackKey.isDown) && now >= attackVisualUntil && now - lastShotAt >= (isKai&&equipment.active==='hands'?280:equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)) {
         if (equipment.active==='frost'?fireFrostShot(scene):firePlayerShot(scene)) {
+          equipmentAttackQueuedAt = -9999;
           lastShotAt = now;
           shotRecoilUntil = now + 180;
         }
       }
 
-      const keyboardAttackPressed = Phaser.Input.Keyboard.JustDown(attackKey);
-      const queuedEquipmentAttack=(equipment.active==='ember'||equipment.active==='sword'||isShadow&&equipment.active==='hands')&&performance.now()-equipmentAttackQueuedAt<200;
-      equipmentAttackQueuedAt=-9999;
-      const attackPressed = !blasterEquipped && (keyboardAttackPressed || shootKey.isDown || Boolean(touch.attack||touch.shoot) || queuedEquipmentAttack);
-      if (!isTurkeyKing && !signature?.casting && !mobility?.busy && attackPressed && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,isShadow&&equipment.active==='hands'?800:0,selectedCharacterId==='teleportation_c'?430:0)) {
+      if (!isTurkeyKing && canAttack && !blasterEquipped && (attackQueued || attackHeld) && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,isShadow&&equipment.active==='hands'?800:0,selectedCharacterId==='teleportation_c'?430:0)) {
+        equipmentAttackQueuedAt = -9999;
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
         }else{
@@ -2757,6 +2758,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(isTurkeyKing)return;
       const next=equipPowerup(equipment,id,currentLevel);
       if(next===equipment)return;
+      equipmentAttackQueuedAt = -9999;
       stopEmber();
       equipment=next;hasFlameSword=id==='sword';swordDurability=hasFlameSword?equipment.hits:0;
       const firstSword=isXGod&&id==='sword'&&!swordPresentationSeen;
@@ -5062,6 +5064,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (now - lastDamageAt < 850) return;
       const safeDamage = Number.isFinite(damage) && damage > 0 ? damage : 0;
       if (safeDamage === 0) return;
+      equipmentAttackQueuedAt = -9999;
       lastDamageAt = now;
       stompChain = 0;
       if (inkShieldReady && !forceRespawn) {
@@ -5591,7 +5594,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
     const queueEquipmentAttack=()=>{
       if(playerFreeze?.active&&!isPausedRef.current)freezeTapQueued=true;
-      if((isTurkeyKing||equipment.active==='ember'||equipment.active==='sword'||isShadow&&equipment.active==='hands')&&!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active)equipmentAttackQueuedAt=performance.now();
+      if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active)equipmentAttackQueuedAt=performance.now();
     };
     window.addEventListener('unknown-universe:jump',queueJump);
     window.addEventListener('unknown-universe:down',queueDown);

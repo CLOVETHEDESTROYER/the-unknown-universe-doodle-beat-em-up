@@ -20,6 +20,9 @@ import {XGOD_FROST_FOLDER} from '../gameplay/xgodFrost';
 import {SHADOW_ART} from '../gameplay/shadowKid';
 import {ELYTRON_ART} from '../gameplay/elytron';
 
+const WEAPON_HUD_TOP = 44;
+const ROUTE_HUD_TOP = 93;
+
 interface Props {
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
   initialStats: GameStats; onStatsUpdate: (stats: Partial<GameStats>) => void; onTogglePause: () => void;
@@ -231,13 +234,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       }
       steeringLabel.setText(`${state.lives} SHIPS  •  SPACE / C: FIRE`);
       const weapon=FLIGHT_WEAPONS[state.combat.weapon];
-      weaponHud.clear().fillStyle(0x19182e,.84).fillRoundedRect(755,126,237,39,8)
-        .lineStyle(2,weapon.color,.9).strokeRoundedRect(755,126,237,39,8);
+      weaponHud.clear().fillStyle(0x19182e,.84).fillRoundedRect(755,WEAPON_HUD_TOP,237,39,8)
+        .lineStyle(2,weapon.color,.9).strokeRoundedRect(755,WEAPON_HUD_TOP,237,39,8);
       weaponIcon.setTexture(state.combat.weapon==='twin'?'flight_ship':`flight_power_${state.combat.weapon}`)
         .setDisplaySize(state.combat.weapon==='twin'?44:34,state.combat.weapon==='twin'?18:34);
       weaponLabel.setText(weapon.name.toUpperCase()).setColor(`#${weapon.color.toString(16).padStart(6,'0')}`);
-      if(state.combat.weapon!=='twin')weaponLabel.setText(`${weapon.name.toUpperCase()}\n${'●'.repeat(state.weaponHits)}${'○'.repeat(3-state.weaponHits)} HITS`).setFontSize(15).setY(130);
-      else weaponLabel.setFontSize(18).setY(135);
+      if(state.combat.weapon!=='twin')weaponLabel.setText(`${weapon.name.toUpperCase()}\n${'●'.repeat(state.weaponHits)}${'○'.repeat(3-state.weaponHits)} HITS`).setFontSize(15).setY(WEAPON_HUD_TOP+4);
+      else weaponLabel.setFontSize(18).setY(WEAPON_HUD_TOP+9);
       hint.setText(death?.visible?'SHIP LOST'
         :boss?boss.phase==='dying'?'PURSUER DEFEATED — APPROACH CLEAR'
         :boss.phase==='transition'?`${PURSUER_PHASE_NAMES[(boss.phaseNumber??1)-1]} — GUARD UP!`
@@ -255,9 +258,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         :state.distance<5000?'CANOPY CLIMB  •  Follow the gold beacons'
         :state.distance<11500?'HIGH ORBIT  •  Find the gaps between rocks'
         :'VOID APPROACH  •  Dread Planet ahead');
-      route.clear().fillStyle(0x17203b,.8).fillRoundedRect(744,77,248,13,6);
-      route.fillStyle(0xf7ce76,1).fillRoundedRect(747,80,Math.max(5,242*Math.min(1,state.distance/FLIGHT_END)),7,3);
-      for(const cp of [6000,11500,PURSUER_CHECKPOINT])route.lineStyle(2,0xf6f0c4,1).lineBetween(747+242*cp/FLIGHT_END,75,747+242*cp/FLIGHT_END,93);
+      route.clear().fillStyle(0x17203b,.8).fillRoundedRect(744,ROUTE_HUD_TOP,248,13,6);
+      route.fillStyle(0xf7ce76,1).fillRoundedRect(747,ROUTE_HUD_TOP+3,Math.max(5,242*Math.min(1,state.distance/FLIGHT_END)),7,3);
+      for(const cp of [6000,11500,PURSUER_CHECKPOINT])route.lineStyle(2,0xf6f0c4,1).lineBetween(747+242*cp/FLIGHT_END,ROUTE_HUD_TOP-2,747+242*cp/FLIGHT_END,ROUTE_HUD_TOP+16);
       effects.clear();
       if(cosmic>.1){
         effects.fillStyle(0xfaf1ca,cosmic*.8);
@@ -599,10 +602,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         const textStyle={fontFamily:'Gochi Hand, sans-serif',fontSize:'28px',color:'#fff1cd',stroke:'#19182e',strokeThickness:5};
         title=this.add.text(24,72,'STARBREAK RUN',textStyle).setDepth(30);
         hint=this.add.text(24,107,'',{...textStyle,fontSize:'19px',strokeThickness:4}).setDepth(30);
-        steeringLabel=this.add.text(992,100,'',{...textStyle,fontSize:'15px',strokeThickness:3}).setOrigin(1,0).setDepth(30);
+        steeringLabel=this.add.text(735,WEAPON_HUD_TOP+9,'',{...textStyle,fontSize:'15px',strokeThickness:3}).setOrigin(1,0).setDepth(30);
         weaponHud=this.add.graphics().setDepth(30);
-        weaponIcon=this.add.image(781,145,'flight_ship').setDepth(31);
-        weaponLabel=this.add.text(810,135,'',{...textStyle,fontSize:'18px',strokeThickness:3}).setDepth(31);
+        weaponIcon=this.add.image(781,WEAPON_HUD_TOP+19,'flight_ship').setDepth(31);
+        weaponLabel=this.add.text(810,WEAPON_HUD_TOP+9,'',{...textStyle,fontSize:'18px',strokeThickness:3}).setDepth(31);
         speedLines=this.add.graphics().setDepth(-4);
         bossBar=this.add.graphics().setDepth(30);
         bossLabel=this.add.text(505,87,'',{...textStyle,fontSize:'14px',strokeThickness:3}).setOrigin(.5).setDepth(31);
