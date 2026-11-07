@@ -79,7 +79,7 @@ async function recordAttack(level, move) {
 }
 
 try {
-  for (const [level, ledgeX, rightFacingArt] of [[1, 4935, false], [2, 1310, true], [3, 1135, true], [4, 1190, true], [6, 1210, false]]) {
+  for (const [level, ledgeX, rightFacingArt] of [[1, 4935, true], [2, 1310, true], [3, 1135, true], [4, 1190, true], [6, 1210, false]]) {
     await boot(level);
     let state = await read();
     const ledge = state.crumblingPlatforms.find(ledge => ledge.x === ledgeX);

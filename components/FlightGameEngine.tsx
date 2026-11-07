@@ -12,6 +12,7 @@ import { FLIGHT_WEAPONS, FLIGHT_WEAPON_PICKUPS, weaponPickupY } from '../gamepla
 import { FLIGHT_PARALLAX, flightSpeedStreaks } from '../gameplay/flightVisuals';
 import { shipDeathPose } from '../gameplay/flightDeath';
 import { BOSS_DEFEAT_DURATION, bossDeathPose, bossDeathTexture, pursuerCounterWindow } from '../gameplay/bossPresentation';
+import {pursuerFlowFrame} from '../gameplay/bossFlow';
 import { playSfx } from '../audio/gameAudio';
 import { reportGameLoading, trackSceneLoading } from '../gameplay/loadingProgress';
 import {HeroCelebration,loadHeroCelebrationAssets,FLIGHT_VICTORY_START,HERO_VICTORY_DURATION} from '../gameplay/heroCelebration';
@@ -404,7 +405,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           }
           const death = bossDeathPose(e.phaseMs);
           art.setTexture(e.phase==='dying'?bossDeathTexture('pursuer'):'flight_pursuer',
-            e.phase==='dying'?String(death.frame):['tell','attack','charge'].includes(e.phase)?1:0)
+            e.phase==='dying'?String(death.frame):pursuerFlowFrame(e.phase,e.phase==='enter'?e.age:e.phaseMs))
             .setAlpha(e.phase==='dying'?death.alpha:1);
         }else{
           const frame=e.phase==='tell'?8+Math.min(1,Math.floor(e.phaseMs/350))
@@ -548,7 +549,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           this.load.multiatlas(`flight_${kind}`,`/enemies/${folder}/${kind}.json`,`/enemies/${folder}/`);
         }
         loadGameImage(this.load, 'flight_rock','flight/starbreak-asteroid-v1.png');
-        loadGameSheet(this.load, 'flight_pursuer','flight/void-pursuer-v3.png',{frameWidth:640,frameHeight:400,endFrame:2});
+        loadGameSheet(this.load, 'flight_pursuer','bosses/flow-v3/pursuer.png',{frameWidth:640,frameHeight:400,endFrame:7});
         this.load.multiatlas(bossDeathTexture('pursuer'), '/bosses/deaths-v1/pursuer.json', '/bosses/deaths-v1/');
         loadGameImage(this.load, 'flight_witch','platformer/witchwood-panorama-generated.png');
         loadGameImage(this.load, 'flight_ascent','flight/ascent-panorama-v3.png');

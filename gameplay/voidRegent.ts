@@ -14,15 +14,15 @@ export const isRegentMove=(value:unknown):value is RegentMove=>REGENT_PHASE_ONE.
 export const regentPhaseForHealth=(hp:number,maxHp:number)=>hp<=maxHp/3?3:hp<=maxHp*2/3?2:1;
 export const regentCounterWindow=(phase:number,base:number)=>bossCounterWindow(phase,base);
 export const regentTellDuration=(phase:number,base:number)=>Math.max(650,base-(phase>=3?200:phase>=2?120:0));
-export function regentBattlePose(move:string,state:string,elapsed:number){
+export function regentBattlePose(move:string,state:string,elapsed:number,pulseAge=Infinity){
   if(state==='patrol')return 0;
-  if(state==='recover')return 10;
-  if(state==='phase')return 11;
-  if(move==='crown_nova')return state==='tell'?2:3;
-  if(move==='void_crash')return state==='tell'?4:elapsed<430?5:elapsed<850?6:7;
-  if(move==='shadow_dash')return state==='tell'?4:elapsed<650?8:0;
-  if(move==='blink_burst')return 9;
-  return state==='tell'?0:1;
+  if(state==='recover')return elapsed<300?10:elapsed<540?4:0;
+  if(state==='phase')return elapsed<160?0:elapsed<350?2:11;
+  if(move==='crown_nova')return state==='tell'?(elapsed<200?0:2):elapsed<220?2:pulseAge<180?3:2;
+  if(move==='void_crash')return state==='tell'?(elapsed<160?0:4):elapsed<160?4:elapsed<400?5:elapsed<850?6:elapsed<1050?7:10;
+  if(move==='shadow_dash')return state==='tell'?(elapsed<170?0:4):elapsed<80?4:elapsed<650?8:elapsed<800?7:0;
+  if(move==='blink_burst')return state==='tell'?(elapsed<180?0:9):pulseAge<160?1:9;
+  return state==='tell'?(elapsed<180?0:2):elapsed<180?2:pulseAge<140?1:pulseAge<260?2:0;
 }
 
 export function regentCrashFrame(elapsed:number){

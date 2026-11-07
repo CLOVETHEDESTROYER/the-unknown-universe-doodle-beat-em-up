@@ -8,13 +8,13 @@ export const TURKEY_MOVES = {
 /** Committed strike, then a harmless flight home before the counter window. */
 export function turkeyFlight(elapsed:number, phaseTwo:boolean) {
   const rushEnd=phaseTwo?620:720;
-  if(elapsed<280)return {leg:'lift',travel:0,lift:45+23*Math.min(1,elapsed/280),frame:2};
-  if(elapsed<rushEnd)return {leg:'charge',travel:(elapsed-280)/(rushEnd-280),lift:68,frame:3};
+  if(elapsed<280)return {leg:'lift',travel:0,lift:45+23*Math.min(1,elapsed/280),frame:elapsed<90?1:elapsed<210?2:4};
+  if(elapsed<rushEnd)return {leg:'charge',travel:(elapsed-280)/(rushEnd-280),lift:68,frame:elapsed<350?2:3};
   if(elapsed<1650){
     const t=(elapsed-rushEnd)/(1650-rushEnd);
-    return {leg:'retreat',travel:1-t,lift:68+Math.sin(t*Math.PI)*80,frame:4};
+    return {leg:'retreat',travel:1-t,lift:68+Math.sin(t*Math.PI)*80,frame:[4,6,7,8,7,6][Math.floor((elapsed-rushEnd)/85)%6]};
   }
-  return {leg:'land',travel:0,lift:68*(1-Math.min(1,(elapsed-1650)/250)),frame:5};
+  return {leg:'land',travel:0,lift:68*(1-Math.min(1,(elapsed-1650)/250)),frame:elapsed<1770?4:5};
 }
 
 export function makeTurkeyGustTexture(scene:Phaser.Scene) {

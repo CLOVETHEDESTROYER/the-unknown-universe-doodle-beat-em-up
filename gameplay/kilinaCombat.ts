@@ -10,16 +10,16 @@ export type KilinaNewMove=keyof typeof KILINA_NEW_MOVES;
 export const isKilinaNewMove=(move:string):move is KilinaNewMove=>Object.hasOwn(KILINA_NEW_MOVES,move);
 export const KILINA_PHASE_ONE=['frost_hex','witch_step','rune_bloom','ice_storm','witch_hex','witch_dash'];
 export const KILINA_PHASE_TWO=['witch_dash','frost_hex','ice_storm','rune_bloom','witch_hex','witch_step'];
-export function kilinaBattlePose(move:string,state:string,elapsed:number){
-  if(state==='recover')return 10;
-  if(state==='phase')return 11;
+export function kilinaBattlePose(move:string,state:string,elapsed:number,pulseAge=Infinity,stunned=false){
+  if(state==='recover')return stunned||elapsed<280?10:elapsed<540?6:0;
+  if(state==='phase')return elapsed<170?0:elapsed<350?2:11;
   const tell=state==='tell';
-  if(move==='frost_hex')return tell?0:1;
-  if(move==='ice_storm')return tell?2:3;
-  if(move==='witch_dash')return tell?4:elapsed<430?5:6;
-  if(move==='rune_bloom')return tell?7:8;
-  if(move==='witch_step')return tell?4:elapsed<700?2:6;
-  return tell?7:9;
+  if(move==='frost_hex')return tell?(elapsed<180?6:0):elapsed<140?0:pulseAge<100?1:pulseAge<270?6:0;
+  if(move==='ice_storm')return tell?(elapsed<230?0:2):elapsed<250?2:pulseAge<450?3:2;
+  if(move==='witch_dash')return tell?(elapsed<180?6:4):elapsed<65?4:elapsed<380?5:elapsed<610?6:pulseAge<150?9:6;
+  if(move==='rune_bloom')return tell?(elapsed<180?6:7):elapsed<280?7:pulseAge<190?8:pulseAge<400?9:7;
+  if(move==='witch_step')return tell?(elapsed<180?6:4):elapsed<100?4:elapsed<400?2:elapsed<760?5:6;
+  return tell?(elapsed<180?6:7):elapsed<140?7:pulseAge<110?9:pulseAge<230?8:7;
 }
 
 /** Simulation-time status, with edge-triggered escape taps and thaw protection. */

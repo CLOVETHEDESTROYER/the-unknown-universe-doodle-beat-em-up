@@ -1,0 +1,42 @@
+{
+  "dark_dragon": {
+    "frameWidth": 640,
+    "frameHeight": 640,
+    "frames": 12,
+    "scale": 0.9029535864978903,
+    "origin": [
+      0.5,
+      0.9375
+    ]
+  },
+  "killinas_daughter": {
+    "frameWidth": 640,
+    "frameHeight": 640,
+    "frames": 12,
+    "scale": 1.139344262295082,
+    "origin": [
+      0.5,
+      0.9375
+    ]
+  },
+  "ink_behemoth": {
+    "frameWidth": 640,
+    "frameHeight": 640,
+    "frames": 12,
+    "scale": 1.4242424242424243,
+    "origin": [
+      0.5,
+      0.9375
+    ]
+  },
+  "pursuer": {
+    "frameWidth": 640,
+    "frameHeight": 400,
+    "frames": 8,
+    "scale": 1.1243386243386244,
+    "origin": [
+      0.5,
+      0.5
+    ]
+  }
+}

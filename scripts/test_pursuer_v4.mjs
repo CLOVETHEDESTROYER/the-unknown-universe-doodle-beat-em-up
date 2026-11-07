@@ -33,7 +33,7 @@ function dodgeY(s,b){
 }
 try{
  await boot();let s=await wait((s,b)=>b?.phase==='tell'),e=boss(s);assert.equal(e.maxHp,72);
- assert.equal(e.visualFrame,1);const travel=s.flight.travel;
+ assert(e.visualFrame>=0&&e.visualFrame<=2);const travel=s.flight.travel;
  await place(650,e.y-20);await page.keyboard.down('Space');await advance(160);await page.keyboard.up('Space');
  s=await read();assert.equal(boss(s).hp,72);assert(s.combat.guardedHits>0);assert.equal(s.flight.distance,15400);assert(s.flight.travel>travel);evidence.guardAndScrolling=true;
  await page.keyboard.press('p');await page.waitForTimeout(50);const paused=await read();await advance(1200);assert.equal((await read()).mode,'paused');assert.deepEqual((await read()).enemies,paused.enemies);assert.equal((await read()).flight.travel,paused.flight.travel);

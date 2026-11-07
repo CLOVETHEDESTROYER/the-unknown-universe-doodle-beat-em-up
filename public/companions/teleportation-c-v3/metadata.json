@@ -1,0 +1,11 @@
+{
+  "frameSize": 320,
+  "frames": 24,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "bodyHeight": 220,
+  "worldHeight": 160,
+  "facing": "right"
+}
