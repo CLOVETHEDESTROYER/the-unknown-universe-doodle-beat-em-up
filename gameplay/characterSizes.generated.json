@@ -161,13 +161,13 @@
     "target": 105
   },
   "turkey_king": {
-    "target": 250,
-    "base": 451,
-    "special": 451,
-    "mobility": 451,
-    "victory": 437,
-    "death": 423,
-    "flight": 451,
+    "target": 208,
+    "base": 450,
+    "special": 450,
+    "mobility": 450,
+    "victory": 445,
+    "death": 447,
+    "flight": 450,
     "equipment": {},
     "textures": {}
   }

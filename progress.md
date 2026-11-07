@@ -1,5 +1,13 @@
 Original prompt: take a look at this git and lets clone it and start working on it https://github.com/CLOVETHEDESTROYER/the-unknown-universe-doodle-beat-em-up.git
 
+## 2026-11-06 — Turkey King v3 and Royal Turkey Storm
+
+- User requested a new King version, 1.3x hero size, raised-staff lightning, ten raining turkeys in 3/3/4 waves, bounces, fried-wing explosions, enemy damage, screen shake, and a Git push of all work.
+- Built-in ImageGen created complete movement, combat, invocation and effects sheets. Sources, exact prompts, previews and repeatable packing are in art/seasonal/turkey-king-sprites-v3 and scripts/pack_turkey_king_v3.py. Whole connected silhouettes are isolated before packing, preserving extended staff poses. Six walk, staff, throw and invocation frames replace the shorter loops. Standing height is 208px (1.3x 160px heroes), including shared death/victory/flight calibration.
+- X / SP calls Royal Turkey Storm with localized branching lightning, rapid flicker, thunder and camera shake. Ten birds arrive in three waves; three bounce before exploding. Explosions and fried-wing fragments use ordinary enemy/boss damage guards. Reduced-motion users get steady lightning and no shake. Pause freezes simulation/cooldowns; death and scene transitions clear effects. C / phone TOSS retains regular aimed throws; Space / HIT retains staff. Fixed phone quick taps accidentally queueing staff instead of toss.
+- Validation: npm run build and typecheck pass. Native King regression passes unlock/selection/save, movement, double jump, directional attacks, real damage, boss counter, pause, respawn, flight and phone attacks. Progression regression passes real boss defeat, victory art, native weapon retention and chapter two. New storm regression verifies 3/3/4 waves, 10 spawned/10 exploded/3 bounces, actual enemy damage, pause, cooldown, death cleanup and phone/reduced-motion use. Shared develop-web-game client passes movement/staff smoke; inspected contact sheet, lightning/rain/fragments/phone/flight and smoke screenshots. No page errors or missing assets. Existing Vite large-chunk warning remains. Physical Safari was not tested in this pass.
+- All requested source and art changes are ready for Git delivery; generated browser evidence remains ignored under output/turkey-king-v3. No required implementation follow-up remains.
+
 ## 2026-11-06 — Boss arenas, sword reward, and route art
 
 - Ground bosses and regular enemies turn during recovery. The warning and attack retain their committed aim. The Starbreak Pursuer and regular ships turn between attack sequences.

@@ -19,7 +19,7 @@ export interface CharacterConfig {
 export const ROSTER_UNLOCK_STORAGE_KEY = "unknownUniverse.xGodClear.v1";
 
 export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
-  turkey_king:{id:'turkey_king',name:'The Turkey King',subtitle:'Thanksgiving Royalty',cardImage:'/characters/turkey-king-v2/card.webp',hudColor:'orange',
+  turkey_king:{id:'turkey_king',name:'The Turkey King',subtitle:'Thanksgiving Royalty',cardImage:'/characters/turkey-king-v3/card.webp',hudColor:'orange',
     rewardName:'Royal Staff & Turkey Toss',rewardSubtitle:'Strike with the staff. Hurl flying turkeys. No other powerups.',stats:{strength:94,speed:72,defense:84,spirit:90}},
   shadow_kid: {id:'shadow_kid',name:'???',subtitle:'Shadow Kid',cardImage:'/cards/shadow-kid-card-v1.png',hudColor:'violet',
     rewardName:'Black Hole',rewardSubtitle:'Throw a void into your enemies.',stats:{strength:76,speed:88,defense:68,spirit:96}},

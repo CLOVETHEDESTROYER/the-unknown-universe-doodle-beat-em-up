@@ -18,10 +18,11 @@ card and right-facing animation sheet now load in the actual campaign engine.
 | Arrows / movement pad | Walk, face left/right, crouch |
 | Z / Up / JUMP | Jump and double jump; existing third-tap/Down slam |
 | Space / HIT | Royal staff strike: 4 damage, 145px reach, 550ms cooldown |
-| C or X / SP | Turkey throw: 4 damage, 850ms cooldown |
+| C / TOSS | Turkey throw: 4 damage, 850ms cooldown |
+| X / SP | Royal Turkey Storm: 10 turkeys in waves of 3, 3, 4; 12s cooldown |
 
 The throw uses the approved four-frame flap loop at 620px/s, a 1700ms lifetime,
-and a single hit. It releases after a 110ms windup and slightly aims toward a
+and a single hit. It releases after a 195ms windup and slightly aims toward a
 nearby visible enemy in front, including shorter foes. Strikes and throws have
 distinct poses, cannot start simultaneously, and buffer brief input taps. Boss
 armor, counter multipliers and hit-triggered stuns use the shared damage rules.
@@ -42,9 +43,15 @@ art. Legacy brawler mode falls back to the current campaign for this hero.
   with an in-memory fallback when storage is unavailable.
 - `gameplay/turkeyKing.ts`: native weapon timing, staff hit areas, animated
   projectile creation, pose selection, local HUD and pause handling.
-- `public/characters/turkey-king-v2/`: approved sheet/projectile, derived card,
-  flight walk, death and victory strips. Rebuild derived assets and sizing with
-  `python scripts/pack_turkey_king_playable_v1.py` after the v2 art packer.
+- `public/characters/turkey-king-v3/`: movement, combat, invocation, lightning,
+  falling turkeys, fried-wing explosions, card, flight, death and victory art.
+  Rebuild assets and sizing with `python scripts/pack_turkey_king_v3.py`.
+- `art/seasonal/turkey-king-sprites-v3/`: built-in ImageGen source images,
+  exact prompts and animation previews. Whole silhouettes are assigned before
+  packing to preserve staff extensions across nominal source grid boundaries.
+- `gameplay/turkeyStorm.ts`: localized branching lightning, screen shake,
+  three rain waves, ground bounces, area damage and damaging wing fragments.
+  Reduced-motion preferences keep the bolt steady and disable screen shake.
 - Character identity/sizing, campaign saves, code entry, roster, level adapters,
   celebration and airborne presentation recognize `turkey_king`.
 
@@ -70,4 +77,20 @@ Both scripts accept `GAME_TEST_URL` and `GAME_TEST_OUTPUT`. Evidence is saved
 outside the repository by default. The local Windows browser cache may require
 `PLAYWRIGHT_BROWSERS_PATH=C:\Users\analo\AppData\Local\ms-playwright`.
 
-The Turkey King renders at a calibrated 250px standing height (over 1.5× the 160px kids). The shared profile also scales his movement, victory, death, and flight presentation. His existing collider remains fixed for level traversal. Regeneration preserves this size.
+The Turkey King renders at a calibrated 208px standing height (1.3× the 160px kids). The shared profile also scales his movement, victory, death, and flight presentation. His existing collider remains fixed for level traversal. Regeneration preserves this size.
+
+The v3 art has six walk frames, six staff frames, six throw frames and six
+staff-raising invocation poses. Lightning begins during the raise, thunder
+commits at 640ms, and rain waves start at 850ms, 1370ms and 1910ms. Three of
+the ten birds bounce once; their second landing explodes. Each explosion
+deals 4 area damage and releases four wing fragments that can each deal 1
+damage per enemy through ordinary campaign guard/damage rules. Landing on
+an upper platform uses that platform; birds over gaps fall out of play.
+Committed rain continues after an interrupted cast; death and transitions
+clear it. Pause freezes all effects and the cooldown.
+
+`scripts/test_turkey_storm_v3.mjs` checks an initially idle storm, exact wave
+counts, real enemy damage, bounces, explosions, pause, cooldown, death cleanup,
+phone quick taps and reduced-motion startup. Native weapons and progression
+regressions also pass with the new art and 208px size. Screenshots were inspected
+for staff lightning, falling birds, wing fragments, phone controls and flight.

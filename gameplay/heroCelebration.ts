@@ -13,7 +13,7 @@ const SWORD_STEPS = [0, 280, 640, 1020, 1620, 2020];
 const FOLDER = '/characters/celebrations-v1/';
 
 export function loadHeroCelebrationAssets(load:Phaser.Loader.LoaderPlugin,hero:CharacterId,sword=false,reuseKai=false){
-  if(hero==='turkey_king'){load.spritesheet('hero_victory','/characters/turkey-king-v2/victory.png',{frameWidth:640,frameHeight:640});return;}
+  if(hero==='turkey_king'){load.spritesheet('hero_victory','/characters/turkey-king-v3/victory.png',{frameWidth:640,frameHeight:640});return;}
   if(hero==='shadow_kid'){load.multiatlas('hero_victory',SHADOW_ART.folder+'victory.json',SHADOW_ART.folder);return;}
   if(hero==='elytron'){
     load.multiatlas('hero_victory',ELYTRON_ART.folder+'reactions.json',ELYTRON_ART.folder);return;

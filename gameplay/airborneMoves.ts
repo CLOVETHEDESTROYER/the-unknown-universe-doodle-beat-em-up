@@ -194,7 +194,7 @@ export class AirborneMoves {
       this.actor.setTexture(this.hero==='turkey_king'?'turkey_king_body':hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(this.hero==='turkey_king'?5:hasNewMobilityArt(this.hero)?newFrame:frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       if(this.hero==='elytron')this.actor.setFrame(String(this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105))));
-      if(this.hero==='turkey_king')this.actor.setTexture('turkey_king_body',this.phase==='landing'?6:5).setOrigin(.5,600/640);
+      if(this.hero==='turkey_king')this.actor.setTexture('turkey_king_body',this.phase==='landing'?11:this.phase==='windup'?8:this.phase==='diving'||this.body.velocity.y>0?10:9).setOrigin(.5,600/640);
       if(this.hero==='xgod'){
         if(this.hooks.equipment?.()==='frost'){
           const crouched=this.phase==='windup'||this.phase==='landing';

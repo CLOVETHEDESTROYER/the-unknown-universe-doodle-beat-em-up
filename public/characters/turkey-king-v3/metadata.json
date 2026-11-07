@@ -1,0 +1,71 @@
+{
+  "character": "The Turkey King",
+  "version": 3,
+  "standingHeight": 208,
+  "baseFacing": "right",
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "movement": {
+    "frameSize": 640,
+    "idle": [
+      0,
+      1
+    ],
+    "walk": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "crouch": 8,
+    "rise": 9,
+    "fall": 10,
+    "land": 11
+  },
+  "combat": {
+    "frameSize": 640,
+    "staff": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "throw": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "hurt": 12,
+    "defeat": 13,
+    "victory": [
+      14,
+      15
+    ]
+  },
+  "storm": {
+    "frameSize": 768,
+    "frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "invokeMs": 640
+  },
+  "scales": {
+    "movement": 1.3235294117647058,
+    "combat": 1.530612244897959,
+    "storm": 1.2784090909090908
+  }
+}

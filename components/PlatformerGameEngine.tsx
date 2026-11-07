@@ -1097,6 +1097,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let specialQueuedAt = -9999;
     let jumpQueuedAt = -9999, downQueuedAt = -9999, downWasHeld = false;
     let equipmentAttackQueuedAt = -9999;
+    let turkeyThrowQueuedAt = -9999;
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
@@ -1929,7 +1930,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       if(isTurkeyKing)turkeyKing=new TurkeyKingCombat(scene,{player,enemies,projectiles,facing:()=>facingDirection,
         canUse:()=>!isRespawning&&!isLevelClearing&&!heroCelebration?.active&&!celebrationQueue.length&&!mobility?.busy&&!playerFreeze?.active&&scene.time.now>=movementLockedUntil,
-        clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),damage:(enemy,amount,shot)=>damageEnemy(scene,enemy,amount,shot),fired:()=>{shotsFired++;}});
+        clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),damage:(enemy,amount,shot)=>damageEnemy(scene,enemy,amount,shot),fired:()=>{shotsFired++;},floorAt:getPlatformStandY});
       if(!isTurkeyKing)signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
         player, enemies, projectiles,
         facing: () => facingDirection,
@@ -2013,7 +2014,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
       autumnLeaves?.update(delta);
-      if (!player || !player.active || isLevelClearing || isRespawning) {turkeyKing?.cancel(); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) {turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
 
       const now = scene.time.now;
       // Phaser Clock.now follows wall time; Arcade integrates smoothed delta.
@@ -2038,6 +2039,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         ||performance.now()-jumpQueuedAt<180||performance.now()-equipmentAttackQueuedAt<180;
       playerFreeze?.update(delta,escapeHeld,freezeTapQueued);freezeTapQueued=false;
       if(wasFrozen){
+        turkeyKing?.updateEffects(delta);
         jumpQueuedAt=downQueuedAt=specialQueuedAt=blinkQueuedAt=recallQueuedAt=equipmentAttackQueuedAt=jumpBufferedAt=-9999;
         jumpWasHeld=jumpKey.isDown||jumpAltKey.isDown||Boolean(touch.jump||touch.up);
         downWasHeld=cursors.down.isDown||crouchKey.isDown||Boolean(touch.down);
@@ -2048,6 +2050,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if(grounded&&!heroCelebration?.active&&celebrationQueue.length){
         const kind=celebrationQueue.shift()!;
+        turkeyKing?.cancel(true);
         signature?.cancel(false);mobility?.cancel(true);stopEmber();fireBlades?.clear();
         setCrouching(false,now);player.anims.stop();player.setAngle(0).setAlpha(1).setVelocityX(0);
         attackVisualUntil=shotRecoilUntil=-9999;
@@ -2176,8 +2179,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       const queuedSpecial=performance.now()-specialQueuedAt<250;
       if (isTurkeyKing) {
-        turkeyKing?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,shootKey.isDown||Phaser.Input.Keyboard.JustDown(shootKey)||Boolean(touch.shoot)||blinkInput||queuedSpecial||queuedBlink||blinkPressed);
+        turkeyKing?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,
+          shootKey.isDown||Phaser.Input.Keyboard.JustDown(shootKey)||Boolean(touch.shoot)||performance.now()-turkeyThrowQueuedAt<200,
+          queuedSpecial||queuedBlink||blinkPressed||blinkInput&&!blinkHeld,delta);
         equipmentAttackQueuedAt = -9999;
+        turkeyThrowQueuedAt = -9999;
       }
       specialQueuedAt=-9999;
       if(queuedSpecial||queuedBlink||blinkPressed||blinkInput&&!blinkHeld)signature?.trigger();
@@ -2886,7 +2892,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE · X / SP: THUNDERFALL`).setColor('#8feaff');
       if(isShadow&&equipment.active==='hands')powerHud.setText('BLACK HOLES\nATTACK: THROW Â· X / SP: VOID BURST').setColor('#c69aff');
       if(isElytron&&equipment.active==='hands')powerHud.setText('ELECTRIC FISTS\nX / SP: PULSE STORM').setColor('#ffda39');
-      if(isTurkeyKing)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C / X: THROW · NO POWERUPS').setColor('#ffdb9c');
+      if(isTurkeyKing)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C: TOSS · X: STORM').setColor('#ffdb9c');
       if (isZGod) powerHud.setText(`INVINCIBLE · ONE-HIT POWER · ${POWERUPS[equipment.active].name.toUpperCase()}`).setColor('#ffd0e5');
       if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE · INK BLASTER`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
       powerAura.clear();
@@ -4382,7 +4388,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const body = player.body as Phaser.Physics.Arcade.Body;
       if(isTurkeyKing){
         characterStride+=Math.abs(body.velocity.x)*delta/1000;
-        player.anims.stop();player.setTexture('turkey_king_body',turkeyKing?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt)??0)
+        const pose=turkeyKing?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:'turkey_king_body',frame:0};
+        player.anims.stop();player.setTexture(pose.texture,pose.frame)
           .setOrigin(.5,600/640).setFlipX((turkeyKing?.facing??facingDirection)<0).setAngle(0);
         return;
       }
@@ -5559,7 +5566,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           rewardName: selectedCharacter.rewardName,
           rewardUnlocked: characterPowerUnlocked,
           standingHeight:CHARACTER_SIZES[selectedCharacterId].target,
-          spriteArt: isTurkeyKing?'turkey-king-v2':isShadow?'shadow-kid-v1':isElytron?'elytron-v1':isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
+          spriteArt: isTurkeyKing?'turkey-king-v3':isShadow?'shadow-kid-v1':isElytron?'elytron-v1':isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
           invincible: isZGod,
           oneHitPower: isZGod,
           starComet: isZGod ? signature?.read() ?? null : null
@@ -5692,14 +5699,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
     const queueEquipmentAttack=()=>{
       if(playerFreeze?.active&&!isPausedRef.current)freezeTapQueued=true;
-      if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active)equipmentAttackQueuedAt=performance.now();
+      if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active){
+        if(isTurkeyKing&&window.__unknownUniverseTouchControls?.shoot)turkeyThrowQueuedAt=performance.now();
+        else equipmentAttackQueuedAt=performance.now();
+      }
     };
     window.addEventListener('unknown-universe:jump',queueJump);
     window.addEventListener('unknown-universe:down',queueDown);
     window.addEventListener('unknown-universe:attack',queueEquipmentAttack);
     const handlePause=(event:KeyboardEvent)=>{
       if(event.code==='KeyX'&&!event.repeat)queueSpecial();
-      if(isTurkeyKing&&event.code==='KeyC'&&!event.repeat)queueSpecial();
+      if(isTurkeyKing&&event.code==='KeyC'&&!event.repeat&&!isPausedRef.current)turkeyThrowQueuedAt=performance.now();
       if(!event.repeat&&(event.code==='Space'||event.code==='KeyC'&&!isTurkeyKing))queueEquipmentAttack();
       if(!event.repeat && (event.code==='KeyZ'||event.code==='ArrowUp')) queueJump();
       if(!event.repeat && (event.code==='KeyS'||event.code==='ArrowDown')) queueDown();

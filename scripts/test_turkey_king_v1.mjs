@@ -18,7 +18,7 @@ const shot=name=>page.screenshot({path:path.join(out,name+'.png')});
 const place=(x,y)=>page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x,y});
 const fixture=opts=>page.evaluate(opts=>window.__unknownPlatformerBossRulesTest(opts),opts);
 async function boot(extra=''){
- await page.keyboard.up('Space');await page.keyboard.up('c');await page.keyboard.up('x');
+ await page.keyboard.up('Space');await page.keyboard.up('c');await page.keyboard.up('c');
  await page.goto(`${origin}/?autostart=1&level=1&capture=1&character=turkey_king${extra}`);
  const s=await wait(s=>s.mode==='platforming'&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.deepEqual(s.failedAssets,[]);return s;
 }
@@ -32,7 +32,7 @@ try{
  assert(await page.locator('[data-character-id="elytron"]').isDisabled());
  await shot('unlocked-card');await card.click();await page.getByRole('button',{name:'Skip story',exact:true}).click();
  s=await wait(s=>s.mode==='platforming'&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.seasonalTheme,'thanksgiving');assert.equal(boss(s).bossId,'turkey');
- assert(s.selectedCharacter.standingHeight>=240,'Turkey King is at least 1.5x the 160px kids');assert.equal(s.weapon.primary,'royal_staff');assert.equal(s.equipment.active,'hands');assert(!s.powerStations.length);assert(s.pickups.every(p=>['coin','heart','rush_star'].includes(p.kind)));await shot('level1-king');
+ assert.equal(s.selectedCharacter.standingHeight,208,'Turkey King is 1.3x the 160px kids');assert.equal(s.weapon.primary,'royal_staff');assert.equal(s.equipment.active,'hands');assert(!s.powerStations.length);assert(s.pickups.every(p=>['coin','heart','rush_star'].includes(p.kind)));await shot('level1-king');
  await page.keyboard.press('p');await wait(s=>s.mode==='paused');await page.getByRole('button',{name:'Save & Quit',exact:true}).click();
  await page.reload();await page.getByRole('button',{name:'Continue Game',exact:true}).click();s=await wait(s=>s.mode==='platforming'&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.equipment.active,'hands');
  evidence.push({codeUnlock:true,otherHeroesStayLocked:true,realSelection:true,thanksgiving:true,saveContinue:true});
@@ -53,15 +53,15 @@ try{
  await page.evaluate(()=>window.__unknownPlatformerCollectPickup('sword'));assert.equal((await read()).equipment.active,'hands');
  const hp=s.player.health;await page.evaluate(()=>window.__unknownPlatformerDamagePlayer(8));s=await wait(s=>s.player.health<hp);assert.equal(s.equipment.active,'hands');assert(s.turkeyKing);
  evidence.push({noStartingPowerups:true,noPickupSwap:true,weaponsSurviveDamage:true});
- await boot('&finishLevel=1');await fixture({state:'recover',stageMove:'wing_gust',hp:100});s=await read();await place(boss(s).x-200,boss(s).floorY);await page.keyboard.press('ArrowRight',{delay:20});await page.keyboard.down('x');
- s=await wait((s,b)=>b.hp<100,3000);await page.keyboard.up('x');assert(boss(s).counterStunned);assert.equal(s.equipment.active,'hands');evidence.push({realBossCounterStun:true,damage:100-boss(s).hp});await shot('boss-stunned-by-turkey');
- await boot();await page.keyboard.down('x');await wait(s=>s.turkeyKing.throws>=1);await page.keyboard.up('x');await page.keyboard.press('p');s=await wait(s=>s.mode==='paused');const cooldown=s.turkeyKing.cooldownRemainingMs;
+ await boot('&finishLevel=1');await fixture({state:'recover',stageMove:'wing_gust',hp:100});s=await read();await place(boss(s).x-200,boss(s).floorY);await page.keyboard.press('ArrowRight',{delay:20});await page.keyboard.down('c');
+ s=await wait((s,b)=>b.hp<100,3000);await page.keyboard.up('c');assert(boss(s).counterStunned);assert.equal(s.equipment.active,'hands');evidence.push({realBossCounterStun:true,damage:100-boss(s).hp});await shot('boss-stunned-by-turkey');
+ await boot();await page.keyboard.down('c');await wait(s=>s.turkeyKing.throws>=1);await page.keyboard.up('c');await page.keyboard.press('p');s=await wait(s=>s.mode==='paused');const cooldown=s.turkeyKing.cooldownRemainingMs;
  await page.waitForTimeout(350);assert.equal((await read()).turkeyKing.cooldownRemainingMs,cooldown);await page.keyboard.press('p');s=await wait(s=>s.mode==='platforming');assert(s.turkeyKing.cooldownRemainingMs>cooldown-150);evidence.push({pausePreservesThrowClock:true});
  await boot();const lives=(await read()).player.lives;await page.evaluate(()=>window.__unknownPlatformerDamagePlayer(200));s=await wait(s=>s.player?.grounded&&s.player.lives<lives&&s.player.health>0);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.equipment.active,'hands');evidence.push({deathRespawnKeepsNativeWeapons:true});
  await page.goto(`${origin}/?autostart=1&level=5&character=turkey_king&capture=1&flightFinale=1`);s=await wait(s=>s.engine==='flight'&&s.player);assert.deepEqual(s.failedAssets,[]);assert.equal(s.weaponPickups.length,0);await shot('flight-king');evidence.push({flightLoads:true,flightPowerupsDisabled:true});
  await fresh({...devices['iPhone 13'],viewport:{width:844,height:390},deviceScaleFactor:1});
  await page.goto(`${origin}/?autostart=1&level=1&character=turkey_king&code=allhailking&capture=1`);await wait(s=>s.player?.grounded&&s.turkeyKing);
- await page.getByRole('button',{name:'Special: Royal Turkey Toss',exact:true}).click();await wait(s=>s.turkeyKing.throws>=1,2500);await page.getByRole('button',{name:'Use equipped attack',exact:true}).click();await wait(s=>s.turkeyKing.staffSwings>=1,2500);await shot('phone-native-attacks');
+ await page.getByRole('button',{name:'Throw a turkey',exact:true}).click();await wait(s=>s.turkeyKing.throws>=1,2500);await page.getByRole('button',{name:'Use equipped attack',exact:true}).click();await wait(s=>s.turkeyKing.staffSwings>=1,2500);await shot('phone-native-attacks');
  evidence.push({phoneTouchThrow:true,phoneTouchStaff:true,directCodePlayLink:true});
  assert.deepEqual(errors,[]);await fs.writeFile(path.join(out,'results.json'),JSON.stringify({passed:true,evidence,errors},null,2));console.log(JSON.stringify({passed:true,evidence,errors}));
 }catch(e){await fs.writeFile(path.join(out,'failure.json'),JSON.stringify({error:String(e),state:await read().catch(()=>null),evidence,errors},null,2));await shot('failure').catch(()=>{});throw e;}

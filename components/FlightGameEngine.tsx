@@ -561,8 +561,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           this.load.multiatlas('flight_hero',XGOD_FROST_FOLDER+'run.json',XGOD_FROST_FOLDER);
           this.load.multiatlas('flight_head',XGOD_FROST_FOLDER+'idle.json',XGOD_FROST_FOLDER);
         }else if(turkeyKing){
-          loadGameSheet(this.load,'flight_hero','characters/turkey-king-v2/flight-walk.png',{frameWidth:640,frameHeight:640});
-          loadGameImage(this.load,'flight_head','characters/turkey-king-v2/idle.png');
+          loadGameSheet(this.load,'flight_hero','characters/turkey-king-v3/flight-walk.png',{frameWidth:640,frameHeight:640});
+          loadGameImage(this.load,'flight_head','characters/turkey-king-v3/idle.png');
         }else if(shadow){
           this.load.multiatlas('flight_hero',SHADOW_ART.folder+'run.json',SHADOW_ART.folder);
           this.load.multiatlas('flight_head',SHADOW_ART.folder+'idle.json',SHADOW_ART.folder);
