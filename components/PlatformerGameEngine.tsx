@@ -11,6 +11,9 @@ import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
 import { createCrumble, stepCrumble, ventPhase } from "../gameplay/groundObstacles";
 import type { CrumbleState, CrumblingPlatformPlan, TimedVentPlan } from "../gameplay/groundObstacles";
+import { PLATFORM_ROUTES } from '../gameplay/platformRoutes';
+import type { PlatformRoute } from '../gameplay/platformRoutes';
+import { PlatformRouteRuntime } from '../gameplay/platformRouteRuntime';
 import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy, localEnemyKind, enemyDisplayName } from "../gameplay/enemyVariety";
 import { ENEMY_MOTION, GRUNT_THEMES, foeAsset, foeFolder, foeTexture, foeWalk } from '../gameplay/enemyMotion';
 import type { GroundFoe } from '../gameplay/enemyMotion';
@@ -143,6 +146,7 @@ interface LevelPlan {
   crumblingPlatforms?: CrumblingPlatformPlan[];
   timedVents?: TimedVentPlan[];
   obstacleStart?: number;
+  platformRoute?: PlatformRoute;
   rooftopRush?: RooftopRushPlan;
   hazards: PlatformRect[];
   enemies: EnemyPlan[];
@@ -943,6 +947,29 @@ extendLevelRoute(LEVELS[6], {
     {kind:'heart',x:7270,y:465},{kind:'heart',x:7860,y:465}]
 });
 
+// Add connected lower/upper courses after the previous encounters. The original
+// arena, rewards and exit move together through the existing extension helper.
+for(const [key,course] of Object.entries(PLATFORM_ROUTES)){
+  const level=LEVELS[Number(key) as LevelNumber];
+  const previousObstacleStart=level.obstacleStart;
+  extendLevelRoute(level,{
+    insertionX:course.start,bridgeStartX:course.start,addedLength:course.length,newEndX:level.endX+course.length,
+    floorY:course.floor,groundHeight:course.groundHeight,ground:course.ground,platforms:course.platforms,
+    hazards:course.hazards,movingPlatforms:course.movingPlatforms,springPads:course.springPads,
+    crumblingPlatforms:course.crumblingPlatforms,timedVents:course.timedVents,checkpoints:course.checkpoints,
+    enemies:[],pickups:course.coins.map(point=>({...point,kind:'coin'})),
+  });
+  level.obstacleStart=previousObstacleStart;
+  level.platformRoute=course;
+  // Keep the course's exit checkpoint outside the next patrol's attack range.
+  const end=course.start+course.length;
+  for(const enemy of level.enemies){
+    if(enemy.kind==='boss'||enemy.x<end||enemy.left>=end+500)continue;
+    const shift=end+500-enemy.left;
+    enemy.x+=shift;enemy.left+=shift;enemy.right+=shift;
+  }
+}
+
 const CHARACTER_FEEL: Record<CharacterId, {
   runSpeed: number;
   acceleration: number;
@@ -1086,6 +1113,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let routeEncounters: RouteEncounterRuntime[] = [];
     let signature: SignatureSpecialRuntime | null = null;
     let turkeyKing:TurkeyKingCombat|null=null;
+    let platformRoute:PlatformRouteRuntime|null=null;
+    let platformRouteCamera=false;
     let regentRifts:RegentRiftEffects|null=null;
     let regentResumePending=false;
     let autumnLeaves:AutumnLeaves|null=null;
@@ -1664,6 +1693,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       level.movingPlatforms?.forEach(plan => addMovingPlatform(scene, plan));
       level.crumblingPlatforms?.forEach(plan=>addCrumblingPlatform(scene,plan));
       level.timedVents?.forEach(plan=>addTimedVent(scene,plan));
+      if(level.platformRoute)platformRoute=new PlatformRouteRuntime(scene,level.platformRoute,player,currentLevel,()=>damagePlayer(scene,12,false));
       routeEncounters = encounterPlans.map(plan => new RouteEncounterRuntime(scene, plan, {
         player,
         spawn: enemy => addEnemy(scene, enemy),
@@ -1834,6 +1864,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const point=prior[prior.length-1]??level.spawn;
         checkpoint={x:point.x,y:getPlatformStandY(point.x)??point.y};
         placePlayerOnPlatform(level.obstacleStart,getPlatformStandY(level.obstacleStart)??520);
+        scene.cameras.main.centerOn(player.x,SCREEN_HEIGHT/2);
+      }
+      if(params.get('platformCourse')==='1'&&level.platformRoute){
+        const start=level.platformRoute.start+40;
+        checkpointIndex=level.checkpoints.findIndex(point=>point.x===start);
+        checkpoint={x:start,y:level.platformRoute.floor};
+        placePlayerOnPlatform(start,checkpoint.y);
         scene.cameras.main.centerOn(player.x,SCREEN_HEIGHT/2);
       }
       if (params.get('enemyPreview')) {
@@ -2015,6 +2052,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const scene = this;
       autumnLeaves?.update(delta);
       if (!player || !player.active || isLevelClearing || isRespawning) {turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
+
+      const course=level.platformRoute;
+      const followHeights=!bossArenaCameraLocked&&Boolean(course&&player.x>=course.start-80&&player.x<=course.start+course.length+80);
+      if(followHeights!==platformRouteCamera){
+        platformRouteCamera=followHeights;
+        // Keep the full hero visible above the high route; the arena retains its fixed frame.
+        scene.cameras.main.setBounds(0,followHeights?-260:0,worldWidth,SCREEN_HEIGHT+(followHeights?260:0));
+        scene.cameras.main.setFollowOffset(0,followHeights?120:45);
+      }
 
       const now = scene.time.now;
       // Phaser Clock.now follows wall time; Arcade integrates smoothed delta.
@@ -2296,7 +2342,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           .setDisplaySize(1520, 640)
           .setDepth(-30)
           .setTint(level.tint);
-        image.setScrollFactor(0.62);
+        image.setScrollFactor(0.62,0);
         currentX += 1460;
         bgIndex += 1;
       }
@@ -2527,6 +2573,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function updateGroundObstacles(scene:Phaser.Scene,delta:number){
       if(hitStopActive)return;
+      platformRoute?.update(delta);
       const rider=player.body as Phaser.Physics.Arcade.Body;
       for(const ledge of crumbleLedges){
         const {plan,state,body,art,cracks}=ledge;
@@ -3983,6 +4030,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const camera = scene.cameras.main;
       const body = player.body as Phaser.Physics.Arcade.Body;
       if (locked && boss) {
+        platformRouteCamera=false;
+        camera.setBounds(0,0,worldWidth,SCREEN_HEIGHT);
+        camera.setFollowOffset(0,45);
         // The minimum viewport fits the whole arena, even after rotation or resizing.
         const width = bossArenaPlayerWidth(Number(boss.getData('left')), Number(boss.getData('right')));
         const left = bossArenaCenterX! - width / 2;
@@ -5662,6 +5712,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         })),
         crumblingPlatforms:crumbleLedges.map(({plan,state,body})=>({...plan,...state,solid:body.enable})),
         timedVents:vents.map(({plan,phase,body})=>({...plan,phase,active:body.enable})),
+        platformRoute:platformRoute?.read()??null,
         terrain:{platforms:level.platforms,hazards:level.hazards,checkpoints:level.checkpoints,obstacleStart:level.obstacleStart??null},
         springPads: springPads.map(({ plan, launches, readyAt }) => ({
           x: plan.x, y: plan.y, width: plan.width, launches, ready: latestSceneTime >= readyAt

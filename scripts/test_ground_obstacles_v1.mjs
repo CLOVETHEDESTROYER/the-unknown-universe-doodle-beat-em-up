@@ -25,7 +25,7 @@ async function boot(level,query=''){
   assert.deepEqual((await read()).failedAssets,[]);
 }
 try{
-  for(const [level,end] of [[1,10855],[2,10855],[3,9485],[4,9700],[6,9624]]){
+  for(const [level,end] of [[1,12855],[2,12855],[3,11485],[4,11700],[6,11624]]){
     await boot(level);let s=await read();assert.equal(s.progress.levelEndX,end);
     const cps=s.terrain.checkpoints.map(p=>p.x);assert.deepEqual(cps,[...cps].sort((a,b)=>a-b));
     if([3,4,6].includes(level)){
@@ -65,7 +65,7 @@ try{
   await page.waitForTimeout(450);assert.equal((await read()).player.health,quiet.player.health);
   evidence.ventWarningDamageAndSafeInterval=true;
 
-  for(const [level,goal] of [[3,7800],[4,8540],[6,7860]]){
+  for(const [level,goal] of [[3,7800],[4,7610],[6,7860]]){
     await boot(level,'&obstacleCourse=1');s=await read();const start=s.player.x;
     const ground=s.terrain.platforms.filter(p=>p.y===520&&p.h>=100).sort((a,b)=>a.x-b.x);
     const merged=[];for(const p of ground){const last=merged.at(-1);if(last&&p.x<=last.right)last.right=Math.max(last.right,p.x+p.w);else merged.push({left:p.x,right:p.x+p.w});}

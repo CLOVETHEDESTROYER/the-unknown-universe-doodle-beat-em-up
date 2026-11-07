@@ -1,5 +1,10 @@
 # Ground-level obstacle pass
 
+The later [platform route pass](platform-routes-v2.md) adds another 2,000 units
+before each ground boss, with conveyors, swinging weights and connected upper
+routes. The table below records this earlier extension; current lengths and new
+course details are in that document.
+
 The three shortest ground stages now have substantial new sections before their original boss arenas. Existing generated artwork supplies the platforms, springs, and hazards. Campaign order and combat remain intact.
 
 | Level | Previous length | Current length | Addition |

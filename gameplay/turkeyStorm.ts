@@ -81,7 +81,7 @@ export class TurkeyStorm {
       const handX = player.x + direction * 50;
       const handY = feet - 250;
       this.lightning.setPosition(handX, handY).setFrame(flicker % 4)
-        .setDisplaySize(220, Math.max(170, handY + 25))
+        .setDisplaySize(220, Math.max(170, handY - this.scene.cameras.main.worldView.top + 25))
         .setAlpha(this.reducedMotion ? .8 : flicker % 2 ? .35 : 1);
     }
     if (this.invoked && this.wave < 3 && age >= TURKEY_STORM.waves[this.wave]) this.rainWave();
@@ -140,7 +140,7 @@ export class TurkeyStorm {
     for (let i = 0; i < count; i++) {
       const lane = (i + .5 + (this.wave % 2 ? .14 : -.14)) / count;
       const x = camera.worldView.left + 40 + lane * (camera.width - 80);
-      const y = -45 - i * 48;
+      const y = camera.worldView.top - 45 - i * 48;
       const art = this.scene.add.sprite(x, y, 'turkey_storm_rain', i % 4).setDisplaySize(82, 82).setDepth(22);
       this.birds.push({ art, x, y, vy: 240, floor: this.hooks.floorAt(x), bounce: (i + this.wave) % 3 === 0, bounced: false });
       this.spawned++;

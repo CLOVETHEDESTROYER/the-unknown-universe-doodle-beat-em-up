@@ -16,14 +16,14 @@ async function wait(fn,ms=10000){
   while(Date.now()<end){assert.deepEqual(errors,[]);const s=await read().catch(()=>null);if(s&&fn(s))return s;await page.waitForTimeout(20);}
   throw Error('Timeout '+fn);
 }
-async function boot(options={}){
+async function boot(options={},query=''){
   await context?.close();
   context=await browser.newContext({viewport:{width:1280,height:800},deviceScaleFactor:1,...options});
   page=await context.newPage();
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))errors.push(`${r.status()} ${r.url()}`);});
-  await page.goto(origin+'/?autostart=1&level=1&capture=1&character=turkey_king&code=allhailking');
+  await page.goto(origin+'/?autostart=1&level=1&capture=1&character=turkey_king&code=allhailking'+query);
   await wait(s=>s.player?.grounded&&storm(s),60000);
 }
 const shot=name=>page.screenshot({path:path.join(out,name+'.png')});
@@ -50,6 +50,14 @@ try{
   await page.evaluate(()=>window.__unknownPlatformerDamagePlayer(200));await page.keyboard.up('x');
   s=await wait(s=>s.player.lives<3);assert.equal(storm(s).active,false);assert.equal(storm(s).lightning,false);
   evidence.push({cooldownExpires:true,deathClearsStorm:true});
+
+  await boot({},'&platformCourse=1');
+  await page.evaluate(()=>{const s=JSON.parse(window.render_game_to_text());window.__unknownPlatformerSetPlayerPosition(s.platformRoute.start+750,235);});
+  await wait(s=>s.platformRoute.cameraTop<-80);await page.keyboard.press('x');
+  await wait(s=>storm(s).lightning);await shot('upper-route-lightning');
+  s=await wait(s=>storm(s).wave===1);
+  assert(storm(s).birds.every(bird=>bird.y<s.platformRoute.cameraTop+10),'Rain starts above the elevated camera');
+  evidence.push({upperRouteRainStartsAboveCamera:true});
 
   await boot({...devices['iPhone 13'],viewport:{width:844,height:390},deviceScaleFactor:1,reducedMotion:'reduce'});
   await page.getByRole('button',{name:'Throw a turkey',exact:true}).click();await wait(s=>s.turkeyKing.throws===1);

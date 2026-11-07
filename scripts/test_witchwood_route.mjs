@@ -28,9 +28,9 @@ try{
   await page.goto(`${origin}/?autostart=1&level=4&capture=1&sword=1&swordUnlocked=1${companions?'&dinio=1&doghost=1&teleportc=1&shield=1':''}`);
   await page.waitForFunction(()=>window.render_game_to_text && JSON.parse(window.render_game_to_text()).player?.grounded);
   let s=await read();
-  assert.equal(s.level,4);assert.equal(s.chapter,'THE WITCHWOOD');assert.equal(s.progress.levelEndX,9700);
+  assert.equal(s.level,4);assert.equal(s.chapter,'THE WITCHWOOD');assert.equal(s.progress.levelEndX,11700);
   assert.equal(s.enemies.find(e=>e.kind==='boss').bossId,'kilina');
-  assert.equal(s.movingPlatforms.length,4);assert.equal(s.springPads.length,2);
+  assert.equal(s.movingPlatforms.length,5);assert.equal(s.springPads.length,3);
   assert.deepEqual(s.failedAssets,[]);
   await shot('entrance');
   const jumps=[340,1580,2020,3150,3960,4770,5670,6515,6770,7315,7600];
