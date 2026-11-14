@@ -73,7 +73,7 @@ try{
  await page.keyboard.press('Space',{delay:45});s=await wait(s=>s.equipment.clearedBolts>0);await shot('storm-clears-hostile-bolt');evidence.stormClearsRealEnemyProjectile=true;
  // Every power must respect the existing boss guard; pulse cannot freeze or stun it.
  await boot(2,'&finishLevel=1');await collect('frost');s=await read();e=s.enemies.find(e=>e.bossId==='killinas_daughter');
- await place(e.x-180,e.bodyBottom);await face();await page.keyboard.down('Space');s=await wait(s=>s.enemies.find(e=>e.bossId==='killinas_daughter')?.guardedHits>0);await page.keyboard.up('Space');
+ await place(e.x+180,e.bodyBottom);await face(-1);await page.keyboard.down('Space');s=await wait(s=>s.enemies.find(e=>e.bossId==='killinas_daughter')?.guardedHits>0);await page.keyboard.up('Space');
  e=s.enemies.find(e=>e.bossId==='killinas_daughter');assert.equal(e.hp,e.maxHp);assert.equal(e.frozenRemainingMs,0);evidence.newPowerRespectsBossGuard=true;
  await page.setViewportSize({width:844,height:390});await boot(4,'&powerupPreview=1&character=barrett&unlockRoster=1');await collect('storm');await wait(s=>s.equipment.active==='storm');
  const attack=page.locator('[data-touch-control="attack"]');await attack.dispatchEvent('pointerdown',{pointerId:8,pointerType:'touch',bubbles:true});await wait(s=>s.equipment.uses>0);await attack.dispatchEvent('pointercancel',{pointerId:8,pointerType:'touch',bubbles:true});s=await read();const uses=s.equipment.uses;
