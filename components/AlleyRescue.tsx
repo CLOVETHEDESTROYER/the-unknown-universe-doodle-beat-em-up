@@ -31,14 +31,14 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     const heroDance=new Image();heroDance.src='/characters/alley-dance-v1/xgod.png';
     const kaiDance=new Image();kaiDance.src='/characters/alley-dance-v1/kai.png';
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-    const music=new Audio('/audio/alley-disco-local.mp3');music.preload='auto';music.loop=true;musicRef.current=music;
+    const music=new Audio('/audio/music/alley-blaster-party.mp3');music.preload='auto';music.loop=true;musicRef.current=music;
     const alleyMusic=new Audio('/audio/music/uneasy-pursuit-alleyway.mp3');alleyMusic.preload='auto';alleyMusic.loop=true;
     let musicBlocked=false,musicFailed=false,musicStarted=false,musicDisposed=false;
     const audioSettings=()=>{const a=getAudioSettings();for(const track of [music,alleyMusic]){track.volume=a.music;track.muted=a.muted;}};
     audioSettings();const unsubscribe=subscribeAudioSettings(audioSettings);
     const startAlleyMusic=()=>{if(musicDisposed||musicStarted||document.hidden)return;audioSettings();void alleyMusic.play().then(()=>{if(musicDisposed||musicStarted||document.hidden)alleyMusic.pause();else{musicBlocked=false;setMusicNotice('');}}).catch(()=>{if(!musicDisposed&&!musicStarted){musicBlocked=true;setMusicNotice('Tap Play music to enable the Alley soundtrack.');}});};
     const startMusic=()=>{alleyMusic.pause();audioSettings();if(!musicStarted){music.currentTime=0;musicStarted=true;}void music.play().then(()=>{musicBlocked=false;setMusicNotice('');}).catch(()=>{musicBlocked=true;setMusicNotice('Tap Play music to enable audio. The dance will still finish.');});};
-    music.addEventListener('error',()=>{musicFailed=true;if(musicStarted)setMusicNotice('Local dance track is unavailable. You can still continue after the dance.');});
+    music.addEventListener('error',()=>{musicFailed=true;if(musicStarted)setMusicNotice('Party music could not load. You can still continue after the dance.');});
     alleyMusic.addEventListener('error',()=>{if(!musicStarted)setMusicNotice('Alley soundtrack is unavailable. You can still play.');});
     // Prime this same media element inside a real interaction for mobile audio.
     const primeMusic=()=>{if(musicStarted)return;music.volume=0;void music.play().then(()=>{if(!musicStarted){music.pause();music.currentTime=0;}audioSettings();}).catch(()=>{});};

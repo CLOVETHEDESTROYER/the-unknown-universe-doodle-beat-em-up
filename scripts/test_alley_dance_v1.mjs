@@ -41,7 +41,7 @@ try{
  await page.keyboard.press('e');await wait(s=>s.room==='hall');s=await read();assert(s.dance.musicPlaying);assert(s.dance.musicTime>musicAt);
  await walkTo(790);await page.keyboard.press('e');await wait(s=>s.room==='gunroom');assert((await read()).dance.musicPlaying);
  await page.keyboard.down('ArrowRight');await wait(s=>s.mode==='platforming'&&s.level===2,60000);await page.keyboard.up('ArrowRight');
- assert(await page.evaluate(()=>window.__testMusic.filter(t=>t.src==='/audio/music/uneasy-pursuit-alleyway.mp3'||t.src==='/audio/alley-disco-local.mp3').every(t=>t.element.paused&&!t.element.getAttribute('src'))),'Both Alley tracks are released on exit');
+ assert(await page.evaluate(()=>window.__testMusic.filter(t=>t.src==='/audio/music/uneasy-pursuit-alleyway.mp3'||t.src==='/audio/music/alley-blaster-party.mp3').every(t=>t.element.paused&&!t.element.getAttribute('src'))),'Both Alley tracks are released on exit');
  assert.deepEqual(errors,[]);await fs.writeFile(out+'/report.json',JSON.stringify({passed:true,danceSeconds:15,armThenDance:true,movementLocked:true,musicContinuesAfterDance:true,musicContinuesAcrossRooms:true,rightExit:true,reducedMotion:true,errors},null,2));
  console.log('Alley dance, local audio, input lock, reduced motion and right exit passed');
 }catch(e){await page.screenshot({path:out+'/failure.png'});await fs.writeFile(out+'/failure.json',JSON.stringify({error:String(e),state:await read()},null,2));throw e;}
