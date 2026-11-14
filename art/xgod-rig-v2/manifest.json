@@ -1,0 +1,472 @@
+{
+  "format": "xgod-cutout-rig",
+  "version": 2,
+  "character": "X-God",
+  "orientation": "strict right-facing side profile",
+  "canvas": {
+    "width": 1024,
+    "height": 1024,
+    "baselineY": 954,
+    "rootPivot": [
+      505,
+      696
+    ],
+    "pixelsPerBlenderUnit": 100
+  },
+  "anatomyContract": {
+    "left": "Permanent pocketed physical side; back layer in setup pose",
+    "right": "Permanent plain physical side; front layer in setup pose",
+    "screenDirection": "Facing screen-right; never rename limbs by screen position"
+  },
+  "canonicalDesign": {
+    "hair": "Lime-green spiky silhouette with black ink and colored-pencil texture",
+    "face": "Single visible black X eye, peach skin, compact side profile",
+    "shirt": "White T-shirt with yellow circular X-eye emblem",
+    "pants": "Loose brown cargo pants; pocket permanently belongs to anatomical left thigh",
+    "shoes": "Black and white sneakers with green accents"
+  },
+  "parts": [
+    {
+      "name": "pelvis",
+      "role": "Narrow waistband and crotch cover; thigh mass belongs to the moving legs",
+      "parent": null,
+      "zIndex": 30,
+      "registeredFile": "parts/registered/pelvis.png",
+      "trimmedFile": "parts/trimmed/pelvis.png",
+      "pivotCanvas": [
+        505,
+        696
+      ],
+      "trimRect": [
+        418,
+        648,
+        167,
+        70
+      ],
+      "pivotTrimmed": [
+        87,
+        48
+      ],
+      "size": [
+        167,
+        70
+      ]
+    },
+    {
+      "name": "sleeve_left_back",
+      "role": "Moving left/back shirt sleeve cap, attached to the upper arm",
+      "parent": "arm_left_upper_back",
+      "zIndex": 10.25,
+      "registeredFile": "parts/registered/sleeve_left_back.png",
+      "trimmedFile": "parts/trimmed/sleeve_left_back.png",
+      "pivotCanvas": [
+        431,
+        568
+      ],
+      "trimRect": [
+        379,
+        517,
+        98,
+        103
+      ],
+      "pivotTrimmed": [
+        52,
+        51
+      ],
+      "size": [
+        98,
+        103
+      ]
+    },
+    {
+      "name": "arm_left_upper_back",
+      "role": "Anatomical left/back upper arm",
+      "parent": "torso_shirt",
+      "zIndex": 10,
+      "registeredFile": "parts/registered/arm_left_upper_back.png",
+      "trimmedFile": "parts/trimmed/arm_left_upper_back.png",
+      "pivotCanvas": [
+        431,
+        568
+      ],
+      "trimRect": [
+        354,
+        550,
+        100,
+        118
+      ],
+      "pivotTrimmed": [
+        77,
+        18
+      ],
+      "size": [
+        100,
+        118
+      ]
+    },
+    {
+      "name": "arm_left_forearm_back",
+      "role": "Anatomical left/back forearm",
+      "parent": "arm_left_upper_back",
+      "zIndex": 11,
+      "registeredFile": "parts/registered/arm_left_forearm_back.png",
+      "trimmedFile": "parts/trimmed/arm_left_forearm_back.png",
+      "pivotCanvas": [
+        389,
+        632
+      ],
+      "trimRect": [
+        322,
+        584,
+        106,
+        125
+      ],
+      "pivotTrimmed": [
+        67,
+        48
+      ],
+      "size": [
+        106,
+        125
+      ]
+    },
+    {
+      "name": "hand_left_back",
+      "role": "Anatomical left/back hand",
+      "parent": "arm_left_forearm_back",
+      "zIndex": 12,
+      "registeredFile": "parts/registered/hand_left_back.png",
+      "trimmedFile": "parts/trimmed/hand_left_back.png",
+      "pivotCanvas": [
+        355,
+        682
+      ],
+      "trimRect": [
+        301,
+        631,
+        106,
+        114
+      ],
+      "pivotTrimmed": [
+        54,
+        51
+      ],
+      "size": [
+        106,
+        114
+      ]
+    },
+    {
+      "name": "leg_left_thigh_pocket_back",
+      "role": "Permanent pocketed anatomical left/back thigh",
+      "parent": "pelvis",
+      "zIndex": 20,
+      "registeredFile": "parts/registered/leg_left_thigh_pocket_back.png",
+      "trimmedFile": "parts/trimmed/leg_left_thigh_pocket_back.png",
+      "pivotCanvas": [
+        478,
+        718
+      ],
+      "trimRect": [
+        372,
+        680,
+        155,
+        190
+      ],
+      "pivotTrimmed": [
+        106,
+        38
+      ],
+      "size": [
+        155,
+        190
+      ]
+    },
+    {
+      "name": "leg_left_shin_back",
+      "role": "Anatomical left/back shin",
+      "parent": "leg_left_thigh_pocket_back",
+      "zIndex": 21,
+      "registeredFile": "parts/registered/leg_left_shin_back.png",
+      "trimmedFile": "parts/trimmed/leg_left_shin_back.png",
+      "pivotCanvas": [
+        438,
+        820
+      ],
+      "trimRect": [
+        342,
+        779,
+        158,
+        161
+      ],
+      "pivotTrimmed": [
+        96,
+        41
+      ],
+      "size": [
+        158,
+        161
+      ]
+    },
+    {
+      "name": "foot_left_back",
+      "role": "Anatomical left/back shoe",
+      "parent": "leg_left_shin_back",
+      "zIndex": 22,
+      "registeredFile": "parts/registered/foot_left_back.png",
+      "trimmedFile": "parts/trimmed/foot_left_back.png",
+      "pivotCanvas": [
+        405,
+        895
+      ],
+      "trimRect": [
+        339,
+        856,
+        176,
+        114
+      ],
+      "pivotTrimmed": [
+        66,
+        39
+      ],
+      "size": [
+        176,
+        114
+      ]
+    },
+    {
+      "name": "leg_right_thigh_plain_front",
+      "role": "Permanent plain anatomical right/front thigh",
+      "parent": "pelvis",
+      "zIndex": 40,
+      "registeredFile": "parts/registered/leg_right_thigh_plain_front.png",
+      "trimmedFile": "parts/trimmed/leg_right_thigh_plain_front.png",
+      "pivotCanvas": [
+        523,
+        718
+      ],
+      "trimRect": [
+        474,
+        680,
+        131,
+        183
+      ],
+      "pivotTrimmed": [
+        49,
+        38
+      ],
+      "size": [
+        131,
+        183
+      ]
+    },
+    {
+      "name": "leg_right_shin_front",
+      "role": "Anatomical right/front shin",
+      "parent": "leg_right_thigh_plain_front",
+      "zIndex": 41,
+      "registeredFile": "parts/registered/leg_right_shin_front.png",
+      "trimmedFile": "parts/trimmed/leg_right_shin_front.png",
+      "pivotCanvas": [
+        545,
+        821
+      ],
+      "trimRect": [
+        496,
+        772,
+        143,
+        169
+      ],
+      "pivotTrimmed": [
+        49,
+        49
+      ],
+      "size": [
+        143,
+        169
+      ]
+    },
+    {
+      "name": "foot_right_front",
+      "role": "Anatomical right/front shoe",
+      "parent": "leg_right_shin_front",
+      "zIndex": 42,
+      "registeredFile": "parts/registered/foot_right_front.png",
+      "trimmedFile": "parts/trimmed/foot_right_front.png",
+      "pivotCanvas": [
+        548,
+        895
+      ],
+      "trimRect": [
+        498,
+        854,
+        172,
+        112
+      ],
+      "pivotTrimmed": [
+        50,
+        41
+      ],
+      "size": [
+        172,
+        112
+      ]
+    },
+    {
+      "name": "sleeve_right_front",
+      "role": "Moving right/front shirt sleeve cap, attached to the upper arm",
+      "parent": "arm_right_upper_front",
+      "zIndex": 70.25,
+      "registeredFile": "parts/registered/sleeve_right_front.png",
+      "trimmedFile": "parts/trimmed/sleeve_right_front.png",
+      "pivotCanvas": [
+        553,
+        570
+      ],
+      "trimRect": [
+        516,
+        518,
+        83,
+        106
+      ],
+      "pivotTrimmed": [
+        37,
+        52
+      ],
+      "size": [
+        83,
+        106
+      ]
+    },
+    {
+      "name": "torso_shirt",
+      "role": "Core torso and shirt body; sleeve caps are separate moving parts",
+      "parent": "pelvis",
+      "zIndex": 50,
+      "registeredFile": "parts/registered/torso_shirt.png",
+      "trimmedFile": "parts/trimmed/torso_shirt.png",
+      "pivotCanvas": [
+        505,
+        684
+      ],
+      "trimRect": [
+        389,
+        469,
+        192,
+        246
+      ],
+      "pivotTrimmed": [
+        116,
+        215
+      ],
+      "size": [
+        192,
+        246
+      ]
+    },
+    {
+      "name": "head_hair",
+      "role": "Locked canonical head, face, ear, neck, and hair silhouette",
+      "parent": "torso_shirt",
+      "zIndex": 60,
+      "registeredFile": "parts/registered/head_hair.png",
+      "trimmedFile": "parts/trimmed/head_hair.png",
+      "pivotCanvas": [
+        498,
+        507
+      ],
+      "trimRect": [
+        320,
+        138,
+        403,
+        419
+      ],
+      "pivotTrimmed": [
+        178,
+        369
+      ],
+      "size": [
+        403,
+        419
+      ]
+    },
+    {
+      "name": "arm_right_upper_front",
+      "role": "Anatomical right/front upper arm",
+      "parent": "torso_shirt",
+      "zIndex": 70,
+      "registeredFile": "parts/registered/arm_right_upper_front.png",
+      "trimmedFile": "parts/trimmed/arm_right_upper_front.png",
+      "pivotCanvas": [
+        553,
+        570
+      ],
+      "trimRect": [
+        530,
+        550,
+        106,
+        115
+      ],
+      "pivotTrimmed": [
+        23,
+        20
+      ],
+      "size": [
+        106,
+        115
+      ]
+    },
+    {
+      "name": "arm_right_forearm_front",
+      "role": "Anatomical right/front forearm",
+      "parent": "arm_right_upper_front",
+      "zIndex": 71,
+      "registeredFile": "parts/registered/arm_right_forearm_front.png",
+      "trimmedFile": "parts/trimmed/arm_right_forearm_front.png",
+      "pivotCanvas": [
+        600,
+        629
+      ],
+      "trimRect": [
+        548,
+        585,
+        120,
+        120
+      ],
+      "pivotTrimmed": [
+        52,
+        44
+      ],
+      "size": [
+        120,
+        120
+      ]
+    },
+    {
+      "name": "hand_right_front",
+      "role": "Anatomical right/front hand",
+      "parent": "arm_right_forearm_front",
+      "zIndex": 72,
+      "registeredFile": "parts/registered/hand_right_front.png",
+      "trimmedFile": "parts/trimmed/hand_right_front.png",
+      "pivotCanvas": [
+        633,
+        676
+      ],
+      "trimRect": [
+        582,
+        630,
+        99,
+        100
+      ],
+      "pivotTrimmed": [
+        51,
+        46
+      ],
+      "size": [
+        99,
+        100
+      ]
+    }
+  ]
+}
