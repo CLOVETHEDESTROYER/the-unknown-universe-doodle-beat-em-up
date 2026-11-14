@@ -2,6 +2,8 @@ import {readKaiArmUnlocked} from '../gameplay/kaiArmUnlock';
 import { encountersForLevel } from '../gameplay/routeEncounters';
 import {TurkeyKingCombat,loadTurkeyKingAssets} from '../gameplay/turkeyKing';
 import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
+import {SupplyCrateRuntime} from '../gameplay/supplyCrateRuntime';
+import {supplyCratePlans,type SupplyCrateSave} from '../gameplay/supplyCrates';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
 import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
 import React, { useEffect, useRef } from "react";
@@ -61,6 +63,7 @@ interface PlatformerGameEngineProps {
   initialHealth?: number;
   initialCheckpoint?: GameStats["campaignCheckpoint"];
   initialCompletedEncounters?: string[];
+  initialSupplyCrates?: SupplyCrateSave;
   currentLevel: number;
   difficulty: DifficultyMode;
   selectedCharacterId: CharacterId;
@@ -1009,6 +1012,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   initialHealth = 100,
   initialCheckpoint,
   initialCompletedEncounters,
+  initialSupplyCrates,
   currentLevel,
   difficulty,
   selectedCharacterId,
@@ -1093,7 +1097,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const beats=encounterPlans.filter(p=>p.kind==='combat');
       level.enemies=level.enemies.filter(e=>e.kind==='boss'||!beats.some(p=>e.x>=p.entry&&e.x<=p.exit));
       level.enemies=level.enemies.filter(e=>e.kind==='boss'||e.x<level.endX-1680||e.x>level.endX-980);
-      level.pickups=[...level.pickups,{kind:'heart',x:2370,y:420}];
+      // Recovery after the encounter is now earned from the health crate.
     }
     // Replace existing patrols inside the set pieces, keeping total pressure readable.
     if (currentLevel === 1) {
@@ -1122,6 +1126,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const failedAssetKeys = new Set<string>();
     const enemyDeaths=new Set<Phaser.GameObjects.Sprite>();
     const completedEncounters = new Set(initialCompletedEncounters ?? []);
+    let supplyCrateState:SupplyCrateSave=initialSupplyCrates??{broken:[],collected:[]};
+    let supplyCrates:SupplyCrateRuntime|null=null;
     let routeEncounters: RouteEncounterRuntime[] = [];
     let signature: SignatureSpecialRuntime | null = null;
     let turkeyKing:TurkeyKingCombat|null=null;
@@ -1288,6 +1294,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const routePowers=isTurkeyKing?[]:powerupRoute(currentLevel,level);
     const gunUpgradePlans=isTurkeyKing?[]:gunUpgradeRoute(level,routePowers).map(p=>
       currentLevel===1&&p.mode==='rapid'?{...p,x:880,y:418}:p);
+    const cratePlans=supplyCratePlans(currentLevel,level.endX,level,[...routePowers,...gunUpgradePlans]);
     const gunStations:Array<{mode:GunUpgradeId;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     const availablePowers=(['blaster','sword','frost','ember','storm'] as EquippedPowerup[])
       .filter(id=>POWERUPS[id].level<=currentLevel||equipment.active===id);
@@ -1307,6 +1314,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         activeBossId,
         campaignCheckpoint: {level: currentLevel, index: checkpointIndex},
         completedEncounters: [...completedEncounters],
+        supplyCrates:supplyCrateState,
         score: currentScore,
         souls: currentSouls,
         monstersDefeated: currentKills,
@@ -1462,6 +1470,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "end_gate", "platformer/end-gate-generated.png");
       loadGameImage(this.load, "gold_pickup", "gold_pickup.png");
       loadGameImage(this.load, "heart", "heart_sprite.png");
+      if(cratePlans.length)this.load.image('supply_crate','doodles/o_box.png');
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
@@ -1711,6 +1720,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(selectedCharacterId==='teleportation_c')teleportHud=scene.add.text(viewport.width-viewport.safeRight,122,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'17px',color:'#cfb6ff',stroke:'#19182e',strokeThickness:4})
         .setOrigin(1,0).setScrollFactor(0).setDepth(82);
       checkpoint = { x: checkpoint.x, y: player.y };
+      supplyCrates=new SupplyCrateRuntime(scene,cratePlans,supplyCrateState,{
+        changed:state=>{supplyCrateState=state;syncStats();},
+        collect:reward=>{
+          if(reward==='health'||isTurkeyKing){
+            playerHealth=Math.min(100,playerHealth+30);
+            showCompanionJoinNotice(scene,'HEALTH +30','#a9f5bf');
+          }else{
+            if(equipment.active!=='blaster')applyEquipment(scene,'blaster');
+            equipment=upgradeGun(equipment,reward);
+            showCompanionJoinNotice(scene,GUN_UPGRADES[reward].name.toUpperCase(),'#'+GUN_UPGRADES[reward].color.toString(16));
+          }
+          playSfx('powerup');syncStats();
+        }
+      });
       if (hasDinio) spawnDinioCompanion(scene);
       if (hasDoghost) spawnDoghostCompanion(scene);
       if (hasTeleportationC) spawnTeleportationCCompanion(scene);
@@ -2349,6 +2372,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function updateWorldCombat(scene:Phaser.Scene,delta:number){
+      supplyCrates?.update(player,projectiles,hitStopActive?0:delta);
       updateEnemies(scene);
       if (!hitStopActive) routeEncounters.forEach(encounter=>encounter.update(delta));
       updateDinioCompanion(scene, delta);
@@ -4455,7 +4479,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           const target = enemy.body as Phaser.Physics.Arcade.Body;
           return Phaser.Geom.Rectangle.Overlaps(barrelPath, new Phaser.Geom.Rectangle(target.x, target.y, target.width, target.height));
         }).sort((a, b) => Math.abs(a.x - player.x) - Math.abs(b.x - player.x))[0];
-      if (closeTarget) {
+      const crateInBarrel=supplyCrates?.damageRect(barrelPath,damage);
+      if(crateInBarrel&&shot!.active)shot!.destroy();
+      if (closeTarget&&!crateInBarrel) {
         shot!.destroy();
         damageEnemy(scene, closeTarget, damage, true);
       }
@@ -4977,6 +5003,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         .setAlpha(0.82);
       if(hasFlameSword)slash.setDisplaySize(65,140).setFlipX(facingDirection<0);
       let hits = 0;
+      supplyCrates?.damageRect(hitRect,damage);
       const swordTargets=new Set<Phaser.Physics.Arcade.Sprite>();
       scene.tweens.add({ targets: slash, alpha: 0, scaleX: slash.scaleX * 1.35, scaleY: 0.9, duration: 180 + comboStep * 35, onComplete: () => slash.destroy() });
       enemies.getChildren().forEach((child) => {
@@ -5759,6 +5786,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         bossDefeated,
         routeEncounters: routeEncounters.map(encounter=>encounter.read()),
         completedEncounters: [...completedEncounters],
+        supplyCrates:supplyCrates?.read()??[],
         celebration:{...heroCelebration?.read(),queue:[...celebrationQueue],swordClaimed:swordPresentationSeen,inputLocked:Boolean(heroCelebration?.active)},
         bossAttackVisualVisible: Boolean(bossAttackVisual?.active && bossAttackVisual.visible),
         enemyDeaths:[...enemyDeaths].filter(s=>s.active).map(s=>({kind:s.getData('kind'),texture:s.texture.key,frame:s.frame.name,alpha:s.alpha})),
@@ -5957,6 +5985,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       autumnLeaves?.destroy();autumnLeaves=null;
       playerFreeze?.destroy();playerFreeze=null;
       routeEncounters.forEach(encounter=>encounter.destroy());routeEncounters=[];
+      supplyCrates?.destroy();supplyCrates=null;
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;turkeyKing?.destroy();turkeyKing=null;
       mobility?.destroy();mobility=null;

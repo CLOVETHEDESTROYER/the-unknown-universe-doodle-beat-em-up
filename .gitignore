@@ -16,6 +16,9 @@ dist-ssr
 !.env.example
 output
 
+# Local-only licensed-track placeholder: do not publish without clearance.
+/public/audio/alley-disco-local.mp3
+
 # Local captures, Python caches and Blender autosaves
 /-/
 __pycache__/

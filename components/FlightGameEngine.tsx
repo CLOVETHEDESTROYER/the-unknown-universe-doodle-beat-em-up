@@ -20,6 +20,7 @@ import {sizeCharacter,characterScale} from '../gameplay/characterSizing';
 import {XGOD_FROST_FOLDER} from '../gameplay/xgodFrost';
 import {SHADOW_ART} from '../gameplay/shadowKid';
 import {ELYTRON_ART} from '../gameplay/elytron';
+import {FlightSupplyCrates} from '../gameplay/flightSupplyCrates';
 
 const WEAPON_HUD_TOP = 44;
 const ROUTE_HUD_TOP = 93;
@@ -85,6 +86,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     state.noPowerups=turkeyKing;
     if(turkeyKing){state.combat.weapon=state.checkpointWeapon='twin';state.weaponHits=0;}
     let scene:Phaser.Scene;
+    let supplyCrateState=initialStats.supplyCrates;
+    let supplyCrates:FlightSupplyCrates|null=null;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
     let flightVictory:HeroCelebration|null=null,flightVictoryStarted=false;
@@ -121,16 +124,18 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     };
     function sync(){
       const activeBossId=state.phase==='flight'&&state.combat.enemies.some(e=>e.kind==='pursuer'&&e.phase!=='dying')?'void-pursuer':null;
-      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}/${activeBossId}`;
+      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}/${activeBossId}/${JSON.stringify(supplyCrateState)}`;
       if(signature===lastSync)return;
       lastSync=signature;
       callbacks.current.onStatsUpdate({activeBossId,isDying:state.phase==='respawn'||state.phase==='dying',
+        supplyCrates:supplyCrateState,
         flightSave:{checkpoint:state.checkpoint,weapon:state.combat.weapon,hits:state.weaponHits,collectedWeapons:[...state.collectedWeapons],collected:[...state.collected],seed:state.asteroidSeed},health:state.hull,lives:state.lives,score:state.score,
         monstersDefeated:initialStats.monstersDefeated+state.combat.defeated.length,isGameOver:state.phase==='gameover'});
     }
     function tick(ms:number){
       if(!ready || disposed || paused.current)return;
       stepFlight(state,ms,input());
+      supplyCrates?.update(state,ms);
       updateFlightCelebration();
       if(params.get('shipDeathPreview')==='1'&&!deathPreviewTriggered&&input().fire&&state.phase==='flight'){
         deathPreviewTriggered=damageShip(state,100);
@@ -193,6 +198,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       if(!ready || disposed)return;
       updateFlightCelebration();
       const flying=state.phase==='flight';
+      supplyCrates?.draw(state);
       const ending=['landing','disembark','complete'].includes(state.phase);
       const departure=state.phase==='boarding'?0:state.phase==='launch'?state.phaseMs/1900*.3:Math.min(1,.3+state.distance/1800);
       const cosmic=ending?1:Phaser.Math.Clamp((state.distance-3500)/3000,0,1);
@@ -555,6 +561,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
+        this.load.image('flight_supply_crate','/doodles/o_box.png');
+        this.load.image('flight_supply_health','/heart_sprite.png');
         for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
         for(const kind of ['scout','interceptor','gunship','prism']){
           const folder=kind==='prism'?'level-v3':'motion-v2';
@@ -638,6 +646,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         keys.w=keys.W;keys.a=keys.A;keys.s=keys.S;keys.d=keys.D;
         keys.fire=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keys.alternate=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+        supplyCrates=new FlightSupplyCrates(this,initialStats.supplyCrates,value=>{supplyCrateState=value;});
         ready=true;sync();draw();reportGameLoading(1);
       },update(_time:number,delta:number){
         let remaining=manualStepping?0:Math.min(delta,100);
@@ -652,6 +661,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       mode:state.phase==='gameover'?'gameover':paused.current?'paused':state.phase,level:FLIGHT_LEVEL,chapter:'STARBREAK RUN',
       section:state.distance<5000?'Canopy Climb':state.distance<11500?'High Orbit':'Void Approach',failedAssets,
       selectedCharacter:{id:selectedCharacterId,name:hero.name},
+      supplyCrates:supplyCrates?.read(state)??[],
       boardingVisual:{visible:walker?.visible??false,iceGauntlets:frostXgod,texture:walker?.texture.key??null,scale:walker?.scaleY??0},
       player:ready?{x:Math.round(state.x),y:Math.round(state.y),velocityX:Math.round(state.vx),velocityY:Math.round(state.vy),health:state.hull,lives:state.lives,texture:'flight_ship',frame:0}:null,
       ship:{hull:state.hull,bank:ship?.angle??0,collisionHalfWidth:46,collisionHalfHeight:16,impacts:state.impacts,pilotVisible:pilot?.visible??false,invulnerable:state.clock<state.invulnerableUntil,visible:ship?.visible??false},
@@ -714,6 +724,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       window.__unknownFlightDamageShip=undefined;window.__unknownFlightSetShipPosition=undefined;
       window.__unknownFlightEnemyTest=undefined;
       flightVictory?.destroy();flightVictory=null;
+      supplyCrates?.destroy();supplyCrates=null;
       if(window.render_game_to_text===read)window.render_game_to_text=()=>JSON.stringify({engine:'flight',mode:'remounting',level:FLIGHT_LEVEL,player:null});
       game.destroy(true);
     };

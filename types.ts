@@ -9,6 +9,7 @@ declare global {
 }
 
 export interface GameStats {
+  supplyCrates?: import('./gameplay/supplyCrates').SupplyCrateSave;
   seasonalTheme?: import('./gameplay/seasonalTheme').SeasonalTheme;
   completedEncounters?: string[];
   campaignCheckpoint?: { level: number; index: number };

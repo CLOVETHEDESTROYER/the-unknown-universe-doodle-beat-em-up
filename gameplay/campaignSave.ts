@@ -1,4 +1,5 @@
 import { isEncounterId } from './routeEncounters';
+import { isSupplyCrateId } from './supplyCrates';
 import type { GameStats, DifficultyMode } from '../types';
 import { isCharacterId } from '../characters';
 import { isPowerup, restoreLoadout } from './powerups';
@@ -23,6 +24,12 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     if (!Number.isInteger(s.level) || s.level < 1 || s.level > 6 || s.health <= 0 || s.health > 100 || !Number.isInteger(s.lives) || s.lives < 1 || s.lives > s.maxLives || s.maxLives > 99 || s.isVictory || s.isGameOver || s.isDying) return null;
     if (!s.equipment || !isPowerup(s.equipment.active) || !Number.isFinite(s.equipment.hits) || !Array.isArray(s.equipment.unlocked)) return null;
     stats.equipment = restoreLoadout(s.equipment, 'hands');
+    if(s.supplyCrates!==undefined){
+      const c=s.supplyCrates;
+      if(!c||!Array.isArray(c.broken)||!Array.isArray(c.collected)||!c.broken.every(isSupplyCrateId)||!c.collected.every((id:unknown)=>isSupplyCrateId(id)&&c.broken.includes(id)))return null;
+      if(c.landed!==undefined&&(!Array.isArray(c.landed)||!c.landed.every(isSupplyCrateId)))return null;
+      stats.supplyCrates={broken:[...new Set<string>(c.broken)],collected:[...new Set<string>(c.collected)],landed:[...new Set<string>(c.landed??[])]};
+    }
     stats.isDying = false; stats.activeBossId = null;
     if (s.seasonalTheme !== undefined && s.seasonalTheme !== 'thanksgiving') return null;
     stats.seasonalTheme = s.seasonalTheme;

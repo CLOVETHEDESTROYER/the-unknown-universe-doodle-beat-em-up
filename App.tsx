@@ -341,7 +341,7 @@ const App: React.FC = () => {
     const unsubscribe=subscribeAudioSettings(()=>setAudioSettings(getAudioSettings()));
     return ()=>{unsubscribe();removeDebug();removeAudio();};
   },[]);
-  useEffect(()=>{setEffectsPaused(appPhase!=='game'||gameSuspended);},[appPhase,gameSuspended]);
+  useEffect(()=>{setEffectsPaused((appPhase!=='game'&&appPhase!=='alleyRescue')||(appPhase==='game'&&gameSuspended));},[appPhase,gameSuspended]);
 
   useEffect(() => {
     let frame = 0;
@@ -476,7 +476,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const bossTrack = BOSS_MUSIC[stats.level];
     const musicSrc =
-      appPhase === "start" || appPhase === "characterSelect"
+      appPhase === "alleyRescue" ? null : appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
         : appPhase === "story"
           ? LEVEL_MUSIC[storyChapter ? STORY_CHAPTERS[storyChapter].musicLevel : 1]
@@ -843,6 +843,7 @@ const App: React.FC = () => {
             initialHealth={stats.health}
             initialCheckpoint={restoreCheckpoint}
             initialCompletedEncounters={stats.completedEncounters}
+            initialSupplyCrates={stats.supplyCrates}
             initialEquipment={stats.equipment}
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
