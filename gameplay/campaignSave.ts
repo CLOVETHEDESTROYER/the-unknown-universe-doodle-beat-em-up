@@ -5,7 +5,8 @@ import { isPowerup, restoreLoadout } from './powerups';
 import { STORY_CHAPTERS, type StoryChapterId } from '../story/campaignStory';
 
 export const CAMPAIGN_SAVE_KEY = 'unknownUniverse.campaign.v1';
-export interface CampaignSave { version: 1; savedAt: number; difficulty: DifficultyMode; stats: GameStats; story: StoryChapterId | null }
+export type CampaignInterlude = 'alley-rescue' | 'alley-rescue-complete';
+export interface CampaignSave { version: 1; savedAt: number; difficulty: DifficultyMode; stats: GameStats; story: StoryChapterId | null; interlude?: CampaignInterlude }
 // Reject incomplete, corrupt and future saves instead of feeding untrusted data to physics.
 export function readCampaignSave(defaults: GameStats): CampaignSave | null {
   try {
@@ -38,7 +39,8 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     }
     if (save.story !== null && (typeof save.story !== 'string' || !Object.hasOwn(STORY_CHAPTERS,save.story) || save.story === 'level6')) return null;
     if (save.story && (save.story === 'prologue' ? s.level !== 1 : s.level !== Number(save.story.slice(5)) + 1)) return null;
-    return {version:1,savedAt:save.savedAt,difficulty:save.difficulty,stats,story:save.story};
+    if (save.interlude !== undefined && (!['alley-rescue','alley-rescue-complete'].includes(save.interlude) || save.story !== null || s.level !== 2)) return null;
+    return {version:1,savedAt:save.savedAt,difficulty:save.difficulty,stats,story:save.story,...(save.interlude ? {interlude:save.interlude as CampaignInterlude} : {})};
   } catch { return null; }
 }
 export function writeCampaignSave(save: CampaignSave): boolean {

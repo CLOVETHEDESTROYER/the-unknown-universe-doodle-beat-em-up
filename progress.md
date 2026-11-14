@@ -1473,3 +1473,41 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 
 - Creator renamed Elytron to Kaden; Electric Ninja is the smaller descriptor under KADEN. Used built-in image_gen for the two card-heading replacements, preserving approved design, stats and Pulse Storm. Saved public/cards/kaden-card.png and source/prompt in art/kaden-card-v1.
 - Changed shared character config to Kaden / Electric Ninja so roster, HUD and game labels update together. Kept internal elytron ID and sprite paths stable for save/link compatibility. Updated preview title, sprite metadata, current documentation and packer metadata. Printable generator now uses Kaden card and matching shared QR back.
+
+## 2026-11-12 - Alley Rescue
+
+- Created branch codex/alley-killer-kai. Added a title-accessible standalone alley rescue level with an enterable house, hall, spare gun room, injured Kai and a persistent roster unlock. Existing roster-unlocked players retain access; campaign saves are untouched. Controls support keyboard and touch. This is an exploration encounter, separate from the six-stage combat campaign.
+- Verified keyboard traversal, both directions through doors, rescue, roster selection availability after reload, phone-sized touch movement and house entry, build, diff check, and standard game smoke client. Inspected desktop and phone screenshots. Browser evidence is under ignored output/alley-rescue. Existing unrelated working tree changes were preserved.
+- Follow-up: expand the rescue into a full combat stage or campaign chapter if desired; current encounter uses simple drawn interiors and existing character art.
+
+## 2026-11-12 - Alley Rescue artwork
+
+- Built-in image generation produced three matching notebook-pencil backgrounds for the alley, hall and spare gun room, using existing environment and X God/Kai sprites as references. Original PNGs and prompts are in art/alley-rescue-v1; WebP runtime assets are in public/levels/alley-rescue-v1. X God's existing idle/run frames animate and Kai remains a separate injured sprite.
+- Build, browser rescue/door/unlock/reload test, phone touch/entry test and shared browser smoke passed. Inspected desktop screenshots of all three rooms. Existing separate campaign and unrelated changes preserved.
+
+## 2026-11-12 - Alley X God size
+
+- Switched Alley Rescue to the first campaign level's drawn blaster idle/run sheets, frame layout, animation rates and equivalent viewport-scaled size; anchored his feet to the floor. Browser traversal/rescue/unlock test, production build and smoke client pass. Inspected alley and Kai encounter screenshots.
+
+## 2026-11-12 - Kai rescue and blaster arm
+
+- Built timed approach, fire-sword energy transfer, Kai recovery, thanks and blaster-arm gift; reward and roster unlock persist only on completion, and previously rescued players can still see the sequence. New arm idle/fire and run sheets generated from existing character references; source, normalized frames and prompts in art/kai-rescue-arm-v1. Existing sword and Kai reaction sprites drive the rescue. C/FIRE demonstrates the arm in the rescue.
+- X God uses the saved arm when the blaster is equipped in the modern ground campaign, with normal blaster damage, upgrades and durability. New sprites cover grounded idle, shot and running; jump/crouch still use existing art. Cyan projectiles and HUD distinguish it. End-to-end test verifies each stage, delayed reward, reload, roster, campaign idle/run/fire and actual enemy damage. Phone FIRE, build and shared smoke passed; inspected scene and campaign screenshots. No physical-device test.
+
+## 2026-11-12 - Larger unarmed X God and arm equip
+
+- Alley Rescue starts with the unarmed drawn idle/run, 1.35 times the prior rescue display size and the same floor anchor, including when the reward is already unlocked. FIRE equips the existing saved arm. Existing reward holders can interact with Kai to replay the rescue and new eight-frame hand-fitting animation; C is disabled during the sequence and the reward is granted at its end.
+- Generated new normal-blaster and Kai-arm eight-pose running sheets from the approved unarmed run, preserved original generations, normalized frames and prompts in art/xgod-run-v2. Both ground campaign gun runs now use these cycles. Generated and normalized an eight-frame equip sheet in art/kai-rescue-arm-v1; original and cleaned source preserved.
+- Browser tests pass initial unarmed run, all rescue phases and equip poses, no early shot/unlock, persistent reward and enemy damage, eight normal gun run frames and running-shot damage, existing-unlock replay, phone FIRE, production build and smoke. Inspected desktop and phone screenshots. Existing large Vite chunk advisory remains.
+
+## 2026-11-12 - Exit gate animation and alley movement
+
+- Campaign gate clear kept Arcade physics moving while returning before per-frame pose updates. Added a gate-only runout path that continues each hero's normal visual update during the clear delay, and clears an active attack/skid pose when the gate takes over. Game-over and respawn handling retain their original path.
+- Increased Alley Rescue player speed from 230 to 320 units/sec and rescue approach from 150 to 210; both unarmed and arm run frames now advance by actual distance and stop at a wall. The scripted approach never moves X God backward if he is already next to Kai.
+- Capture-only gate fixture and scripts/test_gate_runout.mjs exercise all ten heroes, X God's sword and Kai arm, and X God/Kai entering while firing: each advances at least three animation frames through the real gate transition. scripts/test_alley_stride.mjs checks measured speed, stride frame variation, both doors and stopping at the boundary. Full rescue/unlock/campaign firing regression, build and shared smoke passed. Inspected hallway and gun-room gameplay captures.
+
+## 2026-11-13 - Integrate Alley Rescue into the campaign
+
+- Routed the Level 1 ending into Alley Rescue and then the Graveyard. Existing Level 1 ending art supplies the bridge; the alley opens with a short on-road story caption. X God performs the canonical rescue while the selected hero and completed run snapshot are retained for Level 2. The title-screen replay remains available for older saves.
+- Added validated, backward-compatible campaign interlude save markers for before/after the rescue. Save & Quit resumes the interlude; a completed rescue resumes with Continue to Graveyard available. The roster and arm reward remain persistent. Existing saves already beyond Level 1 load their current level unchanged.
+- Verified Level 1 gate -> story -> rescue -> Save & Quit/reload both before and after the gift -> Graveyard, preserving sword and score; existing level-two and story saves; phone controls; campaign save regression; actual Turkey King boss defeat and continuation with native equipment; standalone rescue and stride. Existing Level 2 story test placement corrected from y=520 to its actual floor y=480. Browser evidence in output/alley-campaign. No physical-device test.

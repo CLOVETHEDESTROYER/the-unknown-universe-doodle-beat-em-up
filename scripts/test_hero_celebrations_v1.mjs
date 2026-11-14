@@ -1,3 +1,4 @@
+import {completeAlleyRescue} from './alley_test_helpers.mjs';
 import {chromium,webkit,devices} from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -105,6 +106,7 @@ try{
     s=await wait(s=>s.mode==='campaign-story');assert.equal(s.chapter,'level1');
     assert.equal(s.resume.score,score+900);assert.equal(s.resume.equipment.active,'sword');assert.equal(s.resume.equipment.hits,3);
     await page.getByRole('button',{name:'Skip story',exact:true}).click();
+    await completeAlleyRescue(page);
     s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert(s.powerups.swordUnlocked&&s.powerups.hasFlameSword);
     assert.equal(s.celebration.played.sword,0,'Already-owned sword does not replay on level mount');
     await page.evaluate(()=>window.__unknownPlatformerCollectPickup('power'));await page.waitForTimeout(80);

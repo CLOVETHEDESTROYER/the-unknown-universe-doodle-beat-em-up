@@ -1,0 +1,32 @@
+import {chromium,devices} from 'playwright';import assert from 'node:assert/strict';import fs from 'node:fs/promises';
+const origin=process.env.GAME_TEST_URL||'http://127.0.0.1:4174',out='output/alley-campaign';await fs.mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.GAME_TEST_EXECUTABLE||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+const errors=[];const context=await browser.newContext({viewport:{width:1280,height:800}}),page=await context.newPage();
+page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))errors.push(`${r.status()} ${r.url()}`)});
+const read=()=>page.evaluate(()=>{try{return JSON.parse(window.render_game_to_text())}catch{return null}});
+const saved=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('unknownUniverse.campaign.v1')));
+async function wait(fn,timeout=30000){const end=Date.now()+timeout;while(Date.now()<end){const s=await read();if(s&&fn(s))return s;await page.waitForTimeout(30)}throw Error('Timed out '+fn+' '+JSON.stringify(await read()))}
+async function walk(key,ms){await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key)}
+try{
+ await page.goto(origin);await page.getByRole('button',{name:'Start game',exact:true}).click();await page.getByRole('button',{name:'X God: Select character'}).click();await page.getByRole('button',{name:'Skip story'}).click();
+ // Enable the capture-only completed-boss fixture after the real campaign starts.
+ await page.evaluate(()=>history.replaceState(null,'','/?capture=1'));
+ await wait(s=>s.mode==='platforming'&&s.player?.grounded,60000);await page.evaluate(()=>window.__unknownPlatformerPrepareGateTest());await page.keyboard.down('ArrowRight');
+ const ending=await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1',30000);await page.keyboard.up('ArrowRight');assert.equal(ending.resume.level,2);assert.equal(ending.resume.equipment.active,'sword');assert(ending.resume.swordUnlocked);const score=ending.resume.score;
+ await page.getByRole('button',{name:'Skip story'}).click();let s=await wait(s=>s.mode==='alley_rescue');assert(s.campaign);await wait(s=>s.mode==='alley_rescue'&&s.backgroundReady);assert.equal(s.completed,false);assert.equal(await page.getByRole('button',{name:'Continue to Graveyard'}).count(),0);await page.screenshot({path:out+'/entry.png'});
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('unknownUniverse.campaign.v1')).interlude==='alley-rescue');let save=await saved();assert.equal(save.stats.level,2);assert.equal(save.story,null);assert.equal(save.stats.score,score);
+ await page.getByRole('button',{name:'Save & Quit'}).click();await page.getByRole('button',{name:'Continue Game'}).waitFor();await page.reload();await page.getByRole('button',{name:'Continue Game'}).click();s=await wait(s=>s.mode==='alley_rescue');assert(s.campaign&&!s.completed);
+ await walk('ArrowRight',2300);await page.keyboard.press('e');assert.equal((await read()).room,'hall');await walk('ArrowRight',2300);await page.keyboard.press('e');assert.equal((await read()).room,'gunroom');await walk('ArrowRight',1600);await page.keyboard.press('e');await page.waitForFunction(()=>JSON.parse(window.render_game_to_text()).phase==='gift');assert.equal(await page.getByRole('button',{name:'Continue to Graveyard'}).count(),0);await wait(s=>s.completed,16000);
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('unknownUniverse.campaign.v1')).interlude==='alley-rescue-complete');assert.equal((await saved()).stats.score,score);await page.screenshot({path:out+'/rescue-complete.png'});
+ await page.getByRole('button',{name:'Save & Quit'}).click();await page.reload();await page.getByRole('button',{name:'Continue Game'}).click();s=await wait(s=>s.mode==='alley_rescue');assert(s.completed);await page.getByRole('button',{name:'Continue to Graveyard'}).click();s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded,60000);assert.equal(s.selectedCharacter.id,'xgod');assert.equal(s.equipment.active,'sword');assert.equal(s.progress.score,score);await page.screenshot({path:out+'/graveyard.png'});
+ await page.waitForFunction(()=>{const x=JSON.parse(localStorage.getItem('unknownUniverse.campaign.v1'));return x.stats.level===2&&!x.interlude});assert.deepEqual(errors,[]);console.log('Level 1 gate -> story -> rescue -> saved/reloaded -> Graveyard passed');
+ // Legacy saves already beyond level one still resume their current level.
+ const old=await saved();delete old.interlude;await page.goto(origin);await page.evaluate(v=>localStorage.setItem('unknownUniverse.campaign.v1',JSON.stringify(v)),old);await page.reload();await page.getByRole('button',{name:'Continue Game'}).click();await wait(s=>s.mode==='platforming'&&s.level===2,60000);
+ console.log('Existing level-two saves remain compatible');
+ // An existing Level 1 story save resumes the interlude, including phone controls.
+ const phoneContext=await browser.newContext({...devices['iPhone 15 landscape'],deviceScaleFactor:1});const phone=await phoneContext.newPage();phone.on('pageerror',e=>errors.push(e.message));
+ const phoneSave=structuredClone(old);phoneSave.story='level1';delete phoneSave.interlude;
+ await phone.goto(origin);await phone.evaluate(v=>localStorage.setItem('unknownUniverse.campaign.v1',JSON.stringify(v)),phoneSave);await phone.reload();await phone.getByRole('button',{name:'Continue Game'}).tap();await phone.getByRole('button',{name:'Skip story'}).tap();await phone.waitForFunction(()=>{try{return JSON.parse(window.render_game_to_text()).backgroundReady}catch{return false}});
+ for(const label of ['Save & Quit','Move left','Move right','USE']){const button=phone.getByRole('button',{name:label,exact:true});const rect=await button.boundingBox();assert(rect.x>=0&&rect.y>=0&&rect.x+rect.width<=phone.viewportSize().width&&rect.y+rect.height<=phone.viewportSize().height,label+' fits phone');}
+ await phone.screenshot({path:out+'/phone-entry.png'});await phone.getByRole('button',{name:'Save & Quit'}).tap();assert.equal(JSON.parse(await phone.evaluate(()=>localStorage.getItem('unknownUniverse.campaign.v1'))).interlude,'alley-rescue');await phoneContext.close();assert.deepEqual(errors,[]);console.log('Story save and phone interlude controls passed');
+}catch(e){await page.screenshot({path:out+'/failure.png'}).catch(()=>{});console.error('state',JSON.stringify(await read()));throw e}finally{await browser.close()}

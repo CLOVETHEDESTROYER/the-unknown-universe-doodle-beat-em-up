@@ -30,7 +30,7 @@ const delivery = (scenes: StoryScene[]): StoryScene[] => scenes.map(scene => ({
 
 export const STORY_CHAPTERS: Record<StoryChapterId, StoryChapter> = {
   prologue: {id:'prologue', title:'Earthior to the Unknown', continueLabel:'Begin Level 1', musicLevel:1, scenes:delivery(opening)},
-  level1: {id:'level1', title:'After The Scratch', continueLabel:'Enter the Graveyard', musicLevel:1, scenes:delivery(scratchEnding)},
+  level1: {id:'level1', title:'After The Scratch', continueLabel:'Search the Alley', musicLevel:1, scenes:delivery(scratchEnding)},
   level2: {id:'level2', title:'After the Graveyard', continueLabel:'Enter the Furnace', musicLevel:2, scenes:delivery(graveyardEnding)},
   level3: {id:'level3', title:'After the Furnace', continueLabel:'Enter Witchwood', musicLevel:3, scenes:delivery(furnaceEnding)},
   level4: {id:'level4', title:'After Witchwood', continueLabel:'Begin Starbreak Run', musicLevel:4, scenes:delivery(witchwoodEnding)},
