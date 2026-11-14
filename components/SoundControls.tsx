@@ -19,7 +19,14 @@ export default function SoundControls({settings=getAudioSettings()}:{settings?:A
     </label>)}
     <label className="mt-2 flex items-center gap-2 text-sm">Preview
       <select aria-label="Sound preview" value={preview} onChange={event=>setPreview(event.target.value as SoundName)} className="min-w-0 flex-1 rounded border border-slate-400 bg-white p-1">
-        {([['punchHit','Punch impact'],['blaster','Ink blaster'],['shipLaser','Ship laser'],['shipLance','Plasma lance'],['shipMissile','Homing missile'],['jump','Jump'],['doubleJump','Double jump'],['slamXgod','X God: Butt Bomb'],['slamBarrett','Barrett: Bear Drop'],['slamNico','Nico: Rocket Drop'],['slamEzra','Ezra: Flame Crash'],['slamTeleport','Teleportation C: Rift Drop'],['slamZgod','Z God: Starfall']] as const).map(([name,label])=><option key={name} value={name}>{label}</option>)}
+        {([
+          ['bossWarning','Boss attack warning'],['regentPhase','Void Regent phase change'],['ventWarning','Vent warning'],
+          ['shipLaunch','Starbreak launch'],['pursuerArrival','Void Pursuer arrival'],['pursuerLockOn','Void Pursuer lock-on'],
+          ['punchHit','Punch impact'],['blaster','Ink blaster'],['shipLaser','Ship laser'],['shipLance','Plasma lance'],
+          ['shipMissile','Homing missile'],['jump','Jump'],['doubleJump','Double jump'],['slamXgod','X God: Butt Bomb'],
+          ['slamBarrett','Barrett: Bear Drop'],['slamNico','Nico: Rocket Drop'],['slamEzra','Ezra: Flame Crash'],
+          ['slamTeleport','Teleportation C: Rift Drop'],['slamZgod','Z God: Starfall'],
+        ] as const).map(([name,label])=><option key={name} value={name}>{label}</option>)}
       </select>
     </label>
     <button type="button" disabled={settings.muted||settings.effects===0} onClick={()=>playSfx(preview,{preview:true})}

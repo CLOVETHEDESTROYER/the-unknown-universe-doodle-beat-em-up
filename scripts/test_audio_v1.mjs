@@ -10,6 +10,7 @@ const manifest={files:Object.entries(SOUND_BANK).flatMap(([name,def])=>Array.fro
 assert.equal(manifest.files.length,Object.values(SOUND_BANK).reduce((n,d)=>n+d.variants,0));
 let bytes=0;for(const item of manifest.files){
  const wav=await fs.readFile(new URL('../public'+item.file,import.meta.url));bytes+=wav.length;
+ if(item.file.endsWith('.mp3')){assert(wav.length>0);continue;}
  assert.equal(wav.toString('ascii',0,4),'RIFF');assert([32000,44100].includes(wav.readUInt32LE(24)));assert.equal(wav.readUInt16LE(22),1);
  let peak=0,energy=0;for(let i=44;i<wav.length;i+=2){const sample=wav.readInt16LE(i)/32768;peak=Math.max(peak,Math.abs(sample));energy+=sample*sample;}
  assert(peak>.7&&peak<.81);assert(energy/((wav.length-44)/2)>.0001);assert.equal(wav.readInt16LE(wav.length-2),0);

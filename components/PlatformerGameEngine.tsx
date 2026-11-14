@@ -2620,7 +2620,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       for(const vent of vents){
         const {plan,body,art,warning}=vent;
-        vent.phase=ventPhase(liftClock,plan);body.enable=vent.phase==='active';
+        const nextPhase=ventPhase(liftClock,plan);
+        if(nextPhase==='warning'&&vent.phase!=='warning'
+          &&Math.abs(rider.center.x-plan.x-plan.w/2)<450&&Math.abs(rider.center.y-plan.y)<300){
+          playSfx('ventWarning',{pitch:currentLevel===6?.85:1});
+        }
+        vent.phase=nextPhase;
+        body.enable=vent.phase==='active';
         art.setVisible(body.enable).setAlpha(.8+Math.sin(liftClock*.025)*.15);
         warning.clear();
         if(vent.phase==='warning'){
@@ -3590,6 +3596,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       let destination = Phaser.Math.Clamp(targetX, left + 15, right - 15);
       // Reposition across the yard when cornered instead of performing a motionless charge.
       if (travels && Math.abs(destination - boss.x) < 180) destination = boss.x < (left + right) / 2 ? right - 15 : left + 15;
+      playSfx('bossWarning');
       boss.setVelocity(0, 0).setData("attackState", "tell").setData("move", move)
         .setData("facing", move === "blink_burst" ? player.x < teleportX ? -1 : 1 : travels ? Math.sign(destination - boss.x) : direction)
         .setData("stateStartedAt", scene.time.now).setData("tellDuration", spec.tell - (phaseTwo ? 120 : 0))
@@ -3792,6 +3799,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(id==='void_regent'&&Number(boss.getData('hp'))>0&&regentPhaseForHealth(Number(boss.getData('hp')),Number(boss.getData('maxHp')))>phase)boss.setData('phasePending',true);
       if (boss.getData("phasePending") && (state === "patrol" || state === "recover" && now >= Number(boss.getData("recoverUntil")))) {
         boss.setData("phase", id==='void_regent'?Math.min(3,phase+1):2).setData("phasePending", false).setData("attackState", "phase").setData("stateStartedAt", now);
+        if(id==='void_regent')playSfx('regentPhase',{pitch:phase===2?.85:1});
         state = "phase";
         if(id==='void_regent'||id==='kilina')boss.setData('attackIndex',0);
         scene.cameras.main.shake(180, 0.003);
@@ -4126,6 +4134,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const tellMs = followUp ? 420 : move === "leap_slam" ? phaseTwo ? 650 : 800 : phaseTwo ? 540 : 680;
       const left = boss.getData("left") as number;
       const right = boss.getData("right") as number;
+      playSfx('bossWarning');
       boss.setVelocity(0, 0).setData("attackState", "tell").setData("move", move).setData("facing", direction)
         .setData("stateStartedAt", now).setData("attackTellUntil", now + tellMs).setData('tellDuration',tellMs)
         .setData("startX", boss.x).setData("followUp", followUp).setData("shotsInBurst", 0).setData("lastBurstAt", -9999)

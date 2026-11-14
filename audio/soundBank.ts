@@ -1,4 +1,10 @@
 export const SOUND_BANK = {
+  bossWarning:{variants:1,volume:.55,gap:350,priority:2},
+  shipLaunch:{variants:1,volume:.35,gap:1200,priority:1},
+  pursuerArrival:{variants:1,volume:.32,gap:1200,priority:1},
+  pursuerLockOn:{variants:1,volume:.32,gap:350,priority:2},
+  regentPhase:{variants:1,volume:.55,gap:900,priority:2},
+  ventWarning:{variants:1,volume:.38,gap:400,priority:1},
   punchSwing:{variants:3,volume:.5,gap:70,priority:1},
   punchHit:{variants:3,volume:.8,gap:55,priority:2},
   swordSwing:{variants:2,volume:.55,gap:90,priority:1},
@@ -38,5 +44,10 @@ export const SOUND_BANK = {
 } as const;
 export type SoundName=keyof typeof SOUND_BANK;
 const enhanced=new Set<string>(['blaster','shipLaser','shipLance','shipMissile','enemyLaser','jump','doubleJump','landing','slamCharge','slamXgod','slamBarrett','slamNico','slamEzra','slamTeleport','slamZgod','punchSwing','punchHit','swordSwing','swordHit','enemyHit','explosion','shipHit','shipExplosion','frost','ember','storm','teleport','stomp','spring']);
-export const soundPath=(name:SoundName,variant:number)=>`/audio/sfx-${enhanced.has(name)?'v2':'v1'}/${name}-${variant+1}.wav`;
+const kenney=new Set<SoundName>(['shipLaunch','pursuerArrival','pursuerLockOn','regentPhase','ventWarning']);
+export function soundPath(name:SoundName,variant:number){
+  if(name==='bossWarning')return '/audio/boss-attack-warning.mp3';
+  const bank=kenney.has(name)?'kenney':enhanced.has(name)?'v2':'v1';
+  return `/audio/sfx-${bank}/${name}-${variant+1}.wav`;
+}
 export const SLAM_SOUNDS = {turkey_king:'slamBarrett',elytron:'slamTeleport',killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;
