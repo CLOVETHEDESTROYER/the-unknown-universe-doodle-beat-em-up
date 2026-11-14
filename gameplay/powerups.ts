@@ -2,7 +2,7 @@ import {isGunUpgrade} from './gunUpgrades';
 import type {GunUpgradeId} from './gunUpgrades';
 export type PowerupId = 'hands' | 'blaster' | 'sword' | 'frost' | 'ember' | 'storm';
 export type EquippedPowerup = Exclude<PowerupId, 'hands'>;
-export interface PowerupLoadout { active: PowerupId; hits: number; unlocked: EquippedPowerup[];gunUpgrade?:GunUpgradeId }
+export interface PowerupLoadout { active: PowerupId; hits: number; unlocked: EquippedPowerup[];gunUpgrade?:GunUpgradeId;blasterVariant?:'kai_arm' }
 export const POWERUP_HITS = 3;
 export const POWERUPS: Record<PowerupId, {name:string;level:number;color:number;hint:string;icon:string;cooldown:number}> = {
   hands:{name:'Fists',level:1,color:0xffedc1,hint:'Space / C: punch',icon:'',cooldown:360},
@@ -21,6 +21,7 @@ export function restoreLoadout(saved:PowerupLoadout|undefined,fallback:PowerupId
   const active=saved.active!=='hands'&&saved.hits<=0?'hands':saved.active;
   return {active,hits:active==='hands'?0:Math.max(1,Math.min(POWERUP_HITS,Math.floor(saved.hits)||POWERUP_HITS)),
     ...(active==='blaster'&&isGunUpgrade(saved.gunUpgrade)?{gunUpgrade:saved.gunUpgrade}:{}),
+    ...(active==='blaster'&&saved.blasterVariant==='kai_arm'?{blasterVariant:'kai_arm' as const}:{}),
     unlocked:[...new Set((saved.unlocked??[]).filter(id=>isPowerup(id)&&String(id)!=='hands'))]};
 }
 export function equipPowerup(s:PowerupLoadout,id:EquippedPowerup,level:number):PowerupLoadout {
@@ -30,8 +31,13 @@ export function equipPowerup(s:PowerupLoadout,id:EquippedPowerup,level:number):P
 export function hitPowerup(s:PowerupLoadout,fatal=false):PowerupLoadout {
   if(s.active==='hands')return s;
   const hits=fatal?0:Math.max(0,s.hits-1);
-  const {gunUpgrade,...base}=s;
-  return {...base,active:hits===0?'hands':s.active,hits,...(hits>0&&s.active==='blaster'&&isGunUpgrade(gunUpgrade)?{gunUpgrade}:{})};
+  const {gunUpgrade,blasterVariant,...base}=s;
+  return {...base,active:hits===0?'hands':s.active,hits,...(hits>0&&s.active==='blaster'&&isGunUpgrade(gunUpgrade)?{gunUpgrade}:{}),
+    ...(hits>0&&s.active==='blaster'&&blasterVariant==='kai_arm'?{blasterVariant}:{})};
+}
+/** Kai's gift is a temporary blaster power-up in this run, never a default loadout. */
+export function equipKaiArm(s:PowerupLoadout,level:number):PowerupLoadout {
+  return {...equipPowerup(s,'blaster',level),blasterVariant:'kai_arm'};
 }
 export function upgradeGun(s:PowerupLoadout,mode:GunUpgradeId):PowerupLoadout{
   return s.active==='blaster'&&isGunUpgrade(mode)?{...s,gunUpgrade:mode}:s;

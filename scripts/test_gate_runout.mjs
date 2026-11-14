@@ -3,10 +3,9 @@ const origin=process.env.GAME_TEST_URL||'http://127.0.0.1:4391';
 const browser=await chromium.launch({headless:true,executablePath:process.env.GAME_TEST_EXECUTABLE||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 const page=await browser.newPage({viewport:{width:1280,height:800}});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))errors.push(`${r.status()} ${r.url()}`)});
 await fs.mkdir('output/gate-runout',{recursive:true});
-const heroes=['xgod','zgod','killer_kai','barrett','nico','ezra','teleportation_c','elytron','shadow_kid','turkey_king','xgod_sword','xgod_kai_arm','xgod_firing','killer_kai_firing'];const results=[];
+const heroes=['xgod','zgod','killer_kai','barrett','nico','ezra','teleportation_c','elytron','shadow_kid','turkey_king','xgod_sword','xgod_firing','killer_kai_firing'];const results=[];
 try{
  for(const hero of heroes){
-  if(hero==='xgod_kai_arm')await page.evaluate(()=>localStorage.setItem('unknown-universe-kai-arm','true'));
   const character=hero.startsWith('xgod_')?'xgod':hero==='killer_kai_firing'?'killer_kai':hero;
   await page.goto(`${origin}/?autostart=1&capture=1&level=2&unlockRoster=1&character=${character}${hero==='turkey_king'?'&code=allhailking':''}${hero==='xgod_sword'?'&sword=1&swordUnlocked=1':''}`);
   await page.waitForFunction(()=>{try{return JSON.parse(window.render_game_to_text()).player?.grounded}catch{return false}},{},{timeout:60000});

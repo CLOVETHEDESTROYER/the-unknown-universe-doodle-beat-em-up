@@ -4,7 +4,6 @@ import { LATEST_UPDATE, markLatestUpdateSeen, readSeenUpdate } from "./gameplay/
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import AlleyRescue from "./components/AlleyRescue";
-import {readKaiArmUnlocked, unlockKaiArm} from "./gameplay/kaiArmUnlock";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
@@ -13,7 +12,7 @@ import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
-import { createLoadout } from './gameplay/powerups';
+import { createLoadout, equipKaiArm } from './gameplay/powerups';
 import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
 import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
@@ -281,9 +280,19 @@ const App: React.FC = () => {
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [kaiRescued, setKaiRescued] = useState(readKaiRescued);
-  const [kaiArmUnlocked, setKaiArmUnlocked] = useState(readKaiArmUnlocked);
-  const rescueKai = React.useCallback(() => { unlockKaiArm(); setKaiArmUnlocked(true); setKaiRescued(true); try { localStorage.setItem(KAI_RESCUE_KEY, 'true'); } catch { /* Available for this session. */ } }, []);
-  const completeAlleyRescue = React.useCallback(() => { rescueKai(); if (alleyCampaign) setAlleyCompleted(true); }, [rescueKai, alleyCampaign]);
+  const completeAlleyRescue = React.useCallback(() => {
+    setKaiRescued(true);
+    try { localStorage.setItem(KAI_RESCUE_KEY, 'true'); } catch { /* Available for this session. */ }
+    if (alleyCampaign && !alleyCompleted) {
+      setStats(previous => previous.selectedCharacterId !== 'xgod' ? previous : {
+        ...previous,
+        equipment: equipKaiArm(previous.equipment ?? createLoadout('hands'), previous.level),
+        hasFlameSword: false,
+        swordDurability: 0
+      });
+      setAlleyCompleted(true);
+    }
+  }, [alleyCampaign, alleyCompleted]);
   const [thanksgivingEnabled,setThanksgivingEnabled] = useState(readThanksgivingEnabled);
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
@@ -904,7 +913,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {appPhase === "alleyRescue" && <AlleyRescue onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={kaiArmUnlocked}
+        {appPhase === "alleyRescue" && <AlleyRescue onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={alleyCompleted}
           campaign={alleyCampaign} completed={alleyCompleted} saveError={saveError}
           onContinue={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase('game');}}
           onExit={() => {if(alleyCampaign && campaignActive) saveAndQuit(); else {setAlleyCampaign(false);setAppPhase('start');}}} />}
@@ -926,7 +935,6 @@ const App: React.FC = () => {
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
 
-                <button type="button" onClick={() => {rememberPlay();setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="absolute right-[5%] top-[5%] rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button>
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
                 </div>

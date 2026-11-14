@@ -52,7 +52,7 @@ try{
  // Mobile Continue and pause controls stay within the landscape viewport.
  const mobile=await browser.newContext({...devices['iPhone 15 landscape'],deviceScaleFactor:1});const phone=await mobile.newPage();phone.on('pageerror',e=>errors.push(e.message));
  await phone.goto(origin);fixture.story=null;fixture.stats.level=2;
- await phone.evaluate(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});await phone.reload();const button=phone.locator('#continue-game-button');await button.waitFor();
+ await phone.evaluate(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});await phone.reload();if(await phone.getByRole('button',{name:'Back to Title'}).isVisible())await phone.getByRole('button',{name:'Back to Title'}).click();const button=phone.locator('#continue-game-button');await button.waitFor();
  const box=await button.boundingBox();assert(box.x>=0&&box.y>=0&&box.x+box.width<=phone.viewportSize().width&&box.y+box.height<=phone.viewportSize().height);
  await phone.screenshot({path:out+'/mobile-title.png'});await button.click();await phone.waitForFunction(()=>{try{return JSON.parse(window.render_game_to_text()).mode==='platforming';}catch{return false;}});await phone.keyboard.press('p');await phone.getByRole('button',{name:'Save & Quit',exact:true}).waitFor();await phone.screenshot({path:out+'/mobile-pause.png'});await phone.getByRole('button',{name:'Save & Quit',exact:true}).click();await phone.locator('#continue-game-button').waitFor();await mobile.close();
  assert.deepEqual(errors,[]);console.log('PASS: normal autosave, quit, reload, checkpoint, resources, flight, story, preview isolation, invalid data, storage denial.');

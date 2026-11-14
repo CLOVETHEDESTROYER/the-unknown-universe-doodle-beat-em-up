@@ -1,4 +1,3 @@
-import {readKaiArmUnlocked} from '../gameplay/kaiArmUnlock';
 import { encountersForLevel } from '../gameplay/routeEncounters';
 import {TurkeyKingCombat,loadTurkeyKingAssets} from '../gameplay/turkeyKing';
 import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
@@ -1060,7 +1059,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let viewport = landscapeGameViewport(gameContainerRef.current);
     const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
     const isXGod = selectedCharacterId === "xgod";
-    const kaiArmUnlocked = isXGod && readKaiArmUnlocked();
     const isTurkeyKing=selectedCharacterId==='turkey_king';
     const isZGod = selectedCharacterId === "zgod";
     const isKai = selectedCharacterId === 'killer_kai';
@@ -1271,6 +1269,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let gravityCoreUnlocked = initialGravityCoreUnlocked;
     let gravityCoreCharges = initialGravityCoreCharges;
     let equipment=restoreLoadout(initialEquipment,initialHasFlameSword?'sword':isXGod||isKai?'blaster':'hands');
+    const hasKaiArm=()=>isXGod && equipment.active==='blaster' && equipment.blasterVariant==='kai_arm';
     if(isTurkeyKing){equipment={active:'hands',hits:0,unlocked:[]};characterPowerUnlocked=true;hasFlameSword=false;swordUnlocked=false;swordDurability=0;shieldUnlocked=inkShieldReady=dinioUnlocked=hasDinio=doghostUnlocked=hasDoghost=teleportationCUnlocked=hasTeleportationC=gravityCoreUnlocked=false;gravityCoreCharges=0;}
     hasFlameSword=equipment.active==='sword';
     swordDurability=hasFlameSword?equipment.hits:0;
@@ -1414,7 +1413,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isXGod && useSideScrollXGodRun) {
         if (useDrawnXGod) {
           const folder='characters/xgod/drawn-v1';
-          if(kaiArmUnlocked){loadGameSheet(this.load,'xgod_kai_arm','characters/xgod/kai-arm-v1/arm.png',{frameWidth:768,frameHeight:512});loadGameSheet(this.load,'xgod_kai_arm_run','characters/xgod/kai-arm-v1/run-v2.png',{frameWidth:768,frameHeight:512});}
+          if(hasKaiArm()){loadGameSheet(this.load,'xgod_kai_arm','characters/xgod/kai-arm-v1/arm.png',{frameWidth:768,frameHeight:512});loadGameSheet(this.load,'xgod_kai_arm_run','characters/xgod/kai-arm-v1/run-v2.png',{frameWidth:768,frameHeight:512});}
           if(availablePowers.includes('frost')){
             for(const action of XGOD_FROST_ACTIONS)this.load.multiatlas('hero_frost_'+action,XGOD_FROST_FOLDER+action+'.json',XGOD_FROST_FOLDER);
             this.load.json('xgod_frost_meta',XGOD_FROST_FOLDER+'metadata.json');
@@ -2973,13 +2972,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const now=scene.time.now,body=player.body as Phaser.Physics.Arcade.Body;
       powerHud.setText(`${POWERUPS[equipment.active].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(equipment.active==='hands'?0:3-equipment.hits)}\n${POWERUPS[equipment.active].hint}`)
         .setColor('#'+POWERUPS[equipment.active].color.toString(16).padStart(6,'0'));
-      if(kaiArmUnlocked&&equipment.active==='blaster'&&!equipment.gunUpgrade)powerHud.setText(`KAI BLASTER ARM ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD SPACE / C: FIRE`).setColor('#8feaff');
+      if(hasKaiArm()&&!equipment.gunUpgrade)powerHud.setText(`KAI BLASTER ARM ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD SPACE / C: FIRE`).setColor('#8feaff');
       if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE · X / SP: THUNDERFALL`).setColor('#8feaff');
       if(isShadow&&equipment.active==='hands')powerHud.setText('BLACK HOLES\nATTACK: THROW Â· X / SP: VOID BURST').setColor('#c69aff');
       if(isElytron&&equipment.active==='hands')powerHud.setText('ELECTRIC FISTS\nX / SP: PULSE STORM').setColor('#ffda39');
       if(isTurkeyKing)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C: TOSS · X: STORM').setColor('#ffdb9c');
       if (isZGod) powerHud.setText(`INVINCIBLE · ONE-HIT POWER · ${POWERUPS[equipment.active].name.toUpperCase()}`).setColor('#ffd0e5');
-      if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE · INK BLASTER`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
+      if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE · ${hasKaiArm()?'KAI BLASTER ARM':'INK BLASTER'}`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
       powerAura.clear();
       if(now>=emberUntil)body.setMaxVelocity(520,900);
       if(selectedCharacterId==='teleportation_c'&&teleport.anchor){
@@ -4414,7 +4413,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(isKai)bolt.setDisplaySize(42,22).play('kai_pellet');
         if(spec)bolt.setTint(spec.color).setData('gunUpgrade',mode).setData('gunDirection',facingDirection).setData('pattern','gun_'+mode);
         else if(hasFlameSword)bolt.setTint(0xffb35c);
-        else if(kaiArmUnlocked && equipment.active==='blaster')bolt.setTint(0x60eaff);
+        else if(hasKaiArm())bolt.setTint(0x60eaff);
         (bolt.body as Phaser.Physics.Arcade.Body).setSize(isKai?160:27,isKai?130:13,true).setAllowGravity(false);
         if(angle===0)shot=bolt;
       }
@@ -4810,7 +4809,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }else{
         characterStride=0;player.setTexture(prefix+'idle',Math.floor(now/170)%4);
       }
-      if(kaiArmUnlocked && equipment.active==='blaster' && grounded && !isCrouching && now>=attackVisualUntil){
+      if(hasKaiArm() && grounded && !isCrouching && now>=attackVisualUntil){
         const age=now-lastShotAt;
         if(Math.abs(body.velocity.x)>18)player.setTexture('xgod_kai_arm_run',Math.floor(characterStride/27)%8);
         else player.setTexture('xgod_kai_arm',age<65?2:age<180?3:0);
@@ -5300,7 +5299,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       equipment=hitPowerup(equipment,forceRespawn||playerHealth<=0);
       hasFlameSword=equipment.active==='sword';swordDurability=hasFlameSword?equipment.hits:0;
       stopEmber();movementLockedUntil=-9999;attackVisualUntil=shotRecoilUntil=-9999;powerAura?.clear();
-      if(previousPower!=='hands')showCompanionJoinNotice(scene,equipment.active==='hands'?isKai?'POWERUP LOST · ARM CANNON READY':'POWERUP LOST · FISTS READY':`${POWERUPS[equipment.active].name.toUpperCase()} · ${equipment.hits} HITS LEFT`,equipment.active==='hands'?'#ffe8b6':'#ffc3a5');
+      if(previousPower!=='hands')showCompanionJoinNotice(scene,equipment.active==='hands'?isKai?'POWERUP LOST · ARM CANNON READY':'POWERUP LOST · FISTS READY':`${hasKaiArm()?'KAI BLASTER ARM':POWERUPS[equipment.active].name.toUpperCase()} · ${equipment.hits} HITS LEFT`,equipment.active==='hands'?'#ffe8b6':'#ffc3a5');
       const useXGodSideScrollPoses = isXGod && useSideScrollXGodRun;
       if (useXGodSideScrollPoses) showXGodDamagePose(scene);
       else {
@@ -5430,6 +5429,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(heroCelebration?.active)return;
       const kind = pickup.getData("kind") as PickupKind;
       if(isTurkeyKing&&!['coin','heart','rush_star'].includes(kind))return;
+      // Do not immediately overwrite Kai's gift with the ordinary blaster at
+      // the Graveyard entrance; it remains available after the arm is lost.
+      if(kind==='blaster' && hasKaiArm())return;
       if(pickup.getData('gunStation')){
         if(equipment.active!=='blaster'||!pickup.body?.enable)return;
         const station=gunStations.find(p=>p.sprite===pickup)!;
@@ -5722,8 +5724,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         heroDeath: !isXGod || useDrawnXGod ? {active:Boolean(heroDeathVisual?.active),frame:heroDeathVisual?.active?Number(heroDeathVisual.frame.name):null,
           elapsedMs:heroDeathVisual?.active?Math.max(0,(gameRef.current?.scene.getScene('PlatformerScene').time.now??latestSceneTime)-heroDeathStartedAt):0,
           final:playerLives<=0,respawning:isRespawning} : null,
-        weapon: { primary: isTurkeyKing?'royal_staff':equipment.active, kaiArm: kaiArmUnlocked, shotsFired,fireBlades:fireBlades?.read()??null },
-        equipment:{...equipment,name:isKai&&equipment.active==='hands'?'Arm Cannon':POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
+        weapon: { primary: isTurkeyKing?'royal_staff':equipment.active, kaiArm: hasKaiArm(), shotsFired,fireBlades:fireBlades?.read()??null },
+        equipment:{...equipment,name:hasKaiArm()?'Kai Blaster Arm':isKai&&equipment.active==='hands'?'Arm Cannon':POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
           cooldownRemainingMs:Math.max(0,(equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil,
           emberRemainingMs:Math.max(0,emberUntil-latestSceneTime),emberSpeed:EMBER_DASH.speed,emberDurationMs:EMBER_DASH.duration,emberJets:emberJets?.read()??null},
         gunUpgradeStations:gunStations.map(p=>({mode:p.mode,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),

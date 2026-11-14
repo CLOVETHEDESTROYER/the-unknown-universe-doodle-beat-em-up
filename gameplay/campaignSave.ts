@@ -1,7 +1,7 @@
 import { isEncounterId } from './routeEncounters';
 import type { GameStats, DifficultyMode } from '../types';
 import { isCharacterId } from '../characters';
-import { isPowerup, restoreLoadout } from './powerups';
+import { equipKaiArm, isPowerup, restoreLoadout } from './powerups';
 import { STORY_CHAPTERS, type StoryChapterId } from '../story/campaignStory';
 
 export const CAMPAIGN_SAVE_KEY = 'unknownUniverse.campaign.v1';
@@ -40,6 +40,13 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     if (save.story !== null && (typeof save.story !== 'string' || !Object.hasOwn(STORY_CHAPTERS,save.story) || save.story === 'level6')) return null;
     if (save.story && (save.story === 'prologue' ? s.level !== 1 : s.level !== Number(save.story.slice(5)) + 1)) return null;
     if (save.interlude !== undefined && (!['alley-rescue','alley-rescue-complete'].includes(save.interlude) || save.story !== null || s.level !== 2)) return null;
+    // Older saves made immediately after the rescue predate the per-run arm.
+    // Only that explicit checkpoint proves the gift was earned in this campaign.
+    if (save.interlude === 'alley-rescue-complete' && s.selectedCharacterId === 'xgod' && !s.equipment.blasterVariant) {
+      stats.equipment = equipKaiArm(stats.equipment, s.level);
+      stats.hasFlameSword = false;
+      stats.swordDurability = 0;
+    }
     return {version:1,savedAt:save.savedAt,difficulty:save.difficulty,stats,story:save.story,...(save.interlude ? {interlude:save.interlude as CampaignInterlude} : {})};
   } catch { return null; }
 }
