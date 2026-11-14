@@ -150,6 +150,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
   // --- TUNING CONSTANTS ---
   const PLAYER_SCALE = 0.5;
+  // Default legacy sheet dimensions; Blender opt-in sheets use their own grid.
+  const FRAME_WIDTH = 200;
+  const FRAME_HEIGHT = 327;
   const XGOD_WALK_FRAME_WIDTH = 512;
   const XGOD_WALK_FRAME_HEIGHT = 512;
   const CHARACTER_WALK_FRAME_WIDTH = 256;
