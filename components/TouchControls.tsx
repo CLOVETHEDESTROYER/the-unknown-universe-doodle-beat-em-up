@@ -90,7 +90,10 @@ const TouchDpad: React.FC<{ platformer: boolean; canDown: boolean; downLabel: st
     const rect = geometry.current;
     const x = (event.clientX - rect.left) / rect.width - .5;
     const y = (event.clientY - rect.top) / rect.height - .5;
-    const next = {left: x < -1/6, right: x > 1/6, up: y < -1/6, down: (!platformer || canDown) && y > 1/6};
+    // Landscape platformers use a single low row: left / crouch / right.
+    // JUMP already has its own button; flight retains the full directional pad.
+    const lowRow=platformer&&rect.width/rect.height>2;
+    const next = {left: x < -1/6, right: x > 1/6, up: !lowRow&&y < -1/6, down: (!platformer || canDown) && (lowRow?Math.abs(x)<=1/6:y > 1/6)};
     const wasUp = Boolean(window.__unknownUniverseTouchControls?.up);
     const wasDown = Boolean(window.__unknownUniverseTouchControls?.down);
     for (const key of ['left','right','up','down'] as const) setControl(key, next[key], event.pointerId);
@@ -98,7 +101,7 @@ const TouchDpad: React.FC<{ platformer: boolean; canDown: boolean; downLabel: st
     if (platformer && next.down && !wasDown) window.dispatchEvent(new Event('unknown-universe:down'));
     paint();
   };
-  return <div ref={base} role="group" aria-label="Movement D-pad" data-touch-dpad className="touch-dpad pointer-events-auto select-none"
+  return <div ref={base} role="group" aria-label="Movement D-pad" data-touch-dpad className={`touch-dpad pointer-events-auto select-none ${platformer?'touch-dpad-platformer':''}`}
     onContextMenu={event => event.preventDefault()}
     onTouchStart={event => {nativeTouch.current = event.changedTouches[0]?.identifier ?? null;}}
     onPointerDown={event => {

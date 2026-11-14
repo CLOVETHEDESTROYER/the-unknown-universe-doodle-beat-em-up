@@ -1,0 +1,11 @@
+{
+  "id": "/",
+  "name": "The Unknown Universe",
+  "short_name": "Unknown Universe",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a"
+}

@@ -356,24 +356,69 @@ canvas {
   }
 }
 
-/* Phone controls live in side rails, outside the canvas, including at spawn. */
-@media (orientation: landscape) and (max-height: 599px) {
-  .game-app-shell[data-mobile="true"] {
-    --control-rail: 146px;
-    --control-left: calc(var(--control-rail) + env(safe-area-inset-left));
-    --control-right: calc(var(--control-rail) + env(safe-area-inset-right));
-  }
-  .game-app-shell[data-mobile="true"] .unknown-universe-game {
-    inset: 36px var(--control-right) 0 var(--control-left);
-  }
+/* Edge-to-edge playfield. Controls float above the world, never in side rails. */
+@media (orientation: landscape) {
+  .game-app-shell[data-mobile="true"][data-phase="game"] .unknown-universe-game { inset: 0; }
   .game-app-shell[data-mobile="true"] .touch-controls {
-    --stick-size: 132px;
-    --thumb-size: 58px;
-    --thumb-gap: 8px;
-    padding: 0 calc(env(safe-area-inset-right) + 10px) max(12px, env(safe-area-inset-bottom)) calc(env(safe-area-inset-left) + 7px);
+    --stick-size: 132px; /* Each directional target remains at least 44px. */
+    --thumb-size: clamp(56px, 17dvh, 72px);
+    --thumb-gap: 10px;
+    padding: 0 max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   }
-  .game-app-shell[data-mobile="true"] .touch-controls .touch-control { font-size: 18px; }
-  .game-app-shell[data-mobile="true"] .touch-controls .touch-dpad-key { font-size: 24px; }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-control {
+    font-size: 18px;
+    border: 2px solid #f5edffb3;
+    text-shadow: 0 2px 3px #000;
+    box-shadow: 0 2px 8px #0003;
+    background-color: #241b3d70;
+  }
+  .game-app-shell[data-mobile="true"] .touch-actions [data-touch-control="jump"] { background-color: #07598580; }
+  .game-app-shell[data-mobile="true"] .touch-actions [data-touch-control="attack"] { background-color: #a4510b80; }
+  .game-app-shell[data-mobile="true"] .touch-actions [data-touch-control="dash"] { background-color: #6d28d980; }
+  .game-app-shell[data-mobile="true"] :is(.touch-dpad-key, .touch-dpad-center) {
+    background: #30234c70;
+    border-color: #e9ddffa6;
+    text-shadow: 0 2px 3px #000;
+  }
+  .game-app-shell[data-mobile="true"] .touch-dpad-center { background: #55416f50; }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer {
+    --dpad-key: 52px;
+    width: calc(var(--dpad-key) * 3); height: var(--dpad-key);
+    flex-basis: calc(var(--dpad-key) * 3);
+    grid-template: var(--dpad-key) / repeat(3, var(--dpad-key));
+  }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer :is(.touch-dpad-up, .touch-dpad-center) { display: none; }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer .touch-dpad-left { grid-area: 1 / 1; border-radius: 14px 0 0 14px; }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer .touch-dpad-down { grid-area: 1 / 2; border-radius: 0; border-top: 2px solid #e9ddffa6; }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer .touch-dpad-right { grid-area: 1 / 3; border-radius: 0 14px 14px 0; }
+  .game-app-shell[data-mobile="true"] .touch-controls [data-pressed] { background-color: #8754c7c9; border-color: #fff5a8; }
+  .game-app-shell[data-mobile="true"] .game-hud {
+    top: max(6px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
+    height: 44px;
+    padding: 0;
+    gap: 10px;
+    background: none;
+    backdrop-filter: none;
+    text-shadow: 0 2px 3px #0f172a, 1px 0 2px #0f172a;
+  }
+  .game-app-shell[data-mobile="true"] .game-hud > div:first-child { max-width: 100px; }
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(2) {
+    flex: 0 1 clamp(100px, 20vw, 240px);
+    min-width: 80px;
+  }
+  .game-app-shell[data-mobile="true"] .game-hud > div:nth-child(3) { margin-left: auto; }
+  .game-app-shell[data-mobile="true"] .game-hud > button {
+    width: 44px; height: 44px; min-width: 44px; padding: 0;
+    background: #0f172a80;
+    font-size: 18px;
+  }
+}
+@media (orientation: landscape) and (min-height: 600px) {
+  .game-app-shell[data-mobile="true"] .touch-controls { --stick-size: 168px; --thumb-size: 80px; --thumb-gap: 12px; }
+  .game-app-shell[data-mobile="true"] .touch-dpad-platformer { --dpad-key: 64px; }
+  .game-app-shell[data-mobile="true"] .touch-controls .touch-control { font-size: 22px; }
 }
 
 

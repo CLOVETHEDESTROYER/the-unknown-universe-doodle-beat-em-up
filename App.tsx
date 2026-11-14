@@ -18,6 +18,7 @@ import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
+import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
@@ -1178,6 +1179,7 @@ const App: React.FC = () => {
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
+              <DisplayControls />
               <button
                 onClick={togglePause}
                 className="rounded-full border-4 border-slate-800 bg-blue-500 px-8 py-2 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-blue-600"
