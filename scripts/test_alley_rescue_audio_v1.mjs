@@ -22,7 +22,11 @@ try{
   const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
   async function wait(fn){const end=Date.now()+30000;while(Date.now()<end){const s=await read().catch(()=>null);if(s&&fn(s))return s;await page.waitForTimeout(35);}throw Error('Timed out '+fn);}
   async function right(x){await page.keyboard.down('ArrowRight');await wait(s=>s.player.x>=x);await page.keyboard.up('ArrowRight');}
-  await enterAlleyFromSave(page,origin+'/?capture=1');
+  await enterAlleyFromSave(page,origin);
+  // Query parameters disable campaign creation; enable diagnostics only after
+  // the real campaign/interlude save exists, then reinstall audio diagnostics.
+  await page.evaluate(()=>history.replaceState(null,'','/?capture=1'));
+  await page.reload();await page.getByRole('button',{name:'Continue Game',exact:true}).click();
   await wait(s=>s.mode==='alley_rescue');await right(790);await page.keyboard.press('e');await wait(s=>s.room==='hall');
   await right(790);await page.keyboard.press('e');await wait(s=>s.room==='gunroom');await right(620);await page.keyboard.press('e');
   await wait(s=>s.phase==='thanks');const scene=await read();
