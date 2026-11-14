@@ -5374,8 +5374,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         springJumpUntil = -9999;
         if (playerHealth <= 0) {
           playerLives = Math.max(0, playerLives - 1);
-          playerHealth = 100;
         }
+        // Every checkpoint retry is a fresh health pool, including nonfatal
+        // fall resets. Carrying the remaining fall HP creates one-hit loops.
+        playerHealth = 100;
         if(!isXGod || useDrawnXGod){
           showHeroDeath(scene);
           syncStats({isDying:true,isGameOver:false});
@@ -5421,7 +5423,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       xgodDamagePose?.destroy();xgodDamagePose=null;
       isRespawning=true;heroDeathStartedAt=scene.time.now;
       const body=player.body as Phaser.Physics.Arcade.Body;
-      const retryHealth=playerHealth;
       const feet=Math.min(body.bottom,SCREEN_HEIGHT-28);
       body.setVelocity(0,0);body.enable=false;
       player.anims.stop();player.setVisible(false).setAlpha(1).clearTint();
@@ -5440,7 +5441,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           return;
         }
         death.destroy();heroDeathVisual=null;
-        body.enable=true;playerHealth=retryHealth;
+        body.enable=true;playerHealth=100;
         player.setVisible(true).setAlpha(1).clearTint();
         if(!isXGod||useDrawnXGod)sizePlayerBody(player,selectedCharacterId,false);
       placePlayerOnPlatform(checkpoint.x,checkpoint.y);
@@ -5476,6 +5477,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       placePlayerOnPlatform(checkpoint.x, checkpoint.y);
         isRespawning = false;
         lastGroundedAt = scene.time.now;
+        lastDamageAt = scene.time.now;
       });
     }
 
