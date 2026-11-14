@@ -42,7 +42,7 @@ const LEVEL_MUSIC: Partial<Record<number, string>> = {
   5: "/audio/music/starbreak-overdrive.mp3",
   6: "/audio/music/dread-planet-level.mp3"
 };
-const START_SCREEN_MUSIC = "/GfunkAllStars.mp3";
+const START_SCREEN_MUSIC = "/audio/music/unknown-universe-intro-new.mp3";
 const BOSS_MUSIC: Partial<Record<number, { bossId: string; src: string }>> = {
   1: { bossId: "dark_dragon", src: "/audio/music/dark-dragon-dragons-breath.mp3" },
   2: { bossId: "killinas_daughter", src: "/audio/music/killinas-daughter-the-brooding-collosus.mp3" },

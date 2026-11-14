@@ -32,14 +32,20 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     const kaiDance=new Image();kaiDance.src='/characters/alley-dance-v1/kai.png';
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     const music=new Audio('/audio/alley-disco-local.mp3');music.preload='auto';music.loop=true;musicRef.current=music;
-    let musicBlocked=false,musicFailed=false,musicStarted=false;
-    const audioSettings=()=>{const a=getAudioSettings();music.volume=a.music;music.muted=a.muted;};
+    const alleyMusic=new Audio('/audio/music/uneasy-pursuit-alleyway.mp3');alleyMusic.preload='auto';alleyMusic.loop=true;
+    let musicBlocked=false,musicFailed=false,musicStarted=false,musicDisposed=false;
+    const audioSettings=()=>{const a=getAudioSettings();for(const track of [music,alleyMusic]){track.volume=a.music;track.muted=a.muted;}};
     audioSettings();const unsubscribe=subscribeAudioSettings(audioSettings);
-    const startMusic=()=>{audioSettings();if(!musicStarted){music.currentTime=0;musicStarted=true;}void music.play().then(()=>{musicBlocked=false;setMusicNotice('');}).catch(()=>{musicBlocked=true;setMusicNotice('Tap Play music to enable audio. The dance will still finish.');});};
-    music.addEventListener('error',()=>{musicFailed=true;setMusicNotice('Local dance track is unavailable. You can still continue after the dance.');});
+    const startAlleyMusic=()=>{if(musicDisposed||musicStarted||document.hidden)return;audioSettings();void alleyMusic.play().then(()=>{if(musicDisposed||musicStarted||document.hidden)alleyMusic.pause();else{musicBlocked=false;setMusicNotice('');}}).catch(()=>{if(!musicDisposed&&!musicStarted){musicBlocked=true;setMusicNotice('Tap Play music to enable the Alley soundtrack.');}});};
+    const startMusic=()=>{alleyMusic.pause();audioSettings();if(!musicStarted){music.currentTime=0;musicStarted=true;}void music.play().then(()=>{musicBlocked=false;setMusicNotice('');}).catch(()=>{musicBlocked=true;setMusicNotice('Tap Play music to enable audio. The dance will still finish.');});};
+    music.addEventListener('error',()=>{musicFailed=true;if(musicStarted)setMusicNotice('Local dance track is unavailable. You can still continue after the dance.');});
+    alleyMusic.addEventListener('error',()=>{if(!musicStarted)setMusicNotice('Alley soundtrack is unavailable. You can still play.');});
     // Prime this same media element inside a real interaction for mobile audio.
     const primeMusic=()=>{if(musicStarted)return;music.volume=0;void music.play().then(()=>{if(!musicStarted){music.pause();music.currentTime=0;}audioSettings();}).catch(()=>{});};
-    retryMusic.current=()=>{if(musicStarted)startMusic();};
+    retryMusic.current=()=>{if(musicStarted)startMusic();else startAlleyMusic();};
+    const unlockAlleyMusic=()=>{if(!musicStarted&&alleyMusic.paused)startAlleyMusic();};
+    window.addEventListener('pointerdown',unlockAlleyMusic);window.addEventListener('keydown',unlockAlleyMusic);
+    startAlleyMusic();
     let last=0, frame=0, active=true, moving=false, animationTime=0, strideDistance=0;
     const rescueAudio=new AlleyRescueAudio(cue=>playSfx(cue.sound,{volume:cue.volume,pitch:cue.pitch}));
     // One frame per distance travelled keeps steps in sync at both player and rescue speeds.
@@ -125,21 +131,21 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     const down=(e:KeyboardEvent)=>{if(['ArrowLeft','ArrowRight','a','d','e','E',' ','c','C'].includes(e.key))e.preventDefault();if((e.key==='c'||e.key==='C')&&!e.repeat)fire();else if((e.key==='e'||e.key==='E'||e.key===' ')&&!e.repeat)interact.current();else s.keys.add(e.key.toLowerCase().startsWith('arrow')?e.key:e.key.toLowerCase());};
     const up=(e:KeyboardEvent)=>s.keys.delete(e.key.toLowerCase().startsWith('arrow')?e.key:e.key.toLowerCase());
     const clear=()=>s.keys.clear();
-    const visibility=()=>{last=0;s.keys.clear();if(document.hidden){music.pause();stopEffects();}else if(musicStarted)startMusic();};
+    const visibility=()=>{last=0;s.keys.clear();if(document.hidden){music.pause();alleyMusic.pause();stopEffects();}else if(musicStarted)startMusic();else startAlleyMusic();};
     document.addEventListener('visibilitychange',visibility);
     window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',clear);
     const previous=window.render_game_to_text;const render=()=>JSON.stringify({mode:'alley_rescue',campaign,completed:s.danceDone&&campaign,backgroundReady:s.backgroundReady,room:s.room,player:{x:Math.round(s.x)},nearInteraction:near(),rescued:s.rescued,phase:s.phase,phaseTime:s.phaseTime,armUnlocked:s.arm,armEquipped:s.armEquipped,visual:s.visual,pose:s.pose,strideDistance:Math.round(strideDistance),shots:s.shots,message:s.message,dance:{duration:15,done:s.danceDone,remaining:s.phase==='dance'?Math.max(0,15-s.phaseTime):0,spritesReady:Boolean(heroDance.naturalWidth&&kaiDance.naturalWidth),musicPlaying:!music.paused,musicTime:music.currentTime,musicLoop:music.loop,musicBlocked,musicFailed,reducedMotion:reduced.matches},controls:'left/right, E to interact',coordinates:'x increases to the right'});window.render_game_to_text=render;
-    const renderWithSound=()=>JSON.stringify({...JSON.parse(render()),rescueAudio:rescueAudio.read()});
+    const renderWithSound=()=>JSON.stringify({...JSON.parse(render()),rescueAudio:rescueAudio.read(),music:{track:musicStarted?'dance':'uneasy-pursuit',alleyPlaying:!alleyMusic.paused,alleyTime:alleyMusic.currentTime,alleyLoop:alleyMusic.loop,alleyMuted:alleyMusic.muted,alleyVolume:alleyMusic.volume}});
     window.render_game_to_text=renderWithSound;
     fireRef.current=fire;
-    frame=requestAnimationFrame(tick);return()=>{active=false;cancelAnimationFrame(frame);stopEffects();music.pause();music.removeAttribute('src');music.load();musicRef.current=null;unsubscribe();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);if(window.render_game_to_text===renderWithSound)window.render_game_to_text=previous;};
+    frame=requestAnimationFrame(tick);return()=>{active=false;musicDisposed=true;cancelAnimationFrame(frame);stopEffects();for(const track of [music,alleyMusic]){track.pause();track.removeAttribute('src');track.load();}musicRef.current=null;unsubscribe();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pointerdown',unlockAlleyMusic);window.removeEventListener('keydown',unlockAlleyMusic);window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);if(window.render_game_to_text===renderWithSound)window.render_game_to_text=previous;};
   },[campaign]);
   const hold=(key:string,pressed:boolean)=>{if(pressed)game.current.keys.add(key);else game.current.keys.delete(key);};
   return <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 p-2 text-white" style={{touchAction:'none'}}>
     <div className="flex w-full max-w-5xl items-center justify-between gap-2 px-2 font-bold"><span>THE ALLEY · {view.room==='alley'?'Find the house':view.room==='hall'?'Search the house':'Spare gun room'}</span><div className="flex gap-2">{campaign && completed && view.danceDone && view.phase==='idle' && <button className="rounded-lg bg-emerald-400 px-3 py-1 text-slate-950" onClick={onContinue}>Continue to Graveyard</button>}<button className="rounded-lg bg-slate-700 px-3 py-1" onClick={onExit}>{campaign ? "Save & Quit" : "Exit level"}</button></div></div>
     <canvas ref={canvas} width={960} height={540} className="min-h-0 max-h-[68vh] w-auto max-w-full rounded-lg" aria-label="Alley rescue level" />
     {saveError && <p role="alert" className="text-amber-200">{saveError}</p>}
-    {musicNotice && <p className="text-center text-sm text-amber-200">{musicNotice} {view.arm&&<button className="rounded bg-slate-700 px-2 py-1" onClick={()=>retryMusic.current()}>Play music</button>}</p>}
+    {musicNotice && <p className="text-center text-sm text-amber-200">{musicNotice} <button className="rounded bg-slate-700 px-2 py-1" onClick={()=>retryMusic.current()}>Play music</button></p>}
     <p className="min-h-6 text-center text-sm sm:text-base" role="status">{view.message || (view.arm ? 'Move with ← / → or A / D. E / USE: interact. C / FIRE: equip and fire the arm.' : 'Move with ← / → or A / D. Press E or USE at doors and to help Kai.')}</p>
     <div className="flex gap-3"><button aria-label="Move left" className="rounded-xl bg-slate-700 px-6 py-2 text-xl" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);hold('ArrowLeft',true);}} onPointerUp={()=>hold('ArrowLeft',false)} onPointerCancel={()=>hold('ArrowLeft',false)} onLostPointerCapture={()=>hold('ArrowLeft',false)}>←</button><button aria-label="Move right" className="rounded-xl bg-slate-700 px-6 py-2 text-xl" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);hold('ArrowRight',true);}} onPointerUp={()=>hold('ArrowRight',false)} onPointerCancel={()=>hold('ArrowRight',false)} onLostPointerCapture={()=>hold('ArrowRight',false)}>→</button><button className="rounded-xl bg-amber-400 px-6 py-2 text-xl font-bold text-slate-950 disabled:opacity-50" disabled={!view.near || view.phase!=='idle'} onClick={()=>interact.current()}>USE</button>{view.arm && <button className="rounded-xl bg-cyan-400 px-6 py-2 text-xl font-bold text-slate-950" onClick={()=>fireRef.current()}>FIRE</button>}</div>
   </div>;
