@@ -20,6 +20,11 @@ for(const mode of ['rapid','fan','homing']){
  assert.equal(p.upgradeGun(p.createLoadout('hands'),mode).gunUpgrade,undefined);
 }
 assert.equal(p.restoreLoadout({...p.createLoadout(),gunUpgrade:'invalid'},'hands').gunUpgrade,undefined);
+let kai=p.equipKaiArm(p.createLoadout('sword'),2);assert.equal(kai.blasterVariant,'kai_arm');assert.equal(kai.hits,3);
+kai=p.upgradeGun(kai,'rapid');assert.equal(p.restoreLoadout(kai,'hands').blasterVariant,'kai_arm');
+kai=p.hitPowerup(kai);assert.equal(kai.blasterVariant,'kai_arm');assert.equal(kai.hits,2);
+assert.equal(p.equipPowerup(kai,'frost',2).blasterVariant,undefined);assert.equal(p.equipPowerup(kai,'blaster',2).blasterVariant,undefined);
+kai=p.hitPowerup(p.hitPowerup(kai));assert.equal(kai.active,'hands');assert.equal(kai.blasterVariant,undefined);
 const errors=[],evidence={loadoutRules:true};
 const browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1280,height:800}});
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
@@ -48,12 +53,12 @@ try{
  await page.keyboard.press('Space',{delay:40});await page.waitForTimeout(180);s=await read();assert(s.projectiles.some(p=>p.gunUpgrade==='homing'&&p.velocityY<0));await page.screenshot({path:path.join(out,'homing.png')});await wait(s=>s.enemies.some(e=>e.hp<1000));evidence.homingCurvesAndHits=true;
  await page.goto(origin);await page.getByRole('button',{name:'Start game',exact:true}).click();await page.locator('[data-character-id="xgod"]').click();await page.getByRole('button',{name:'Skip story',exact:true}).click();await wait(s=>s.mode==='platforming'&&s.player?.grounded,60000);await gun();await upgrade('homing');
  await page.keyboard.press('p');await wait(s=>s.mode==='paused');await page.getByRole('button',{name:'Save & Quit',exact:true}).click();await page.reload();await page.getByRole('button',{name:'Continue Game',exact:true}).click();await wait(s=>s.mode==='platforming'&&s.equipment.gunUpgrade==='homing');evidence.saveContinue=true;
- await gun();assert.equal((await read()).equipment.gunUpgrade,'homing');await page.evaluate(()=>window.__unknownPlatformerCollectPickup('sword'));await wait(s=>s.equipment.active==='sword');assert.equal((await read()).equipment.gunUpgrade,undefined);await wait(s=>s.gunUpgradeStations.every(p=>!p.available));evidence.weaponSwapClears=true;
+ await boot(2,'&character=xgod');await gun();await upgrade('homing');await page.evaluate(()=>window.__unknownPlatformerCollectPickup('frost'));await wait(s=>s.equipment.active==='frost');assert.equal((await read()).equipment.gunUpgrade,undefined);await wait(s=>s.gunUpgradeStations.every(p=>!p.available));evidence.weaponSwapClears=true;
  await gun();await upgrade('rapid');for(let i=0;i<3;i++){await page.evaluate(()=>window.__unknownPlatformerDamagePlayer(1));await page.waitForTimeout(930);}s=await read();assert.equal(s.equipment.active,'hands');assert.equal(s.equipment.gunUpgrade,undefined);assert(s.gunUpgradeStations.every(p=>!p.available));evidence.gunLossClears=true;
  await boot(1,'&character=turkey_king&code=allhailking');s=await read();assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.gunUpgradeStations.length,0);assert.equal(s.powerStations.length,0);evidence.kingRestriction=true;
  await page.setViewportSize({width:844,height:390});await boot(1,'&character=barrett&unlockRoster=1');await gun();await upgrade('fan');await page.screenshot({path:path.join(out,'phone-fan.png')});const touch=page.locator('[data-touch-control="attack"]');start=(await read()).weapon.shotsFired;await touch.dispatchEvent('pointerdown',{pointerId:8,pointerType:'touch',bubbles:true});await wait(s=>s.weapon.shotsFired>start);await touch.dispatchEvent('pointercancel',{pointerId:8,pointerType:'touch',bubbles:true});evidence.touchFire=true;
- await page.setViewportSize({width:1280,height:800});await boot(1,'&finishLevel=1&character=barrett&unlockRoster=1');
- await page.evaluate(()=>window.__unknownPlatformerBossRulesTest({state:'recover',hp:2,stageMove:JSON.parse(window.render_game_to_text()).enemies.find(e=>e.kind==='boss').bossId==='turkey'?'wing_gust':'fire_volley'}));await upgrade('rapid');
+ await page.setViewportSize({width:1280,height:800});await boot(1,'&character=barrett&unlockRoster=1&swordUnlocked=1');
+ await gun();await upgrade('rapid');await page.evaluate(()=>window.__unknownPlatformerBossRulesTest({state:'recover',hp:2,stageMove:JSON.parse(window.render_game_to_text()).enemies.find(e=>e.kind==='boss').bossId==='turkey'?'wing_gust':'fire_volley'}));
  s=await read();let boss=s.enemies.find(e=>e.kind==='boss');await place(boss.x-220,boss.floorY);await page.keyboard.press('ArrowRight',{delay:20});await page.keyboard.down('Space');await wait(s=>s.bossDefeated);await page.keyboard.up('Space');
  await wait(s=>s.bossDeath.stage==='finished'&&!s.celebration.active);s=await read();await place(s.progress.levelEndX,480);
  s=await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');assert.equal(s.resume.equipment.active,'blaster');assert.equal(s.resume.equipment.gunUpgrade,'rapid');

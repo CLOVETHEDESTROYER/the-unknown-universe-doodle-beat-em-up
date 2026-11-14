@@ -107,7 +107,7 @@ try{
     assert.equal(s.resume.score,score+900);assert.equal(s.resume.equipment.active,'sword');assert.equal(s.resume.equipment.hits,3);
     await page.getByRole('button',{name:'Skip story',exact:true}).click();
     await completeAlleyRescue(page);
-    s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert(s.powerups.swordUnlocked&&s.powerups.hasFlameSword);
+    s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert(s.powerups.swordUnlocked);assert.equal(s.equipment.blasterVariant,'kai_arm');
     assert.equal(s.celebration.played.sword,0,'Already-owned sword does not replay on level mount');
     await page.evaluate(()=>window.__unknownPlatformerCollectPickup('power'));await page.waitForTimeout(80);
     assert.equal((await read()).celebration.played.sword,0,'Later refill does not replay the first-claim sequence');

@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {enterAlleyFromSave} from './alley_test_helpers.mjs';
 import {build} from 'esbuild';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
@@ -21,7 +22,7 @@ try{
   const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
   async function wait(fn){const end=Date.now()+30000;while(Date.now()<end){const s=await read().catch(()=>null);if(s&&fn(s))return s;await page.waitForTimeout(35);}throw Error('Timed out '+fn);}
   async function right(x){await page.keyboard.down('ArrowRight');await wait(s=>s.player.x>=x);await page.keyboard.up('ArrowRight');}
-  await page.goto(origin+'/?capture=1');await page.getByRole('button',{name:'Alley Rescue',exact:true}).click();
+  await enterAlleyFromSave(page,origin+'/?capture=1');
   await wait(s=>s.mode==='alley_rescue');await right(790);await page.keyboard.press('e');await wait(s=>s.room==='hall');
   await right(790);await page.keyboard.press('e');await wait(s=>s.room==='gunroom');await right(620);await page.keyboard.press('e');
   await wait(s=>s.phase==='thanks');const scene=await read();
@@ -30,7 +31,7 @@ try{
   if(muted)assert.equal(audio.totalPlayed,0);
   else for(const name of new Set(RESCUE_CUES.map(c=>c.sound)))assert(audio.played[name]>0,`${name} must actually play`);
   await page.screenshot({path:out+`/revived-${muted?'muted':'audible'}.png`});
-  await page.getByRole('button',{name:'Exit level',exact:true}).click();
+  await page.getByRole('button',{name:'Save & Quit',exact:true}).click();
   const after=await page.evaluate(()=>window.__unknownGameAudio.read());assert(after.paused);assert.equal(after.activeVoices,0);
   await context.close();
  }

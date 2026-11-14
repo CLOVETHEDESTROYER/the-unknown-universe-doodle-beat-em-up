@@ -3,7 +3,7 @@ export const GAME_UPDATES = [
     id: 20261113,
     title: 'Alley Rescue and new audio',
     changes: [
-      'Rescue Killer Kai after Level 1 to unlock him and earn a blaster arm for X God. You can also open Alley Rescue from the title screen.',
+      'Rescue Killer Kai after Level 1 to unlock him and earn a blaster-arm power-up for X God in that campaign.',
       'Hear new music in the Furnace, Witchwood, and Dread Planet, plus dedicated tracks for Kilina and the Void Pursuer.',
       'Listen for new cues at liftoff, during the Void Pursuer and Void Regent fights, and before nearby vents erupt.',
     ],

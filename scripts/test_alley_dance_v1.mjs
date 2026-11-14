@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {enterAlleyFromSave} from './alley_test_helpers.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 const origin=process.env.GAME_TEST_URL||'http://127.0.0.1:4178',out='output/playwright/alley-dance-v1';
@@ -10,7 +11,7 @@ const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
 async function wait(fn,timeout=45000){const end=Date.now()+timeout;while(Date.now()<end){const s=await read().catch(()=>null);if(s&&fn(s))return s;await page.waitForTimeout(35);}throw Error('Timeout '+fn+' '+JSON.stringify(await read()));}
 async function walkTo(x){await page.keyboard.down('ArrowRight');await wait(s=>s.player.x>=x);await page.keyboard.up('ArrowRight');}
 try{
- await page.goto(origin);await page.getByRole('button',{name:'Alley Rescue',exact:true}).click();
+ await enterAlleyFromSave(page,origin);
  await wait(s=>s.mode==='alley_rescue'&&s.backgroundReady);
  await walkTo(790);await page.keyboard.press('e');await wait(s=>s.room==='hall');
  await walkTo(790);await page.keyboard.press('e');await wait(s=>s.room==='gunroom');
@@ -28,7 +29,7 @@ try{
  await page.keyboard.down('ArrowLeft');await wait(s=>s.player.x<130);await page.keyboard.up('ArrowLeft');
  await page.keyboard.press('e');await wait(s=>s.room==='hall');s=await read();assert(s.dance.musicPlaying);assert(s.dance.musicTime>musicAt);
  await walkTo(790);await page.keyboard.press('e');await wait(s=>s.room==='gunroom');assert((await read()).dance.musicPlaying);
- await page.keyboard.down('ArrowRight');await page.getByRole('button',{name:'Alley Rescue',exact:true}).waitFor({timeout:10000});await page.keyboard.up('ArrowRight');
+ await page.keyboard.down('ArrowRight');await wait(s=>s.mode==='platforming'&&s.level===2,60000);await page.keyboard.up('ArrowRight');
  assert.deepEqual(errors,[]);await fs.writeFile(out+'/report.json',JSON.stringify({passed:true,danceSeconds:15,armThenDance:true,movementLocked:true,musicContinuesAfterDance:true,musicContinuesAcrossRooms:true,rightExit:true,reducedMotion:true,errors},null,2));
  console.log('Alley dance, local audio, input lock, reduced motion and right exit passed');
 }catch(e){await page.screenshot({path:out+'/failure.png'});await fs.writeFile(out+'/failure.json',JSON.stringify({error:String(e),state:await read()},null,2));throw e;}
