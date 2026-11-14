@@ -1517,3 +1517,9 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Removed the title-screen Alley Rescue shortcut and the global browser-wide arm override. Kai remains a persistent roster unlock, but X God receives the arm only by finishing the rescue in his current campaign. It replaces the active weapon and follows the normal three-hit and power-up replacement rules. Ordinary ink-blaster pickups do not immediately overwrite the gift; they remain available once the arm is gone. New campaigns ignore the previous global arm flag and start with the ordinary blaster.
 - The per-run variant is validated and restored with the equipment save; old saves explicitly at the completed rescue migrate once. Earlier completed campaigns and old global unlocks do not automatically equip it. Updated release notes and regression setup for the removal of the shortcut.
 - Integrated the latest main and verified the production build, full rescue and gift, save/reload with remaining durability, actual shot damage, three-hit loss, weapon replacement, normal pickup afterward, a new campaign with the old flag, legacy completed-rescue migration, phone entry, run-and-gun, campaign saves, and gun upgrades.
+
+## 2026-11-13 - Campaign audio and Kenney sci-fi effects
+
+- Added the supplied Witchwood, Dread Planet, Kilina and Void Pursuer tracks plus the ground boss warning. Replaced Furnace music with Cave Drip Logic2 at the existing track path.
+- Selected and edited five Kenney CC0 cues for Starbreak liftoff, Pursuer arrival and lock-on, Void Regent phase changes, and nearby vent warnings. The in-game Credits and the asset folder identify the pack and license. The full audition shortlist remains under art/audio-kenney-scifi-selection.
+- The production build passed and Chromium verified the new cues and replacement Furnace track. Headphone and physical device mix review remain open.
