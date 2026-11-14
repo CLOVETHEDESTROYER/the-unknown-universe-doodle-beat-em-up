@@ -10,6 +10,7 @@ interface EncounterHost {
   complete:(id:EncounterId)=>void;
   collapse:(elapsed:number)=>void;
   onFerry:()=>boolean;
+  gate?:(locked:boolean)=>void;
 }
 type Stage='waiting'|'warning'|'active'|'between_waves'|'orb_ready'|'complete';
 /** Uses simulation delta so pauses, hit-stop and checkpoint retries remain deterministic. */
@@ -27,17 +28,20 @@ export class RouteEncounterRuntime {
   private cage:Phaser.GameObjects.Graphics|null=null;
   private captive:Phaser.GameObjects.Image|null=null;
   private released=false;
+  private gated=false;
+  private gateInk:Phaser.GameObjects.Graphics|null=null;
   constructor(private scene:Phaser.Scene,readonly plan:RouteEncounterPlan,private host:EncounterHost,completed:boolean,width:number,pixelScale=1){
-    this.stage=completed||plan.kind==='rescue'&&host.rescued()?'complete':'waiting';
+    this.stage=completed||plan.kind==='rescue'&&host.rescued()||plan.kind==='combat'&&host.player.x>plan.exit+80?'complete':'waiting';
     this.hud=scene.add.text(width/2,145,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'21px',color:'#fff3ce',align:'center',stroke:'#151224',strokeThickness:3,
       backgroundColor:'#141325ed',padding:{x:12,y:8},wordWrap:{width:Math.min(640,width-70)}}).setOrigin(.5,0).setScrollFactor(0).setDepth(95).setVisible(false);
     this.marker=scene.add.text(plan.marker.x,plan.marker.y-120,plan.title,{fontFamily:'Gochi Hand, sans-serif',fontSize:'24px',color:'#ffe7a2',stroke:'#21192f',strokeThickness:5}).setOrigin(.5).setDepth(8);
+    if(plan.hold)this.gateInk=scene.add.graphics().setDepth(12);
     if(plan.kind==='rescue'&&this.stage!=='complete'){
       this.captive=scene.add.image(plan.marker.x,plan.marker.y,'doghost_pickup').setDisplaySize(60,60).setDepth(8);
       this.cage=scene.add.graphics().setDepth(10);this.drawCage();
     }
     this.resize(width,pixelScale);
-    if(this.stage==='complete')this.marker.setText(plan.kind==='rescue'?'DOGHOST IS FREE':'CROSSING SECURED').setColor('#b6f5c2');
+    if(this.stage==='complete')this.marker.setText(plan.kind==='rescue'?'DOGHOST IS FREE':plan.kind==='combat'?'ROUTE CLEAR':'CROSSING SECURED').setColor('#b6f5c2');
   }
   resize(width:number,pixelScale=1){
     const scale=Math.max(.2,pixelScale);
@@ -62,8 +66,10 @@ export class RouteEncounterRuntime {
   private finish(){
     if(this.stage==='complete')return;
     this.stage='complete';this.noticeMs=3800;
+    if(this.gated){this.host.gate?.(false);this.gated=false;}
+    this.gateInk?.clear();
     this.cage?.destroy();this.cage=null;this.captive?.destroy();this.captive=null;
-    this.marker.setText(this.plan.kind==='rescue'?'DOGHOST IS FREE':'CROSSING SECURED').setColor('#b6f5c2');
+    this.marker.setText(this.plan.kind==='rescue'?'DOGHOST IS FREE':this.plan.kind==='combat'?'ROUTE CLEAR':'CROSSING SECURED').setColor('#b6f5c2');
     this.host.complete(this.plan.id);playSfx('powerup');
   }
   update(delta:number){
@@ -72,7 +78,13 @@ export class RouteEncounterRuntime {
       this.noticeMs=Math.max(0,this.noticeMs-delta);this.marker.setVisible(this.noticeMs===0);this.hud.setVisible(this.noticeMs>0&&near).setText(this.plan.payoff);return;
     }
     if(this.stage==='waiting'&&x>=this.plan.entry&&x<=this.plan.exit+80){
-      this.stage='warning';this.grace=2200;this.attempts++;playSfx('shield',{volume:.3});
+      this.stage='warning';this.grace=this.plan.kind==='combat'?1000:2200;this.attempts++;playSfx('shield',{volume:.3});
+      if(this.plan.hold){this.host.gate?.(true);this.gated=true;}
+      if(this.gated){
+        this.gateInk?.lineStyle(4,0xffd166,.85);
+        for(const edge of [this.plan.entry-100,this.plan.exit])for(let y=200;y<480;y+=32)
+          this.gateInk?.lineBetween(edge,y,edge,y+18);
+      }
     }
     if(this.stage==='warning'){
       this.grace-=delta;
@@ -87,7 +99,7 @@ export class RouteEncounterRuntime {
         else if(this.plan.kind==='rescue'){
           this.stage='orb_ready';this.cage?.destroy();this.cage=null;this.captive?.destroy();this.captive=null;
           this.host.releaseDoghost();this.released=true;playSfx('shield');
-        }else if(this.riddenMs>=250&&x>=this.plan.exit)this.finish();
+        }else if(this.plan.kind==='combat'||this.riddenMs>=250&&x>=this.plan.exit)this.finish();
       }
     }else if(this.stage==='between_waves'){
       this.grace-=delta;if(this.grace<=0)this.spawnWave();
@@ -103,6 +115,8 @@ export class RouteEncounterRuntime {
     this.hud.setVisible(near&&this.stage!=='waiting').setText(this.plan.title+'\n'+objective);
   }
   reset(){
+    if(this.gated){this.host.gate?.(false);this.gated=false;}
+    this.gateInk?.clear();
     if(this.stage==='complete')return;
     this.enemies.forEach(enemy=>{if(enemy.active)enemy.destroy();});this.enemies=[];
     this.stage='waiting';this.elapsed=0;this.wave=-1;this.grace=0;this.riddenMs=0;this.hud.setVisible(false);
@@ -111,6 +125,6 @@ export class RouteEncounterRuntime {
       this.stage='orb_ready';
     }
   }
-  read(){return {id:this.plan.id,title:this.plan.title,kind:this.plan.kind,stage:this.stage,wave:this.wave+1,totalWaves:this.plan.waves.length,enemiesLeft:this.enemiesLeft(),elapsedMs:Math.round(this.elapsed),warningMs:Math.max(0,Math.round(this.grace)),riddenMs:Math.round(this.riddenMs),attempts:this.attempts,entry:this.plan.entry,exit:this.plan.exit,marker:this.plan.marker,objectiveVisible:this.hud.visible};}
-  destroy(){this.enemies.forEach(enemy=>{if(enemy.active)enemy.destroy();});this.hud.destroy();this.marker.destroy();this.cage?.destroy();this.captive?.destroy();}
+  read(){return {id:this.plan.id,title:this.plan.title,kind:this.plan.kind,stage:this.stage,locked:this.gated,wave:this.wave+1,totalWaves:this.plan.waves.length,enemiesLeft:this.enemiesLeft(),elapsedMs:Math.round(this.elapsed),warningMs:Math.max(0,Math.round(this.grace)),riddenMs:Math.round(this.riddenMs),attempts:this.attempts,entry:this.plan.entry,exit:this.plan.exit,marker:this.plan.marker,objectiveVisible:this.hud.visible};}
+  destroy(){if(this.gated){this.host.gate?.(false);this.gated=false;}this.gateInk?.destroy();this.enemies.forEach(enemy=>{if(enemy.active)enemy.destroy();});this.hud.destroy();this.marker.destroy();this.cage?.destroy();this.captive?.destroy();}
 }
