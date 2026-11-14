@@ -89,6 +89,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
     let flightVictory:HeroCelebration|null=null,flightVictoryStarted=false;
     let audioShots=0,audioEnemyShots=0,audioImpacts=0,audioDeathId:number|null=null,audioPickups=0,audioBeacons=0;
+    let previousFlightPhase=state.phase;
+    let previousPursuerPhase: string | undefined;
     const heardEffects=new Set<number>();
     let ship:Phaser.GameObjects.Container,exhaust:Phaser.GameObjects.Graphics;
     let walker:Phaser.GameObjects.Sprite,pilot:Phaser.GameObjects.Sprite;
@@ -118,10 +120,11 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         fire:Boolean(keys?.fire.isDown||keys?.alternate.isDown||touch.attack||touch.shoot)};
     };
     function sync(){
-      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}`;
+      const activeBossId=state.phase==='flight'&&state.combat.enemies.some(e=>e.kind==='pursuer'&&e.phase!=='dying')?'void-pursuer':null;
+      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}/${activeBossId}`;
       if(signature===lastSync)return;
       lastSync=signature;
-      callbacks.current.onStatsUpdate({isDying:state.phase==='respawn'||state.phase==='dying',
+      callbacks.current.onStatsUpdate({activeBossId,isDying:state.phase==='respawn'||state.phase==='dying',
         flightSave:{checkpoint:state.checkpoint,weapon:state.combat.weapon,hits:state.weaponHits,collectedWeapons:[...state.collectedWeapons],collected:[...state.collected],seed:state.asteroidSeed},health:state.hull,lives:state.lives,score:state.score,
         monstersDefeated:initialStats.monstersDefeated+state.combat.defeated.length,isGameOver:state.phase==='gameover'});
     }
@@ -147,6 +150,15 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       }
     }
     function syncFlightSounds(){
+      if(state.phase!==previousFlightPhase&&state.phase==='launch')playSfx('shipLaunch',{pitch:1});
+      previousFlightPhase=state.phase;
+
+      const pursuerPhase=state.combat.enemies.find(e=>e.kind==='pursuer')?.phase;
+      if(pursuerPhase!==previousPursuerPhase){
+        if(pursuerPhase==='enter')playSfx('pursuerArrival',{pitch:1});
+        if(pursuerPhase==='tell')playSfx('pursuerLockOn',{pitch:1});
+        previousPursuerPhase=pursuerPhase;
+      }
       if(state.combat.shotsFired>audioShots){
         playSfx(state.combat.weapon==='lance'?'shipLance':state.combat.weapon==='homing'?'shipMissile':'shipLaser');
       }

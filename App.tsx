@@ -33,15 +33,17 @@ const LEVEL_MUSIC: Partial<Record<number, string>> = {
   1: "/TheUnknownUniverseTheme.mp3",
   2: "/GraveYardDread.mp3",
   3: "/CaveDripLogic.mp3",
-  4: "/GraveYardDread.mp3",
+  4: "/audio/music/witchwood-level.mp3",
   5: "/audio/music/starbreak-overdrive.mp3",
-  6: "/CaveDripLogic.mp3"
+  6: "/audio/music/dread-planet-level.mp3"
 };
 const START_SCREEN_MUSIC = "/GfunkAllStars.mp3";
 const BOSS_MUSIC: Partial<Record<number, { bossId: string; src: string }>> = {
   1: { bossId: "dark_dragon", src: "/audio/music/dark-dragon-dragons-breath.mp3" },
   2: { bossId: "killinas_daughter", src: "/audio/music/killinas-daughter-the-brooding-collosus.mp3" },
-  3: { bossId: "ink_behemoth", src: "/audio/music/cinder-colossus-heart-of-the-furnace.mp3" }
+  3: { bossId: "ink_behemoth", src: "/audio/music/cinder-colossus-heart-of-the-furnace.mp3" },
+  4: { bossId: "kilina", src: "/audio/music/kilina-boss.mp3" },
+  5: { bossId: "void-pursuer", src: "/audio/music/void-pursuer.mp3" }
 };
 const LEVEL_ONE_INTRO_IMAGE = "/Level1Intro.png";
 const START_SCREEN_IMAGE = "/GameStartScreen.png";
@@ -982,6 +984,7 @@ const App: React.FC = () => {
                         <p><span className="font-bold text-slate-900">Project:</span> The Unknown Universe: Doodle Beat 'Em Up</p>
                         <p><span className="font-bold text-slate-900">Art Direction:</span> Hand-drawn character, prop, and level art from your custom asset set.</p>
                         <p><span className="font-bold text-slate-900">Tech:</span> React, Phaser, and Vite.</p>
+                        <p><span className="font-bold text-slate-900">Additional sound effects:</span> <a className="underline" href="https://kenney.nl/assets/sci-fi-sounds" target="_blank" rel="noreferrer">Sci-fi Sounds by Kenney</a> (CC0 1.0).</p>
                         <p><span className="font-bold text-slate-900">Current Build:</span> {useLegacyBrawler ? "Four" : "Five"}-level campaign with persistent power-ups, bosses, pals, and custom music.</p>
                       </div>
                     </>
