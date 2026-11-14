@@ -1,4 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
+import GameUpdates from "./components/GameUpdates";
+import { LATEST_UPDATE, markLatestUpdateSeen, readSeenUpdate } from "./gameplay/gameUpdates";
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import AlleyRescue from "./components/AlleyRescue";
@@ -31,7 +33,7 @@ const GameEngine = lazy(loadLegacy);
 type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue";
 const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
 const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
-type TitlePanel = "options" | "credits" | null;
+type TitlePanel = "options" | "credits" | "updates" | null;
 
 const LEVEL_MUSIC: Partial<Record<number, string>> = {
   1: "/TheUnknownUniverseTheme.mp3",
@@ -290,7 +292,23 @@ const App: React.FC = () => {
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
   const storyTransitionRef = React.useRef(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
+  const [seenUpdate, setSeenUpdate] = useState(readSeenUpdate);
+  const [hasLegacyPlayHistory] = useState(isRosterUnlockedFromStorage);
+  const returningPlayer = seenUpdate !== null || Boolean(savedCampaign) || kaiRescued || hasLegacyPlayHistory;
+  const [updatesAfter, setUpdatesAfter] = useState<number | null>(seenUpdate ?? 0);
+  const [titlePanel, setTitlePanel] = useState<TitlePanel>(() =>
+    appPhase === "start" && returningPlayer && (seenUpdate ?? 0) < LATEST_UPDATE ? "updates" : null
+  );
+
+  const closeUpdates = () => {
+    setSeenUpdate(markLatestUpdateSeen());
+    setTitlePanel(null);
+  };
+
+  const rememberPlay = () => {
+    // First-time players have already started on the current release.
+    if (seenUpdate === null) setSeenUpdate(markLatestUpdateSeen());
+  };
   const [isIntroExiting, setIsIntroExiting] = useState(false);
   const introStartedRef = React.useRef(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -409,6 +427,8 @@ const App: React.FC = () => {
       if (event.repeat) {
         return;
       }
+
+      if (titlePanel === "updates") return;
 
       if (event.key === "Escape") {
         setTitlePanel(null);
@@ -582,6 +602,7 @@ const App: React.FC = () => {
   const continueCampaign = () => {
     const save = readCampaignSave(DEFAULT_STATS);
     if (!save) {setSavedCampaign(null);setSaveError('That save could not be loaded. You can start a new game.');return;}
+    rememberPlay();
     // A title opened with preview parameters must restore the real campaign unchanged.
     window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     setRequestedLegacyBrawler(false);
@@ -720,6 +741,7 @@ const App: React.FC = () => {
       return;
     }
 
+    rememberPlay();
     setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     setCampaignActive(!requestedLegacyBrawler && !window.location.search && !playerSprite);
     setSelectedCharacterId(characterId);
@@ -904,7 +926,7 @@ const App: React.FC = () => {
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
 
-                <button type="button" onClick={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="absolute right-[5%] top-[5%] rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button>
+                <button type="button" onClick={() => {rememberPlay();setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="absolute right-[5%] top-[5%] rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button>
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
                 </div>
@@ -951,7 +973,17 @@ const App: React.FC = () => {
                 <button onClick={()=>setConfirmNewRun(false)} className="m-2 rounded-xl border px-4 py-2">Keep my save</button>
               </div>
             </div>}
-            {titlePanel && (
+            {returningPlayer && (
+              <button
+                type="button"
+                onClick={() => { setUpdatesAfter(null); setTitlePanel("updates"); }}
+                className="absolute bottom-3 right-3 z-10 min-h-11 rounded-full border-2 border-violet-300 bg-slate-950 px-4 py-2 font-['Gochi_Hand'] text-lg font-bold text-white hover:bg-violet-900 sm:bottom-5 sm:right-5"
+              >
+                What’s New
+              </button>
+            )}
+            {titlePanel === "updates" && <GameUpdates after={updatesAfter} onClose={closeUpdates} />}
+            {(titlePanel === "options" || titlePanel === "credits") && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
                 <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
                   <button
