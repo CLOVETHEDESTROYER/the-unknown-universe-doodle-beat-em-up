@@ -26,7 +26,7 @@ import {updateUniqueEnemy,updateUniqueProjectiles,uniqueProjectileWall} from '..
 import { localEnemyMove, updateLocalEnemy, playEnemyDefeat } from '../gameplay/enemyMotionRuntime';
 import type { RestoredEnemyKind } from "../gameplay/enemyVariety";
 import { RESTORED_ENEMY_BODIES } from "../gameplay/restoredEnemyBodies";
-import {GUN_UPGRADES,gunInterval} from '../gameplay/gunUpgrades';
+import {GUN_UPGRADES,gunInterval,gunIconPath,canSpawnGunVolley,BASE_BLASTER} from '../gameplay/gunUpgrades';
 import type {GunUpgradeId} from '../gameplay/gunUpgrades';
 import {makeGunUpgradeTextures,steerGunSeekers} from '../gameplay/gunUpgradeRuntime';
 import { POWERUPS, restoreLoadout, equipPowerup, hitPowerup, powerupRoute, gunUpgradeRoute, upgradeGun } from '../gameplay/powerups';
@@ -1088,7 +1088,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const level = {...originalLevel,enemies:originalLevel.enemies.map((enemy,index) => ({...enemy,
       bossId:thanksgiving&&currentLevel===1&&enemy.bossId==='dark_dragon'?'turkey':enemy.bossId,
       kind:enemy===originalLevel.enemies.find(e=>e.kind==='walker')?'walker':localEnemyKind(currentLevel,replacements.get(enemy)??enemy.kind,index) as EnemyKind}))};
-    const encounterPlans = encountersForLevel(currentLevel);
+    const encounterPlans = encountersForLevel(currentLevel,level.endX);
+    if(currentLevel===1){
+      const beats=encounterPlans.filter(p=>p.kind==='combat');
+      level.enemies=level.enemies.filter(e=>e.kind==='boss'||!beats.some(p=>e.x>=p.entry&&e.x<=p.exit));
+      level.enemies=level.enemies.filter(e=>e.kind==='boss'||e.x<level.endX-1680||e.x>level.endX-980);
+      level.pickups=[...level.pickups,{kind:'heart',x:2370,y:420}];
+    }
     // Replace existing patrols inside the set pieces, keeping total pressure readable.
     if (currentLevel === 1) {
       level.platforms = level.platforms.filter(p => !(p.x === 7520 && p.y === 480));
@@ -1280,7 +1286,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let emberRemaining=0,emberClockAt=-9999;
     const emberTargets=new Set<Phaser.Physics.Arcade.Sprite>();
     const routePowers=isTurkeyKing?[]:powerupRoute(currentLevel,level);
-    const gunUpgradePlans=isTurkeyKing?[]:gunUpgradeRoute(level,routePowers);
+    const gunUpgradePlans=isTurkeyKing?[]:gunUpgradeRoute(level,routePowers).map(p=>
+      currentLevel===1&&p.mode==='rapid'?{...p,x:880,y:418}:p);
     const gunStations:Array<{mode:GunUpgradeId;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     const availablePowers=(['blaster','sword','frost','ember','storm'] as EquippedPowerup[])
       .filter(id=>POWERUPS[id].level<=currentLevel||equipment.active===id);
@@ -1458,6 +1465,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
+      if (!isTurkeyKing) {
+        (Object.keys(GUN_UPGRADES) as GunUpgradeId[]).forEach(mode => {
+          // Load directly: the generic asset resolver has no WebP variants for
+          // these new icons. makeGunUpgradeTextures remains a failure fallback.
+          this.load.image(`gun_upgrade_${mode}`, gunIconPath(mode));
+        });
+      }
       if (hasDinio || level.pickups.some(p => p.kind === 'dinio')) {
         loadGameImage(this.load, "dinio_pickup", "doodles/dinio_orb.png");
         loadGameImage(this.load, "dinio_shot", "doodles/dinio_shot.png");
@@ -1707,6 +1721,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(level.platformRoute)platformRoute=new PlatformRouteRuntime(scene,level.platformRoute,player,currentLevel,()=>damagePlayer(scene,12,false));
       routeEncounters = encounterPlans.map(plan => new RouteEncounterRuntime(scene, plan, {
         player,
+        gate: locked => {
+          const body=player.body as Phaser.Physics.Arcade.Body;
+          const camera=scene.cameras.main;
+          if(locked){
+            const left=plan.entry-100,width=plan.exit-left;
+            body.setBoundsRectangle(new Phaser.Geom.Rectangle(left,-WORLD_HEIGHT*2,width,WORLD_HEIGHT*4)).setCollideWorldBounds(true,0,0);
+            camera.setBounds(left,0,width,SCREEN_HEIGHT);
+          }else if(!bossArenaCameraLocked){
+            body.setBoundsRectangle(null).setCollideWorldBounds(false);
+            camera.setBounds(0,0,worldWidth,SCREEN_HEIGHT);
+          }
+        },
         spawn: enemy => addEnemy(scene, enemy),
         rescued: () => isTurkeyKing||doghostUnlocked,
         releaseDoghost: () => addPickup(scene, {kind:'doghost',x:plan.marker.x,y:plan.marker.y}),
@@ -1715,6 +1741,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           completedEncounters.add(id);
           currentScore += id==='last_ferry'?400:300;
           if (id==='rooftop_runout') playerHealth=Math.min(100,playerHealth+20);
+          if (id==='rooftop_crossfire') playerHealth=Math.min(100,playerHealth+20);
           if (id==='last_ferry'&&!isTurkeyKing) {shieldUnlocked=true;inkShieldReady=true;}
           syncStats();
         },
@@ -4382,11 +4409,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }).length;
       const mode=equipment.active==='blaster'?equipment.gunUpgrade:undefined;
       const spec=mode?GUN_UPGRADES[mode]:undefined;
-      if (activeShots+(spec?.angles.length??1) > (spec?.limit??3)) return false;
+      if (!canSpawnGunVolley(activeShots, mode)) return false;
 
       const body = player.body as Phaser.Physics.Arcade.Body;
       if(!isXGod&&!isKai&&!isElytron&&!isShadow){
-        updatePlayerVisual(scene,isPlayerGrounded(body),0);
+        updatePlayerVisual(scene,isPlayerGrounded(body),body.velocity.x);
         if(!isCrouching&&isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
       }
       if (equipment.active==='blaster' && isXGod && !isCrouching && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
@@ -4409,7 +4436,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       let shot:Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       for(const angle of spec?.angles??[0]){
         const bolt=projectiles.create(muzzleX,muzzleY,isKai?'kai_fx':'player_ink_shot',isKai?'0':undefined) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-        bolt.setData('damage',damage).setData('playerShotExpiresAt',scene.time.now+(spec?.lifetime??900))
+        bolt.setData('damage',damage).setData('playerShotExpiresAt',scene.time.now+(spec?.lifetime??BASE_BLASTER.lifetime))
           .setDepth(22).setFlipX(facingDirection<0).setVelocity(facingDirection*Math.cos(angle)*(spec?.speed??650),Math.sin(angle)*(spec?.speed??650));
         if(isKai)bolt.setDisplaySize(42,22).play('kai_pellet');
         if(spec)bolt.setTint(spec.color).setData('gunUpgrade',mode).setData('gunDirection',facingDirection).setData('pattern','gun_'+mode);
@@ -4433,7 +4460,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         damageEnemy(scene, closeTarget, damage, true);
       }
 
-      const flash = scene.add.ellipse(muzzleX, muzzleY, 26, 20, 0xf4f0b3, 0.85).setDepth(21);
+      const flash = scene.add.ellipse(muzzleX, muzzleY, mode==='fan'?34:mode==='homing'?30:26, mode==='fan'?26:20, spec?.color??0xf4f0b3, 0.85).setDepth(21);
       scene.tweens.add({ targets: flash, scaleX: 1.5, scaleY: 0.3, alpha: 0, duration: 90, onComplete: () => flash.destroy() });
       shotsFired += 1;
       playSfx('blaster');
@@ -5521,6 +5548,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function activateCheckpoint(flag: Phaser.Physics.Arcade.Sprite) {
+      if(routeEncounters.some(encounter=>encounter.read().locked))return;
       const index = flag.getData("index") as number;
       if (index <= checkpointIndex) return;
       checkpointIndex = index;
