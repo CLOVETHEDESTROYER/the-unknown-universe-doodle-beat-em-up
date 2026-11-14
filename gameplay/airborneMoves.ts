@@ -18,6 +18,7 @@ interface Hooks {
   canUse: () => boolean;
   clearLine: (enemy: Enemy) => boolean;
   damage: (enemy: Enemy, amount: number) => boolean;
+  damageProps?: (area: Phaser.Geom.Rectangle, amount: number) => void;
 }
 
 /** Airborne moves share the ordinary player collider, input edges and scene clock. */
@@ -137,14 +138,16 @@ export class AirborneMoves {
     this.phase = 'landing'; this.phaseAt = now; this.impacts++;
     const camera = this.scene.cameras.main;
     this.impact = { x: body.center.x, y: body.bottom, at: now, left: camera.scrollX, right: camera.scrollX+camera.width };
+    const move=HERO_MOBILITY[this.hero];
+    const area = new Phaser.Geom.Rectangle(body.center.x-move.radius, body.bottom-move.height, move.radius*2, move.height+15);
+    // Hit props once on impact, not once per dive or recovery frame.
+    this.hooks.damageProps?.(area,move.wave);
     if (this.hero === 'zgod') {
       this.clearScreen();
       this.scene.cameras.main.shake(220, .005);
       playSfx(SLAM_SOUNDS[this.hero]);
       return;
     }
-    const move=HERO_MOBILITY[this.hero];
-    const area = new Phaser.Geom.Rectangle(body.center.x-move.radius, body.bottom-move.height, move.radius*2, move.height+15);
     for (const enemy of [...this.hooks.enemies.getChildren()] as Enemy[]) {
       if (!enemy.active || !this.hooks.clearLine(enemy)) continue;
       const b = enemy.body as Phaser.Physics.Arcade.Body;

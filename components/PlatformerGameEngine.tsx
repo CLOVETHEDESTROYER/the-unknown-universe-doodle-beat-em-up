@@ -2069,6 +2069,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
         damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true, true),
+        damageProps: (area, amount) => { supplyCrates?.damageRect(area, amount); },
       }, selectedCharacterId);
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());

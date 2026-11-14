@@ -1,5 +1,9 @@
 # Supply crates: all six campaign levels
 
+Ground-pound landing shockwaves (including X-God's Butt Bomb) now break nearby landed crates in one impact using the hero's existing slam area and damage. Ordinary jumps and airborne windups do not damage them. Parachuting crates remain protected until landing; break effects, rewards and save/retry deduplication use the existing crate runtime. Z-God's prop damage stays local even though her enemy attack clears the screen.
+
+`node scripts/test_supply_crate_slams.mjs` checks real impacts with X-God, Barrett and Z-God: protected airborne deliveries, ordinary jumps, out-of-range slams, one-impact breaks, reward collection and repeat-impact deduplication. It uses Level 2 to isolate crate behavior from Level 1's gated combat encounters and spring pads. The existing `test_supply_crates_v1.mjs` remains the shooting/melee/save/retry regression.
+
 Three non-solid, hand-drawn crates reuse `public/doodles/o_box.png`:
 
 - x=1060: Rapid Fire; collecting equips the Ink Blaster if necessary.
