@@ -19,7 +19,7 @@ The nine-character roster includes X God, Z-God, Barrett, Nico, Ezra, Teleportat
 
 ## Encounters along the route
 
-The Scratch has a cracking rooftop escape, the Graveyard has a guarded Doghost rescue, and Witchwood has a two-wave moving-ferry ambush. Each has a warning, objective and one-time reward. They do not lock the route to the boss. Completed encounters are remembered by Save and Continue. See [encounter notes](docs/route-encounters-v1.md) for previews and checks.
+The Scratch has a gate guarded by Lockwing and a cracking rooftop escape. The Graveyard has a guarded Doghost rescue, and Witchwood has a two-wave moving-ferry ambush. Lockwing rises and falls in front of its gate. Wait for it to come down, then shoot or punch it to open the path. Completed encounters are remembered by Save and Continue. See [encounter notes](docs/route-encounters-v1.md) for previews and checks.
 
 ## Run locally
 
@@ -38,7 +38,7 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 
 - Left/right arrows: move; reverse direction to skid.
 - Z or Up: jump. Down: crouch where supported.
-- Space or C: use the equipped weapon/power, or punch while unarmed.
+- Space or C: use the equipped weapon/power, or punch while unarmed. With the blaster or Kai arm cannon, hold for about 1.4 seconds and release for a charged shot; ordinary shots continue while charging.
 - Teleportation C: X to blink; R or Down+X to return to a valid anchor.
 - Flight: arrows to steer; Space/C to fire.
 - P: pause. Options and Pause contain separate music/effects volume and mute controls.

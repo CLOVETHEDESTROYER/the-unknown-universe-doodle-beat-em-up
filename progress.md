@@ -1523,3 +1523,39 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Added the supplied Witchwood, Dread Planet, Kilina and Void Pursuer tracks plus the ground boss warning. Replaced Furnace music with Cave Drip Logic2 at the existing track path.
 - Selected and edited five Kenney CC0 cues for Starbreak liftoff, Pursuer arrival and lock-on, Void Regent phase changes, and nearby vent warnings. The in-game Credits and the asset folder identify the pack and license. The full audition shortlist remains under art/audio-kenney-scifi-selection.
 - The production build passed and Chromium verified the new cues and replacement Furnace track. Headphone and physical device mix review remain open.
+
+## 2026-11-17 — Charged blaster and wisp patrol experiment
+
+- Added a 1.4-second charge to the blaster and Kai arm cannon while retaining held rapid fire. Releasing a full charge fires a six-damage glowing projectile; existing boss guard rules still apply. Charge cancels on respawn, freeze, celebrations, or loss of eligibility. Added charge state to gameplay text output.
+- Expanded Red Wisp vertical patrol from 13 to 55 world pixels as an initial airborne movement variation. This is not a mandatory enemy gate. Playtest sightlines and fairness before adding dedicated blocking enemies.
+- TypeScript and production build passed. Browser gameplay state confirmed rapid fire and a released 6-damage charged projectile. Inspected a gameplay screenshot via browser compositor; the normal canvas capture was black. The browser logged one unidentified 404, while the game reported no failed assets. Touch release, bosses and wisp behavior still need human playtesting.
+
+## 2026-11-17 — X God running and arm cannon poses
+
+- Restored the clean two-handed Ink Blaster run with its matching muzzle metadata. The revised unarmed run layers new arm-swing poses over the original eight leg poses and is shared by the campaign and Alley Rescue. Source art and rebuild scripts are in art/xgod-run-v2.
+- X God keeps the equipped Kai arm cannon in crouch, jump, landing, skid, run and idle poses. Barrel anchors follow the selected frame for shots and charge effects.
+- Production build and local Playwright checks passed. Checked both original run modes and arm cannon crouch, jump, firing and landing with desktop and mobile graphics. Reviewed the run sheet and browser screenshots.
+
+## 2026-11-17 — Ink Blaster pickup after Kai rescue
+
+- Regular Ink Blaster supplies equip the handheld blaster. After the rescue unlock, the later supply offers the Kai Blaster Arm. Explicit selections persist through loadout restore, and old saves retain their prior default.
+- The revised unarmed run is used for empty hands. Ink, Kai, sword, frost and elemental equipment keep their respective running art.
+- Production build and browser verification passed. Walked into the Ink supply with the arm unlocked, fired normal and charged shots, lost the weapon and ran unarmed, then collected the Kai arm and crouched.
+
+## 2026-11-17 — Lockwing gate playtest
+
+- Added one original flying blocker to The Scratch using the route encounter and save systems. Its 3.2-second patrol includes a low hold for melee and ranged attacks. The gate blocks player movement and teleport paths until Lockwing is defeated. The preview places its retry checkpoint just before the encounter.
+- Source sprite: art/lockwing-v1/source.png. Runtime transparent image: public/enemies/lockwing.webp.
+- Production build passed. Chromium playtest verified vertical motion, a closed gate blocking movement and a jump, checkpoint reset, and clears with X God's Ink Blaster and Barrett's fists. Inspected the in-game capture. Hold further recommendation work until the first encounter is playtested.
+
+## 2026-11-17 — Charge shot feedback and Butt Bomb contact
+
+- Added original charge-ready, launch and impact sounds, a barrel charge indicator, a cyan projectile trail, and a distinct impact burst. Charge timing and damage stay at 1.4 seconds and six damage. Lockwing wobbles on hits and snaps open before tumbling on defeat. Source art: art/lockwing-v1/defeat-source.png.
+- X God and Elytron check the full path of a Butt Bomb descent for direct hits. Direct contact has a brief hit pause. Hit enemies and ground bosses display a squashed pose made from their current sprite; the reaction does not resize their collision bodies. The dive and shockwave share the same target list.
+- Production build and Chrome checks passed. Verified the three charge sounds, charged Lockwing defeat, direct and shockwave damage without double hits, and the Dark Dragon squash while guarded. Reviewed the charge and boss screenshots.
+
+## 2026-11-17 — Integrate local gameplay with the latest main
+
+- Started from origin/main at 2e3ccd0. Kept the shipped Alley and party tracks, dance, supply crates, mobile layout, and full-health checkpoint retries. Kai's arm remains an equipment variant earned during the current campaign. Ink Blaster supplies are available when the arm is out of the loadout.
+- Moved Lockwing between the first checkpoint and spring pad so the gate does not overlap Ink Rush. Preserved the charge feedback, Butt Bomb contact and reactions, and mouthless running and Kai-arm pose art. Kept the main branch's firing cap and slam damage to crates.
+- Build and browser tests passed for Alley audio and campaign save/resume, Level 1 encounter pacing, charged Lockwing defeat and guarded boss smash.

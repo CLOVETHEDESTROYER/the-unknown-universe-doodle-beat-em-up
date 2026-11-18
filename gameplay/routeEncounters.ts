@@ -1,15 +1,20 @@
 import type { GroundFoe } from './enemyMotion';
 
-export const ENCOUNTER_IDS = ['rooftop_runout','doghost_rescue','last_ferry','rapid_demo','rooftop_crossfire','dragon_approach'] as const;
+export const ENCOUNTER_IDS = ['rooftop_runout','doghost_rescue','last_ferry','rapid_demo','rooftop_crossfire','dragon_approach','lockwing_gate'] as const;
 export type EncounterId = typeof ENCOUNTER_IDS[number];
-export interface EncounterEnemy {kind: GroundFoe; x:number; y:number; left:number; right:number}
+export interface EncounterEnemy {kind: GroundFoe | 'lockwing'; x:number; y:number; left:number; right:number}
 export interface RouteEncounterPlan {
-  id:EncounterId; level:number; kind:'escape'|'rescue'|'ferry'|'combat'; title:string;
+  id:EncounterId; level:number; kind:'escape'|'rescue'|'ferry'|'combat'|'gate'; title:string;
   hold?:boolean;
   entry:number; exit:number; intro:string; objective:string; payoff:string;
   waves:EncounterEnemy[][]; marker:{x:number;y:number};
+  gate?: {x:number;floor:number};
 }
 export const ROUTE_ENCOUNTERS:RouteEncounterPlan[] = [
+  {id:'lockwing_gate',level:1,kind:'gate',title:'LOCKWING',entry:776,exit:925,
+    intro:'Lockwing shut the gate!',objective:'Wait for Lockwing to come down, then hit it.',payoff:'Gate open! +300',
+    marker:{x:854,y:300},gate:{x:925,floor:480},
+    waves:[[{kind:'lockwing',x:854,y:418,left:854,right:854}]]},
   {id:'rooftop_runout',level:1,kind:'escape',title:'ROOFTOP RUNOUT',entry:7060,exit:8260,
     intro:'The old roof is giving way!',objective:'Keep moving. Jump the gaps before the roof falls.',payoff:'Back on solid ground! +300 · Health +20',
     marker:{x:7150,y:330},waves:[[

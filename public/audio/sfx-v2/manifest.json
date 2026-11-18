@@ -998,6 +998,45 @@
         "inharmonic resonance",
         "short filtered early reflections"
       ]
+    },
+    {
+      "name": "blasterChargeReady",
+      "file": "blasterChargeReady-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.1624,
+      "layers": [
+        "rising first chime",
+        "clear full-charge chime",
+        "chime overtone",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "blasterChargeFire",
+      "file": "blasterChargeFire-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.099,
+      "layers": [
+        "heavy discharge",
+        "descending energy sweep",
+        "charged muzzle snap",
+        "short filtered early reflections"
+      ]
+    },
+    {
+      "name": "blasterChargeHit",
+      "file": "blasterChargeHit-1.wav",
+      "seconds": 0.42,
+      "peak": 0.74,
+      "rms": 0.0959,
+      "layers": [
+        "impact thump",
+        "ink splash snap",
+        "inharmonic resonance",
+        "short filtered early reflections"
+      ]
     }
   ]
 }
