@@ -5,6 +5,7 @@ import {SupplyCrateRuntime} from '../gameplay/supplyCrateRuntime';
 import {supplyCratePlans,type SupplyCrateSave} from '../gameplay/supplyCrates';
 import { BLASTER_CHARGE_MS, CHARGED_BOLT_TEXTURE, ChargedBlasterEffects } from '../gameplay/chargedBlasterEffects';
 import { FootfallCamera } from '../gameplay/footfallCamera';
+import {updateLockwingVolley,clearLockwingCombat} from '../gameplay/lockwingCombat';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
 import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
 import React, { useEffect, useRef } from "react";
@@ -60,6 +61,7 @@ interface PlatformerGameEngineProps {
   cameraMotion?: boolean;
   seasonalTheme?: SeasonalTheme;
   initialEquipment?: PowerupLoadout;
+  initialCollectedGems?: GameStats['collectedGems'];
   isPaused: boolean;
   initialLives?: number;
   initialHealth?: number;
@@ -1009,6 +1011,7 @@ const pointValueForPickup = (kind: PickupKind) => kind === "rush_star" ? 0 : kin
 const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   seasonalTheme,
   initialEquipment,
+  initialCollectedGems,
   isPaused,
   initialLives = 3,
   initialHealth = 100,
@@ -1224,6 +1227,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let playerLives = initialLives;
     let currentScore = initialScore;
     let currentSouls = initialSouls;
+    const collectedGems=new Set(initialCollectedGems?.level===currentLevel?initialCollectedGems.ids:[]);
     let currentKills = initialMonstersDefeated;
     let checkpoint = { x: level.spawn.x, y: getPlatformStandY(level.spawn.x) ?? level.spawn.y };
     let checkpointIndex = initialCheckpoint?.level === currentLevel && Number.isInteger(initialCheckpoint.index)
@@ -1327,6 +1331,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         supplyCrates:supplyCrateState,
         score: currentScore,
         souls: currentSouls,
+        collectedGems:{level:currentLevel,ids:[...collectedGems]},
         monstersDefeated: currentKills,
         health: playerHealth,
         lives: playerLives,
@@ -1781,12 +1786,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         spawn: enemy => {
           if(enemy.kind!=='lockwing')return addEnemy(scene,{...enemy,kind:enemy.kind});
           const sprite = enemies.create(enemy.x,enemy.y,'lockwing') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-          sprite.setDisplaySize(112,88).setDepth(14)
+          sprite.setDisplaySize(150,118).setDepth(14)
             .setData('kind','lockwing').setData('hp',6).setData('maxHp',6)
             .setData('baseScale',sprite.scaleX).setData('attackState','patrol').setData('move','vertical_patrol');
           sprite.body.setAllowGravity(false).setSize(sprite.width*.66,sprite.height*.65,true);
           return sprite;
         },
+        updateGateGuard:(enemy,delta)=>updateLockwingVolley(scene,enemy,player,projectiles,delta),
+        clearGateGuard:enemy=>{if(enemy.getData('kind')==='lockwing')clearLockwingCombat(enemy,projectiles);},
         rescued: () => isTurkeyKing||doghostUnlocked,
         releaseDoghost: () => addPickup(scene, {kind:'doghost',x:plan.marker.x,y:plan.marker.y}),
         complete: id => {
@@ -3178,12 +3185,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function addPickup(scene: Phaser.Scene, pickup: PickupPlan) {
+      const gemId=`${pickup.x},${pickup.y}`;
+      if(pickup.kind==='coin'&&collectedGems.has(gemId))return;
       if(isTurkeyKing&&!['coin','heart','rush_star'].includes(pickup.kind))return;
       if((pickup.kind==='power'&&!pickup.requiresBossDefeat)||['blaster','sword','frost','ember','storm'].includes(pickup.kind))return;
       const texture = pickup.kind === "power" ? "equipment_sword" : pickup.kind === "heart" ? "heart" : pickup.kind === "shield" ? "shield_pickup" : pickup.kind === "gravity" ? "gravity_pickup" : pickup.kind === "dinio" ? "dinio_pickup" : pickup.kind === "doghost" ? "doghost_pickup" : pickup.kind === "teleportation_c" ? "teleportation_c_pickup" : "gold_pickup";
       const sprite = pickups.create(pickup.x, pickup.y, texture) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       const scale = pickup.kind === "dinio" ? 0.31 : pickup.kind === "doghost" ? 0.2 : pickup.kind === "teleportation_c" ? 0.3 : 0.36;
       sprite.setData("kind", pickup.kind).setData("bounceReward", Boolean(pickup.bounceReward)).setDepth(9).setScale(scale);
+      if(pickup.kind==='coin')sprite.setData('gemId',gemId);
       if (pickup.kind === "power") sprite.setDisplaySize(64, 64);
       if (pickup.bounceReward) sprite.setDisplaySize(54, 54);
       if (pickup.kind === "rush_star") sprite.setTexture("rooftop_rush_star").setDisplaySize(44, 44);
@@ -5246,6 +5256,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (isBoss) {
           playBossDefeat(scene, enemy);
         } else if(enemy.getData('kind')==='lockwing'){
+          clearLockwingCombat(enemy,projectiles);
           playSfx('enemyDeath');
           const fallen=scene.add.sprite(enemy.x,enemy.y,'lockwing_open').setDisplaySize(enemy.displayWidth,enemy.displayHeight).setDepth(14).setData('kind','lockwing');
           enemyDeaths.add(fallen);
@@ -5656,6 +5667,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         currentScore+=station.sprite.getData('collectedOnce')?0:150;station.sprite.setData('collectedOnce',true);
         applyEquipment(scene,station.kind);return;
       }
+      if(kind==='coin'){
+        const id=pickup.getData('gemId') as string|undefined;
+        if(id&&collectedGems.has(id)){pickup.destroy();return;}
+        if(id)collectedGems.add(id);
+      }
       pickup.destroy();
       if(kind!=='power')playSfx(kind==='coin'||kind==='rush_star'?'pickup':kind==='shield'?'shield':'powerup');
       currentScore += pointValueForPickup(kind);
@@ -5851,6 +5867,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const activePickups = pickups
         ? pickups.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite).filter((pickup) => pickup.active).map((pickup) => ({
           kind: pickup.getData("kind"),
+          gemId:pickup.getData('gemId')??null,
           bounceReward: Boolean(pickup.getData("bounceReward")),
           x: Math.round(pickup.x),
           y: Math.round(pickup.y)
@@ -5862,6 +5879,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           y: Math.round(projectile.y),
           enemyProjectile: Boolean(projectile.getData("enemyProjectile")),
           sourceKind:projectile.getData('sourceKind')??null,
+          width:Math.round(projectile.displayWidth),height:Math.round(projectile.displayHeight),
           sourceBoss:projectile.getData('sourceBoss')?.getData('bossId')??null,
           companion:projectile.getData('companion')??null,
           armed: Boolean((projectile.body as Phaser.Physics.Arcade.Body).enable),

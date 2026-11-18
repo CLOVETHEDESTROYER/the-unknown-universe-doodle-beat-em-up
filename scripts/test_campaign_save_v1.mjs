@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 // Browser runtime plugin is unavailable; use the repository Playwright installation.
 const out='output/campaign-save-v1';await fs.mkdir(out,{recursive:true});
-const browser=await chromium.launch({headless:true});const errors=[];
+const browser=await chromium.launch({headless:true,...process.env.GAME_TEST_EXECUTABLE?{executablePath:process.env.GAME_TEST_EXECUTABLE}:{}});const errors=[];
 const context=await browser.newContext({viewport:{width:1365,height:768}});const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
 const origin=process.env.GAME_TEST_URL||'http://127.0.0.1:4383';const key='unknownUniverse.campaign.v1';
 const read=()=>page.evaluate(()=>{try{return JSON.parse(window.render_game_to_text());}catch{return null;}});

@@ -66,6 +66,8 @@ async function defeatAndExit(level){
   await wait(s=>s.bossDeath?.stage==='finished'&&s.bossDefeated);
   state=await read();await shot(`level${level}-boss-defeated`);
   await page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x:state.progress.levelEndX,y:level<=2?480:520});
+  await wait(s=>s.mode==='level-results'&&s.result.level===level);
+  await page.getByRole('button',{name:'Continue adventure',exact:false}).click();
   const ending=await story(`level${level}`);
   assert.equal(ending.resume.level,level+1);assert.equal(ending.resume.selectedCharacterId,'zgod');
   assert(ending.resume.score>=state.progress.score+900,'The clear reward is granted before story playback');

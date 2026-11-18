@@ -12,8 +12,8 @@ export interface RouteEncounterPlan {
 }
 export const ROUTE_ENCOUNTERS:RouteEncounterPlan[] = [
   {id:'lockwing_gate',level:1,kind:'gate',title:'LOCKWING',entry:776,exit:925,
-    intro:'Lockwing shut the gate!',objective:'Wait for Lockwing to come down, then hit it.',payoff:'Gate open! +300',
-    marker:{x:854,y:300},gate:{x:925,floor:480},
+    intro:'Lockwing shut the gate!',objective:'Dodge the upper and lower bolts. Strike when Lockwing comes down.',payoff:'Gate open! +300',
+    marker:{x:854,y:270},gate:{x:925,floor:480},
     waves:[[{kind:'lockwing',x:854,y:418,left:854,right:854}]]},
   {id:'rooftop_runout',level:1,kind:'escape',title:'ROOFTOP RUNOUT',entry:7060,exit:8260,
     intro:'The old roof is giving way!',objective:'Keep moving. Jump the gaps before the roof falls.',payoff:'Back on solid ground! +300 · Health +20',

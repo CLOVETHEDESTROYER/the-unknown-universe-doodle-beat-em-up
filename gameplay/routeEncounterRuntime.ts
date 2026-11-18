@@ -11,6 +11,8 @@ interface EncounterHost {
   collapse:(elapsed:number)=>void;
   onFerry:()=>boolean;
   gate?:(locked:boolean)=>void;
+  updateGateGuard?:(enemy:Phaser.Physics.Arcade.Sprite,delta:number)=>void;
+  clearGateGuard?:(enemy:Phaser.Physics.Arcade.Sprite)=>void;
 }
 type Stage='waiting'|'warning'|'active'|'between_waves'|'orb_ready'|'complete';
 /** Uses simulation delta so pauses, hit-stop and checkpoint retries remain deterministic. */
@@ -58,6 +60,7 @@ export class RouteEncounterRuntime {
     }
     this.resize(width,pixelScale);
     if(this.stage==='complete')this.showCompletionMarker();
+    else if(plan.kind==='gate')this.spawnGateGuard();
   }
   resize(width:number,pixelScale=1){
     const scale=Math.max(.2,pixelScale);
@@ -84,21 +87,30 @@ export class RouteEncounterRuntime {
     return body?{x:body.x,y:body.y,w:body.width,h:body.height}:null;
   }
   get holdsCamera() { return this.gated; }
-  private patrolGate(){
+  private spawnGateGuard(){
+    this.wave=0;
+    this.enemies=this.plan.waves[0].map(plan=>this.host.spawn({...plan,y:plan.y-185}).setData('routeEncounter',this.plan.id));
+    this.patrolGate(0);
+  }
+  private patrolGate(delta:number){
     const enemy=this.enemies[0];
     if(!enemy?.active)return;
-    // Wait at melee height, rise, wait high, and descend with eased reversals.
+    // Begin high, descend into melee range, wait low, then rise again.
     const phase=this.elapsed%3200;
-    const rise=phase<1050?0:phase<1800?(phase-1050)/750:phase<2300?1:1-(phase-2300)/900;
+    const rise=phase<400?1:phase<1300?1-(phase-400)/900:phase<2300?0:(phase-2300)/900;
     const lift=(1-Math.cos(Math.PI*rise))/2;
     const {x,y}=this.plan.waves[0][0];
     const body=enemy.body as Phaser.Physics.Arcade.Body;
     body.reset(x,y-185*lift);
     body.updateFromGameObject();
+    // Prevent the custom collision offset from being applied to the art again in postUpdate.
+    body.prev.copy(body.position);body.prevFrame.copy(body.position);
     const wobble = Math.max(0,Number(enemy.getData('wobbleUntil') ?? 0) - this.scene.time.now) / 300;
     enemy.setAngle(wobble > 0 ? Math.sin((1-wobble)*Math.PI*5)*wobble*20 : Math.sin(this.elapsed/140)*3);
+    this.host.updateGateGuard?.(enemy,delta);
   }
   private spawnWave(){
+    if(this.plan.kind==='gate'&&this.enemies.length){this.stage='active';return;}
     this.wave++;
     this.enemies=this.plan.waves[this.wave].map(plan=>{
       const enemy=this.host.spawn(plan);enemy.setData('routeEncounter',this.plan.id);
@@ -121,6 +133,10 @@ export class RouteEncounterRuntime {
     if(this.stage==='complete'){
       this.noticeMs=Math.max(0,this.noticeMs-delta);this.marker.setVisible(this.noticeMs===0);this.hud.setVisible(this.noticeMs>0&&near).setText(this.plan.payoff);return;
     }
+    if(this.plan.kind==='gate'){
+      if(!this.enemiesLeft()){this.finish();return;}
+      this.elapsed+=delta;this.patrolGate(delta);
+    }
     if(this.stage==='waiting'&&x>=this.plan.entry&&x<=this.plan.exit+80){
       this.stage='warning';this.grace=this.plan.kind==='gate'?480:this.plan.kind==='combat'?1000:2200;this.attempts++;playSfx('shield',{volume:.3});
       if(this.plan.hold){this.host.gate?.(true);this.gated=true;}
@@ -134,10 +150,9 @@ export class RouteEncounterRuntime {
       this.grace-=delta;
       if(this.grace<=0)this.spawnWave();
     }else if(this.stage==='active'){
-      this.elapsed+=delta;
+      if(this.plan.kind!=='gate')this.elapsed+=delta;
       if(this.plan.kind==='gate'){
-        if(this.enemiesLeft())this.patrolGate();
-        else this.finish();
+        if(!this.enemiesLeft())this.finish();
       }else if(this.plan.kind==='escape'){
         this.host.collapse(this.elapsed);
         if(x>=this.plan.exit)this.finish();
@@ -165,13 +180,14 @@ export class RouteEncounterRuntime {
     if(this.gated){this.host.gate?.(false);this.gated=false;}
     this.gateInk?.clear();
     if(this.stage==='complete')return;
-    this.enemies.forEach(enemy=>{if(enemy.active)enemy.destroy();});this.enemies=[];
+    this.enemies.forEach(enemy=>{this.host.clearGateGuard?.(enemy);if(enemy.active)enemy.destroy();});this.enemies=[];
     this.stage='waiting';this.elapsed=0;this.wave=-1;this.grace=0;this.riddenMs=0;this.hud.setVisible(false);
+    if(this.plan.kind==='gate')this.spawnGateGuard();
     if(this.plan.kind==='rescue'&&this.released){
       // The orb remains collectible, so a retry never needs to duplicate it.
       this.stage='orb_ready';
     }
   }
   read(){return {id:this.plan.id,title:this.plan.title,kind:this.plan.kind,stage:this.stage,locked:this.gated,gateClosed:Boolean(this.gateBody),wave:this.wave+1,totalWaves:this.plan.waves.length,enemiesLeft:this.enemiesLeft(),elapsedMs:Math.round(this.elapsed),warningMs:Math.max(0,Math.round(this.grace)),riddenMs:Math.round(this.riddenMs),attempts:this.attempts,entry:this.plan.entry,exit:this.plan.exit,marker:this.plan.marker,objectiveVisible:this.hud.visible};}
-  destroy(){if(this.gated){this.host.gate?.(false);this.gated=false;}this.gateInk?.destroy();this.enemies.forEach(enemy=>{if(enemy.active)enemy.destroy();});this.hud.destroy();this.marker.destroy();this.cage?.destroy();this.captive?.destroy();this.removeGate();}
+  destroy(){if(this.gated){this.host.gate?.(false);this.gated=false;}this.gateInk?.destroy();this.enemies.forEach(enemy=>{this.host.clearGateGuard?.(enemy);if(enemy.active)enemy.destroy();});this.hud.destroy();this.marker.destroy();this.cage?.destroy();this.captive?.destroy();this.removeGate();}
 }

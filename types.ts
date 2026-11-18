@@ -9,6 +9,8 @@ declare global {
 }
 
 export interface GameStats {
+  rewardProgress?: { runId: string; startScore: number; startGems: number; startMonsters: number };
+  collectedGems?: {level:number;ids:string[]};
   supplyCrates?: import('./gameplay/supplyCrates').SupplyCrateSave;
   seasonalTheme?: import('./gameplay/seasonalTheme').SeasonalTheme;
   completedEncounters?: string[];

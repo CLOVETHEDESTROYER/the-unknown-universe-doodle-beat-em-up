@@ -21,6 +21,8 @@ import SoundControls from './components/SoundControls';
 import { CAMERA_MOTION_KEY, readCameraMotion } from './gameplay/footfallCamera';
 import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
+import LevelResults from './components/LevelResults';
+import {readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult} from './gameplay/levelRewards';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
@@ -31,7 +33,7 @@ const loadLegacy = () => import('./components/GameEngine');
 const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
-type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue";
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue" | "results";
 const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
 const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
 type TitlePanel = "options" | "credits" | "updates" | null;
@@ -268,18 +270,27 @@ const getInitialStats = (): GameStats => {
 };
 
 const App: React.FC = () => {
+  const [wallet,setWallet]=useState(()=>readWallet(DEFAULT_STATS));
+  const initialResults=React.useRef(shouldBypassStartFlow()?null:wallet.pending).current;
+  const [results,setResults]=useState<LevelResult|null>(initialResults?.result??null);
+  const [resultError,setResultError]=useState('');
+  const pendingResult=React.useRef<PendingResult|null>(initialResults);
+  const resultsContinuing=React.useRef(false);
   // Read once at startup; engine snapshots drive writes without per-frame polling.
   const [savedCampaign, setSavedCampaign] = useState(() => readCampaignSave(DEFAULT_STATS));
   const [saveError, setSaveError] = useState('');
-  const [campaignActive, setCampaignActive] = useState(false);
+  const [campaignActive, setCampaignActive] = useState(Boolean(initialResults));
   const [alleyCampaign, setAlleyCampaign] = useState(false);
   const [alleyCompleted, setAlleyCompleted] = useState(false);
   const [restoreCheckpoint, setRestoreCheckpoint] = useState<GameStats['campaignCheckpoint']>();
   const [runId, setRunId] = useState(0);
   const [confirmNewRun, setConfirmNewRun] = useState(false);
-  const [stats, setStats] = useState<GameStats>(getInitialStats);
-  const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
+  const [stats, updateStats] = useState<GameStats>(()=>trackRewardRun(initialResults?.campaign.stats??getInitialStats()));
+  const setStats=React.useCallback((action:React.SetStateAction<GameStats>)=>{
+    updateStats(previous=>trackRewardRun(typeof action==='function'?action(previous):action));
+  },[]);
+  const [difficulty, setDifficulty] = useState<DifficultyMode>(()=>initialResults?.campaign.difficulty??getInitialDifficulty());
+  const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(()=>initialResults?.campaign.stats.selectedCharacterId??getInitialCharacterId());
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [kaiRescued, setKaiRescued] = useState(readKaiRescued);
   const completeAlleyRescue = React.useCallback(() => {
@@ -299,9 +310,9 @@ const App: React.FC = () => {
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
   const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
-  const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
-  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
-  const storyTransitionRef = React.useRef(false);
+  const [appPhase, setAppPhase] = useState<AppPhase>(() => initialResults?'results':shouldBypassStartFlow() ? "game" : "start");
+  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(initialResults?.campaign.story??null);
+  const storyTransitionRef = React.useRef(Boolean(initialResults));
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [seenUpdate, setSeenUpdate] = useState(readSeenUpdate);
   const [hasLegacyPlayHistory] = useState(isRosterUnlockedFromStorage);
@@ -583,13 +594,27 @@ const App: React.FC = () => {
     const exitStory = LEVEL_EXIT_STORIES[stats.level];
     const finalStory = !stats.isVictory && stats.level === FINAL_LEVEL && newStats.isVictory === true;
     if (!useLegacyBrawler && appPhase === 'game' && (finalStory || exitStory && newStats.level === stats.level + 1)) {
-      // The engine reports its final rewards and equipment in this same snapshot.
-      // Keep that snapshot, release the old renderer, then mount the next level
-      // only after Continue/Skip. Never rebuild the loadout from defaults here.
+      // Freeze the final snapshot before releasing the renderer. The next level
+      // cannot mount until the player has reviewed results and finished the story.
+      const chapter=finalStory?'level6':exitStory!;
+      const updated=nextRewardLevel({...stats,...newStats,activeBossId:null});
+      const result=levelResult(stats,updated);
+      const pending:PendingResult={result,campaign:{version:1,savedAt:Date.now(),difficulty,stats:updated,story:chapter}};
+      pendingResult.current=pending;resultsContinuing.current=false;
+      setResults(result);setResultError('');
+      if(campaignActive){
+        try{setWallet(bankLevelResult(readWallet(DEFAULT_STATS),pending));}
+        catch{setResultError('Your reward could not be saved. Free up browser storage, then retry.');}
+      }else{
+        // Developer previews show the tally without modifying a real player's wallet or campaign.
+        setWallet(previous=>({...previous,gold:previous.gold+result.earnedGold}));
+      }
       storyTransitionRef.current = true;
-      setStoryChapter(finalStory ? 'level6' : exitStory!);
+      setStoryChapter(chapter);
       setIsPaused(false);
-      setAppPhase('story');
+      setStats(updated);
+      setAppPhase('results');
+      return;
     }
     setStats((previous) => {
       const updated = { ...previous, ...newStats };
@@ -603,6 +628,24 @@ const App: React.FC = () => {
       }
       return updated;
     });
+  };
+
+  const continueResults=()=>{
+    const pending=pendingResult.current;
+    if(!pending||resultsContinuing.current)return;
+    if(campaignActive){
+      try{
+        const banked=bankLevelResult(readWallet(DEFAULT_STATS),pending);
+        if(pending.campaign.stats.isVictory)localStorage.removeItem(CAMPAIGN_SAVE_KEY);
+        else if(!writeCampaignSave(pending.campaign))throw Error('Campaign save failed');
+        setWallet(acknowledgeResults(banked));
+        setSavedCampaign(pending.campaign.stats.isVictory?null:pending.campaign);
+      }catch{
+        setResultError('Your reward could not be saved. Free up browser storage, then retry.');return;
+      }
+    }
+    resultsContinuing.current=true;setResultError('');setResults(null);pendingResult.current=null;
+    setAppPhase('story');
   };
 
   const persistCampaign = React.useCallback(() => {
@@ -739,7 +782,7 @@ const App: React.FC = () => {
   };
 
   const restartGame = () => {
-    setCampaignActive(false);setRestoreCheckpoint(undefined);
+    setCampaignActive(false);setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     storyTransitionRef.current = false;
     setStoryChapter(null);
     setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:thanksgivingEnabled?'thanksgiving':undefined, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
@@ -872,6 +915,7 @@ const App: React.FC = () => {
             selectedCharacterId={selectedCharacterId}
             initialScore={stats.score}
             initialSouls={stats.souls}
+            initialCollectedGems={stats.collectedGems}
             initialMonstersDefeated={stats.monstersDefeated}
             playerSprite={playerSprite}
             initialSwordUnlocked={stats.swordUnlocked}
@@ -952,6 +996,9 @@ const App: React.FC = () => {
 
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
+                </div>
+                <div className="pointer-events-none absolute right-[5.5%] top-[5.2%] rounded-full border-2 border-amber-200/70 bg-slate-950/90 px-3 py-1 text-sm font-['Gochi_Hand'] text-amber-200 sm:text-base md:text-lg" aria-label="Shop wallet">
+                  Wallet: {wallet.gold.toLocaleString()} Gold
                 </div>
 
                 {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
@@ -1145,6 +1192,7 @@ const App: React.FC = () => {
         {appPhase === 'story' && storyChapter && (
           <CutscenePlayer key={storyChapter} chapter={STORY_CHAPTERS[storyChapter]} resumeStats={stats} onComplete={completeStory} />
         )}
+        {appPhase === 'results' && results && <LevelResults result={results} gold={wallet.gold} error={resultError} onContinue={continueResults} />}
 
         {appPhase === "intro" && (
           <div className="level-intro pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
@@ -1232,25 +1280,7 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "game" && stats.isGameOver && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-900/80 backdrop-blur-md pointer-events-auto">
-            <div className="max-w-lg rotate-1 rounded-3xl border-8 border-slate-800 bg-white p-12 text-center font-['Gochi_Hand'] shadow-2xl">
-              <h2 className="mb-2 text-7xl font-bold text-red-600 underline decoration-slate-800">Game Over</h2>
-              <p className="mb-8 text-2xl italic text-slate-600">The Unknown Universe has reclaimed its doodles.</p>
-
-              <div className="mb-8 rounded-xl border-4 border-dashed border-slate-400 bg-slate-100 p-6">
-                <p className="mb-2 text-4xl text-amber-500">{stats.score} Points</p>
-                <p className="mb-2 text-3xl text-blue-600">{stats.souls} Souls Collected</p>
-                <p className="text-3xl text-red-500">{stats.monstersDefeated} Monsters Banished</p>
-              </div>
-
-              <button
-                onClick={restartGame}
-                className="rounded-full border-4 border-slate-800 bg-green-500 px-16 py-6 text-4xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-green-600"
-              >
-                Draw Again
-              </button>
-            </div>
-          </div>
+          <LevelResults result={unfinishedLevelResult(stats)} gold={wallet.gold} error="" outcome="defeat" onContinue={restartGame} />
         )}
 
         <div className={`pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 ${useLegacyDesktopControls ? "lg:block" : ""}`}>

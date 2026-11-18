@@ -62,7 +62,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
         </div>
         <div className="text-right text-sm leading-4">
           <p>{stats.score} pts</p>
-          <p>{stats.monstersDefeated} KO</p>
+          <p className="text-cyan-200" aria-label={`${stats.souls} gems collected`}>◆ {stats.souls} gems</p>
         </div>
         <button
           type="button"
@@ -215,7 +215,7 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ stats, difficulty, selectedCharac
                 Score: <span className="font-bold">{stats.score}</span>
               </p>
               <p className="text-xl text-blue-600">
-                Souls: <span className="font-bold">{stats.souls}</span>
+                Gems: <span className="font-bold">{stats.souls}</span>
               </p>
               <p className="text-xl text-red-600">
                 Kills: <span className="font-bold">{stats.monstersDefeated}</span>

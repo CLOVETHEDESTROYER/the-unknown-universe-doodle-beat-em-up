@@ -1588,3 +1588,25 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 
 - Increased Dark Dragon scale from 1.05 to 1.26 (20% wider and taller). Collision body and attack poses use the same base scale; fire origins scale with the dragon, while low breath stays near the floor.
 - Production build and browser checks passed for tell, fire volley and recovery. Body is 242 by 252 world pixels with feet at floor 480. Ran the game skill action client and reviewed the enlarged dragon screenshots.
+
+## 2026-11-17 — Wallet and level results
+
+- Added a manual Continue results screen before every campaign chapter story, including the flight stage and finale. It shows level points, campaign points, gems, enemies defeated, Gold breakdown and wallet balance. Gem count is visible in the gameplay HUD; the title shows saved Gold.
+- Gold starts at 5 per gem plus 100 per clear and 10 per full 1,000 eligible points (maximum 150 performance Gold). Pickup points and the standard clear points are excluded from the performance conversion. Points stay intact.
+- A browser-local wallet atomically stores level credit, a unique run/level receipt and the pending next-level snapshot. Reload returns to unacknowledged results; Continue saves the campaign before clearing the pending result. New campaigns keep Gold. Preview runs cannot modify a real wallet.
+- Saved per-level baselines preserve totals across checkpoint resume. Collected gem IDs prevent their respawn on reload. Old saves remain compatible. Includes a run-ID fallback for non-secure LAN previews.
+- Production build, the dedicated results browser test, existing campaign story/save regressions and the game skill action client passed. Verified actual boss exits, checkpoint totals, removed gems, reload, repeated claims, storage failure/retry, new campaign persistence, finale, keyboard Continue, equipment preservation and desktop/phone layouts. Screenshots reviewed in output/level-results and output/level-results-client-final.
+- Next authorized phase after user playtest: working shop. Wallet format and current tuning are documented in docs/wallet-level-results.md. Named profiles and cross-device saves remain future work.
+
+## 2026-11-17 — Animated totals and drawn Game Over
+
+- Results totals roll up in 1.15 seconds, then points pulse twice with a warm halo and sparkle; gems and Gold receive a short glow. Continue remains available throughout. Reduced motion shows final values immediately and disables effects.
+- Replaced the old Game Over overlay with the paper results card for ground and flight deaths after the last life. Shows unfinished-level points/gems and existing saved Gold without awarding clear rewards. Normal checkpoint respawns are unchanged. Fixed autostart Draw again by remounting a fresh engine.
+- Production build, wallet/campaign browser regression, game action client and dedicated motion/death test passed. Verified 16 intermediate point values, exact settled totals, pulse styles, restart, both death modes, wallet preservation, phone layouts and reduced motion. Reviewed screenshots in output/results-motion.
+
+## 2026-11-18 — Lockwing visible from the opening and dual volleys
+
+- Lockwing now spawns with the level instead of waiting for gate activation. Increased its presentation from 112 by 88 to 150 by 118. It begins at the upper limit, then descends, pauses low and rises on its existing 3.2-second patrol. Retries restore one guard at the top; completed gates stay complete.
+- Added two large 72 by 44 energy bolts fired from upper and lower ports toward the player. The ports glow and mark their lanes for 550 ms before firing, with a proximity-based arrival grace. Shots deal normal enemy-projectile damage, stop on solid terrain, and expire. Defeating or resetting Lockwing clears its shots and warnings.
+- Fixed Arcade body offset synchronization so the guard stays at its authored patrol coordinates.
+- Production build and dedicated browser playtest passed: visibility before any attack/kill, initial downward movement, both projectile ports and damage, pause, retry, gate opening and projectile cleanup. Ran the game skill action client through the actual opening and reviewed screenshots in output/lockwing-volley and output/lockwing-volley-client.
