@@ -49,7 +49,7 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     let last=0, frame=0, active=true, moving=false, animationTime=0, strideDistance=0;
     const rescueAudio=new AlleyRescueAudio(cue=>playSfx(cue.sound,{volume:cue.volume,pitch:cue.pitch}));
     // One frame per distance travelled keeps steps in sync at both player and rescue speeds.
-    const strideFrame=()=>Math.floor(strideDistance/20)%8;
+    const strideFrame=()=>Math.floor(strideDistance/(s.armEquipped?20:27))%8;
     const near=()=>s.room==='alley'?s.x>755:s.room==='hall'?s.x<150||s.x>755:s.x<150||s.x>590;
     const sync=()=>setView({room:s.room,rescued:s.rescued,near:near(),message:s.message,arm:s.arm,phase:s.phase,danceDone:s.danceDone});
     interact.current=()=>{
@@ -122,7 +122,7 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
         else if(s.phase==='thanks'&&s.phaseTime>=3.5){s.phase='gift';s.phaseTime=0;s.message='Killer Kai: Take this blaster-arm connection. It’s yours!';sync();}
         else if(s.phase==='gift'&&s.phaseTime>=3.5){s.phase='dance';s.phaseTime=0;s.arm=true;s.armEquipped=true;s.rescued=true;s.keys.clear();s.message='Blaster arm acquired! X God and Kai are celebrating!';startMusic();sync();}
         else if(s.phase==='dance'&&s.phaseTime>=15){s.phase='idle';s.phaseTime=0;s.danceDone=true;s.keys.clear();s.message='Party complete! Walk right to continue. C / FIRE: try your new arm.';callbacks.current.onRescue();sync();}
-      }else if(dir){s.x=Math.max(55,Math.min(895,s.x+dir*320*dt));s.facing=dir;sync();}
+      }else if(dir){s.x=Math.max(55,Math.min(895,s.x+dir*(s.armEquipped?320:380)*dt));s.facing=dir;sync();}
       if(!exiting&&s.room==='gunroom'&&s.danceDone&&s.phase==='idle'&&s.x>=885){exiting=true;if(campaign)callbacks.current.onContinue();else callbacks.current.onExit();}
       const distance=Math.abs(s.x-previousX);moving=distance>0.001;strideDistance+=distance;
       if(!document.hidden)rescueAudio.update(s.phase,s.phaseTime);

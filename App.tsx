@@ -18,6 +18,7 @@ import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
+import { CAMERA_MOTION_KEY, readCameraMotion } from './gameplay/footfallCamera';
 import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
@@ -335,6 +336,17 @@ const App: React.FC = () => {
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
   const [audioSettings,setAudioSettings]=useState(getAudioSettings);
+  const [cameraMotion,setCameraMotion]=useState(readCameraMotion);
+  const cameraMotionOption = (
+    <label className="flex items-center justify-between gap-3 rounded-xl bg-slate-900/75 px-3 py-2 text-sm text-white">
+      <span>Camera motion</span>
+      <input type="checkbox" checked={cameraMotion} onChange={event=>{
+        const enabled = event.currentTarget.checked;
+        setCameraMotion(enabled);
+        try { localStorage.setItem(CAMERA_MOTION_KEY,enabled?'on':'off'); } catch { /* Use the setting for this visit. */ }
+      }} className="h-4 w-4 accent-amber-300" />
+    </label>
+  );
   useEffect(() => {
     const update = (event: Event) => setLoadingProgress((event as CustomEvent<number>).detail);
     window.addEventListener(GAME_LOADING_EVENT, update);
@@ -845,6 +857,7 @@ const App: React.FC = () => {
             />
           ) : (
             <PlatformerGameEngine
+            cameraMotion={cameraMotion}
               key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
@@ -1036,6 +1049,7 @@ const App: React.FC = () => {
                         })}
                       </div>
                       <SoundControls settings={audioSettings} />
+                      {cameraMotionOption}
                     </>
                   ) : (
                     <>
@@ -1179,6 +1193,7 @@ const App: React.FC = () => {
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
+              {cameraMotionOption}
               <DisplayControls />
               <button
                 onClick={togglePause}

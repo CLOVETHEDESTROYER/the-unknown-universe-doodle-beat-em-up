@@ -23,7 +23,13 @@ export function characterScale(hero:CharacterId,texture='',presentation:HeroPres
 }
 
 export function sizeCharacter(sprite:Phaser.GameObjects.Sprite,hero:CharacterId,presentation:HeroPresentation='body'){
-  sprite.setScale(characterScale(hero,sprite.texture.key,presentation));
+  const scale=characterScale(hero,sprite.texture.key,presentation);
+  // These drawn run sheets have a narrower, taller silhouette than their idle poses.
+  // Correct the whole animation family around its foot origin, never individual frames.
+  const run=hero==='xgod'&&presentation==='body';
+  const proportions=run&&sprite.texture.key==='runner_run'?{x:1.10,y:.98}
+    :run&&sprite.texture.key==='runner_blaster-run'?{x:1.10,y:.90}:{x:1,y:1};
+  sprite.setScale(scale*proportions.x,scale*proportions.y);
 }
 
 /** Collider dimensions are in world pixels and stay fixed when artwork changes family. */

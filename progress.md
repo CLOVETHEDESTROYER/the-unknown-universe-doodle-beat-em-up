@@ -1559,3 +1559,32 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Started from origin/main at 2e3ccd0. Kept the shipped Alley and party tracks, dance, supply crates, mobile layout, and full-health checkpoint retries. Kai's arm remains an equipment variant earned during the current campaign. Ink Blaster supplies are available when the arm is out of the loadout.
 - Moved Lockwing between the first checkpoint and spring pad so the gate does not overlap Ink Rush. Preserved the charge feedback, Butt Bomb contact and reactions, and mouthless running and Kai-arm pose art. Kept the main branch's firing cap and slam damage to crates.
 - Build and browser tests passed for Alley audio and campaign save/resume, Level 1 encounter pacing, charged Lockwing defeat and guarded boss smash.
+
+## 2026-11-17 — Rim Runt and The Scratch camera
+
+- Added Rim Runt at the solid hurdle to the left of the fourth checkpoint. The throw has a low arrow tell. The wheel settles onto the floor, reverses on solid sides with a spark and clack, and remains dangerous on the way back. It expires or breaks after three side rebounds. Source and atlas packer are in art/rim-runt-v1.
+- Added a small footfall dip and eased directional look-ahead in The Scratch. The dip uses stride distance, the HUD stays fixed, and motion settles while aiming or airborne. Camera motion can be disabled in Options or Pause and also respects the system reduced-motion preference.
+- Production build passed. Local browser checks covered rebound direction, jump dodge and damage, camera movement and settling, aiming and airborne behavior, the saved toggle, and reduced motion. Reviewed the in-game tell and rebound screenshots. Preview query: ?autostart=1&level=1&rimRuntPreview=1.
+
+## 2026-11-17 — Wheel block impact dust
+
+- Rim Runt wheel rebounds now kick up short-lived chalk dust and fragments at the solid block, with less movement for reduced-motion users. Production build and existing rebound, jump dodge, damage and camera checks passed. Reviewed the rebound screenshot.
+
+## 2026-11-17 — Unarmed running pace
+
+- X God runs at 405 units/sec empty-handed, with 34 units per run frame (previously 350 and 27). Camera footfall timing follows the longer stride. Alley unarmed pace is 380 units/sec with 27 units per frame. Build passed and isolated browser movement exercised all eight frames and stopped cleanly.
+
+## 2026-11-17 — Gun-running legs
+
+- Registered a new mouthless, two-handed gun torso to the approved eight-frame running legs, replacing the repetitive gun-run shuffle. Preserved the original assets and added per-frame muzzle attachments. Reproducible source and packing script: art/xgod-gun-run-v2.
+- Build and browser checks passed: all eight frames, running and firing together, both facing directions, correct barrel alignment, no failed assets or page errors. Ran the game skill action client and reviewed gameplay screenshots. Local preview remains on port 5175.
+
+## 2026-11-17 — Run proportions
+
+- Added fixed animation-family scaling for drawn X God: both hands and Ink Blaster runs are 10% wider, with height factors .98 and .90 respectively. Feet retain their origin; world collider dimensions and muzzle attachments follow the existing sizing path. Original art is unchanged.
+- Production build and browser checks passed for all eight frames, both directions, firing, idle scale restoration and fixed collider/foot baseline. Visible run heights stay about 156–164 world pixels against 160 idle. Reviewed screenshots and ran the game skill action client.
+
+## 2026-11-17 — Larger first-level dragon
+
+- Increased Dark Dragon scale from 1.05 to 1.26 (20% wider and taller). Collision body and attack poses use the same base scale; fire origins scale with the dragon, while low breath stays near the floor.
+- Production build and browser checks passed for tell, fire volley and recovery. Body is 242 by 252 world pixels with feet at floor 480. Ran the game skill action client and reviewed the enlarged dragon screenshots.

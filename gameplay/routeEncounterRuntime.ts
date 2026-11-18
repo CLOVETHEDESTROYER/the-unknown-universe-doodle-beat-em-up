@@ -83,6 +83,7 @@ export class RouteEncounterRuntime {
     const body=this.gateBody;
     return body?{x:body.x,y:body.y,w:body.width,h:body.height}:null;
   }
+  get holdsCamera() { return this.gated; }
   private patrolGate(){
     const enemy=this.enemies[0];
     if(!enemy?.active)return;

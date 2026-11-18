@@ -4,6 +4,7 @@ import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
 import {SupplyCrateRuntime} from '../gameplay/supplyCrateRuntime';
 import {supplyCratePlans,type SupplyCrateSave} from '../gameplay/supplyCrates';
 import { BLASTER_CHARGE_MS, CHARGED_BOLT_TEXTURE, ChargedBlasterEffects } from '../gameplay/chargedBlasterEffects';
+import { FootfallCamera } from '../gameplay/footfallCamera';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
 import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
 import React, { useEffect, useRef } from "react";
@@ -56,6 +57,7 @@ import type {SeasonalTheme} from '../gameplay/seasonalTheme';
 import {KILINA_HEALTH,KILINA_NEW_MOVES,KILINA_PHASE_ONE,KILINA_PHASE_TWO,isKilinaNewMove,kilinaBattlePose,PlayerFreeze} from '../gameplay/kilinaCombat';
 
 interface PlatformerGameEngineProps {
+  cameraMotion?: boolean;
   seasonalTheme?: SeasonalTheme;
   initialEquipment?: PowerupLoadout;
   isPaused: boolean;
@@ -267,7 +269,7 @@ const BOSS_DEFINITIONS: Record<BossId, {
     frameWidth: 640,
     frameHeight: 640,
     frameCount: 7,
-    scale: 1.05,
+    scale: 1.26,
     maxHp: 40,
     tint: 0xff7a45,
     attackName: "FIRE VOLLEY",
@@ -451,7 +453,7 @@ const LEVELS: Record<LevelNumber, LevelPlan> = {
       { kind: "walker", x: 3450, y: 450, left: 3436, right: 3464, bounceLane: true },
       { kind: "walker", x: 3730, y: 450, left: 3716, right: 3744, bounceLane: true },
       { kind: "walker", x: 4010, y: 450, left: 3996, right: 4024, bounceLane: true },
-      { kind: "alien", x: 4740, y: 260, left: 4590, right: 4900 },
+      { kind: "bumper", x: 4740, y: 475, left: 4690, right: 4795 },
       { kind: "walker", x: 5410, y: 450, left: 5340, right: 5490 },
       { kind: "dasher", x: 6020, y: 450, left: 5930, right: 6100 },
       { kind: "giant", x: 6750, y: 450, left: 6700, right: 6820 },
@@ -1035,6 +1037,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   initialGravityCoreUnlocked,
   initialGravityCoreCharges,
   initialCharacterPowerUnlocked,
+  cameraMotion = true,
   onStatsUpdate,
   onTogglePause
 }) => {
@@ -1043,6 +1046,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   const isPausedRef = useRef(isPaused);
   const onStatsUpdateRef = useRef(onStatsUpdate);
   const onTogglePauseRef = useRef(onTogglePause);
+  const cameraMotionRef = useRef(cameraMotion);
+
+  useEffect(() => { cameraMotionRef.current = cameraMotion; }, [cameraMotion]);
 
   useEffect(() => {
     onStatsUpdateRef.current = onStatsUpdate;
@@ -1146,6 +1152,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let turkeyThrowQueuedAt = -9999;
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    let footfallCamera: FootfallCamera | undefined;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
     let terrainDetail: Phaser.GameObjects.Graphics;
     const distantPanoramas: Array<{ image: Phaser.GameObjects.Image; minWidth: number }> = [];
@@ -1447,7 +1454,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             this.load.json('xgod_frost_meta',XGOD_FROST_FOLDER+'metadata.json');
           }
           for (const action of ['idle','run','jump','attack','crouch','skid','blaster-idle','blaster-run','blaster-jump','blaster-attack','blaster-crouch','blaster-skid','sword-idle','sword-jump','sword-crouch','sword-skid']) {
-            const sheet = action === 'run' ? 'run-swing' : action;
+            const sheet = action === 'run' ? 'run-swing' : action === 'blaster-run' ? 'blaster-run-stride' : action;
             loadGameSheet(this.load,`runner_${action}`,`${folder}/${sheet}.png`,{frameWidth:768,frameHeight:512});
           }
           loadGameSheet(this.load,'runner_elemental-run',`${folder}/run.png`,{frameWidth:768,frameHeight:512});
@@ -1455,7 +1462,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           loadGameSheet(this.load,'xgod_side_scroll_fire_sword_attack_v1',`${folder}/sword-attack.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'runner_damage',`${folder}/damage.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'hero_death',`${folder}/death.png`,{frameWidth:768,frameHeight:512});
-          this.load.json('xgod_drawn_meta',`${folder}/metadata.json`);
+          this.load.json('xgod_drawn_meta',`${folder}/metadata-gun-run-v2.json`);
         } else {
         loadGameImage(this.load, "xgod_damage_pose", "characters/xgod/runner-blaster-v1/damage-pose-v1.png");
         loadGameImage(this.load, "xgod_death_pose", "characters/xgod/runner-blaster-v1/death-pose-v1.png");
@@ -1803,6 +1810,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           && Math.abs(player.body!.bottom-body.top)<8 && (player.body as Phaser.Physics.Arcade.Body).velocity.y>=-20)
       }, completedEncounters.has(plan.id)||Boolean(plan.gate&&checkpoint.x>plan.gate.x), viewport.width, Math.min(gameContainerRef.current!.clientWidth/viewport.width,gameContainerRef.current!.clientHeight/viewport.height)));
       scene.cameras.main.startFollow(player, true, 0.12, 0.12, 0, 45);
+      if (currentLevel===1) footfallCamera = new FootfallCamera(scene.cameras.main,()=>cameraMotionRef.current&&!isPausedRef.current);
 
       endGate = scene.physics.add.staticSprite(level.endX, 410, "end_gate");
       endGate.setDepth(10);
@@ -1997,6 +2005,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         placePlayerOnPlatform(x,y);
         if(encounterPreview.kind==='gate')checkpoint={x,y};
       }
+      if(currentLevel===1&&params.get('rimRuntPreview')==='1'){
+        checkpoint={x:4560,y:407};
+        placePlayerOnPlatform(checkpoint.x,checkpoint.y);
+        scene.cameras.main.centerOn(checkpoint.x,SCREEN_HEIGHT/2);
+      }
       window.__unknownPlatformerSetPlayerPosition = (x: number, y?: number) => {
         if (!player?.active) return;
         placePlayerOnPlatform(x, y ?? getPlatformStandY(x) ?? player.y);
@@ -2163,6 +2176,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const scene = this;
       autumnLeaves?.update(delta);
       if (!player || !player.active || isLevelClearing || isRespawning) {
+        footfallCamera?.clear(platformRouteCamera ? 120 : 45);
         turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide();
         blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
         // Arcade physics still carries the hero past the gate during the clear
@@ -2281,7 +2295,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const keyboardAxis=Number(cursors.right.isDown)-Number(cursors.left.isDown);
       const touchAxis=touch.axisX??(Number(Boolean(touch.right))-Number(Boolean(touch.left)));
       const moveAxis = isAutoRun ? autoRunDirection : keyboardAxis || touchAxis;
-      const targetVelocity = isCrouching ? 0 : playFeel.runSpeed * moveAxis;
+      const runSpeed = isXGod && equipment.active==='hands' ? 405 : playFeel.runSpeed;
+      const targetVelocity = isCrouching ? 0 : runSpeed * moveAxis;
       if (moveAxis !== 0) facingDirection = Math.sign(moveAxis);
       if(now<emberUntil)facingDirection=emberDirection;
       const requestedDirection = Math.sign(targetVelocity);
@@ -2435,6 +2450,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       supplyCrates?.update(player,projectiles,hitStopActive?0:delta);
       updateEnemies(scene);
       if (!hitStopActive) routeEncounters.forEach(encounter=>encounter.update(delta));
+      if (footfallCamera) {
+        const camera = scene.cameras.main;
+        const followY = platformRouteCamera ? 120 : 45;
+        if (bossArenaCameraLocked || camera.panEffect.isRunning || routeEncounters.some(encounter=>encounter.holdsCamera)) {
+          footfallCamera.clear(followY);
+        } else {
+          const body = player.body;
+          const touch = window.__unknownUniverseTouchControls;
+          const aiming = attackKey.isDown || shootKey.isDown || Boolean(touch?.attack||touch?.shoot) || scene.time.now<shotRecoilUntil;
+          const steady = !aiming && !isCrouching && !isSkidding && !mobility?.busy && !hitStopActive;
+          const unarmedRun = isXGod && equipment.active==='hands';
+          footfallCamera.update(delta,characterStride,body.velocity.x,unarmedRun?405:playFeel.runSpeed,isPlayerGrounded(body),steady,followY,unarmedRun?34:27);
+        }
+      }
       updateDinioCompanion(scene, delta);
       updateDoghostCompanion(scene, delta);
       updateTeleportationCCompanion(scene, delta);
@@ -4063,15 +4092,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             if (move === "witch_step") stageBossWaves(scene, boss, "witch_wisp");
           }
         } else if (move === "fire_volley" || move === "low_breath") {
+          const mouthScale = Number(boss.getData("baseScale")) / 1.05;
           const count = phaseTwo ? 4 : 3;
           const cadence = phaseTwo ? 195 : 230;
           if (fired < count && elapsed >= fired * cadence + 110) {
-            if (move === "low_breath") stageBossProjectile(scene, boss, boss.x + facing * 115, floor - 18, facing * (phaseTwo ? 370 : 310), 0, "low_fire", 34);
+            if (move === "low_breath") stageBossProjectile(scene, boss, boss.x + facing * 115 * mouthScale, floor - 18, facing * (phaseTwo ? 370 : 310), 0, "low_fire", 34);
             else {
-              const aim = Math.atan2(Number(boss.getData("aimY")) - (floor - 135), Math.max(130, Math.abs(Number(boss.getData("aimX")) - boss.x)));
+              const aim = Math.atan2(Number(boss.getData("aimY")) - (floor - 135 * mouthScale), Math.max(130, Math.abs(Number(boss.getData("aimX")) - boss.x)));
               const angle = (facing > 0 ? 0 : Math.PI) + (Phaser.Math.Clamp(aim, -0.4, 0.4) + (fired - (count - 1) / 2) * 0.12) * facing;
               const speed = phaseTwo ? 410 : 355;
-              stageBossProjectile(scene, boss, boss.x + facing * 95, floor - 135, Math.cos(angle) * speed, Math.sin(angle) * speed, "fire_volley", 30);
+              stageBossProjectile(scene, boss, boss.x + facing * 95 * mouthScale, floor - 135 * mouthScale, Math.cos(angle) * speed, Math.sin(angle) * speed, "fire_volley", 30);
             }
             boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
           }
@@ -4957,7 +4987,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         characterStride+=Math.abs(body.velocity.x)*delta/1000;
         const elemental = equipment.active==='ember' || equipment.active==='storm';
         const key=armCannon?'xgod_kai_arm_run':hasFlameSword?'xgod_side_scroll_fire_sword_run_v1':elemental?'runner_elemental-run':prefix+'run';
-        player.setTexture(key,Math.floor(characterStride/27)%8);
+        player.setTexture(key,Math.floor(characterStride/(equipment.active==='hands'?34:27))%8);
       }else{
         characterStride=0;
         player.setTexture(armCannon ? 'xgod_kai_arm' : prefix+'idle',armCannon ? 0 : Math.floor(now/170)%4);
@@ -5856,6 +5886,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
       return JSON.stringify({
         coordinateSystem: "origin=(0,0) top-left; +x moves right; +y moves down; platformer gravity pulls +y",
+        cameraMotion: footfallCamera?.read() ?? null,
         engine: "platformer",
         viewport: {...viewport},
         mode: isPausedRef.current ? "paused" : isLevelClearing ? "transition" : "platforming",
@@ -6117,6 +6148,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;turkeyKing?.destroy();turkeyKing=null;
       mobility?.destroy();mobility=null;
+      footfallCamera?.destroy();
       bossVulnerabilityCue?.destroy();bossVulnerabilityCue=null;
       heroCelebration?.destroy();heroCelebration=null;celebrationQueue.length=0;
       if (gameRef.current) {
