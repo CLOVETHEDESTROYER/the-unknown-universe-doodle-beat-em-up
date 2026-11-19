@@ -2,7 +2,7 @@ import React, {useEffect,useRef,useState} from 'react';
 import type {LevelResult} from '../gameplay/levelRewards';
 import './LevelResults.css';
 
-interface Props {result:LevelResult;gold:number;error:string;onContinue:()=>void;outcome?:'cleared'|'defeat';}
+interface Props {result:LevelResult;gold:number;error:string;onContinue:()=>void;outcome?:'cleared'|'defeat';nextLabel?:string;}
 const number=(value:number)=>value.toLocaleString();
 
 function useTally(receipt:string){
@@ -28,7 +28,7 @@ function useTally(receipt:string){
   return {progress,complete:progress===1,reduced};
 }
 
-export default function LevelResults({result,gold,error,onContinue,outcome='cleared'}:Props){
+export default function LevelResults({result,gold,error,onContinue,outcome='cleared',nextLabel}:Props){
   const defeated=outcome==='defeat';
   const tally=useTally(result.receiptId+outcome);
   const count=(value:number)=>Math.floor(value*tally.progress);
@@ -76,7 +76,7 @@ export default function LevelResults({result,gold,error,onContinue,outcome='clea
         </div>
       </div>
       {error&&<p role="alert" className="results-error">{error}</p>}
-      <footer><button type="button" onClick={onContinue}>{defeated?'Draw again':error?'Retry saving':'Continue adventure'} <span aria-hidden="true">→</span></button></footer>
+      <footer><button type="button" onClick={onContinue}>{defeated?'Draw again':error?'Retry saving':nextLabel??'Continue adventure'} <span aria-hidden="true">→</span></button></footer>
     </div>
   </section>;
 }

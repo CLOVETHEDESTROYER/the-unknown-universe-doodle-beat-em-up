@@ -1,14 +1,15 @@
 import type { GameStats } from '../types';
 import { parseCampaignSave, type CampaignSave } from './campaignSave';
+import {DEFAULT_COSMETICS,isPermanentShopItem,isSupply,restoreCosmetics,type CosmeticLoadout,type ShopItemId,type SupplyId} from './shopCatalog';
 
 export const WALLET_KEY = 'unknownUniverse.wallet.v1';
 export interface LevelResult {
   receiptId: string; level: number; points: number; totalPoints: number; gems: number; monsters: number;
   pickupGold: number; clearGold: number; performanceGold: number; earnedGold: number;
 }
-export interface PendingResult { result: LevelResult; campaign: CampaignSave }
-export interface Wallet { version: 1; gold: number; receipts: string[]; pending: PendingResult | null }
-export const emptyWallet = (): Wallet => ({version:1,gold:0,receipts:[],pending:null});
+export interface PendingResult { result: LevelResult; campaign: CampaignSave;stage?:'results'|'shop';purchases?:SupplyId[] }
+export interface Wallet { version: 1; gold: number; receipts: string[]; pending: PendingResult | null;owned:ShopItemId[];equipped:CosmeticLoadout }
+export const emptyWallet = (): Wallet => ({version:1,gold:0,receipts:[],pending:null,owned:[],equipped:{...DEFAULT_COSMETICS}});
 
 /** A level's starting totals survive checkpoints, quit/resume, and renderer remounts. */
 export function trackRewardRun(stats: GameStats): GameStats {
@@ -54,16 +55,19 @@ export function readWallet(defaults: GameStats): Wallet {
           .every(k=>Number.isSafeInteger(r[k])&&r[k]>=0&&r[k]<=1e9)
         ||r.pickupGold!==r.gems*5||r.clearGold!==100||r.performanceGold>150
         ||r.earnedGold!==r.pickupGold+r.clearGold+r.performanceGold||r.totalPoints!==campaign.stats.score) return emptyWallet();
-      pending={result:r,campaign};
+      if(w.pending.stage!==undefined&&!['results','shop'].includes(w.pending.stage))return emptyWallet();
+      if(w.pending.purchases!==undefined&&(!Array.isArray(w.pending.purchases)||!w.pending.purchases.every(isSupply)))return emptyWallet();
+      pending={result:r,campaign,stage:w.pending.stage??'results',purchases:[...new Set<SupplyId>(w.pending.purchases??[])]};
     }
-    return {version:1,gold:w.gold,receipts:[...new Set<string>(w.receipts)],pending};
+    const owned:ShopItemId[]=Array.isArray(w.owned)?[...new Set<ShopItemId>(w.owned.filter(isPermanentShopItem))]:[];
+    return {version:1,gold:w.gold,receipts:[...new Set<string>(w.receipts)],pending,owned,equipped:restoreCosmetics(w.equipped,owned)};
   } catch { return emptyWallet(); }
 }
 
 /** Credit and pending results are one atomic storage write, so reload cannot split them. */
 export function bankLevelResult(wallet: Wallet, pending: PendingResult): Wallet {
   const claimed=wallet.receipts.includes(pending.result.receiptId);
-  const next:Wallet={version:1,gold:wallet.gold+(claimed?0:pending.result.earnedGold),
+  const next:Wallet={...wallet,version:1,gold:wallet.gold+(claimed?0:pending.result.earnedGold),
     receipts:claimed?wallet.receipts:[...wallet.receipts,pending.result.receiptId],pending};
   localStorage.setItem(WALLET_KEY,JSON.stringify(next));
   return next;

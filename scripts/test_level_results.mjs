@@ -29,7 +29,7 @@ async function inspectLayout(name,width,height){
  await page.setViewportSize({width,height});await page.waitForTimeout(100);
  const panel=page.locator('.level-results');
  assert(await panel.evaluate(e=>e.scrollWidth<=e.clientWidth+1),'No horizontal overflow');
- const button=page.getByRole('button',{name:'Continue adventure',exact:false});await button.scrollIntoViewIfNeeded();
+ const button=page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/});await button.scrollIntoViewIfNeeded();
  const b=await button.boundingBox();assert(b.x>=0&&b.y>=0&&b.x+b.width<=width+1&&b.y+b.height<=height+1);assert(b.height>=44);
  await page.screenshot({path:`${out}/${name}.png`});
 }
@@ -56,14 +56,15 @@ try{
  });assert.equal(duplicate,banked.gold);
  // Failed storage keeps the summary open. A later retry must still pay only once.
  await page.evaluate(()=>{window.__resultsSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException('Full','QuotaExceededError');};});
- await page.getByRole('button',{name:'Continue adventure',exact:false}).click();assert(await page.getByRole('alert').isVisible());assert.equal((await read()).mode,'level-results');
+ await page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/}).click();assert(await page.getByRole('alert').isVisible());assert.equal((await read()).mode,'level-results');
  await page.evaluate(()=>{Storage.prototype.setItem=window.__resultsSetItem;});
  await page.getByRole('button',{name:'Retry saving',exact:false}).evaluate(b=>{b.click();b.click();});
+ await until(s=>s.mode==='workshop');await page.getByRole('button',{name:'Continue story',exact:false}).click();
  s=await until(s=>s.mode==='campaign-story'&&s.chapter==='level1');assert.equal(s.resume.level,2);assert.equal(s.resume.score,banked.pending.campaign.stats.score);
  assert.equal((await wallet()).gold,banked.gold);assert.equal((await wallet()).pending,null);
  evidence.push({gems:3,checkpointTotalsPreserved:true,resultsReload:true,noDuplicateCredit:true,storageRetry:true,manualContinue:true,mobileFits:true});
  // Starting another campaign preserves the persistent wallet.
- await page.goto(origin);assert.equal(await page.getByLabel('Shop wallet').innerText(),`Wallet: ${banked.gold} Gold`);
+ await page.goto(origin);assert((await page.getByLabel('Shop wallet').innerText()).includes(`Wallet: ${banked.gold} Gold`));
  await page.getByRole('button',{name:'Start game',exact:true}).click();await page.getByRole('button',{name:'Choose a hero',exact:true}).click();await page.locator('[data-character-id="zgod"]').click();
  await page.getByRole('button',{name:'Skip story',exact:true}).click();await until(s=>s.mode==='platforming'&&s.player?.grounded);
  const newRun=await save();assert.notEqual(newRun.stats.rewardProgress.runId,checkpoint.stats.rewardProgress.runId);assert.equal((await wallet()).gold,banked.gold);

@@ -1610,3 +1610,26 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Added two large 72 by 44 energy bolts fired from upper and lower ports toward the player. The ports glow and mark their lanes for 550 ms before firing, with a proximity-based arrival grace. Shots deal normal enemy-projectile damage, stop on solid terrain, and expire. Defeating or resetting Lockwing clears its shots and warnings.
 - Fixed Arcade body offset synchronization so the guard stays at its authored patrol coordinates.
 - Production build and dedicated browser playtest passed: visibility before any attack/kill, initial downward movement, both projectile ports and damage, pause, retry, gate opening and projectile cleanup. Ran the game skill action client through the actual opening and reviewed screenshots in output/lockwing-volley and output/lockwing-volley-client.
+
+## 2026-11-18 — Workshop, collection, pricing, combat effects, playtest preparation
+
+- Added Kai's Workshop between results and the existing story, with title-wallet access to browse the collection. Supplies are a 75 Gold weapon tune-up, 100 Gold shield and 150 Gold life refill. Unnecessary/full/incompatible supplies are blocked with explanations. Purchases require confirmation and are limited to one of each supply per visit.
+- Added permanent Arctic Ink / Neon Rose colors (250 each), Chalk Sparks (400), Starlight (650) and Prism Burst (600). Includes animated previews, owned/equipped collection states and free classic-style resets. Ink colors affect blaster shots and charge effects; trails and burst styles appear in combat.
+- Extended the existing wallet without dropping old saves. Purchases atomically store Gold, benefits, collection and equipped styles. Reloading a shop visit restores its pending campaign. Continue preserves upgrades, Kai's gift, shields/lives and the existing story/Alley Rescue sequence. Duplicate activation is guarded; failed saves stay recoverable.
+- Added bounded additive muzzle/shot glows, readable colored trail/ring outlines, short visual-only enemy hit silhouettes and slam landing rings/fragments. Normal and charged damage remain 2 and 6 in the tested base blaster case. Reduced motion keeps attack cues with fewer animated accents.
+- Calibrated initial prices against live route counts. Illustrative 60%-gem / 70%-initial-foe budgets are 315, 285, 225, 255 and 225 Gold for levels 1,2,3,4,6; these are estimates rather than human playtest results. Guaranteed clear Gold covers a basic supply. Report and rerunnable analysis: output/shop-economy and scripts/analyze_shop_economy.mjs.
+- Production build, typecheck and browser checks passed: workshop transactions, no double charge, insufficient funds, purchase/Continue storage failures, reload, free equip/reset, permanent ownership, next-level supplies through Alley Rescue, colors/trails, damage preservation, hit/slam effects, reduced motion, results/finale and campaign story regressions across desktop/phone/tablet. Ran the game skill action client and reviewed workshop and combat screenshots. React/UI review completed.
+- Human friends' playtesting cannot be performed by automation. Prepared docs/holiday-playtest.md with a session guide, questions and notes sheet. Implementation and pricing details: docs/workshop.md. Local server: port 5175.
+
+## 2026-11-19 — X God wardrobe prototype
+
+- Added Rooftop Shades, Sunset Headband, and Blue Kicks to Kai’s Workshop. The three slots equip independently and retain ownership and selection through the existing wallet.
+- The Wardrobe shelf previews the actual blaster idle, run, jump, and crouch frames. In the platformer an accessory layer follows frame-specific anchors and mirrors with the live sprite. Blue Kicks recolors the lime shoe accents in the lower part of supported poses.
+- Checked purchase persistence, all four previews, and live idle, running, crouching, and a left-facing jump in Chrome. Ground art has frame anchors for the main weapon sets, Frost, mobility, and several reaction and celebration sequences. Story and flight art are outside the prototype.
+
+## Workshop combat loadouts
+
+- Added two permanent specials for each of X God and Killer Kai. Each hero can equip one move on X / SP and restore the original signature in the Workshop.
+- Added Spark Moth and Patch Beetle as permanent buddies. One accompanies the selected hero through ground levels, Starbreak, and the Alley. The two buddies attack or intercept during combat. Existing orb helpers still use their original campaign rules.
+- Added campaign purchases for Frost Gauntlet and Ember Boots after the Graveyard. Each replaces the current power-up and begins at full durability. The shop makes the replacement and the Gold deduction in the same wallet write.
+- The production build passed. Chrome verified all six permanent purchases, all four specials dealing damage, cooldowns, Spark Moth attacking, Patch Beetle intercepting a Lockwing shot, and the buddy appearing in Starbreak.

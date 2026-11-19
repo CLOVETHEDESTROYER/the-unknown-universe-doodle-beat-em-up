@@ -27,7 +27,7 @@ try{
  assert.equal(await page.getByTestId('result-points').innerText(),s.result.points.toLocaleString());
  assert.equal(await page.getByTestId('result-points').evaluate(e=>getComputedStyle(e).animationName),'tally-throb');
  await page.waitForTimeout(190);await page.screenshot({path:`${out}/clear-pulse.png`});
- await page.getByRole('button',{name:'Continue adventure',exact:false}).click();await until(s=>s.mode==='campaign-story');
+ await page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/}).click();await until(s=>s.mode==='workshop');await page.getByRole('button',{name:'Continue story',exact:false}).click();await until(s=>s.mode==='campaign-story');
  // The last life has a real collapse animation before the new drawn stats card opens.
  await boot('&lives=1&score=12345&souls=17');
  for(let i=0;i<3;i++)await page.evaluate(()=>window.__unknownPlatformerCollectPickup('coin'));

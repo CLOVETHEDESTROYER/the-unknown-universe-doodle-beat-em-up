@@ -1,5 +1,7 @@
 import type {SoundName} from './soundBank';
 
+export const ALLEY_MAIN_MUSIC = '/audio/music/uneasy-pursuit-alleyway.mp3';
+
 export interface RescueCue {id:string;phase:string;at:number;sound:SoundName;volume:number;pitch:number}
 /** Animation-time cues, not timers: no duplicate pulses at high FPS and no
  * queued sound bursts when a hidden tab becomes visible again. */

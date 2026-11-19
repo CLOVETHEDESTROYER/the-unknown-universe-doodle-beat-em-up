@@ -1,13 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {getAudioSettings,subscribeAudioSettings,playSfx,stopEffects} from '../audio/gameAudio';
-import {AlleyRescueAudio} from '../audio/alleyRescueAudio';
+import {ALLEY_MAIN_MUSIC, AlleyRescueAudio} from '../audio/alleyRescueAudio';
+import {paintBuddy} from '../gameplay/buddyArt';
+import type {BuddyId} from '../gameplay/shopCatalog';
 
 type Room = 'alley' | 'hall' | 'gunroom';
-type Props = { onRescue: () => void; onExit: () => void; onContinue: () => void; alreadyRescued: boolean; armUnlocked: boolean; campaign: boolean; completed: boolean; saveError: string };
+type Props = { onRescue: () => void; onExit: () => void; onContinue: () => void; alreadyRescued: boolean; armUnlocked: boolean; campaign: boolean; completed: boolean; saveError: string; buddy?:BuddyId|'classic' };
 
 // The same rescue map is used for the campaign interlude and title-screen replay.
 // The parent owns campaign progress and the persistent roster reward.
-export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescued, armUnlocked, campaign, completed, saveError}: Props) {
+export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescued, armUnlocked, campaign, completed, saveError, buddy='classic'}: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const game = useRef({room:'alley' as Room, x:100, rescued:alreadyRescued, arm:armUnlocked && (!campaign || completed), armEquipped:false, danceDone:completed, phase:'idle' as 'idle'|'approach'|'transfer'|'rise'|'thanks'|'gift'|'dance', phaseTime:0, facing:1, keys:new Set<string>(), message:campaign&&!completed?'On the road to the Graveyard, X God hears someone inside the house.':'', shots:0, shotTime:-10, visual:'unarmed-idle', pose:0, backgroundReady:false});
   const [view,setView] = useState({room:'alley' as Room, rescued:alreadyRescued, near:false, message:campaign&&!completed?'On the road to the Graveyard, X God hears someone inside the house.':'', arm:armUnlocked && (!campaign || completed), phase:'idle',danceDone:completed});
@@ -32,7 +34,7 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     const kaiDance=new Image();kaiDance.src='/characters/alley-dance-v1/kai.png';
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     const music=new Audio('/audio/music/alley-blaster-party.mp3');music.preload='auto';music.loop=true;musicRef.current=music;
-    const alleyMusic=new Audio('/audio/music/uneasy-pursuit-alleyway.mp3');alleyMusic.preload='auto';alleyMusic.loop=true;
+    const alleyMusic=new Audio(ALLEY_MAIN_MUSIC);alleyMusic.preload='auto';alleyMusic.loop=true;
     let musicBlocked=false,musicFailed=false,musicStarted=false,musicDisposed=false;
     const audioSettings=()=>{const a=getAudioSettings();for(const track of [music,alleyMusic]){track.volume=a.music;track.muted=a.muted;}};
     audioSettings();const unsubscribe=subscribeAudioSettings(audioSettings);
@@ -108,6 +110,11 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
         s.visual=s.phase==='gift'?'equip':usingSword?'sword':usingArm?(moving?'arm-run':'arm-idle'):(moving?'unarmed-run':'unarmed-idle');s.pose=pose;
         g.save();g.translate(s.x,450);g.scale(s.facing,1);g.drawImage(sprite,(pose%4)*768,Math.floor(pose/4)*512,768,512,-194.4,-243,388.8,259.2);g.restore();
       } else {g.fillStyle='#ead9b5';g.fillRect(s.x-24,328,48,122);}
+      if(buddy!=='classic'){
+        const flap=reduced.matches?0:Math.sin(animationTime*9);
+        g.save();g.translate(Math.max(25,Math.min(935,s.x-s.facing*85)),310+flap*5);
+        paintBuddy(g,buddy,s.facing,flap);g.restore();
+      }
       if(s.arm&&animationTime-s.shotTime<.35){g.fillStyle='#6defff';const d=(animationTime-s.shotTime)*500;g.beginPath();g.ellipse(s.x+s.facing*(81+d),369,22,6,0,0,Math.PI*2);g.fill();}
       if(near()&&s.phase==='idle'){g.fillStyle='rgba(15,23,42,.88)';g.fillRect(300,25,360,45);g.fillStyle='#fff';g.font='bold 21px sans-serif';g.textAlign='center';g.fillText(s.room==='gunroom'&&s.x>590?(s.arm?'E / USE: REPLAY RESCUE':'E / USE: HELP KAI'):'E / USE: OPEN DOOR',480,54);g.textAlign='left';}
       if(s.room==='gunroom'&&s.danceDone&&s.phase==='idle'){g.fillStyle='#9effcb';g.font='bold 22px sans-serif';g.fillText('EXIT →',838,470);}
@@ -139,7 +146,7 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     window.render_game_to_text=renderWithSound;
     fireRef.current=fire;
     frame=requestAnimationFrame(tick);return()=>{active=false;musicDisposed=true;cancelAnimationFrame(frame);stopEffects();for(const track of [music,alleyMusic]){track.pause();track.removeAttribute('src');track.load();}musicRef.current=null;unsubscribe();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('pointerdown',unlockAlleyMusic);window.removeEventListener('keydown',unlockAlleyMusic);window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);if(window.render_game_to_text===renderWithSound)window.render_game_to_text=previous;};
-  },[campaign]);
+  },[campaign,buddy]);
   const hold=(key:string,pressed:boolean)=>{if(pressed)game.current.keys.add(key);else game.current.keys.delete(key);};
   return <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 p-2 text-white" style={{touchAction:'none'}}>
     <div className="flex w-full max-w-5xl items-center justify-between gap-2 px-2 font-bold"><span>THE ALLEY · {view.room==='alley'?'Find the house':view.room==='hall'?'Search the house':'Spare gun room'}</span><div className="flex gap-2">{campaign && completed && view.danceDone && view.phase==='idle' && <button className="rounded-lg bg-emerald-400 px-3 py-1 text-slate-950" onClick={onContinue}>Continue to Graveyard</button>}<button className="rounded-lg bg-slate-700 px-3 py-1" onClick={onExit}>{campaign ? "Save & Quit" : "Exit level"}</button></div></div>

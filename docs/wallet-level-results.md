@@ -1,6 +1,6 @@
 # Wallet and level results
 
-Normal campaigns now stop at a results screen after every completed level, including Starbreak and the finale. Continue opens the existing chapter story; the first chapter still leads to Alley Rescue. The gameplay renderer and controls are released while reviewing results.
+Normal campaigns now stop at a results screen after every completed level, including Starbreak and the finale. Continue visits Kai's Workshop before the existing chapter story; the first chapter still leads to Alley Rescue. The finale goes directly to its story. The gameplay renderer and controls are released while reviewing results and shopping.
 
 The screen shows points earned in this level, total campaign points, gems collected in this level, enemies defeated, the Gold breakdown, and the saved wallet balance. The gameplay HUD also shows collected gems. The internal `souls` field remains the campaign's cumulative gem counter for compatibility with older saves.
 
@@ -11,7 +11,7 @@ The screen shows points earned in this level, total campaign points, gems collec
 - Each full 1,000 eligible performance points earns **10 Gold**, capped at 150 Gold per level. Eligible points exclude the gem points (100 each) and the standard 900-point clear reward.
 - Points are never spent or reduced when earning Gold.
 
-These are initial tuning values; the working shop is a separate pass. The first version rewards points-based performance, rather than grading damage, speed, or deaths.
+These are initial tuning values; the working shop and its price calibration are documented in `workshop.md`. The first version rewards points-based performance, rather than grading damage, speed, or deaths.
 
 ## Persistence
 

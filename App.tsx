@@ -4,6 +4,7 @@ import { LATEST_UPDATE, markLatestUpdateSeen, readSeenUpdate } from "./gameplay/
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import AlleyRescue from "./components/AlleyRescue";
+import { ALLEY_MAIN_MUSIC } from "./audio/alleyRescueAudio";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
@@ -22,7 +23,10 @@ import { CAMERA_MOTION_KEY, readCameraMotion } from './gameplay/footfallCamera';
 import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
 import LevelResults from './components/LevelResults';
-import {readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult} from './gameplay/levelRewards';
+import Workshop from './components/Workshop';
+import {WALLET_KEY,readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult,type Wallet} from './gameplay/levelRewards';
+import {buyShopItem,equipCosmetic} from './gameplay/workshop';
+import {equippedSpecial,SPECIALS,type ShopItemId,type CosmeticLoadout} from './gameplay/shopCatalog';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
@@ -33,7 +37,7 @@ const loadLegacy = () => import('./components/GameEngine');
 const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
-type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue" | "results";
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue" | "results" | "workshop";
 const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
 const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
 type TitlePanel = "options" | "credits" | "updates" | null;
@@ -271,6 +275,12 @@ const getInitialStats = (): GameStats => {
 
 const App: React.FC = () => {
   const [wallet,setWallet]=useState(()=>readWallet(DEFAULT_STATS));
+  const walletRef=React.useRef(wallet);walletRef.current=wallet;
+  const [workshopReturn,setWorkshopReturn]=useState<'start'|'story'>('start');
+  const [shopError,setShopError]=useState('');
+  const [shopMessage,setShopMessage]=useState('');
+  const shopBusy=React.useRef(false);
+  const workshopClosing=React.useRef(false);
   const initialResults=React.useRef(shouldBypassStartFlow()?null:wallet.pending).current;
   const [results,setResults]=useState<LevelResult|null>(initialResults?.result??null);
   const [resultError,setResultError]=useState('');
@@ -291,6 +301,8 @@ const App: React.FC = () => {
   },[]);
   const [difficulty, setDifficulty] = useState<DifficultyMode>(()=>initialResults?.campaign.difficulty??getInitialDifficulty());
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(()=>initialResults?.campaign.stats.selectedCharacterId??getInitialCharacterId());
+  const activeShopMove=equippedSpecial(wallet.equipped,selectedCharacterId);
+  const specialLabel=activeShopMove==='classic'?SIGNATURE_SPECIALS[selectedCharacterId].name:SPECIALS[activeShopMove].name;
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [kaiRescued, setKaiRescued] = useState(readKaiRescued);
   const completeAlleyRescue = React.useCallback(() => {
@@ -310,7 +322,7 @@ const App: React.FC = () => {
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
   const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
-  const [appPhase, setAppPhase] = useState<AppPhase>(() => initialResults?'results':shouldBypassStartFlow() ? "game" : "start");
+  const [appPhase, setAppPhase] = useState<AppPhase>(() => initialResults?initialResults.stage==='shop'?'workshop':'results':shouldBypassStartFlow() ? "game" : "start");
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(initialResults?.campaign.story??null);
   const storyTransitionRef = React.useRef(Boolean(initialResults));
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -509,7 +521,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const bossTrack = BOSS_MUSIC[stats.level];
     const musicSrc =
-      appPhase === "alleyRescue" ? null : appPhase === "start" || appPhase === "characterSelect"
+      appPhase === "alleyRescue" ? null : appPhase === "workshop" ? ALLEY_MAIN_MUSIC : appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
         : appPhase === "story"
           ? LEVEL_MUSIC[storyChapter ? STORY_CHAPTERS[storyChapter].musicLevel : 1]
@@ -630,22 +642,57 @@ const App: React.FC = () => {
     });
   };
 
-  const continueResults=()=>{
+  const finishIntermission=()=>{
     const pending=pendingResult.current;
-    if(!pending||resultsContinuing.current)return;
+    if(!pending)return false;
     if(campaignActive){
       try{
-        const banked=bankLevelResult(readWallet(DEFAULT_STATS),pending);
         if(pending.campaign.stats.isVictory)localStorage.removeItem(CAMPAIGN_SAVE_KEY);
         else if(!writeCampaignSave(pending.campaign))throw Error('Campaign save failed');
-        setWallet(acknowledgeResults(banked));
+        setWallet(acknowledgeResults(readWallet(DEFAULT_STATS)));
         setSavedCampaign(pending.campaign.stats.isVictory?null:pending.campaign);
       }catch{
-        setResultError('Your reward could not be saved. Free up browser storage, then retry.');return;
+        const message='Your progress could not be saved. Free up browser storage, then retry.';
+        if(appPhase==='workshop')setShopError(message);else setResultError(message);return false;
       }
     }
-    resultsContinuing.current=true;setResultError('');setResults(null);pendingResult.current=null;
+    resultsContinuing.current=true;setResultError('');setShopError('');setResults(null);
+    setStats(pending.campaign.stats);setStoryChapter(pending.campaign.story);pendingResult.current=null;
     setAppPhase('story');
+    return true;
+  };
+
+  const continueResults=()=>{
+    const pending=pendingResult.current;if(!pending||resultsContinuing.current)return;
+    try{
+      if(campaignActive)setWallet(bankLevelResult(readWallet(DEFAULT_STATS),pending));
+      if(pending.campaign.stats.isVictory){finishIntermission();return;}
+      const nextPending:PendingResult={...pending,stage:'shop'};
+      const next:Wallet=campaignActive?{...readWallet(DEFAULT_STATS),pending:nextPending}:{...walletRef.current,pending:nextPending};
+      if(campaignActive)localStorage.setItem(WALLET_KEY,JSON.stringify(next));
+      walletRef.current=next;setWallet(next);pendingResult.current=nextPending;
+      resultsContinuing.current=true;workshopClosing.current=false;setResultError('');setResults(null);setWorkshopReturn('story');setShopError('');setShopMessage('');setAppPhase('workshop');
+    }catch{setResultError('Your reward could not be saved. Free up browser storage, then retry.');}
+  };
+
+  const shopAction=(action:(current:Wallet)=>Wallet,message:string)=>{
+    if(shopBusy.current)return false;shopBusy.current=true;
+    try{
+      const persist=campaignActive||!pendingResult.current;
+      const current=persist?readWallet(DEFAULT_STATS):walletRef.current;
+      const next=action(current);
+      if(persist)try{localStorage.setItem(WALLET_KEY,JSON.stringify(next));}
+      catch{throw Error('That change could not be saved. Please try again.');}
+      walletRef.current=next;setWallet(next);if(next.pending){pendingResult.current=next.pending;setStats(next.pending.campaign.stats);}
+      setShopError('');setShopMessage(message);return true;
+    }catch(e){setShopError(e instanceof Error?e.message:'That change could not be saved. Please try again.');return false;}
+    finally{queueMicrotask(()=>{shopBusy.current=false;});}
+  };
+
+  const leaveWorkshop=()=>{
+    if(workshopClosing.current)return;workshopClosing.current=true;
+    if(pendingResult.current){if(!finishIntermission())workshopClosing.current=false;return;}
+    setShopError('');setAppPhase(workshopReturn==='start'?'start':'story');
   };
 
   const persistCampaign = React.useCallback(() => {
@@ -890,6 +937,7 @@ const App: React.FC = () => {
             />
           ) : stats.level === FLIGHT_LEVEL ? (
             <FlightGameEngine
+              buddy={wallet.equipped.buddy}
               key={`flight-${selectedCharacterId}-${difficulty}-${runId}`}
               isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
               selectedCharacterId={selectedCharacterId}
@@ -901,6 +949,7 @@ const App: React.FC = () => {
           ) : (
             <PlatformerGameEngine
             cameraMotion={cameraMotion}
+            cosmetics={wallet.equipped}
               key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
@@ -961,7 +1010,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? specialLabel : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -972,7 +1021,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {appPhase === "alleyRescue" && <AlleyRescue onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={alleyCompleted}
+        {appPhase === "alleyRescue" && <AlleyRescue buddy={wallet.equipped.buddy} onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={alleyCompleted}
           campaign={alleyCampaign} completed={alleyCompleted} saveError={saveError}
           onContinue={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase('game');}}
           onExit={() => {if(alleyCampaign && campaignActive) saveAndQuit(); else {setAlleyCampaign(false);setAppPhase('start');}}} />}
@@ -997,9 +1046,9 @@ const App: React.FC = () => {
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
                 </div>
-                <div className="pointer-events-none absolute right-[5.5%] top-[5.2%] rounded-full border-2 border-amber-200/70 bg-slate-950/90 px-3 py-1 text-sm font-['Gochi_Hand'] text-amber-200 sm:text-base md:text-lg" aria-label="Shop wallet">
-                  Wallet: {wallet.gold.toLocaleString()} Gold
-                </div>
+                <button type="button" className="absolute right-[5.5%] top-[5.2%] min-h-11 rounded-xl border-2 border-amber-200/70 bg-slate-950/95 px-3 py-1 text-sm font-['Gochi_Hand'] text-amber-200 sm:text-base md:text-lg" aria-label="Shop wallet" title="Open Kai’s Workshop" onClick={()=>{const saved=readWallet(DEFAULT_STATS);walletRef.current=saved;setWallet(saved);workshopClosing.current=false;setWorkshopReturn('start');setShopError('');setShopMessage('');setAppPhase('workshop');}}>
+                  Wallet: {wallet.gold.toLocaleString()} Gold <span className="block text-xs text-white">Kai’s Workshop →</span>
+                </button>
 
                 {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
                   {savedCampaign && <><button id="continue-game-button" onClick={continueCampaign} className="rounded-full border-2 border-slate-900 bg-emerald-400 px-6 py-1 text-xl font-bold text-slate-950 sm:text-2xl">Continue Game</button>
@@ -1192,7 +1241,11 @@ const App: React.FC = () => {
         {appPhase === 'story' && storyChapter && (
           <CutscenePlayer key={storyChapter} chapter={STORY_CHAPTERS[storyChapter]} resumeStats={stats} onComplete={completeStory} />
         )}
-        {appPhase === 'results' && results && <LevelResults result={results} gold={wallet.gold} error={resultError} onContinue={continueResults} />}
+        {appPhase === 'results' && results && <LevelResults result={results} gold={wallet.gold} error={resultError} onContinue={continueResults} nextLabel={results.level<FINAL_LEVEL?'Visit Kai’s Workshop':undefined} />}
+        {appPhase === 'workshop' && <Workshop wallet={wallet} error={shopError} message={shopMessage} betweenLevels={Boolean(pendingResult.current)}
+          onBuy={id=>shopAction(w=>buyShopItem(w,id),'Purchased! Your supplies and collection are saved.')}
+          onEquip={(slot,id)=>shopAction(w=>equipCosmetic(w,slot,id),'Loadout updated.')}
+          onContinue={leaveWorkshop} />}
 
         {appPhase === "intro" && (
           <div className="level-intro pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">

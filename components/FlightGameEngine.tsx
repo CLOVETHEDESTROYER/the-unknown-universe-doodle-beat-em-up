@@ -1,3 +1,5 @@
+import {drawBuddy} from '../gameplay/workshopCombat';
+import type {BuddyId} from '../gameplay/shopCatalog';
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { addBackdropDetail, addTerrainTiles } from '../gameplay/terrainTextures';
@@ -26,6 +28,7 @@ const WEAPON_HUD_TOP = 44;
 const ROUTE_HUD_TOP = 93;
 
 interface Props {
+  buddy?:BuddyId|'classic';
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
   initialStats: GameStats; onStatsUpdate: (stats: Partial<GameStats>) => void; onTogglePause: () => void;
 }
@@ -36,7 +39,7 @@ declare global {
     __unknownFlightEnemyTest?: (kind:'scout'|'interceptor'|'gunship'|'prism',hp?:number)=>void;
   }
 }
-const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficulty,initialStats,onStatsUpdate,onTogglePause}) => {
+const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficulty,initialStats,onStatsUpdate,onTogglePause,buddy='classic'}:Props) => {
   const host=useRef<HTMLDivElement>(null);
   const paused=useRef(isPaused);
   const callbacks=useRef({onStatsUpdate,onTogglePause});
@@ -100,6 +103,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let title:Phaser.GameObjects.Text,hint:Phaser.GameObjects.Text,banner:Phaser.GameObjects.Text,steeringLabel:Phaser.GameObjects.Text,bossLabel:Phaser.GameObjects.Text;
     let weaponLabel:Phaser.GameObjects.Text,weaponIcon:Phaser.GameObjects.Image,weaponHud:Phaser.GameObjects.Graphics,speedLines:Phaser.GameObjects.Graphics;
     let atmosphere:Phaser.GameObjects.Graphics;
+    let buddyArt:Phaser.GameObjects.Graphics|undefined;
+    let nextBuddyAssist=0;
+    const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     let route:Phaser.GameObjects.Graphics,effects:Phaser.GameObjects.Graphics,combatArt:Phaser.GameObjects.Graphics,bossBar:Phaser.GameObjects.Graphics;
     let impact:Phaser.GameObjects.Image;
     let shipHull:Phaser.GameObjects.Image,deathArt:Phaser.GameObjects.Graphics;
@@ -134,6 +140,26 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     }
     function tick(ms:number){
       if(!ready || disposed || paused.current)return;
+      if(buddy!=='classic'&&state.phase==='flight'&&state.clock>=nextBuddyAssist){
+        const combat=state.combat;
+        if(buddy==='patch-beetle'){
+          const index=combat.bolts.findIndex(bolt=>bolt.owner==='enemy'&&Math.abs(bolt.x-state.x)<140&&
+            Math.abs(bolt.y-state.y)<44&&(state.x-bolt.x)*bolt.vx+(state.y-bolt.y)*bolt.vy>0);
+          if(index>=0){
+            combat.bolts.splice(index,1);nextBuddyAssist=state.clock+5500;
+            playSfx('shield',{volume:.45});
+          }
+        }else{
+          const target=combat.enemies.find(enemy=>enemy.hp>0&&enemy.phase!=='incoming'&&enemy.phase!=='exit'&&
+            Phaser.Math.Distance.Between(state.x,state.y,enemy.x,enemy.y)<420);
+          if(target){
+            const x=state.x-74,y=state.y-52,angle=Math.atan2(target.y-y,target.x-x);
+            combat.bolts.push({id:combat.nextId++,owner:'player',x,y,vx:Math.cos(angle)*410,vy:Math.sin(angle)*410,damage:2,expires:state.clock+1300});
+            nextBuddyAssist=state.clock+2300;
+            playSfx('enemyLaser',{volume:.18,pitch:1.35});
+          }
+        }
+      }
       stepFlight(state,ms,input());
       supplyCrates?.update(state,ms);
       updateFlightCelebration();
@@ -243,6 +269,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       }else if(state.phase==='disembark'){
         const t=Phaser.Math.Clamp(Math.min(state.phaseMs,FLIGHT_VICTORY_START)/1800,0,1);
         walker.setPosition(650+210*t,lerp(456,492,Math.min(1,t*4))).setAlpha(Math.min(1,t*6)).setFlipX(false);
+      }
+      if(buddy!=='classic'&&buddyArt){
+        const flap=reducedMotion.matches?0:Math.sin(state.clock/110);
+        const target=walker.visible?walker:ship;
+        buddyArt.setVisible(target.visible).setPosition(target.x-74,target.y-(walker.visible?100:52)+flap*5);
+        if(target.visible)drawBuddy(buddyArt,buddy,1,flap);
       }
       const boss=state.combat.enemies.find(e=>e.kind==='pursuer');
       title.setText(boss?'VOID PURSUER':'STARBREAK RUN');
@@ -641,6 +673,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         route=this.add.graphics().setDepth(30);effects=this.add.graphics().setDepth(3);combatArt=this.add.graphics().setDepth(18);
         impact=this.add.image(240,295,'flight_impact').setDisplaySize(150,150).setDepth(25).setAlpha(0);
         deathArt=this.add.graphics().setDepth(27);
+        if(buddy!=='classic')buddyArt=this.add.graphics().setDepth(17);
         keys=this.input.keyboard!.addKeys('up,down,left,right,W,A,S,D') as typeof keys;
         // addKeys preserves the exact supplied names for letters.
         keys.w=keys.W;keys.a=keys.A;keys.s=keys.S;keys.d=keys.D;
@@ -728,7 +761,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       if(window.render_game_to_text===read)window.render_game_to_text=()=>JSON.stringify({engine:'flight',mode:'remounting',level:FLIGHT_LEVEL,player:null});
       game.destroy(true);
     };
-  },[selectedCharacterId,difficulty]);
+  },[selectedCharacterId,difficulty,buddy]);
   return <div ref={host} className="unknown-universe-game h-full w-full" />;
 };
 export default FlightGameEngine;
