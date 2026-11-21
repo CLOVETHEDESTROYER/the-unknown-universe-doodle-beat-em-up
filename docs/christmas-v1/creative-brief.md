@@ -1,6 +1,6 @@
 # Killer Klause — Christmas asset pack v1
 
-This is an asset-production pass. The live roster, gameplay, saves, Thanksgiving mode, and deployment are not changed by this pack. Artwork is available for review in `art/seasonal/christmas-v1/`; prepared exports are in `public/seasonal/christmas-v1/`.
+Artwork is available for review in `art/seasonal/christmas-v1/`; prepared exports are in `public/seasonal/christmas-v1/`. As of November 21, the playable preview is integrated behind the exact-case main-screen code `SantaKisComing`. See `preview.md` for controls, verification, and release behavior. Deployment remains pending.
 
 ## Creator-established story
 
@@ -32,7 +32,7 @@ Proposed helper designs: an elf field medic with a cream satchel, and an elf eng
 
 Base facing is right. Flip in the renderer for left-facing movement; do not generate a second mirrored identity. Hero sheets use 640-square frames and a consistent foot origin at (320, 600). Helpers use 320-square frames and origin (160, 300). Effects and props use centered anchors unless metadata overrides them. Standing visible-height target is 160 world pixels, consistent with the shared hero reference; calculate runtime scale from the exported idle body's actual visible height. The launcher muzzle and healing sockets are presentation sockets, not hitbox definitions.
 
-Frame timing, proposed combat powers, helper roles, and balance remain integration proposals. This art pack does not add damage, collision, invulnerability, ammo rules, save migrations, an unlock code, or a replacement boss. Review the animation loops in the gallery before adding the asset index to Phaser.
+The initial playable preview now uses the existing collision and boss-guard paths, a present launcher and bash, medic/engineer support, and a native weapon loadout. Timing and balance are documented in `preview.md` and remain open to playtesting. No replacement Christmas boss or separate new level geometry is introduced.
 
 ## Seasonal release requirement
 
@@ -42,6 +42,6 @@ Target end: **Saturday, December 26, 2026 at 00:00 America/Denver**, exclusive; 
 
 UTC interval: `[2026-11-26T07:00:00.000Z, 2026-12-26T07:00:00.000Z)`.
 
-These dates are recorded in `release-window.json`. This is a release specification, not an installed automation or an active event switch. After the reviewed assets are integrated and deployed, automatic availability should be computed from authoritative time using this interval, checked when entering the menu and starting a run. The event should expire for new runs at the boundary while existing runs and saves remain loadable with their captured theme/character. Browser clock manipulation must not be described as server-enforced scheduling. Keep normal roster unlocks and Thanksgiving saves compatible. Decide the event's coexistence/priority with Thanksgiving during integration, since both begin on Thanksgiving Day.
+These dates are recorded in `release-window.json` and implemented by `gameplay/christmasEvent.ts`. New runs use Christmas during the public interval, ahead of the stored Thanksgiving preference. Existing runs and saves retain their captured theme/character. The static game uses the browser's date; it is not server-enforced scheduling. The testing code grants access outside that interval and can be turned off separately.
 
-Before release: integrate and verify roster selection, launcher combat, elf support, collision/readability, mobile scale, story playback, old saves, event boundary behavior, pause/reduced motion, and the deployed build. No scheduled deployment has been installed during asset production.
+Roster/code entry, launcher combat, elf support, story playback, every campaign stage, saves after expiry, event boundaries, pause, and mobile menu layout have browser verification. Before the public release, deploy the updated build and verify the deployed site; physical-device checks and further balance review remain useful. No scheduled deployment has been installed.

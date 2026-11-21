@@ -1,4 +1,4 @@
-# Christmas art pack verification
+# Christmas art pack verification — November 20, 2026
 
 - `python scripts/pack_christmas_v1.py`: passed. 104 authored frames, three backgrounds, twelve storyboard panels. Source crops retain whole silhouettes and glows across grid boundaries.
 - `python scripts/audit_christmas_v1.py`: passed, 442 export checks. Sheet dimensions, nonempty frames, transparent margins, distinct pose exports, valid animation indices/rates, individual props, story images/captions, presentation artwork, and release dates verified. Glow effects intentionally retain partial alpha.
@@ -8,4 +8,4 @@
 
 The gallery can be opened directly from `public/seasonal/christmas-v1/review.html` or served from the project's public directory. The browser automation tool requires an HTTP preview; the verification used a localhost-only server.
 
-Scope: this verifies asset integrity and the review gallery. It does not verify game combat, hitboxes, helper AI, cutscene integration, saves, or seasonal gating. The character is not in the live roster, and no scheduled release has been activated.
+The checks above covered asset integrity and the review gallery during art production. Playable preview integration followed on November 21; see `preview.md` for the exact-case code, automatic calendar window, runtime verification, and remaining deployment step.

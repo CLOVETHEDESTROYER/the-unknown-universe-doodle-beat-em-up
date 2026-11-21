@@ -7,6 +7,7 @@ import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
 import {readThanksgivingEnabled,storeThanksgivingEnabled} from './gameplay/seasonalTheme';
+import {acceptsChristmasCode,isChristmasAvailable,readChristmasPreview,storeChristmasPreview,watchChristmasAvailability} from './gameplay/christmasEvent';
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
@@ -133,6 +134,9 @@ const getInitialCharacterId = (): CharacterId => {
 
   const params = new URLSearchParams(window.location.search);
   const requested = params.get("character");
+  if(acceptsChristmasCode(params.get('code')??'')){storeChristmasPreview(true);return 'killer_klause';}
+  if(requested==='killer_klause')return isChristmasAvailable()?requested:'xgod';
+  if(!requested&&readChristmasPreview())return 'killer_klause';
   if(acceptsTurkeyKingCode(params.get('code')??'')){unlockTurkeyKing();storeThanksgivingEnabled(true);return 'turkey_king';}
   if(!requested&&readTurkeyKingSelected())return 'turkey_king';
   if (!isCharacterId(requested)) {
@@ -235,8 +239,8 @@ const getInitialStats = (): GameStats => {
 
   return {
     ...DEFAULT_STATS,
-    seasonalTheme: readThanksgivingEnabled() ? 'thanksgiving' : undefined,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
+    seasonalTheme: isChristmasAvailable() ? 'christmas' : readThanksgivingEnabled() ? 'thanksgiving' : undefined,
+    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'killer_klause' && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
     score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
@@ -286,6 +290,18 @@ const App: React.FC = () => {
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
   const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
+  const [christmasAvailable,setChristmasAvailable]=useState(isChristmasAvailable);
+  const [christmasPreview,setChristmasPreview]=useState(readChristmasPreview);
+  useEffect(()=>watchChristmasAvailability(setChristmasAvailable),[]);
+  const changeChristmasPreview=(enabled:boolean)=>{
+    storeChristmasPreview(enabled);setChristmasPreview(enabled);
+    const available=isChristmasAvailable();setChristmasAvailable(available);
+    if(enabled)setSelectedCharacterId('killer_klause');
+    else if(!available&&selectedCharacterId==='killer_klause')setSelectedCharacterId('xgod');
+  };
+  const newRunTheme=():GameStats['seasonalTheme']=>isChristmasAvailable()?'christmas':thanksgivingEnabled?'thanksgiving':undefined;
+  const secretCodeProps={enabled:thanksgivingEnabled,onChange:changeThanksgiving,onTurkeyKing:activateTurkeyKing,
+    christmasActive:christmasAvailable,christmasPreview,onChristmasPreview:changeChristmasPreview};
   const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
   const storyTransitionRef = React.useRef(false);
@@ -309,7 +325,7 @@ const App: React.FC = () => {
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
-  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid';
+  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'killer_klause' && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid';
   const [useAutoRun] = useState(shouldUseAutoRun);
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
@@ -636,7 +652,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: targetLevel,
-      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
+      seasonalTheme: newRunTheme(),
       equipment:createLoadout(hasSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
       score: 0,
       souls: targetLevel >= 2 ? 3 : 0,
@@ -661,6 +677,7 @@ const App: React.FC = () => {
   };
 
   const testCharacterMode = (characterId: CharacterId, powered: boolean) => {
+    if(characterId==='killer_klause'&&!isChristmasAvailable())return;
     setCampaignActive(false);
     storyTransitionRef.current = false;
     setStoryChapter(null);
@@ -680,7 +697,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       level: currentLevel,
-      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
+      seasonalTheme: newRunTheme(),
       equipment:createLoadout(xGodPowered?'sword':characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands'),
       health: DEFAULT_STATS.maxHealth,
       lives: DEFAULT_STATS.maxLives,
@@ -707,7 +724,7 @@ const App: React.FC = () => {
     setCampaignActive(false);setRestoreCheckpoint(undefined);
     storyTransitionRef.current = false;
     setStoryChapter(null);
-    setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:thanksgivingEnabled?'thanksgiving':undefined, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:newRunTheme(), characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -723,7 +740,7 @@ const App: React.FC = () => {
   };
 
   const beginRunWithCharacter = (characterId: CharacterId) => {
-    const canSelect = characterId==='turkey_king'?turkeyKingUnlocked:characterId === "xgod" || characterId === "zgod" || characterId === "killer_kai" && kaiRescued || isRosterUnlocked;
+    const canSelect = characterId==='killer_klause'?isChristmasAvailable():characterId==='turkey_king'?turkeyKingUnlocked:characterId === "xgod" || characterId === "zgod" || characterId === "killer_kai" && kaiRescued || isRosterUnlocked;
     if (!canSelect) {
       return;
     }
@@ -735,15 +752,15 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       selectedCharacterId: characterId,
-      seasonalTheme: thanksgivingEnabled ? 'thanksgiving' : undefined,
+      seasonalTheme: newRunTheme(),
       characterPowerUnlocked: characterId === 'zgod',
       equipment:createLoadout(characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands')
     });
     setIsPaused(false);
     setTitlePanel(null);
-    const legacyRun = requestedLegacyBrawler && characterId !== 'turkey_king' && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron' && characterId !== 'shadow_kid';
+    const legacyRun = requestedLegacyBrawler && characterId !== 'killer_klause' && characterId !== 'turkey_king' && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron' && characterId !== 'shadow_kid';
     storyTransitionRef.current = !legacyRun;
-    setStoryChapter(legacyRun ? null : 'prologue');
+    setStoryChapter(legacyRun ? null : characterId==='killer_klause'?'christmas':'prologue');
     setAppPhase(legacyRun ? 'intro' : 'story');
   };
 
@@ -751,7 +768,7 @@ const App: React.FC = () => {
     storyTransitionRef.current = false;
     setIsPaused(false);
     if (storyChapter === 'level1') { setAlleyCampaign(true); setAlleyCompleted(false); setAppPhase('alleyRescue'); }
-    else setAppPhase(storyChapter === 'prologue' ? 'intro' : 'game');
+    else setAppPhase(storyChapter === 'prologue'||storyChapter === 'christmas' ? 'intro' : 'game');
     setStoryChapter(null);
   };
 
@@ -879,7 +896,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (selectedCharacterId==='killer_klause'||stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -898,12 +915,12 @@ const App: React.FC = () => {
         {appPhase === "start" && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#312e81_0%,#0f172a_55%,#020617_100%)]" />
-            <div className="relative z-10 flex h-full w-full items-center justify-center p-3 sm:p-5 md:p-8">
+            <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 overflow-y-auto p-3 sm:p-5 md:p-8">
               <div
-                className="relative max-w-[1700px]"
+                className="relative max-w-[1700px] shrink-0"
                 style={{
                   aspectRatio: "3172 / 1344",
-                  width: "min(100%, calc(94vh * 2.3601))"
+                  width: "min(100%, calc(70dvh * 2.3601))"
                 }}
               >
                 <img
@@ -950,6 +967,7 @@ const App: React.FC = () => {
                   </button>
                 </div>
               </div>
+              <div className="title-secret-codes w-full max-w-5xl shrink-0 font-['Gochi_Hand']"><SecretCodeEntry {...secretCodeProps} /></div>
             </div>
 
             {confirmNewRun && <div role="dialog" aria-modal="true" aria-label="Start a new campaign" className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 p-4">
@@ -1044,11 +1062,11 @@ const App: React.FC = () => {
                 </button>
               </div>
 
-              <SecretCodeEntry enabled={thanksgivingEnabled} onChange={changeThanksgiving} onTurkeyKing={activateTurkeyKing} />
+              <SecretCodeEntry {...secretCodeProps} />
               <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
-                {CHARACTER_IDS.map((characterId) => {
+                {CHARACTER_IDS.filter(id=>id!=='killer_klause'||christmasAvailable).map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
-                  const locked = characterId==='turkey_king'?!turkeyKingUnlocked:characterId !== "xgod" && characterId !== "zgod" && !(characterId === "killer_kai" && kaiRescued) && !isRosterUnlocked;
+                  const locked = characterId==='killer_klause'?!christmasAvailable:characterId==='turkey_king'?!turkeyKingUnlocked:characterId !== "xgod" && characterId !== "zgod" && !(characterId === "killer_kai" && kaiRescued) && !isRosterUnlocked;
                   return (
                     <button
                       key={character.id}
@@ -1107,7 +1125,7 @@ const App: React.FC = () => {
             >
               <div className="level-intro-art">
                 <img
-                  src={mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
+                  src={stats.seasonalTheme==='christmas'?'/seasonal/christmas-v1/backgrounds/city.webp':mobileImagePath(LEVEL_ONE_INTRO_IMAGE)}
                   alt="Level 1 intro screen"
                   className="h-full w-full object-contain"
                 />
@@ -1143,7 +1161,7 @@ const App: React.FC = () => {
               {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
                 <p className="mb-3 text-base text-slate-700">Hold Down / S or D-pad Down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
               )}
-              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
+              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='killer_klause'?'Killer Klause keeps his present launcher. Space / HIT: launcher bash. C / FIRE: launch a present. X / SP: call the medic and engineer elves.':selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
               <button
                 onClick={togglePause}

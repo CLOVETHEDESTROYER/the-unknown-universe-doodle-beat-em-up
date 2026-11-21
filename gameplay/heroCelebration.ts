@@ -13,6 +13,7 @@ const SWORD_STEPS = [0, 280, 640, 1020, 1620, 2020];
 const FOLDER = '/characters/celebrations-v1/';
 
 export function loadHeroCelebrationAssets(load:Phaser.Loader.LoaderPlugin,hero:CharacterId,sword=false,reuseKai=false){
+  if(hero==='killer_klause'){load.spritesheet('hero_victory','/seasonal/christmas-v1/killer-klause/combat.png',{frameWidth:640,frameHeight:640});return;}
   if(hero==='turkey_king'){load.spritesheet('hero_victory','/characters/turkey-king-v3/victory.png',{frameWidth:640,frameHeight:640});return;}
   if(hero==='shadow_kid'){load.multiatlas('hero_victory',SHADOW_ART.folder+'victory.json',SHADOW_ART.folder);return;}
   if(hero==='elytron'){
@@ -52,7 +53,7 @@ export class HeroCelebration {
     this.actor.setTexture(key).setOrigin(.5,this.hero==='killer_kai'&&kind==='victory'?240/256:352/384)
       .setScale(this.hero==='killer_kai'&&kind==='victory'?.782:1).setAlpha(1);
     if(this.hero==='shadow_kid')this.actor.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
-    if(this.hero==='turkey_king')this.actor.setOrigin(.5,600/640);
+    if(this.hero==='turkey_king'||this.hero==='killer_klause')this.actor.setOrigin(.5,600/640);
     if(this.hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
     sizeCharacter(this.actor,this.hero,'victory');
     this.seek(0,x,feet,facing);return true;
@@ -68,7 +69,7 @@ export class HeroCelebration {
     }
     const steps=this.kind==='sword'?SWORD_STEPS:VICTORY_STEPS;
     this.frame=steps.reduce((frame,t,index)=>this.elapsed>=t?index:frame,0);
-    this.actor.setFrame(String(this.frame+(this.hero==='elytron'?12:this.hero==='killer_kai'&&this.kind==='victory'?8:0)))
+    this.actor.setFrame(String(this.hero==='killer_klause'?14+(this.frame>=2?1:0):this.frame+(this.hero==='elytron'?12:this.hero==='killer_kai'&&this.kind==='victory'?8:0)))
       .setPosition(x,feet).setFlipX(facing<0).setVisible(true);
     this.light.clear();
     if(this.kind==='sword'){

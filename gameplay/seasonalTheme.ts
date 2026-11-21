@@ -1,5 +1,5 @@
 export const THANKSGIVING_KEY = 'unknownUniverse.thanksgiving.v1';
-export type SeasonalTheme = 'thanksgiving';
+export type SeasonalTheme = 'thanksgiving' | 'christmas';
 export function readThanksgivingEnabled() {
   try { return localStorage.getItem(THANKSGIVING_KEY) === 'true'; }
   catch { return false; }

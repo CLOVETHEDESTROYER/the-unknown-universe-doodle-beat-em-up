@@ -1,6 +1,8 @@
 import type { CharacterId } from '../types';
 
 export const SIGNATURE_SPECIALS = {
+  killer_klause:{name:'Elf Helpers',cooldown:10000,windup:400,duration:2800,color:0x9fe8d7,
+    description:'Call the medic to restore health and the engineer to launch two supporting presents.'},
   turkey_king:{name:'Royal Turkey Storm',cooldown:12000,windup:640,duration:1150,color:0xffb347,description:'Raise the staff, call lightning, and rain ten turkeys in three waves. Bouncing birds burst into fried wings.'},
   shadow_kid: {name:'Void Burst',cooldown:5000,windup:500,duration:800,color:0xb16eff,description:'Hurl a powerful black hole through up to three enemies.'},
   elytron: {name:'Pulse Storm',cooldown:6000,windup:320,duration:1300,color:0xffda39,

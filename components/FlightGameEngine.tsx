@@ -81,7 +81,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     const kai=selectedCharacterId==='killer_kai';
     const shadow=selectedCharacterId==='shadow_kid';
     const elytron=selectedCharacterId==='elytron';
-    const turkeyKing=selectedCharacterId==='turkey_king';
+    const klause=selectedCharacterId==='killer_klause';
+    const turkeyKing=selectedCharacterId==='turkey_king'||klause;
     state.noPowerups=turkeyKing;
     if(turkeyKing){state.combat.weapon=state.checkpointWeapon='twin';state.weaponHits=0;}
     let scene:Phaser.Scene;
@@ -574,8 +575,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           this.load.multiatlas('flight_hero',XGOD_FROST_FOLDER+'run.json',XGOD_FROST_FOLDER);
           this.load.multiatlas('flight_head',XGOD_FROST_FOLDER+'idle.json',XGOD_FROST_FOLDER);
         }else if(turkeyKing){
-          loadGameSheet(this.load,'flight_hero','characters/turkey-king-v3/flight-walk.png',{frameWidth:640,frameHeight:640});
-          loadGameImage(this.load,'flight_head','characters/turkey-king-v3/idle.png');
+          loadGameSheet(this.load,'flight_hero',klause?'seasonal/christmas-v1/killer-klause/movement.png':'characters/turkey-king-v3/flight-walk.png',{frameWidth:640,frameHeight:640});
+          loadGameImage(this.load,'flight_head',klause?'seasonal/christmas-v1/killer-klause/idle.png':'characters/turkey-king-v3/idle.png');
         }else if(shadow){
           this.load.multiatlas('flight_hero',SHADOW_ART.folder+'run.json',SHADOW_ART.folder);
           this.load.multiatlas('flight_head',SHADOW_ART.folder+'idle.json',SHADOW_ART.folder);
@@ -606,13 +607,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         if(kai)pilot.setCrop(140,35,100,110).setPosition(12,-6);
         if(shadow)pilot.setCrop(180,70,160,150).setScale(.21).setPosition(12,-6);
         if(elytron)pilot.setCrop(225,105,190,180).setScale(.17).setPosition(12,-6);
-        if(turkeyKing)pilot.setCrop(230,130,170,160).setScale(.19).setPosition(12,-6);
+        if(turkeyKing)pilot.setCrop(klause?265:230,klause?175:130,klause?150:170,klause?155:160).setScale(klause?.21:.19).setPosition(12,-6);
         const glass=this.add.ellipse(15,-11,54,23,0x92d4ef,.15);
         ship=this.add.container(state.x,state.y,[exhaust,shipHull,pilot,glass]).setDepth(15);
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
         if(shadow)walker.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
         if(elytron)walker.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
-        this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
+        this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero',klause?{start:2,end:7}:{}),frameRate:12,repeat:-1});
         sizeCharacter(walker,selectedCharacterId,'flight');
         if(frostXgod)walker.setScale(characterScale('xgod','hero_frost_run'));
         if(turkeyKing)walker.setOrigin(.5,600/640);

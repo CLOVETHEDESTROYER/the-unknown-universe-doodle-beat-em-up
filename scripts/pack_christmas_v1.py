@@ -18,7 +18,7 @@ ART = ROOT / 'art/seasonal/christmas-v1'
 SOURCE = ART / 'source'
 OUT = ROOT / 'public/seasonal/christmas-v1'
 PREVIEW = ART / 'previews'
-MANIFEST: dict = {'version': 1, 'status': 'art-review; not integrated', 'baseFacing': 'right',
+MANIFEST: dict = {'version': 1, 'status': 'playable-preview; pending deployment', 'baseFacing': 'right',
                   'heroWorldStandingHeight': 160, 'sheets': {}, 'backgrounds': [], 'props': [], 'story': []}
 
 

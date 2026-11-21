@@ -69,7 +69,7 @@ end = datetime.fromisoformat(window['endsAtExclusive'].replace('Z', '+00:00'))
 check(start == datetime(2026, 11, 26, 7, tzinfo=timezone.utc), 'Thanksgiving start at Denver midnight')
 check(start.weekday() == 3 and 22 <= start.day <= 28, 'Thanksgiving is the fourth Thursday in November')
 check(end == datetime(2026, 12, 26, 7, tzinfo=timezone.utc) and end > start, 'exclusive expiry includes all Christmas Day')
-check(not window['runtimeIntegrated'] and not window['automationInstalled'], 'release status accurately records asset-only work')
+check(window['runtimeIntegrated'] and window.get('automaticCalendarAvailability'), 'release status records the integrated calendar preview')
 
 report = {'status': 'passed' if not errors else 'failed', 'checks': len(checks),
           'frames': total_frames, 'backgrounds': len(manifest['backgrounds']), 'storyPanels': len(manifest['story']),

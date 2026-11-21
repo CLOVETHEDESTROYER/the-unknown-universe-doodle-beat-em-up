@@ -53,4 +53,4 @@ export function soundPath(name:SoundName,variant:number){
   const bank=kenney.has(name)?'kenney':enhanced.has(name)||name.startsWith('blasterCharge')?'v2':'v1';
   return `/audio/sfx-${bank}/${name}-${variant+1}.wav`;
 }
-export const SLAM_SOUNDS = {turkey_king:'slamBarrett',elytron:'slamTeleport',killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;
+export const SLAM_SOUNDS = {killer_klause:'slamNico',turkey_king:'slamBarrett',elytron:'slamTeleport',killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;

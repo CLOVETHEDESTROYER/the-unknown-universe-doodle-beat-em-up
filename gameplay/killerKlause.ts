@@ -1,0 +1,152 @@
+import Phaser from 'phaser';
+import {playSfx} from '../audio/gameAudio';
+
+type Sprite = Phaser.Physics.Arcade.Sprite;
+interface Hooks {
+  player:Sprite; enemies:Phaser.Physics.Arcade.Group; projectiles:Phaser.Physics.Arcade.Group;
+  facing:()=>number; canUse:()=>boolean; clearLine:(enemy:Sprite)=>boolean;
+  damage:(enemy:Sprite,amount:number,projectile?:boolean)=>boolean; fired:()=>void;
+  heal:(amount:number)=>number;
+}
+export const KLAUSE_ART = '/seasonal/christmas-v1/';
+export function loadKillerKlauseAssets(load:Phaser.Loader.LoaderPlugin) {
+  for (const [key,file] of [['klause_body','movement'],['klause_combat','combat'],['klause_special','special'],['hero_death','special']])
+    load.spritesheet(key,KLAUSE_ART+`killer-klause/${file}.png`,{frameWidth:640,frameHeight:640});
+  load.spritesheet('klause_fx',KLAUSE_ART+'effects/christmas-fx.png',{frameWidth:256,frameHeight:256});
+  for (const role of ['medic','engineer']) load.spritesheet('klause_elf_'+role,KLAUSE_ART+`elves/${role}.png`,{frameWidth:320,frameHeight:320});
+}
+
+/** Native weapon preview, using ordinary projectile collisions and boss guards. */
+export class KillerKlauseCombat {
+  private clock=0;
+  private lastSceneAt=0;
+  private direction=1;
+  private action:'fire'|'melee'|'helpers'|null=null;
+  private actionAt=-9999;
+  private readyAt=0;
+  private helperReadyAt=0;
+  private helperAt=-9999;
+  private resolved=false;
+  private medicDone=false;
+  private engineerShots=0;
+  private alive=true;
+  private clearing=false;
+  private hud:Phaser.GameObjects.Text;
+  private medic:Phaser.GameObjects.Sprite;
+  private engineer:Phaser.GameObjects.Sprite;
+  private fx:Array<{sprite:Phaser.GameObjects.Sprite;at:number;start:number;fps:number}>=[];
+  private shots=0;
+  private hits=0;
+  private swings=0;
+  private calls=0;
+  private healing=0;
+  constructor(private scene:Phaser.Scene,private hooks:Hooks) {
+    this.medic=scene.add.sprite(0,0,'klause_elf_medic',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
+    this.engineer=scene.add.sprite(0,0,'klause_elf_engineer',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
+    this.hud=scene.add.text(24,108,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'19px',color:'#b8f6da',stroke:'#192831',strokeThickness:5}).setScrollFactor(0).setDepth(83);
+    scene.anims.create({key:'klause_gift_flight',frames:[0,1,2,3].map(frame=>({key:'klause_fx',frame})),frameRate:10,repeat:-1});
+  }
+  get casting(){return this.action==='fire'||this.action==='helpers';}
+  get swinging(){return this.action==='melee';}
+  get facing(){return this.action?this.direction:this.hooks.facing();}
+  updateEffects(delta:number) { this.advance(delta); }
+  update(melee:boolean,fire:boolean,special:boolean,delta:number) {
+    this.advance(delta);
+    const age=this.clock-this.actionAt;
+    if(this.action&&age>=(this.action==='fire'?900:this.action==='helpers'?500:420))this.action=null;
+    if(!this.hooks.canUse()){this.cancel();return;}
+    if(!this.action){
+      if(special&&this.clock>=this.helperReadyAt){
+        this.action='helpers';this.helperAt=this.clock;this.helperReadyAt=this.clock+10000;
+        this.medicDone=false;this.engineerShots=0;this.calls++;
+      }else if(fire&&this.clock>=this.readyAt){this.action='fire';this.readyAt=this.clock+950;}
+      else if(melee&&this.clock>=this.readyAt){this.action='melee';this.readyAt=this.clock+550;this.swings++;}
+      if(this.action){this.actionAt=this.clock;this.direction=this.hooks.facing();this.resolved=false;}
+    }
+    if(!this.resolved&&this.clock-this.actionAt>=150){
+      this.resolved=true;
+      if(this.action==='fire')this.launchGift();
+      else if(this.action==='melee'){
+        const p=this.hooks.player,d=this.direction;
+        const region=new Phaser.Geom.Rectangle(d>0?p.x-8:p.x-128,p.y-135,136,140);
+        for(const enemy of this.hooks.enemies.getChildren() as Sprite[]){
+          if(!enemy.active||!this.hooks.clearLine(enemy))continue;
+          const b=enemy.body as Phaser.Physics.Arcade.Body;
+          if(Phaser.Geom.Intersects.RectangleToRectangle(region,new Phaser.Geom.Rectangle(b.x,b.y,b.width,b.height))&&this.hooks.damage(enemy,3))this.hits++;
+        }
+        playSfx('punchSwing',{pitch:.75});
+      }
+    }
+    const helperAge=this.clock-this.helperAt;
+    if(helperAge>=400&&helperAge<2800){
+      if(!this.medicDone){
+        this.medicDone=true;this.healing+=this.hooks.heal(12);
+        this.effect(this.hooks.player.x,this.feet-55,12,.6);playSfx('powerup',{volume:.4,pitch:1.1});
+      }
+      if(helperAge>=650+this.engineerShots*550&&this.engineerShots<2){
+        this.engineerShots++;this.launchGift(this.engineer.x,this.engineer.y-48,3);
+      }
+    }
+  }
+  private get feet(){return (this.hooks.player.body as Phaser.Physics.Arcade.Body).bottom;}
+  private advance(delta:number) {
+    if(!this.alive)return;
+    const gap=this.lastSceneAt?Math.max(0,this.scene.time.now-this.lastSceneAt-delta):0;
+    if(gap>80)for(const shot of this.hooks.projectiles.getChildren())if(shot.getData('klauseProjectile'))
+      shot.setData('playerShotExpiresAt',Number(shot.getData('playerShotExpiresAt'))+gap);
+    this.lastSceneAt=this.scene.time.now;this.clock+=Math.max(0,delta);
+    const age=this.clock-this.helperAt,visible=age>=0&&age<2800;
+    const d=this.hooks.facing(),p=this.hooks.player;
+    for(const [i,elf] of [this.medic,this.engineer].entries()){
+      const assisting=age>=350&&age<1600;
+      elf.setVisible(visible).setPosition(p.x-d*(70+i*52),this.feet).setFlipX(d<0)
+        .setFrame(assisting?8+Math.min(2,Math.floor((age-350)/400)):age>=1600?11:2+Math.floor(age/75)%6);
+    }
+    this.fx=this.fx.filter(fx=>{
+      const frame=Math.floor((this.clock-fx.at)*fx.fps/1000);
+      if(frame>=4){fx.sprite.destroy();return false;}
+      fx.sprite.setFrame(fx.start+frame);return true;
+    });
+    this.hud.setText(`X / SP: ELF HELPERS · ${this.clock<this.helperReadyAt?((this.helperReadyAt-this.clock)/1000).toFixed(1)+'s':'READY'}`);
+  }
+  private launchGift(x?:number,y?:number,damage=5) {
+    const p=this.hooks.player,d=this.facing;
+    x??=p.x+d*225*p.scaleX;y??=this.feet-345*p.scaleY;
+    const target=(this.hooks.enemies.getChildren() as Sprite[]).filter(e=>e.active&&d*(e.x-x!)>15&&d*(e.x-x!)<850&&this.hooks.clearLine(e))
+      .sort((a,b)=>Math.abs(a.x-x!)-Math.abs(b.x-x!))[0];
+    const dy=target?(target.body as Phaser.Physics.Arcade.Body).center.y-y:0;
+    const angle=target?Phaser.Math.Clamp(Math.atan2(dy,Math.max(80,Math.abs(target.x-x))),-.65,.65):0;
+    const shot=this.hooks.projectiles.create(x,y,'klause_fx',0) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    shot.setScale(.46).setFlipX(d<0).setDepth(22).play('klause_gift_flight')
+      .setData('damage',damage).setData('pattern','present_rocket').setData('klauseProjectile',true)
+      .setData('playerShotExpiresAt',this.scene.time.now+1900).setVelocity(d*Math.cos(angle)*680,Math.sin(angle)*680);
+    shot.body.setAllowGravity(false).setSize(92,84,true);
+    shot.once('destroy',()=>{if(this.alive&&!this.clearing&&this.scene.sys.isActive())this.effect(shot.x,shot.y,4,.65);});
+    this.effect(x,y,8,.45,d);this.shots++;this.hooks.fired();playSfx('punchSwing',{pitch:.55,volume:.65});
+  }
+  private effect(x:number,y:number,start:number,scale:number,direction=1) {
+    const sprite=this.scene.add.sprite(x,y,'klause_fx',start).setScale(scale).setFlipX(direction<0).setDepth(23);
+    this.fx.push({sprite,at:this.clock,start,fps:start===12?8:18});
+  }
+  pose(grounded:boolean,vx:number,vy:number,stride:number,hurtAge:number,crouching=false) {
+    const age=this.clock-this.actionAt;
+    if(hurtAge<300)return {texture:'klause_combat',frame:hurtAge<150?12:13};
+    if(this.action==='helpers')return {texture:'klause_special',frame:Math.min(3,Math.floor(age/125))};
+    if(this.action==='melee')return {texture:'klause_combat',frame:8+Math.min(3,Math.floor(age/105))};
+    if(this.action==='fire')return {texture:'klause_combat',frame:age<335?Math.min(3,Math.floor(age/84)):4+Math.min(3,Math.floor((age-335)/140))};
+    return {texture:'klause_body',frame:!grounded?vy<0?9:10:crouching?8:Math.abs(vx)>18?2+Math.floor(stride/26)%6:Math.floor(this.clock/480)%2};
+  }
+  read(){return {name:'Present Launcher',shots:this.shots,meleeSwings:this.swings,meleeHits:this.hits,active:this.casting,
+    cooldownRemainingMs:Math.max(0,this.readyAt-this.clock),helpers:{active:this.clock-this.helperAt<2800,calls:this.calls,
+      healing:this.healing,engineerShots:this.engineerShots,cooldownRemainingMs:Math.max(0,this.helperReadyAt-this.clock)}};}
+  cancel(clearEffects=false) {
+    this.action=null;this.actionAt=-9999;this.resolved=true;
+    if(clearEffects){
+      this.helperAt=-9999;this.medic.setVisible(false);this.engineer.setVisible(false);this.clearing=true;
+      for(const shot of [...this.hooks.projectiles.getChildren()])if(shot.getData('klauseProjectile'))shot.destroy();
+      this.clearing=false;
+      for(const fx of this.fx)fx.sprite.destroy();this.fx=[];
+    }
+  }
+  destroy(){if(!this.alive)return;this.alive=false;this.cancel(true);this.medic.destroy();this.engineer.destroy();this.hud.destroy();}
+}

@@ -24,7 +24,7 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
     if (!s.equipment || !isPowerup(s.equipment.active) || !Number.isFinite(s.equipment.hits) || !Array.isArray(s.equipment.unlocked)) return null;
     stats.equipment = restoreLoadout(s.equipment, 'hands');
     stats.isDying = false; stats.activeBossId = null;
-    if (s.seasonalTheme !== undefined && s.seasonalTheme !== 'thanksgiving') return null;
+    if (s.seasonalTheme !== undefined && s.seasonalTheme !== 'thanksgiving' && s.seasonalTheme !== 'christmas') return null;
     stats.seasonalTheme = s.seasonalTheme;
     if (s.completedEncounters !== undefined) {
       if (!Array.isArray(s.completedEncounters) || !s.completedEncounters.every(isEncounterId)) return null;
@@ -38,7 +38,7 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
       stats.flightSave = f;
     }
     if (save.story !== null && (typeof save.story !== 'string' || !Object.hasOwn(STORY_CHAPTERS,save.story) || save.story === 'level6')) return null;
-    if (save.story && (save.story === 'prologue' ? s.level !== 1 : s.level !== Number(save.story.slice(5)) + 1)) return null;
+    if (save.story && (save.story === 'prologue'||save.story === 'christmas' ? s.level !== 1 : s.level !== Number(save.story.slice(5)) + 1)) return null;
     if (save.interlude !== undefined && (!['alley-rescue','alley-rescue-complete'].includes(save.interlude) || save.story !== null || s.level !== 2)) return null;
     return {version:1,savedAt:save.savedAt,difficulty:save.difficulty,stats,story:save.story,...(save.interlude ? {interlude:save.interlude as CampaignInterlude} : {})};
   } catch { return null; }

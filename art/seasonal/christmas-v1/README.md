@@ -1,6 +1,6 @@
 # Killer Klause / Christmas asset pack v1
 
-Open `public/seasonal/christmas-v1/review.html` for the complete local art review. It works directly from disk and through the existing Vite development server at `/seasonal/christmas-v1/review.html`. No live-game entry point is added.
+Open `public/seasonal/christmas-v1/review.html` for the complete local art review. It works directly from disk and through the existing Vite development server at `/seasonal/christmas-v1/review.html`. The playable preview is now available through the exact-case main-screen code `SantaKisComing`; see `docs/christmas-v1/preview.md`.
 
 ## Deliverables
 
@@ -26,6 +26,6 @@ python scripts/audit_christmas_v1.py
 
 See `public/seasonal/christmas-v1/manifest.json` for image paths, sheet dimensions, frame indices, proposed playback rates, anchors, shared scales, and release status. Hero cells are 640 × 640, helpers 320 × 320, effects 256 × 256, props 320 × 320. No animation replaces an existing character asset.
 
-Story facts, proposed additions, content treatment, and release behavior are documented in `docs/christmas-v1/creative-brief.md`. Intended availability is November 26 through December 25, 2026 in America/Denver, with an exclusive end at midnight on December 26. The release window is specified, but runtime scheduling and deployment have not been installed; those belong to the next integration phase.
+Story facts, proposed additions, content treatment, and release behavior are documented in `docs/christmas-v1/creative-brief.md`. Automatic public availability is implemented for November 26 through December 25, 2026 in America/Denver, with an exclusive end at midnight on December 26. No code is required during that window. Deployment of the updated build remains pending.
 
-The review gallery is a presentation tool. It does not validate combat damage, collisions, animation interruption, helper behavior, save compatibility, event gating, or the final world-space scale in Phaser. Those checks remain for integration after this asset pass.
+The review gallery is a presentation tool. Separate runtime checks now exercise combat, helpers, save compatibility, event gating, and world-space scale in Phaser; their scope and evidence are documented in `docs/christmas-v1/preview.md`.

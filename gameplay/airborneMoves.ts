@@ -44,11 +44,12 @@ export class AirborneMoves {
   private screenClears = 0;
 
   constructor(private scene: Phaser.Scene, private hooks: Hooks, readonly hero: CharacterId) {
-    this.actor = scene.add.sprite(0, 0, hero==='turkey_king'?'turkey_king_body':hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
+    this.actor = scene.add.sprite(0, 0, hero==='killer_klause'?'klause_body':hero==='turkey_king'?'turkey_king_body':hasNewMobilityArt(hero)?'hero_mobility':`${hero}_double_jump`, '0')
       .setOrigin(.5, 220/256).setScale(hero === 'zgod' ? .56 : hero==='xgod'?.78:hero==='killer_kai'?.88:.72).setDepth(24).setVisible(false);
     this.ink = scene.add.graphics().setDepth(23);
     if(hero==='shadow_kid')this.actor.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
     if(hero==='elytron')this.actor.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
+    if(hero==='killer_klause')this.actor.setOrigin(.5,.9375);
     sizeCharacter(this.actor,hero,'mobility');
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.destroy());
   }
@@ -254,10 +255,11 @@ export class AirborneMoves {
         : Math.min(5, Math.floor(age/70));
       const newFrame=duck?(crouch!.equipment==='blaster'?10:crouch!.equipment==='frost'?14:crouch!.equipment==='sword'?12:8)+(crouch!.firing?1:0)
         :this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105));
-      this.actor.setTexture(this.hero==='turkey_king'?'turkey_king_body':hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(this.hero==='turkey_king'?5:hasNewMobilityArt(this.hero)?newFrame:frame))
+      this.actor.setTexture(this.hero==='killer_klause'?'klause_body':this.hero==='turkey_king'?'turkey_king_body':hasNewMobilityArt(this.hero)?'hero_mobility':this.busy ? this.hero === 'zgod' ? 'zgod_ground_punch' : 'xgod_butt_bomb' : `${this.hero}_double_jump`, String(this.hero==='turkey_king'?5:hasNewMobilityArt(this.hero)?newFrame:frame))
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       if(this.hero==='elytron')this.actor.setFrame(String(this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105))));
       if(this.hero==='turkey_king')this.actor.setTexture('turkey_king_body',this.phase==='landing'?11:this.phase==='windup'?8:this.phase==='diving'||this.body.velocity.y>0?10:9).setOrigin(.5,600/640);
+      if(this.hero==='killer_klause')this.actor.setTexture('klause_body',this.phase==='landing'?15:this.phase==='windup'?8:this.phase==='diving'?14:this.body.velocity.y>0?10:9).setOrigin(.5,.9375);
       if(this.hero==='xgod'){
         if(this.hooks.equipment?.()==='frost'){
           const crouched=this.phase==='windup'||this.phase==='landing';

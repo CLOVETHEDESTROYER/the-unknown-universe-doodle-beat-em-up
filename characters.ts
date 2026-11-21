@@ -19,6 +19,9 @@ export interface CharacterConfig {
 export const ROSTER_UNLOCK_STORAGE_KEY = "unknownUniverse.xGodClear.v1";
 
 export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
+  killer_klause: {id:'killer_klause',name:'Killer Klause',subtitle:'Navy SEAL Medic / Santa',
+    cardImage:'/seasonal/christmas-v1/killer-klause/card.webp',hudColor:'red',rewardName:'Present Launcher',
+    rewardSubtitle:'Launch presents. Call the surviving elves for field support.',stats:{strength:94,speed:72,defense:86,spirit:96}},
   turkey_king:{id:'turkey_king',name:'The Turkey King',subtitle:'Thanksgiving Royalty',cardImage:'/characters/turkey-king-v3/card.webp',hudColor:'orange',
     rewardName:'Royal Staff & Turkey Toss',rewardSubtitle:'Strike with the staff. Hurl flying turkeys. No other powerups.',stats:{strength:94,speed:72,defense:84,spirit:90}},
   shadow_kid: {id:'shadow_kid',name:'???',subtitle:'Shadow Kid',cardImage:'/cards/shadow-kid-card-v1.png',hudColor:'violet',
@@ -104,6 +107,7 @@ export const CHARACTER_CONFIGS: Record<CharacterId, CharacterConfig> = {
 export const CHARACTER_IDS = Object.keys(CHARACTER_CONFIGS) as CharacterId[];
 
 export const isCharacterId = (value: string | null | undefined): value is CharacterId =>
+  value === 'killer_klause' ||
   value === 'turkey_king' ||
   value === 'shadow_kid' || value === 'elytron' ||
   value === "killer_kai" ||

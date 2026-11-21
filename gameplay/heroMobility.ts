@@ -1,6 +1,7 @@
 import type {CharacterId} from '../types';
 
 export const HERO_MOBILITY = {
+  killer_klause:{name:'North Pole Drop',radius:205,height:140,direct:7,wave:4,stun:500,launch:300,color:0x9fe8d7},
   turkey_king:{name:'Royal Drop',radius:200,height:140,direct:7,wave:4,stun:500,launch:300,color:0xffb347},
   shadow_kid: {name:'Void Drop',radius:200,height:135,direct:6,wave:4,stun:550,launch:280,color:0xb16eff},
   elytron: {name:'Butt Bomb',radius:190,height:135,direct:6,wave:4,stun:500,launch:300,color:0xffda39},
@@ -13,4 +14,4 @@ export const HERO_MOBILITY = {
   teleportation_c: {name:'Rift Drop',radius:250,height:145,direct:6,wave:3,stun:650,launch:220,color:0xb799ff},
 } satisfies Record<CharacterId,{name:string;radius:number;height:number;direct:number;wave:number;stun:number;launch:number;color:number}>;
 
-export const hasNewMobilityArt=(hero:CharacterId)=>hero!=='xgod'&&hero!=='zgod'&&hero!=='turkey_king';
+export const hasNewMobilityArt=(hero:CharacterId)=>hero!=='xgod'&&hero!=='zgod'&&hero!=='turkey_king'&&hero!=='killer_klause';

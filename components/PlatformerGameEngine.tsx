@@ -1,6 +1,8 @@
 import {readKaiArmUnlocked} from '../gameplay/kaiArmUnlock';
 import { encountersForLevel } from '../gameplay/routeEncounters';
 import {TurkeyKingCombat,loadTurkeyKingAssets} from '../gameplay/turkeyKing';
+import {KillerKlauseCombat,loadKillerKlauseAssets} from '../gameplay/killerKlause';
+import {ChristmasSnow} from '../gameplay/christmasSnow';
 import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
 import { BLASTER_CHARGE_MS, CHARGED_BOLT_TEXTURE, ChargedBlasterEffects } from '../gameplay/chargedBlasterEffects';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
@@ -989,6 +991,7 @@ const CHARACTER_FEEL: Record<CharacterId, {
   attackRange: number;
 }> = {
   killer_kai: {runSpeed:350,acceleration:2350,braking:2900,turnAcceleration:3200,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:280,attackRange:520},
+  killer_klause:{runSpeed:300,acceleration:2250,braking:2900,turnAcceleration:3000,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:550,attackRange:136},
   turkey_king:{runSpeed:310,acceleration:2250,braking:2900,turnAcceleration:3000,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:550,attackRange:145},
   shadow_kid: {runSpeed:370,acceleration:2450,braking:2950,turnAcceleration:3250,airAcceleration:1450,airBraking:450,jumpVelocity:780,attackCooldown:800,attackRange:125},
   elytron: {runSpeed:365,acceleration:2450,braking:2950,turnAcceleration:3250,airAcceleration:1450,airBraking:450,jumpVelocity:780,attackCooldown:320,attackRange:125},
@@ -1062,7 +1065,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let viewport = landscapeGameViewport(gameContainerRef.current);
     const selectedCharacter = CHARACTER_CONFIGS[selectedCharacterId];
     const isXGod = selectedCharacterId === "xgod";
+    const isKlause=selectedCharacterId==='killer_klause';
     const isTurkeyKing=selectedCharacterId==='turkey_king';
+    const isNativeHero=isTurkeyKing||isKlause;
     const isZGod = selectedCharacterId === "zgod";
     const isKai = selectedCharacterId === 'killer_kai';
     const isShadow = selectedCharacterId === 'shadow_kid';
@@ -1082,6 +1087,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const playFeel = CHARACTER_FEEL[selectedCharacterId];
     const originalLevel = LEVELS[levelKey(currentLevel)];
     const thanksgiving = seasonalTheme === 'thanksgiving';
+    const christmas = seasonalTheme === 'christmas';
     const replacements = new Map<EnemyPlan, RestoredEnemyKind>();
     for (const [kind,index,replacement] of ENEMY_REINTRODUCTIONS[currentLevel] ?? []) {
       const plan = originalLevel.enemies.filter(enemy => enemy.kind === kind && !enemy.bounceLane)[index];
@@ -1120,7 +1126,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const completedEncounters = new Set(initialCompletedEncounters ?? []);
     let routeEncounters: RouteEncounterRuntime[] = [];
     let signature: SignatureSpecialRuntime | null = null;
-    let turkeyKing:TurkeyKingCombat|null=null;
+    let nativeCombat:TurkeyKingCombat|KillerKlauseCombat|null=null;
+    let christmasSnow:ChristmasSnow|null=null;
     let platformRoute:PlatformRouteRuntime|null=null;
     let platformRouteCamera=false;
     let regentRifts:RegentRiftEffects|null=null;
@@ -1277,7 +1284,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let gravityCoreUnlocked = initialGravityCoreUnlocked;
     let gravityCoreCharges = initialGravityCoreCharges;
     let equipment=restoreLoadout(initialEquipment,initialHasFlameSword?'sword':isXGod||isKai?'blaster':'hands');
-    if(isTurkeyKing){equipment={active:'hands',hits:0,unlocked:[]};characterPowerUnlocked=true;hasFlameSword=false;swordUnlocked=false;swordDurability=0;shieldUnlocked=inkShieldReady=dinioUnlocked=hasDinio=doghostUnlocked=hasDoghost=teleportationCUnlocked=hasTeleportationC=gravityCoreUnlocked=false;gravityCoreCharges=0;}
+    if(isNativeHero){equipment={active:'hands',hits:0,unlocked:[]};characterPowerUnlocked=true;hasFlameSword=false;swordUnlocked=false;swordDurability=0;shieldUnlocked=inkShieldReady=dinioUnlocked=hasDinio=doghostUnlocked=hasDoghost=teleportationCUnlocked=hasTeleportationC=gravityCoreUnlocked=false;gravityCoreCharges=0;}
     hasFlameSword=equipment.active==='sword';
     swordDurability=hasFlameSword?equipment.hits:0;
     let powerHud:Phaser.GameObjects.Text;
@@ -1285,8 +1292,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let powerUses=0,powerHits=0,clearedBolts=0,lastPowerAt=-9999,emberUntil=-9999,emberDirection=1;
     let emberRemaining=0,emberClockAt=-9999;
     const emberTargets=new Set<Phaser.Physics.Arcade.Sprite>();
-    const routePowers=isTurkeyKing?[]:powerupRoute(currentLevel,level);
-    const gunUpgradePlans=isTurkeyKing?[]:gunUpgradeRoute(level,routePowers);
+    const routePowers=isNativeHero?[]:powerupRoute(currentLevel,level);
+    const gunUpgradePlans=isNativeHero?[]:gunUpgradeRoute(level,routePowers);
     const gunStations:Array<{mode:GunUpgradeId;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     const availablePowers=(['blaster','sword','frost','ember','storm'] as EquippedPowerup[])
       .filter(id=>POWERUPS[id].level<=currentLevel||equipment.active===id);
@@ -1365,6 +1372,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     function preload(this: Phaser.Scene) {
+      if(christmas&&currentLevel<=3)loadGameImage(this.load,'christmas_panorama',`seasonal/christmas-v1/backgrounds/${currentLevel===1?'city':currentLevel===2?'north-pole':'workshop'}.webp`);
       loadHeroCelebrationAssets(this.load,selectedCharacterId,isXGod,isKai);
       trackSceneLoading(this.load);
       if (useDrawnXGod) {
@@ -1380,7 +1388,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(useDrawnXGod)this.load.multiatlas('ember_xgod_dash','/powerups/ember-jets-v1/xgod.json','/powerups/ember-jets-v1/');
       }
       this.load.spritesheet('fire_blade','/powerups/fire-blade-v1/blade.png',{frameWidth:128,frameHeight:224});
-      if(!isTurkeyKing)this.load.multiatlas('signature_special',isShadow?SHADOW_ART.folder+'throw.json':isElytron?ELYTRON_ART.folder+'special.json':isKai?'/characters/kai-thunderfall-v1/special.json':`/characters/signature-specials-v1/${selectedCharacterId}.json`,isShadow?SHADOW_ART.folder:isElytron?ELYTRON_ART.folder:isKai?'/characters/kai-thunderfall-v1/':'/characters/signature-specials-v1/');
+      if(!isNativeHero)this.load.multiatlas('signature_special',isShadow?SHADOW_ART.folder+'throw.json':isElytron?ELYTRON_ART.folder+'special.json':isKai?'/characters/kai-thunderfall-v1/special.json':`/characters/signature-specials-v1/${selectedCharacterId}.json`,isShadow?SHADOW_ART.folder:isElytron?ELYTRON_ART.folder:isKai?'/characters/kai-thunderfall-v1/':'/characters/signature-specials-v1/');
       if(isKai)this.load.multiatlas('kai_thunder_beam','/characters/kai-thunderfall-v1/beams.json','/characters/kai-thunderfall-v1/');
       if(selectedCharacterId==='ezra')this.load.multiatlas('signature_pillar','/characters/signature-specials-v1/fx/ezra.json','/characters/signature-specials-v1/fx/');
       this.load.on("loaderror", (file: { key?: string }) => {
@@ -1501,7 +1509,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "shadow", "doodles/shadow_oval.png");
       loadGameImage(this.load, "enemy_hit_impact", "doodles/impact-vfx-generated.png");
       loadGameImage(this.load, "boss_tell_ring", "doodles/tell-ring-generated.png");
-      loadGameImage(this.load, "projectile_static", isTurkeyKing||isElytron || isKai || isZGod || isXGod ? "doodles/attack_slash.png" :isShadow?"characters/shadow-kid-v1/black-hole.png": `characters/${selectedCharacterId}/projectile.png`);
+      loadGameImage(this.load, "projectile_static", isNativeHero||isElytron || isKai || isZGod || isXGod ? "doodles/attack_slash.png" :isShadow?"characters/shadow-kid-v1/black-hole.png": `characters/${selectedCharacterId}/projectile.png`);
       loadGameImage(this.load, "boss_fire_orb", "bosses/boss_fire_orb_v2.png");
       loadGameImage(this.load, "boss_ink_orb", "bosses/boss_ink_orb_v2.png");
       loadGameImage(this.load, "boss_bullet", "bosses/boss_bullet_v2.png");
@@ -1545,8 +1553,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         for (const action of ['idle','crouch','dash','react','victory']) {
           loadGameSheet(this.load, `z_${action}`, `characters/z-god-v1/extras-${action}.png`, {frameWidth:768,frameHeight:512});
         }
-      } else if (isTurkeyKing) {
-        loadTurkeyKingAssets(this.load);
+      } else if (isNativeHero) {
+        if(isKlause)loadKillerKlauseAssets(this.load);else loadTurkeyKingAssets(this.load);
       } else if (isShadow) {
         for(const action of ['idle','run','jump','throw','crouch','hurt'])this.load.multiatlas('shadow_'+action,SHADOW_ART.folder+action+'.json',SHADOW_ART.folder);
         loadGameSheet(this.load,'hero_death',SHADOW_ART.folder+'death.png',{frameWidth:512,frameHeight:384});
@@ -1708,7 +1716,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       player.setScale(isShadow?SHADOW_ART.scale:isElytron?ELYTRON_ART.scale:isKai?KAI_ART.scale:playerScale * PLAYER_VISUAL_SCALE_MULTIPLIER);
       player.body.setSize(isXGod ? 58 : 70, isXGod ? 126 : 132, true);
       if(!isXGod){
-        const baseline=isShadow?352:isKai?KAI_ART.baseline:selectedCharacterId==='teleportation_c'?344:480;
+        const baseline=isNativeHero?600:isShadow?352:isKai?KAI_ART.baseline:selectedCharacterId==='teleportation_c'?344:480;
         player.setOrigin(.5,baseline/player.height);
         player.body.setSize(heroBodyWidth,heroBodyHeight,false).setOffset((player.width-heroBodyWidth)/2,baseline-heroBodyHeight);
       }
@@ -1745,14 +1753,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           sprite.body.setAllowGravity(false).setSize(sprite.width*.66,sprite.height*.65,true);
           return sprite;
         },
-        rescued: () => isTurkeyKing||doghostUnlocked,
+        rescued: () => isNativeHero||doghostUnlocked,
         releaseDoghost: () => addPickup(scene, {kind:'doghost',x:plan.marker.x,y:plan.marker.y}),
         complete: id => {
           if (completedEncounters.has(id)) return;
           completedEncounters.add(id);
           currentScore += id==='last_ferry'?400:300;
           if (id==='rooftop_runout') playerHealth=Math.min(100,playerHealth+20);
-          if (id==='last_ferry'&&!isTurkeyKing) {shieldUnlocked=true;inkShieldReady=true;}
+          if (id==='last_ferry'&&!isNativeHero) {shieldUnlocked=true;inkShieldReady=true;}
           syncStats();
         },
         collapse: elapsed => {
@@ -1891,7 +1899,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const healthBefore=playerHealth;
         damagePlayer(scene, Number.isFinite(damage) && damage > 0 ? damage : 10, false, sourceBoss, true);
         if(freezes&&playerHealth<healthBefore&&!isRespawning&&playerHealth>0&&playerFreeze?.start()){
-          turkeyKing?.cancel();signature?.cancel(false);mobility?.cancel();stopEmber();fireBlades?.clear();player.setVelocityX(0);setCrouching(false,scene.time.now);
+          nativeCombat?.cancel();signature?.cancel(false);mobility?.cancel();stopEmber();fireBlades?.clear();player.setVelocityX(0);setCrouching(false,scene.time.now);
           projectiles.getChildren().filter(shot=>shot.getData('sourceBoss')===sourceBoss).forEach(shot=>shot.destroy());
           playSfx('frost',{pitch:.7,volume:.65});
         }
@@ -1998,7 +2006,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         projectiles.getChildren().slice().forEach(e=>e.destroy());
         mobility?.cancel(true);signature?.cancel(false);movementLockedUntil=lastDamageAt=-9999;playerHealth=100;
         playerFreeze?.clear();
-        if(!isTurkeyKing)equipment=equipPowerup(equipment,'blaster',currentLevel);
+        if(!isNativeHero)equipment=equipPowerup(equipment,'blaster',currentLevel);
         const floor=Number(boss.getData('floorY')),x=boss.x,id=boss.getData('bossId') as BossId;
         setBossArenaCamera(scene,null,false);placePlayerOnPlatform(x-260,floor);placeBossAt(boss,x,floor);
         boss.setData('left',x-180).setData('right',x+200).setData('floorY',floor).setData('engaged',true)
@@ -2031,10 +2039,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         syncStats();scene.cameras.main.centerOn(x,SCREEN_HEIGHT/2);
       };
 
-      if(isTurkeyKing)turkeyKing=new TurkeyKingCombat(scene,{player,enemies,projectiles,facing:()=>facingDirection,
-        canUse:()=>!isRespawning&&!isLevelClearing&&!heroCelebration?.active&&!celebrationQueue.length&&!mobility?.busy&&!playerFreeze?.active&&scene.time.now>=movementLockedUntil,
-        clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),damage:(enemy,amount,shot)=>damageEnemy(scene,enemy,amount,shot),fired:()=>{shotsFired++;},floorAt:getPlatformStandY});
-      if(!isTurkeyKing)signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
+      if(isNativeHero){
+        const hooks={player,enemies,projectiles,facing:()=>facingDirection,
+          canUse:()=>!isRespawning&&!isLevelClearing&&!heroCelebration?.active&&!celebrationQueue.length&&!mobility?.busy&&!playerFreeze?.active&&scene.time.now>=movementLockedUntil,
+          clearLine:(enemy:Phaser.Physics.Arcade.Sprite)=>!platformSeparatesPlayerAndEnemy(enemy),
+          damage:(enemy:Phaser.Physics.Arcade.Sprite,amount:number,shot?:boolean)=>damageEnemy(scene,enemy,amount,shot),
+          fired:()=>{shotsFired++;},floorAt:getPlatformStandY,
+          heal:(amount:number)=>{const before=playerHealth;playerHealth=Math.min(100,playerHealth+amount);syncStats();return playerHealth-before;}};
+        nativeCombat=isKlause?new KillerKlauseCombat(scene,hooks):new TurkeyKingCombat(scene,hooks);
+      }
+      if(!isNativeHero)signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
         player, enemies, projectiles,
         facing: () => facingDirection,
         grounded: () => isPlayerGrounded(player.body as Phaser.Physics.Arcade.Body),
@@ -2125,8 +2139,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
       autumnLeaves?.update(delta);
+      christmasSnow?.update(delta,viewport.width);
       if (!player || !player.active || isLevelClearing || isRespawning) {
-        turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide();
+        nativeCombat?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide();
         blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
         // Arcade physics still carries the hero past the gate during the clear
         // delay. Keep every hero's normal movement poses in step with that motion.
@@ -2171,7 +2186,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       playerFreeze?.update(delta,escapeHeld,freezeTapQueued);freezeTapQueued=false;
       if(wasFrozen){
         blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
-        turkeyKing?.updateEffects(delta);
+        nativeCombat?.updateEffects(delta);
         jumpQueuedAt=downQueuedAt=specialQueuedAt=blinkQueuedAt=recallQueuedAt=equipmentAttackQueuedAt=jumpBufferedAt=-9999;
         jumpWasHeld=jumpKey.isDown||jumpAltKey.isDown||Boolean(touch.jump||touch.up);
         downWasHeld=cursors.down.isDown||crouchKey.isDown||Boolean(touch.down);
@@ -2182,7 +2197,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       }
       if(grounded&&!heroCelebration?.active&&celebrationQueue.length){
         const kind=celebrationQueue.shift()!;
-        turkeyKing?.cancel(true);
+        nativeCombat?.cancel(true);
         signature?.cancel(false);mobility?.cancel(true);stopEmber();fireBlades?.clear();
         setCrouching(false,now);player.anims.stop();player.setAngle(0).setAlpha(1).setVelocityX(0);
         attackVisualUntil=shotRecoilUntil=-9999;
@@ -2311,8 +2326,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(queuedRecall||recallPressed||recallInput&&!recallHeld)tryTeleport(scene,true,grounded);
       }
       const queuedSpecial=performance.now()-specialQueuedAt<250;
-      if (isTurkeyKing) {
-        turkeyKing?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,
+      if (isNativeHero) {
+        nativeCombat?.update(attackKey.isDown||Phaser.Input.Keyboard.JustDown(attackKey)||Boolean(touch.attack)||performance.now()-equipmentAttackQueuedAt<200,
           shootKey.isDown||Phaser.Input.Keyboard.JustDown(shootKey)||Boolean(touch.shoot)||performance.now()-turkeyThrowQueuedAt<200,
           queuedSpecial||queuedBlink||blinkPressed||blinkInput&&!blinkHeld,delta);
         equipmentAttackQueuedAt = -9999;
@@ -2329,7 +2344,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const attackQueued = performance.now() - equipmentAttackQueuedAt < ATTACK_BUFFER_MS;
       const attackHeld = shootKey.isDown || Boolean(touch.attack || touch.shoot);
       const canAttack = !signature?.casting && !mobility?.busy;
-      const chargeEligible = !isTurkeyKing && canAttack && (equipment.active==='blaster' || isKai && equipment.active==='hands');
+      const chargeEligible = !isNativeHero && canAttack && (equipment.active==='blaster' || isKai && equipment.active==='hands');
       const chargeHeld = attackKey.isDown || attackHeld;
       if(chargeEligible && chargeHeld) {
         const wasReady = blasterChargeMs >= BLASTER_CHARGE_MS;
@@ -2351,7 +2366,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
       }
 
-      if (!isTurkeyKing && canAttack && !blasterEquipped && (attackQueued || attackHeld) && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,isShadow&&equipment.active==='hands'?800:0,selectedCharacterId==='teleportation_c'?430:0)) {
+      if (!isNativeHero && canAttack && !blasterEquipped && (attackQueued || attackHeld) && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,isShadow&&equipment.active==='hands'?800:0,selectedCharacterId==='teleportation_c'?430:0)) {
         equipmentAttackQueuedAt = -9999;
         if(equipment.active==='ember'||equipment.active==='storm'){
           useElementalPower(scene);
@@ -2383,7 +2398,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (platformSnapped) lastGroundedAt = now;
       updatePlayerVisual(scene, (grounded || platformSnapped) && !jumpedThisFrame, delta);
       signature?.present();
-      mobility?.present(Boolean(turkeyKing?.casting||turkeyKing?.swinging||signature?.casting || xgodDamagePose?.active || !isCrouching&&now < attackVisualUntil || now<emberUntil),
+      mobility?.present(Boolean(nativeCombat?.casting||nativeCombat?.swinging||signature?.casting || xgodDamagePose?.active || !isCrouching&&now < attackVisualUntil || now<emberUntil),
         Boolean(signature?.casting || xgodDamagePose?.active || now<emberUntil),
         isCrouching?{equipment:isKai&&equipment.active==='hands'?'blaster':equipment.active,firing:now<shotRecoilUntil||now<attackVisualUntil}:undefined);
       emberJets?.present(equipment.active==='ember'&&now<emberUntil,EMBER_DASH.duration-emberRemaining,emberDirection,
@@ -2430,6 +2445,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         layoutDistantPanoramas();
       };
       if(thanksgiving)autumnLeaves=new AutumnLeaves(scene,viewport.width);
+      if(christmas){christmasSnow=new ChristmasSnow(scene);if(currentLevel<=3){panorama('christmas_panorama',-30);return;}}
       if (currentLevel <= 2) {
         panorama(currentLevel === 1 ? 'school_rooftop_panorama' : 'graveyard_moonlit_panorama', -30);
         return;
@@ -2569,7 +2585,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function getPlayerWalkTexture(scene: Phaser.Scene) {
-      if(isTurkeyKing)return 'turkey_king_body';
+      if(isNativeHero)return isKlause?'klause_body':'turkey_king_body';
       if(isShadow)return 'shadow_idle';
       if(isElytron)return 'elytron_movement';
       if(isKai)return 'kai_movement';
@@ -2971,7 +2987,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function applyEquipment(scene:Phaser.Scene,id:EquippedPowerup,blasterStyle?:BlasterStyle){
-      if(isTurkeyKing)return;
+      if(isNativeHero)return;
       const next=equipPowerup(equipment,id,currentLevel,blasterStyle);
       if(next===equipment)return;
       equipmentAttackQueuedAt = -9999;
@@ -3075,7 +3091,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE, RELEASE: CHARGE · X: SPECIAL`).setColor('#8feaff');
       if(isShadow&&equipment.active==='hands')powerHud.setText('BLACK HOLES\nATTACK: THROW Â· X / SP: VOID BURST').setColor('#c69aff');
       if(isElytron&&equipment.active==='hands')powerHud.setText('ELECTRIC FISTS\nX / SP: PULSE STORM').setColor('#ffda39');
-      if(isTurkeyKing)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C: TOSS · X: STORM').setColor('#ffdb9c');
+      if(isKlause)powerHud.setText('PRESENT LAUNCHER + ELF HELPERS\nSPACE: BASH · C: PRESENT · X: ELVES').setColor('#b8f6da');
+      else if(isNativeHero)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C: TOSS · X: STORM').setColor('#ffdb9c');
       if (isZGod) powerHud.setText(`INVINCIBLE · ONE-HIT POWER · ${POWERUPS[equipment.active].name.toUpperCase()}`).setColor('#ffd0e5');
       if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE, RELEASE: CHARGE`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
       powerAura.clear();
@@ -3119,7 +3136,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function addPickup(scene: Phaser.Scene, pickup: PickupPlan) {
-      if(isTurkeyKing&&!['coin','heart','rush_star'].includes(pickup.kind))return;
+      if(isNativeHero&&!['coin','heart','rush_star'].includes(pickup.kind))return;
       if((pickup.kind==='power'&&!pickup.requiresBossDefeat)||['blaster','sword','frost','ember','storm'].includes(pickup.kind))return;
       const texture = pickup.kind === "power" ? "equipment_sword" : pickup.kind === "heart" ? "heart" : pickup.kind === "shield" ? "shield_pickup" : pickup.kind === "gravity" ? "gravity_pickup" : pickup.kind === "dinio" ? "dinio_pickup" : pickup.kind === "doghost" ? "doghost_pickup" : pickup.kind === "teleportation_c" ? "teleportation_c_pickup" : "gold_pickup";
       const sprite = pickups.create(pickup.x, pickup.y, texture) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -4623,11 +4640,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function choosePlayerVisual(scene: Phaser.Scene, grounded: boolean, delta: number) {
       player.setFlipX(facingDirection < 0);
       const body = player.body as Phaser.Physics.Arcade.Body;
-      if(isTurkeyKing){
+      if(isNativeHero){
         characterStride+=Math.abs(body.velocity.x)*delta/1000;
-        const pose=turkeyKing?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:'turkey_king_body',frame:0};
+        const pose=nativeCombat?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:isKlause?'klause_body':'turkey_king_body',frame:0};
         player.anims.stop();player.setTexture(pose.texture,pose.frame)
-          .setOrigin(.5,600/640).setFlipX((turkeyKing?.facing??facingDirection)<0).setAngle(0);
+          .setOrigin(.5,600/640).setFlipX((nativeCombat?.facing??facingDirection)<0).setAngle(0);
         return;
       }
       if(!isXGod){
@@ -5525,14 +5542,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       body.setVelocity(0,0);body.enable=false;
       player.anims.stop();player.setVisible(false).setAlpha(1).clearTint();
       powerAura.clear();playerHealth=0;
-      if(!scene.anims.exists('hero_collapse'))scene.anims.create({key:'hero_collapse',frames:isElytron?[8,9,10,11].map(frame=>({key:'elytron_reactions',frame:String(frame)})):isKai?[4,5,6,7].map(frame=>({key:'kai_reactions',frame:String(frame)})):scene.anims.generateFrameNumbers('hero_death',{start:0,end:3}),frameRate:5,repeat:0});
-      heroDeathVisual=scene.add.sprite(player.x,feet,isElytron?'elytron_reactions':isKai?'kai_reactions':'hero_death',isElytron?'8':isKai?'4':0).setOrigin(.5,isTurkeyKing?600/640:isShadow?352/384:isKai?KAI_ART.baseline/KAI_ART.height:480/512)
+      if(!scene.anims.exists('hero_collapse'))scene.anims.create({key:'hero_collapse',frames:isElytron?[8,9,10,11].map(frame=>({key:'elytron_reactions',frame:String(frame)})):isKai?[4,5,6,7].map(frame=>({key:'kai_reactions',frame:String(frame)})):scene.anims.generateFrameNumbers('hero_death',{start:isKlause?8:0,end:isKlause?11:3}),frameRate:5,repeat:0});
+      heroDeathVisual=scene.add.sprite(player.x,feet,isElytron?'elytron_reactions':isKai?'kai_reactions':'hero_death',isElytron?'8':isKai?'4':isKlause?8:0).setOrigin(.5,isNativeHero?600/640:isShadow?352/384:isKai?KAI_ART.baseline/KAI_ART.height:480/512)
         .setScale(player.scaleX,player.scaleY).setFlipX(facingDirection<0).setDepth(25).play('hero_collapse');
       sizeCharacter(heroDeathVisual,selectedCharacterId,'death');
       const death=heroDeathVisual;
       scene.time.delayedCall(1100,()=>{
         if(heroDeathVisual!==death||!player?.active)return;
-        death.anims.stop();death.setFrame(isElytron?'11':isKai?'7':3);
+        death.anims.stop();death.setFrame(isElytron?'11':isKai?'7':isKlause?11:3);
         if(playerLives<=0){
           isRespawning=false;isLevelClearing=true;
           syncStats({isDying:false,isGameOver:true});
@@ -5582,7 +5599,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (!pickup.active) return;
       if(heroCelebration?.active)return;
       const kind = pickup.getData("kind") as PickupKind;
-      if(isTurkeyKing&&!['coin','heart','rush_star'].includes(kind))return;
+      if(isNativeHero&&!['coin','heart','rush_star'].includes(kind))return;
       if(pickup.getData('gunStation')){
         if(equipment.active!=='blaster'||!pickup.body?.enable)return;
         const station=gunStations.find(p=>p.sprite===pickup)!;
@@ -5614,7 +5631,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (rushCollected === level.rooftopRush.stars.length) {
           rushState = "complete";
           currentScore += 1200;
-          if(!isTurkeyKing)shieldUnlocked = inkShieldReady = true;
+          if(!isNativeHero)shieldUnlocked = inkShieldReady = true;
           playerHealth = Math.min(100, playerHealth + 15);
           rushHud?.setText("ROOFTOP RUSH!  +1200 + SHIELD").setColor("#d7f5a2").setVisible(true);
           rushNoticeUntil = scene.time.now + 2600;
@@ -5687,7 +5704,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isLevelClearing) return;
       if (!bossDefeated) return;
       if(heroCelebration?.active||celebrationQueue.length)return;
-      if (currentLevel===1 && !isTurkeyKing && !swordUnlocked) {
+      if (currentLevel===1 && !isNativeHero && !swordUnlocked) {
         applyEquipment(scene, 'sword');
         if (celebrationQueue.length) return;
       }
@@ -5834,8 +5851,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         seasonalTheme:seasonalTheme??null,
         playerFreeze:playerFreeze?.read()??null,
         autumnLeafCount:autumnLeaves?.count??0,
-        special: isTurkeyKing?turkeyKing?.read()??null:signature?.read() ?? null,
-        turkeyKing:turkeyKing?.read()??null,
+        special: isNativeHero?nativeCombat?.read()??null:signature?.read() ?? null,
+        turkeyKing:isTurkeyKing?nativeCombat?.read()??null:null,
+        killerKlause:isKlause?nativeCombat?.read()??null:null,
         autoRun: isAutoRun,
         level: currentLevel,
         chapter: level.chapter,
@@ -5847,7 +5865,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           rewardName: selectedCharacter.rewardName,
           rewardUnlocked: characterPowerUnlocked,
           standingHeight:CHARACTER_SIZES[selectedCharacterId].target,
-          spriteArt: isTurkeyKing?'turkey-king-v3':isShadow?'shadow-kid-v1':isElytron?'elytron-v1':isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
+          spriteArt: isKlause?'christmas-v1':isNativeHero?'turkey-king-v3':isShadow?'shadow-kid-v1':isElytron?'elytron-v1':isKai?'killer-kai-v1':isXGod ? useDrawnXGod ? 'drawn-v1' : 'previous' : null,
           invincible: isZGod,
           oneHitPower: isZGod,
           starComet: isZGod ? signature?.read() ?? null : null
@@ -5877,7 +5895,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         heroDeath: !isXGod || useDrawnXGod ? {active:Boolean(heroDeathVisual?.active),frame:heroDeathVisual?.active?Number(heroDeathVisual.frame.name):null,
           elapsedMs:heroDeathVisual?.active?Math.max(0,(gameRef.current?.scene.getScene('PlatformerScene').time.now??latestSceneTime)-heroDeathStartedAt):0,
           final:playerLives<=0,respawning:isRespawning} : null,
-        weapon: { primary: isTurkeyKing?'royal_staff':equipment.active, kaiArm: kaiArmUnlocked, shotsFired, chargeMs:Math.round(blasterChargeMs), chargeReady:blasterChargeMs>=BLASTER_CHARGE_MS,fireBlades:fireBlades?.read()??null },
+        weapon: { primary: isKlause?'present_launcher':isNativeHero?'royal_staff':equipment.active, kaiArm: kaiArmUnlocked, shotsFired, chargeMs:Math.round(blasterChargeMs), chargeReady:blasterChargeMs>=BLASTER_CHARGE_MS,fireBlades:fireBlades?.read()??null },
         equipment:{...equipment,name:isKai&&equipment.active==='hands'?'Arm Cannon':POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
           cooldownRemainingMs:Math.max(0,(equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil,
           emberRemainingMs:Math.max(0,emberUntil-latestSceneTime),emberSpeed:EMBER_DASH.speed,emberDurationMs:EMBER_DASH.duration,emberJets:emberJets?.read()??null},
@@ -5983,7 +6001,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const queueEquipmentAttack=()=>{
       if(playerFreeze?.active&&!isPausedRef.current)freezeTapQueued=true;
       if(!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active){
-        if(isTurkeyKing&&window.__unknownUniverseTouchControls?.shoot)turkeyThrowQueuedAt=performance.now();
+        if(isNativeHero&&window.__unknownUniverseTouchControls?.shoot)turkeyThrowQueuedAt=performance.now();
         else equipmentAttackQueuedAt=performance.now();
       }
     };
@@ -5992,8 +6010,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     window.addEventListener('unknown-universe:attack',queueEquipmentAttack);
     const handlePause=(event:KeyboardEvent)=>{
       if(event.code==='KeyX'&&!event.repeat)queueSpecial();
-      if(isTurkeyKing&&event.code==='KeyC'&&!event.repeat&&!isPausedRef.current)turkeyThrowQueuedAt=performance.now();
-      if(!event.repeat&&(event.code==='Space'||event.code==='KeyC'&&!isTurkeyKing))queueEquipmentAttack();
+      if(isNativeHero&&event.code==='KeyC'&&!event.repeat&&!isPausedRef.current)turkeyThrowQueuedAt=performance.now();
+      if(!event.repeat&&(event.code==='Space'||event.code==='KeyC'&&!isNativeHero))queueEquipmentAttack();
       if(!event.repeat && (event.code==='KeyZ'||event.code==='ArrowUp')) queueJump();
       if(!event.repeat && (event.code==='KeyS'||event.code==='ArrowDown')) queueDown();
       if(selectedCharacterId==='teleportation_c'&&!event.repeat&&!isPausedRef.current&&!isRespawning&&!isLevelClearing&&!heroCelebration?.active){
@@ -6085,7 +6103,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       playerFreeze?.destroy();playerFreeze=null;
       routeEncounters.forEach(encounter=>encounter.destroy());routeEncounters=[];
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
-      signature?.destroy();signature=null;turkeyKing?.destroy();turkeyKing=null;
+      signature?.destroy();signature=null;nativeCombat?.destroy();nativeCombat=null;christmasSnow?.destroy();christmasSnow=null;
       mobility?.destroy();mobility=null;
       bossVulnerabilityCue?.destroy();bossVulnerabilityCue=null;
       heroCelebration?.destroy();heroCelebration=null;celebrationQueue.length=0;

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "art-review; not integrated",
+  "status": "playable-preview; pending deployment",
   "baseFacing": "right",
   "heroWorldStandingHeight": 160,
   "sheets": {
@@ -2164,9 +2164,13 @@
     "startsAt": "2026-11-26T07:00:00.000Z",
     "endsAtExclusive": "2026-12-26T07:00:00.000Z",
     "lastActiveLocalDay": "2026-12-25",
-    "status": "asset-production-only",
+    "status": "playable-preview; pending deployment",
     "automationInstalled": false,
-    "runtimeIntegrated": false,
-    "expiryPolicyProposal": "Hide event entry for new runs after expiry; preserve existing runs and saves."
+    "runtimeIntegrated": true,
+    "automaticCalendarAvailability": true,
+    "previewCode": "SantaKisComing",
+    "previewCodeCaseSensitive": true,
+    "deploymentScheduled": false,
+    "expiryPolicy": "Hide event entry for new runs after expiry; preserve existing runs and saves."
   }
 }

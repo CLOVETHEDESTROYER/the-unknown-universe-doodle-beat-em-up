@@ -62,7 +62,7 @@ const CutscenePlayer: React.FC<Props> = ({chapter, resumeStats, onComplete}) => 
   return <section ref={panel} tabIndex={-1} className="campaign-story" role="dialog" aria-modal="true"
     aria-label={`${chapter.title} story`} data-chapter={chapter.id} data-scene={scene.id} aria-busy={imageState === 'loading'}>
     <header className="campaign-story-header">
-      <p><span>X GOD'S STORY</span>{chapter.title}</p>
+      <p><span>{chapter.id==='christmas'?"KILLER KLAUSE'S STORY":"X GOD'S STORY"}</span>{chapter.title}</p>
       <button type="button" onClick={finish} aria-label="Skip story">Skip story</button>
     </header>
     <div className="campaign-story-art">
