@@ -9,6 +9,7 @@ import {updateLockwingVolley,clearLockwingCombat} from '../gameplay/lockwingComb
 import {CombatEffects} from '../gameplay/combatEffects';
 import {DEFAULT_COSMETICS,equippedSpecial,inkColor,SPECIALS,type CosmeticLoadout} from '../gameplay/shopCatalog';
 import {WorkshopCombat} from '../gameplay/workshopCombat';
+import {loadKaiEquippedArt,makeKaiArtAnimations} from '../gameplay/kaiWorkshopRuntime';
 import {XGodWardrobe} from '../gameplay/xgodWardrobe';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
 import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
@@ -177,7 +178,7 @@ declare global {
     __unknownPlatformerDamagePlayer?: (damage?: number) => void;
     __unknownPlatformerSetPlayerPosition?: (x: number, y?: number) => void;
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
-    __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
+    __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;incoming?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
     __unknownPlatformerPrepareGateTest?: () => void;
     __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy'|'freeze';cooldown?:boolean;regentMove?:string;stageMove?:string;naturalTiming?:boolean;phase?:1|2|3;hp?:number})=>void;
@@ -1399,6 +1400,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     function preload(this: Phaser.Scene) {
+      loadKaiEquippedArt(this.load,cosmeticsRef.current);
       loadHeroCelebrationAssets(this.load,selectedCharacterId,isXGod,isKai);
       trackSceneLoading(this.load);
       if (useDrawnXGod) {
@@ -1663,6 +1665,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       makeBackground(scene);
       makeCinderShockwaveTexture(scene);
       makeAnimations(scene);
+      makeKaiArtAnimations(scene);
 
       platforms = scene.physics.add.staticGroup();
       hazards = scene.physics.add.staticGroup();
@@ -2182,7 +2185,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(options.projectile){
           const shot=projectiles.create(player.x+155,player.y-60,'boss_fire_orb') as Phaser.Physics.Arcade.Sprite;
           shot.setDisplaySize(22,22).setData('enemyProjectile',true).setData('damage',10);
-          (shot.body as Phaser.Physics.Arcade.Body).setAllowGravity(false).setVelocity(0,0);
+          (shot.body as Phaser.Physics.Arcade.Body).setAllowGravity(false).setVelocity(options.incoming?-240:0,0);
         }
       };
 

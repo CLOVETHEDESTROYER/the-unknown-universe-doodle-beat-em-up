@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import type {CosmeticLoadout} from './shopCatalog';
 import anchors from './xgodWardrobeAnchors.json';
+import {kaiCanvasImage} from './kaiWorkshopArt';
 
 const eyes: Record<string, (number[] | null)[]> = anchors;
 
@@ -41,7 +42,11 @@ export function paintWardrobe(ctx: CanvasRenderingContext2D, key: string, frame:
   ctx.lineCap = 'round';
   ctx.strokeStyle = '#242033';
   ctx.lineWidth = 4;
-  if (style.head === 'sunset-band') {
+  const accessory=(id:'sunset-band'|'rooftop-shades',x:number,y:number,size:number)=>{
+    const image=kaiCanvasImage(id);if(!image.complete||!image.naturalWidth)return false;
+    ctx.drawImage(image,frame%4*256,0,256,256,x,y,size,size);return true;
+  };
+  if (style.head === 'sunset-band'&&!accessory('sunset-band',-56,-64,72)) {
     ctx.beginPath();
     ctx.moveTo(-54, -25);
     ctx.quadraticCurveTo(-31, -40, 6, -36);
@@ -58,7 +63,7 @@ export function paintWardrobe(ctx: CanvasRenderingContext2D, key: string, frame:
     ctx.lineWidth = 2;
     ctx.stroke();
   }
-  if (style.face === 'rooftop-shades') {
+  if (style.face === 'rooftop-shades'&&!accessory('rooftop-shades',-49,-37,80)) {
     ctx.beginPath();
     ctx.moveTo(-40, -6);
     ctx.lineTo(-16, -9);

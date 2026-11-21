@@ -2,25 +2,11 @@ import Phaser from 'phaser';
 import {playSfx} from '../audio/gameAudio';
 import {CHARGED_BOLT_TEXTURE} from './chargedBlasterEffects';
 import {SPECIALS, type BuddyId, type SpecialId} from './shopCatalog';
+import {buddyFrame,kaiArtKey} from './kaiWorkshopArt';
+import {playKaiEffect} from './kaiWorkshopRuntime';
 
 type Actor = Phaser.Physics.Arcade.Sprite;
 type Body = Phaser.Physics.Arcade.Body;
-
-export function drawBuddy(art:Phaser.GameObjects.Graphics, buddy:BuddyId, facing:number, flap:number) {
-  art.clear();
-  const moth=buddy==='spark-moth';
-  const outline=0x2c2441, shell=moth?0xffc866:0x7fe3cb;
-  const height=12+flap*3;
-  for(const side of [-1,1]){
-    art.fillStyle(moth?0xdfbbff:0x6caad9).fillEllipse(side*13,-3,19,height)
-      .lineStyle(2,outline).strokeEllipse(side*13,-3,19,height);
-  }
-  art.fillStyle(shell).fillEllipse(0,0,moth?24:28,20).lineStyle(2,outline).strokeEllipse(0,0,moth?24:28,20);
-  art.lineBetween(-5,-9,-8,-16).lineBetween(5,-9,8,-16);
-  art.fillStyle(outline).fillCircle(facing*4-3,-2,1.7).fillCircle(facing*4+3,-2,1.7);
-  if(moth)art.fillStyle(0xfff6ca).fillCircle(0,5,3);
-  else art.lineStyle(2,0xfff3d0).lineBetween(-3,5,3,5).lineBetween(0,2,0,8);
-}
 
 interface Hooks {
   player:Actor;
@@ -32,7 +18,8 @@ interface Hooks {
 }
 
 export class WorkshopCombat {
-  private readonly buddyArt:Phaser.GameObjects.Graphics;
+  private readonly buddyArt:Phaser.GameObjects.Sprite;
+  private assistAt=-9999;
   private readonly reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   private nextSpecial=0;
   private nextAssist=0;
@@ -40,7 +27,7 @@ export class WorkshopCombat {
   private assists=0;
   private buddy:BuddyId|'classic'='classic';
   constructor(private readonly scene:Phaser.Scene,private readonly hooks:Hooks){
-    this.buddyArt=scene.add.graphics().setDepth(19).setVisible(false);
+    this.buddyArt=scene.add.sprite(0,0,'__DEFAULT').setDepth(19).setVisible(false).setDisplaySize(62,62);
   }
 
   private bolt(x:number,y:number,angle:number,speed:number,damage:number,color:number,size:number,pierces=1) {
@@ -70,7 +57,7 @@ export class WorkshopCombat {
       for(const offset of rail?[0]:[-.26,0,.26]){
         this.bolt(x+direction*18,y,(direction<0?Math.PI:0)+offset,rail?820:520,rail?6:3,spec.color,rail?88:47,rail?3:1);
       }
-      this.pulse(x+direction*26,y,48,38,spec.color);
+      if(!playKaiEffect(this.scene,id,x+direction*(rail?100:75),y,rail?240:190,rail?110:155,direction<0,this.reducedMotion.matches))this.pulse(x+direction*26,y,48,38,spec.color);
       playSfx('blasterChargeFire');
       return;
     }
@@ -87,22 +74,22 @@ export class WorkshopCombat {
       const shot=object as Actor;
       if(shot.active&&shot.getData('enemyProjectile')&&area.contains(shot.x,shot.y))shot.destroy();
     }
-    this.pulse(effectX,y,area.width,area.height,spec.color);
+    if(!playKaiEffect(this.scene,id,effectX,y,area.width*1.15,area.height*1.15,direction<0,this.reducedMotion.matches))this.pulse(effectX,y,area.width,area.height,spec.color);
     playSfx(isNet?'storm':'slamCharge');
   }
 
   updateBuddy(id:BuddyId|'classic',delta:number,assistance=true) {
     this.buddy=id;
     const player=this.hooks.player,art=this.buddyArt;
-    if(id==='classic'||!player.active){art.setVisible(false);return;}
+    if(id==='classic'||!player.active||!this.scene.textures.exists(kaiArtKey(id))){art.setVisible(false);return;}
     const now=this.scene.time.now,facing=this.hooks.facing(), body=player.body as Body;
     const flap=this.reducedMotion.matches?0:Math.sin(now/110);
     const x=player.x-facing*78,y=body.center.y-39+flap*5;
     const step=1-Math.exp(-delta/100);
     if(!art.visible||Phaser.Math.Distance.Between(x,y,art.x,art.y)>270)art.setPosition(x,y);
     else art.setPosition(Phaser.Math.Linear(art.x,x,step),Phaser.Math.Linear(art.y,y,step));
-    art.setVisible(true);
-    drawBuddy(art,id,facing,flap);
+    art.setTexture(kaiArtKey(id),buddyFrame(now,Math.abs(body.velocity.x)>12,now-this.assistAt<400?now-this.assistAt:-1,this.reducedMotion.matches))
+      .setDisplaySize(62,62).setVisible(true).setFlipX(facing<0);
     if(!assistance||now<this.nextAssist)return;
     if(id==='patch-beetle'){
       const inbound=this.hooks.projectiles.getChildren().find((object)=>{
@@ -127,10 +114,11 @@ export class WorkshopCombat {
       playSfx('enemyLaser',{volume:.18,pitch:1.35});
     }
     this.assists++;
+    this.assistAt=now;
   }
   read() {
     return {uses:this.uses,cooldownRemainingMs:this.cooldownRemainingMs,buddy:this.buddy,
-      buddyVisible:this.buddyArt.visible,assists:this.assists};
+      buddyVisible:this.buddyArt.visible,buddyTexture:this.buddyArt.texture.key,buddyFrame:this.buddyArt.frame.name,assists:this.assists};
   }
   get cooldownRemainingMs(){return Math.max(0,this.nextSpecial-this.scene.time.now);}
 }

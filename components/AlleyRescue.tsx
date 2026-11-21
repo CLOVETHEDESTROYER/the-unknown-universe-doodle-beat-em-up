@@ -113,7 +113,7 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
       if(buddy!=='classic'){
         const flap=reduced.matches?0:Math.sin(animationTime*9);
         g.save();g.translate(Math.max(25,Math.min(935,s.x-s.facing*85)),310+flap*5);
-        paintBuddy(g,buddy,s.facing,flap);g.restore();
+        paintBuddy(g,buddy,s.facing,flap,animationTime*1000,reduced.matches);g.restore();
       }
       if(s.arm&&animationTime-s.shotTime<.35){g.fillStyle='#6defff';const d=(animationTime-s.shotTime)*500;g.beginPath();g.ellipse(s.x+s.facing*(81+d),369,22,6,0,0,Math.PI*2);g.fill();}
       if(near()&&s.phase==='idle'){g.fillStyle='rgba(15,23,42,.88)';g.fillRect(300,25,360,45);g.fillStyle='#fff';g.font='bold 21px sans-serif';g.textAlign='center';g.fillText(s.room==='gunroom'&&s.x>590?(s.arm?'E / USE: REPLAY RESCUE':'E / USE: HELP KAI'):'E / USE: OPEN DOOR',480,54);g.textAlign='left';}

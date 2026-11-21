@@ -1,5 +1,6 @@
-import {drawBuddy} from '../gameplay/workshopCombat';
-import type {BuddyId} from '../gameplay/shopCatalog';
+import {loadKaiEquippedArt,makeKaiArtAnimations} from '../gameplay/kaiWorkshopRuntime';
+import {buddyFrame,kaiArtKey} from '../gameplay/kaiWorkshopArt';
+import {DEFAULT_COSMETICS,type BuddyId} from '../gameplay/shopCatalog';
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { addBackdropDetail, addTerrainTiles } from '../gameplay/terrainTextures';
@@ -103,7 +104,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let title:Phaser.GameObjects.Text,hint:Phaser.GameObjects.Text,banner:Phaser.GameObjects.Text,steeringLabel:Phaser.GameObjects.Text,bossLabel:Phaser.GameObjects.Text;
     let weaponLabel:Phaser.GameObjects.Text,weaponIcon:Phaser.GameObjects.Image,weaponHud:Phaser.GameObjects.Graphics,speedLines:Phaser.GameObjects.Graphics;
     let atmosphere:Phaser.GameObjects.Graphics;
-    let buddyArt:Phaser.GameObjects.Graphics|undefined;
+    let buddyArt:Phaser.GameObjects.Sprite|undefined;
     let nextBuddyAssist=0;
     const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     let route:Phaser.GameObjects.Graphics,effects:Phaser.GameObjects.Graphics,combatArt:Phaser.GameObjects.Graphics,bossBar:Phaser.GameObjects.Graphics;
@@ -274,7 +275,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         const flap=reducedMotion.matches?0:Math.sin(state.clock/110);
         const target=walker.visible?walker:ship;
         buddyArt.setVisible(target.visible).setPosition(target.x-74,target.y-(walker.visible?100:52)+flap*5);
-        if(target.visible)drawBuddy(buddyArt,buddy,1,flap);
+        if(target.visible)buddyArt.setFrame(buddyFrame(state.clock,true,-1,reducedMotion.matches));
       }
       const boss=state.combat.enemies.find(e=>e.kind==='pursuer');
       title.setText(boss?'VOID PURSUER':'STARBREAK RUN');
@@ -589,6 +590,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
       scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:viewport.width,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
+        loadKaiEquippedArt(this.load,{...DEFAULT_COSMETICS,buddy});
         loadHeroCelebrationAssets(this.load,selectedCharacterId);
         trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
@@ -629,6 +631,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           {frameWidth:kai?384:zgod||drawnXgod?768:xgod?512:256,frameHeight:kai?256:zgod||xgod?512:360});
         }
       },create(this:Phaser.Scene){
+        makeKaiArtAnimations(this);
         scene=this;
         witch=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-40));
         ascent=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_ascent').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-39.5));
@@ -673,7 +676,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         route=this.add.graphics().setDepth(30);effects=this.add.graphics().setDepth(3);combatArt=this.add.graphics().setDepth(18);
         impact=this.add.image(240,295,'flight_impact').setDisplaySize(150,150).setDepth(25).setAlpha(0);
         deathArt=this.add.graphics().setDepth(27);
-        if(buddy!=='classic')buddyArt=this.add.graphics().setDepth(17);
+        if(buddy!=='classic')buddyArt=this.add.sprite(0,0,kaiArtKey(buddy),0).setDisplaySize(62,62).setDepth(17);
         keys=this.input.keyboard!.addKeys('up,down,left,right,W,A,S,D') as typeof keys;
         // addKeys preserves the exact supplied names for letters.
         keys.w=keys.W;keys.a=keys.A;keys.s=keys.S;keys.d=keys.D;

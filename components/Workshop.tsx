@@ -1,9 +1,10 @@
 import React,{useEffect,useRef,useState} from 'react';
 import type {Wallet} from '../gameplay/levelRewards';
-import {SHOP_ITEMS,DEFAULT_COSMETICS,inkColor,isSupply,type ShopItemId,type CosmeticLoadout} from '../gameplay/shopCatalog';
+import {SHOP_ITEMS,DEFAULT_COSMETICS,isSupply,type ShopItemId,type CosmeticLoadout} from '../gameplay/shopCatalog';
 import {purchaseBlock} from '../gameplay/workshop';
 import {POWERUPS} from '../gameplay/powerups';
-import BuddyPreview from './BuddyPreview';
+import ShopItemPreview from './ShopItemPreview';
+import {kaiPosterPath} from '../gameplay/kaiWorkshopArt';
 import WardrobePreview from './WardrobePreview';
 import './Workshop.css';
 
@@ -18,7 +19,6 @@ export default function Workshop({wallet,error,message,betweenLevels,onBuy,onEqu
   const equipped=owned&&wallet.equipped[item.type as keyof CosmeticLoadout]===selected;
   const blocked=purchaseBlock(wallet,selected);
   const preview={...wallet.equipped,...(!isSupply(selected)?{[item.type]:selected}:{})} as CosmeticLoadout;
-  const color='#'+inkColor(preview).toString(16).padStart(6,'0');
   const stats=wallet.pending?.campaign.stats;
   const isWardrobe=(entry:typeof item)=>['face','head','outfit'].includes(entry.type);
   const isSpecial=(entry:typeof item)=>entry.type==='xgodSpecial'||entry.type==='kaiSpecial';
@@ -58,12 +58,8 @@ export default function Workshop({wallet,error,message,betweenLevels,onBuy,onEqu
       {betweenLevels&&stats&&<div className="workshop-loadout"><span>Next: Level {stats.level}</span><span>{POWERUPS[stats.equipment?.active??'hands'].name} · {stats.equipment?.hits??0}/3</span><span>Shield: {stats.inkShieldReady?'ready':'empty'}</span><span>Lives: {stats.lives}/{stats.maxLives}</span></div>}
       <div className="workshop-body">
         <aside className="workshop-preview">
-          {(isSpecial(item)||isBuddy)?<div className={`workshop-stage workshop-ability-preview ability-${item.id}`} role="img" aria-label={`Preview of ${item.name}`}>
-            {isBuddy?<BuddyPreview id={item.type==='buddy'?item.id:'spark-moth'}/>:<span aria-hidden="true">{item.icon}</span>}
-          </div>:(tab==='wardrobe'||isWardrobe(item))?<WardrobePreview style={preview}/>:<div className={`workshop-stage trail-${preview.trail} burst-${preview.burst}`} style={{'--preview-ink':color} as React.CSSProperties} role="img" aria-label={`Preview of ${item.name}`}>
-            <span className="workshop-preview-label">TRY THE LOOK</span><div className="workshop-runner"/><div className="workshop-preview-trail">{preview.trail==='starlight'?'✦ ✧ ✦':preview.trail==='chalk'?'• · •':'—'}</div><div className="workshop-preview-bolt"/><div className="workshop-preview-ring"/><div className="workshop-preview-floor"/>
-            {isSupply(selected)&&<span className="workshop-supply-doodle" aria-hidden="true">{item.icon}</span>}
-          </div>}
+          <ShopItemPreview key={selected} id={selected}/>
+          {isWardrobe(item)&&<details className="kai-try-on"><summary>Try on X God</summary><WardrobePreview style={preview}/></details>}
           <div className="workshop-item-info"><span className="workshop-item-tag">{isSupply(selected)?'CAMPAIGN SUPPLY':isSpecial(item)?'PERMANENT SPECIAL':isBuddy?'PERMANENT HELPER':'PERMANENT COSMETIC'}</span><h2>{item.name}</h2><p>{item.description}</p><small>{item.detail}</small>
             {confirm?<div className="workshop-confirm"><p>Buy {item.name} for <strong>{item.price} Gold</strong>?</p><button onClick={()=>{if(onBuy(selected))setConfirm(false);}}>Confirm purchase</button><button className="workshop-secondary" onClick={()=>setConfirm(false)}>Cancel</button></div>
               :owned?<button disabled={equipped} onClick={()=>onEquip(item.type as keyof CosmeticLoadout,selected)}>{equipped?'Equipped':isSpecial(item)||isBuddy?'Equip':'Equip this look'}</button>
@@ -72,7 +68,7 @@ export default function Workshop({wallet,error,message,betweenLevels,onBuy,onEqu
         </aside>
         <div className="workshop-stock"><nav aria-label="Workshop shelves">{(['supply','powers','buddies','style','wardrobe','collection'] as const).map(id=><button key={id} aria-pressed={tab===id} onClick={()=>{setTab(id);setConfirm(false);const first=visibleFor(id)[0];if(first)setSelected(first.id);}}>{id==='supply'?'Supplies':id==='powers'?'Specials':id==='buddies'?'Buddies':id==='style'?'Ink & trails':id==='wardrobe'?'Wardrobe':'Collection'}</button>)}</nav>
           <div className="workshop-cards">{visible.map(i=><button key={i.id} className={`workshop-card ${selected===i.id?'selected':''}`} aria-label={`Preview ${i.name}`} aria-pressed={selected===i.id} onClick={()=>{setSelected(i.id);setConfirm(false);}}>
-            <span className={`workshop-card-icon icon-${i.id}`} aria-hidden="true">{i.icon}</span><span className="workshop-card-title">{i.name}</span><span>{i.type==='supply'?'For this campaign':'Yours to keep'}</span><strong>{wallet.owned.includes(i.id)?Object.values(wallet.equipped).some(value=>value===i.id)?'Equipped':'Owned':`${i.price} Gold`}</strong>
+            <img className="workshop-card-icon" src={kaiPosterPath(i.id)} alt="" width={72} height={72} loading="lazy"/><span className="workshop-card-title">{i.name}</span><span>{i.type==='supply'?'For this campaign':'Yours to keep'}</span><strong>{wallet.owned.includes(i.id)?Object.values(wallet.equipped).some(value=>value===i.id)?'Equipped':'Owned':`${i.price} Gold`}</strong>
           </button>)}</div>
           {tab==='collection'&&visible.length===0&&<p className="workshop-empty">Purchased specials, buddies, and cosmetics appear here.</p>}
           {resetSlots.length>0&&<div className="workshop-classics">{resetSlots.map(slot=><button key={slot} disabled={wallet.equipped[slot]==='classic'} onClick={()=>onEquip(slot,'classic')}>{resetLabels[slot]}</button>)}</div>}

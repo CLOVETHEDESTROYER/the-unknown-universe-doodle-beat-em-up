@@ -1,0 +1,173 @@
+{
+  "repair": {
+    "name": "Weapon tune-up",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "shield": {
+    "name": "Ink Shield",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "life": {
+    "name": "Extra life",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "arctic": {
+    "name": "Arctic Ink",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "rose": {
+    "name": "Neon Rose",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "chalk": {
+    "name": "Chalk Sparks",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "starlight": {
+    "name": "Starlight",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "prism": {
+    "name": "Prism Burst",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "rooftop-shades": {
+    "name": "Rooftop Shades",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "sunset-band": {
+    "name": "Sunset Headband",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "blue-kicks": {
+    "name": "Blue Kicks",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "frost-kit": {
+    "name": "Frost Gauntlet",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "ember-kit": {
+    "name": "Ember Boots",
+    "columns": 4,
+    "rows": 1,
+    "size": 256,
+    "frames": 4,
+    "hasEffect": false,
+    "buddy": false
+  },
+  "ink-fan": {
+    "name": "Ink Fan",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "chalk-ring": {
+    "name": "Chalk Ring",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "rail-pulse": {
+    "name": "Rail Pulse",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "static-net": {
+    "name": "Static Net",
+    "columns": 4,
+    "rows": 2,
+    "size": 256,
+    "frames": 8,
+    "hasEffect": true,
+    "buddy": false
+  },
+  "spark-moth": {
+    "name": "Spark Moth",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  },
+  "patch-beetle": {
+    "name": "Patch Beetle",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  }
+}

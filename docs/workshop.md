@@ -1,5 +1,7 @@
 # Kai's Workshop
 
+Every catalog item now has generated raster artwork and animation. The generated previews cover all 19 entries, including the four alternate specials and the Spark Moth / Patch Beetle buddies. **In action** shows special/style effects; buddy previews include idle, flight and assist poses. Wardrobe entries retain **Try on X God**. Asset sources, prompts, frame layouts and rebuild instructions are in `art/kai-workshop-v1/README.md`.
+
 The flow is **level results → workshop → existing chapter story → next level**. The first chapter still leads through Alley Rescue. The finale goes straight to its story; the collection remains accessible from the title wallet button afterward.
 
 Supplies take effect in the upcoming campaign snapshot. Cosmetic purchases are permanent in the browser's wallet and automatically equip on purchase. Owned styles can be previewed and equipped again for free, or reset to the original look. The shop never increases weapon damage.
