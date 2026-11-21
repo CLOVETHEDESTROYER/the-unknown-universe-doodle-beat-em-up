@@ -1,3 +1,6 @@
+import {loadKaiEquippedArt,makeKaiArtAnimations} from '../gameplay/kaiWorkshopRuntime';
+import {buddyFrame,kaiArtKey} from '../gameplay/kaiWorkshopArt';
+import {DEFAULT_COSMETICS,type BuddyId} from '../gameplay/shopCatalog';
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { addBackdropDetail, addTerrainTiles } from '../gameplay/terrainTextures';
@@ -20,11 +23,13 @@ import {sizeCharacter,characterScale} from '../gameplay/characterSizing';
 import {XGOD_FROST_FOLDER} from '../gameplay/xgodFrost';
 import {SHADOW_ART} from '../gameplay/shadowKid';
 import {ELYTRON_ART} from '../gameplay/elytron';
+import {FlightSupplyCrates} from '../gameplay/flightSupplyCrates';
 
 const WEAPON_HUD_TOP = 44;
 const ROUTE_HUD_TOP = 93;
 
 interface Props {
+  buddy?:BuddyId|'classic';
   isPaused: boolean; selectedCharacterId: CharacterId; difficulty: DifficultyMode;
   initialStats: GameStats; onStatsUpdate: (stats: Partial<GameStats>) => void; onTogglePause: () => void;
 }
@@ -35,7 +40,7 @@ declare global {
     __unknownFlightEnemyTest?: (kind:'scout'|'interceptor'|'gunship'|'prism',hp?:number)=>void;
   }
 }
-const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficulty,initialStats,onStatsUpdate,onTogglePause}) => {
+const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficulty,initialStats,onStatsUpdate,onTogglePause,buddy='classic'}:Props) => {
   const host=useRef<HTMLDivElement>(null);
   const paused=useRef(isPaused);
   const callbacks=useRef({onStatsUpdate,onTogglePause});
@@ -86,6 +91,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     state.noPowerups=turkeyKing;
     if(turkeyKing){state.combat.weapon=state.checkpointWeapon='twin';state.weaponHits=0;}
     let scene:Phaser.Scene;
+    let supplyCrateState=initialStats.supplyCrates;
+    let supplyCrates:FlightSupplyCrates|null=null;
     let keys:Record<string,Phaser.Input.Keyboard.Key>;
     let ready=false,disposed=false,advanced=false,manualStepping=false,lastSync='',lastImpact=0,lastCheckpoint=0,checkpointNotice=0,impactUntil=0;
     let flightVictory:HeroCelebration|null=null,flightVictoryStarted=false;
@@ -98,6 +105,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let title:Phaser.GameObjects.Text,hint:Phaser.GameObjects.Text,banner:Phaser.GameObjects.Text,steeringLabel:Phaser.GameObjects.Text,bossLabel:Phaser.GameObjects.Text;
     let weaponLabel:Phaser.GameObjects.Text,weaponIcon:Phaser.GameObjects.Image,weaponHud:Phaser.GameObjects.Graphics,speedLines:Phaser.GameObjects.Graphics;
     let atmosphere:Phaser.GameObjects.Graphics;
+    let buddyArt:Phaser.GameObjects.Sprite|undefined;
+    let nextBuddyAssist=0;
+    const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     let route:Phaser.GameObjects.Graphics,effects:Phaser.GameObjects.Graphics,combatArt:Phaser.GameObjects.Graphics,bossBar:Phaser.GameObjects.Graphics;
     let impact:Phaser.GameObjects.Image;
     let shipHull:Phaser.GameObjects.Image,deathArt:Phaser.GameObjects.Graphics;
@@ -122,16 +132,38 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     };
     function sync(){
       const activeBossId=state.phase==='flight'&&state.combat.enemies.some(e=>e.kind==='pursuer'&&e.phase!=='dying')?'void-pursuer':null;
-      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}/${activeBossId}`;
+      const signature=`${state.hull}/${state.lives}/${state.score}/${state.phase}/${state.checkpoint}/${state.combat.weapon}/${state.weaponHits}/${state.collectedWeapons.join()}/${activeBossId}/${JSON.stringify(supplyCrateState)}`;
       if(signature===lastSync)return;
       lastSync=signature;
       callbacks.current.onStatsUpdate({activeBossId,isDying:state.phase==='respawn'||state.phase==='dying',
+        supplyCrates:supplyCrateState,
         flightSave:{checkpoint:state.checkpoint,weapon:state.combat.weapon,hits:state.weaponHits,collectedWeapons:[...state.collectedWeapons],collected:[...state.collected],seed:state.asteroidSeed},health:state.hull,lives:state.lives,score:state.score,
         monstersDefeated:initialStats.monstersDefeated+state.combat.defeated.length,isGameOver:state.phase==='gameover'});
     }
     function tick(ms:number){
       if(!ready || disposed || paused.current)return;
+      if(buddy!=='classic'&&state.phase==='flight'&&state.clock>=nextBuddyAssist){
+        const combat=state.combat;
+        if(buddy==='patch-beetle'){
+          const index=combat.bolts.findIndex(bolt=>bolt.owner==='enemy'&&Math.abs(bolt.x-state.x)<140&&
+            Math.abs(bolt.y-state.y)<44&&(state.x-bolt.x)*bolt.vx+(state.y-bolt.y)*bolt.vy>0);
+          if(index>=0){
+            combat.bolts.splice(index,1);nextBuddyAssist=state.clock+5500;
+            playSfx('shield',{volume:.45});
+          }
+        }else{
+          const target=combat.enemies.find(enemy=>enemy.hp>0&&enemy.phase!=='incoming'&&enemy.phase!=='exit'&&
+            Phaser.Math.Distance.Between(state.x,state.y,enemy.x,enemy.y)<420);
+          if(target){
+            const x=state.x-74,y=state.y-52,angle=Math.atan2(target.y-y,target.x-x);
+            combat.bolts.push({id:combat.nextId++,owner:'player',x,y,vx:Math.cos(angle)*410,vy:Math.sin(angle)*410,damage:2,expires:state.clock+1300});
+            nextBuddyAssist=state.clock+2300;
+            playSfx('enemyLaser',{volume:.18,pitch:1.35});
+          }
+        }
+      }
       stepFlight(state,ms,input());
+      supplyCrates?.update(state,ms);
       updateFlightCelebration();
       if(params.get('shipDeathPreview')==='1'&&!deathPreviewTriggered&&input().fire&&state.phase==='flight'){
         deathPreviewTriggered=damageShip(state,100);
@@ -194,6 +226,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       if(!ready || disposed)return;
       updateFlightCelebration();
       const flying=state.phase==='flight';
+      supplyCrates?.draw(state);
       const ending=['landing','disembark','complete'].includes(state.phase);
       const departure=state.phase==='boarding'?0:state.phase==='launch'?state.phaseMs/1900*.3:Math.min(1,.3+state.distance/1800);
       const cosmic=ending?1:Phaser.Math.Clamp((state.distance-3500)/3000,0,1);
@@ -238,6 +271,12 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       }else if(state.phase==='disembark'){
         const t=Phaser.Math.Clamp(Math.min(state.phaseMs,FLIGHT_VICTORY_START)/1800,0,1);
         walker.setPosition(650+210*t,lerp(456,492,Math.min(1,t*4))).setAlpha(Math.min(1,t*6)).setFlipX(false);
+      }
+      if(buddy!=='classic'&&buddyArt){
+        const flap=reducedMotion.matches?0:Math.sin(state.clock/110);
+        const target=walker.visible?walker:ship;
+        buddyArt.setVisible(target.visible).setPosition(target.x-74,target.y-(walker.visible?100:52)+flap*5);
+        if(target.visible)buddyArt.setFrame(buddyFrame(state.clock,true,-1,reducedMotion.matches));
       }
       const boss=state.combat.enemies.find(e=>e.kind==='pursuer');
       title.setText(boss?'VOID PURSUER':'STARBREAK RUN');
@@ -552,10 +591,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       render:{preserveDrawingBuffer:params.get('capture')==='1'},
       scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH,width:viewport.width,height:576,expandParent:false},
       scene:{key:'FlightScene',preload(this:Phaser.Scene){
+        loadKaiEquippedArt(this.load,{...DEFAULT_COSMETICS,buddy});
         loadHeroCelebrationAssets(this.load,selectedCharacterId);
         trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
+        this.load.image('flight_supply_crate','/doodles/o_box.png');
+        this.load.image('flight_supply_health','/heart_sprite.png');
         for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
         for(const kind of ['scout','interceptor','gunship','prism']){
           const folder=kind==='prism'?'level-v3':'motion-v2';
@@ -590,6 +632,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           {frameWidth:kai?384:zgod||drawnXgod?768:xgod?512:256,frameHeight:kai?256:zgod||xgod?512:360});
         }
       },create(this:Phaser.Scene){
+        makeKaiArtAnimations(this);
         scene=this;
         witch=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_witch').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-40));
         ascent=[-1,0,1].map(i=>this.add.image(i*1728,0,'flight_ascent').setOrigin(0).setDisplaySize(1728,576).setFlipX(i!==0).setDepth(-39.5));
@@ -634,11 +677,13 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         route=this.add.graphics().setDepth(30);effects=this.add.graphics().setDepth(3);combatArt=this.add.graphics().setDepth(18);
         impact=this.add.image(240,295,'flight_impact').setDisplaySize(150,150).setDepth(25).setAlpha(0);
         deathArt=this.add.graphics().setDepth(27);
+        if(buddy!=='classic')buddyArt=this.add.sprite(0,0,kaiArtKey(buddy),0).setDisplaySize(62,62).setDepth(17);
         keys=this.input.keyboard!.addKeys('up,down,left,right,W,A,S,D') as typeof keys;
         // addKeys preserves the exact supplied names for letters.
         keys.w=keys.W;keys.a=keys.A;keys.s=keys.S;keys.d=keys.D;
         keys.fire=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         keys.alternate=this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+        supplyCrates=new FlightSupplyCrates(this,initialStats.supplyCrates,value=>{supplyCrateState=value;});
         ready=true;sync();draw();reportGameLoading(1);
       },update(_time:number,delta:number){
         let remaining=manualStepping?0:Math.min(delta,100);
@@ -653,6 +698,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       mode:state.phase==='gameover'?'gameover':paused.current?'paused':state.phase,level:FLIGHT_LEVEL,chapter:'STARBREAK RUN',
       section:state.distance<5000?'Canopy Climb':state.distance<11500?'High Orbit':'Void Approach',failedAssets,
       selectedCharacter:{id:selectedCharacterId,name:hero.name},
+      supplyCrates:supplyCrates?.read(state)??[],
       boardingVisual:{visible:walker?.visible??false,iceGauntlets:frostXgod,texture:walker?.texture.key??null,scale:walker?.scaleY??0},
       player:ready?{x:Math.round(state.x),y:Math.round(state.y),velocityX:Math.round(state.vx),velocityY:Math.round(state.vy),health:state.hull,lives:state.lives,texture:'flight_ship',frame:0}:null,
       ship:{hull:state.hull,bank:ship?.angle??0,collisionHalfWidth:46,collisionHalfHeight:16,impacts:state.impacts,pilotVisible:pilot?.visible??false,invulnerable:state.clock<state.invulnerableUntil,visible:ship?.visible??false},
@@ -715,10 +761,11 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       window.__unknownFlightDamageShip=undefined;window.__unknownFlightSetShipPosition=undefined;
       window.__unknownFlightEnemyTest=undefined;
       flightVictory?.destroy();flightVictory=null;
+      supplyCrates?.destroy();supplyCrates=null;
       if(window.render_game_to_text===read)window.render_game_to_text=()=>JSON.stringify({engine:'flight',mode:'remounting',level:FLIGHT_LEVEL,player:null});
       game.destroy(true);
     };
-  },[selectedCharacterId,difficulty]);
+  },[selectedCharacterId,difficulty,buddy]);
   return <div ref={host} className="unknown-universe-game h-full w-full" />;
 };
 export default FlightGameEngine;

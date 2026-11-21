@@ -116,12 +116,22 @@ def main() -> None:
     parser.add_argument("--max-art-width", type=int, default=448)
     parser.add_argument("--max-art-height", type=int, default=462)
     parser.add_argument("--bottom-padding", type=int, default=26)
+    parser.add_argument("--shared-scale", action="store_true", help="Preserve relative pose sizes across the entire animation")
     parser.add_argument("--remove-checkerboard", action="store_true")
     parser.add_argument("--minimum-island-area", type=int, default=0)
     parser.add_argument("--largest-island-only", action="store_true")
     args = parser.parse_args()
 
     source = Image.open(args.input).convert("RGBA")
+    shared_scale = 1.0
+    if args.shared_scale:
+        for row in range(args.rows):
+            for column in range(args.columns):
+                cell = source.crop((round(column * source.width / args.columns), round(row * source.height / args.rows),
+                                    round((column + 1) * source.width / args.columns), round((row + 1) * source.height / args.rows)))
+                bounds = alpha_bounds(cell)
+                if bounds:
+                    shared_scale = min(shared_scale, args.max_art_width / (bounds[2] - bounds[0]), args.max_art_height / (bounds[3] - bounds[1]))
     frames: list[Image.Image] = []
     for row in range(args.rows):
         for column in range(args.columns):
@@ -138,7 +148,7 @@ def main() -> None:
             if not bounds:
                 raise SystemExit(f"Grid cell {row},{column} does not contain visible artwork.")
             art = cell.crop(bounds)
-            scale = min(args.max_art_width / art.width, args.max_art_height / art.height, 1)
+            scale = shared_scale if args.shared_scale else min(args.max_art_width / art.width, args.max_art_height / art.height, 1)
             size = (max(1, round(art.width * scale)), max(1, round(art.height * scale)))
             art = art.resize(size, Image.Resampling.LANCZOS)
             if args.minimum_island_area:

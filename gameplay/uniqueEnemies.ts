@@ -1,5 +1,6 @@
 /** One original silhouette and signature attack exclusive to each ground chapter. */
 export const UNIQUE_ENEMIES = {
+  bumper:{level:1,name:'Rim Runt',move:'rebound_wheel',hp:5,speed:42,notice:410,tell:780,attack:430,recover:1050,color:0xffd275},
   tagger:{level:1,name:'Spray Skater',move:'paint_skip',hp:4,speed:115,notice:420,tell:650,attack:600,recover:1000,color:0xff4bbd},
   bellkeeper:{level:2,name:'Bone Bellkeeper',move:'grave_chime',hp:5,speed:42,notice:420,tell:900,attack:900,recover:1200,color:0x79f3cf},
   boiler:{level:3,name:'Boiler Crab',move:'coal_mortar',hp:6,speed:48,notice:480,tell:800,attack:550,recover:1250,color:0xffad46},
@@ -10,6 +11,7 @@ export type UniqueEnemyKind=keyof typeof UNIQUE_ENEMIES;
 export const isUniqueEnemy=(kind:string):kind is UniqueEnemyKind=>Object.hasOwn(UNIQUE_ENEMIES,kind);
 export const UNIQUE_LEVEL_ENEMY:Record<number,UniqueEnemyKind>={1:'tagger',2:'bellkeeper',3:'boiler',4:'mantis',6:'mimic'};
 export const UNIQUE_ENEMY_BODIES={
+  bumper:{x:.27,y:.40,width:.46,height:.54,footAnchor:.94},
   tagger:{x:.29,y:.43,width:.42,height:.51,footAnchor:.94},
   bellkeeper:{x:.32,y:.34,width:.36,height:.60,footAnchor:.94},
   boiler:{x:.23,y:.56,width:.54,height:.38,footAnchor:.94},

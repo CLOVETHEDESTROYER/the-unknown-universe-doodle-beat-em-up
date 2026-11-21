@@ -103,11 +103,14 @@ try{
     s=await wait(s=>s.celebration?.kind==='sword'&&s.celebration.active);
     assert.equal(s.mode,'platforming');assert.equal(s.progress.score,score,'No early or duplicate clear bonus');
     await watch('sword','phone-gate-sword');
+    await wait(s=>s.mode==='level-results');
+    await page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/}).click();
+    await wait(s=>s.mode==='workshop');await page.getByRole('button',{name:'Continue story',exact:false}).click();
     s=await wait(s=>s.mode==='campaign-story');assert.equal(s.chapter,'level1');
     assert.equal(s.resume.score,score+900);assert.equal(s.resume.equipment.active,'sword');assert.equal(s.resume.equipment.hits,3);
     await page.getByRole('button',{name:'Skip story',exact:true}).click();
     await completeAlleyRescue(page);
-    s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert(s.powerups.swordUnlocked&&s.powerups.hasFlameSword);
+    s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert(s.powerups.swordUnlocked);assert.equal(s.equipment.blasterVariant,'kai_arm');
     assert.equal(s.celebration.played.sword,0,'Already-owned sword does not replay on level mount');
     await page.evaluate(()=>window.__unknownPlatformerCollectPickup('power'));await page.waitForTimeout(80);
     assert.equal((await read()).celebration.played.sword,0,'Later refill does not replay the first-claim sequence');
@@ -125,7 +128,7 @@ try{
     await page.keyboard.up('Space');assert(s.enemies.some(e=>e.kind==='pursuer'&&e.phase==='dying'));
     const seen=new Set();let captured=false;
     for(let t=0;t<18000;t+=40){
-      s=await read();if(s.mode==='campaign-story')break;
+      s=await read();if(s.mode==='level-results'){await page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/}).click();await wait(s=>s.mode==='workshop');await page.getByRole('button',{name:'Continue story',exact:false}).click();await wait(s=>s.mode==='campaign-story');break;}if(s.mode==='campaign-story')break;
       if(s.celebration?.active){assert.equal(s.flight.phase,'disembark');assert(s.flight.finaleDefeated);seen.add(s.celebration.frame);
         if(s.celebration.frame===2&&!captured){captured=true;await shot('flight-zgod-victory');}}
       await advance(40);

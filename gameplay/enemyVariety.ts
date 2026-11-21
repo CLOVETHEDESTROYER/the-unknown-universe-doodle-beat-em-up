@@ -24,7 +24,7 @@ export const ENEMY_REINTRODUCTIONS: Record<number, Array<[string, number, Restor
 
 /** Distinct local rosters; repeat silhouettes get level-specific attacks and palettes. */
 export const LEVEL_ENEMY_ROSTERS:Record<number,readonly string[]>={
-  1:['walker','spider','dasher','tagger'],
+  1:['walker','spider','dasher','tagger','bumper'],
   2:['walker','ghost','terror','bellkeeper'],
   3:['walker','alien','giant','boiler'],
   4:['walker','spider','mantis'],

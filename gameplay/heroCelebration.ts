@@ -44,6 +44,7 @@ export class HeroCelebration {
     this.light=scene.add.graphics().setDepth(16);
   }
   get active(){return this.running;}
+  get visibleSprite(){return this.actor.visible ? this.actor : undefined;}
   get duration(){return this.kind==='sword'?SWORD_REWARD_DURATION:HERO_VICTORY_DURATION;}
   start(kind:CelebrationKind,x:number,feet:number,facing=1){
     if(this.running||kind==='sword'&&this.hero!=='xgod')return false;

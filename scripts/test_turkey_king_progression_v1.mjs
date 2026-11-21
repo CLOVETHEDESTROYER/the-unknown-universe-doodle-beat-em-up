@@ -14,6 +14,11 @@ try{
  let s=await wait(s=>s.bossDeath.stage==='finished'&&!s.celebration.active);assert.equal(s.equipment.active,'hands');assert.equal(s.powerups.hasFlameSword,false);assert(!s.pickups.some(p=>p.kind==='power'));
  await page.screenshot({path:path.join(out,'king-level1-victory.png')});
  await page.evaluate(()=>{const s=JSON.parse(window.render_game_to_text());window.__unknownPlatformerSetPlayerPosition(s.progress.levelEndX,480);});
+ await wait(s=>s.mode==='level-results');
+ await page.getByRole('button',{name:/Continue adventure|Visit Kai.s Workshop/}).click();
+ await wait(s=>s.mode==='workshop');
+ assert(await page.locator('.workshop-item-info>button').isDisabled(),'Native weapons cannot buy incompatible supplies');
+ await page.getByRole('button',{name:'Continue story',exact:false}).click();
  s=await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');assert.equal(s.resume.selectedCharacterId,'turkey_king');assert.equal(s.resume.equipment.active,'hands');
  await page.getByRole('button',{name:'Skip story',exact:true}).click();await completeAlleyRescue(page);s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.equipment.active,'hands');assert.deepEqual(s.failedAssets,[]);
  await page.screenshot({path:path.join(out,'king-level2.png')});assert.deepEqual(errors,[]);

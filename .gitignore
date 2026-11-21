@@ -15,6 +15,10 @@ dist-ssr
 .env.*
 !.env.example
 output
+.playwright-cli/
+
+# Local-only licensed-track placeholder: do not publish without clearance.
+/public/audio/alley-disco-local.mp3
 
 # Local captures, Python caches and Blender autosaves
 /-/

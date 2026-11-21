@@ -9,6 +9,7 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test:loading": "node scripts/test_loading_v1.mjs",
+    "test:mobile": "node scripts/test_mobile_edge_to_edge.mjs",
     "test:game": "node scripts/run_game_test.mjs",
     "test:game:headed": "node scripts/run_game_test.mjs --headless false",
     "test:game:level2": "node scripts/run_game_test.mjs --start-level 2 --start-sword --start-sword-durability 2 --iterations 1 --screenshot-dir output/web-game-level2 --port 4175",

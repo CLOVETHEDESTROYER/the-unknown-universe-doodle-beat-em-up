@@ -15,11 +15,11 @@ page.on('pageerror',e=>errors.push(e.message));
 page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('favicon.ico'))errors.push(`${r.status()} ${r.url()}`);if(r.ok())loaded.add(new URL(r.url()).pathname);});
 const shot=name=>page.screenshot({path:`${out}/${name}.png`});
 const read=()=>page.evaluate(()=>JSON.parse(window.render_game_to_text()));
-const frame=()=>page.locator('.workshop-stage canvas').getAttribute('data-frame').then(Number);
+const frame=()=>page.locator('.combat-gallery-stage canvas').getAttribute('data-frame').then(Number);
 async function sampleFrames(ms=850){
   return page.evaluate(ms=>new Promise(resolve=>{
     const found=new Set(),start=performance.now();
-    function tick(){found.add(Number(document.querySelector('.workshop-stage canvas').dataset.frame));if(performance.now()-start>=ms)resolve([...found]);else requestAnimationFrame(tick);}
+    function tick(){found.add(Number(document.querySelector('.combat-gallery-stage canvas').dataset.frame));if(performance.now()-start>=ms)resolve([...found]);else requestAnimationFrame(tick);}
     requestAnimationFrame(tick);
   }),ms);
 }
@@ -30,52 +30,52 @@ async function boot(level=1,extra=''){
 async function wait(fn,ms=12000){const end=Date.now()+ms;while(Date.now()<end){assert.deepEqual(errors,[]);const s=await read();if(fn(s))return s;await page.waitForTimeout(25);}throw Error('Timeout '+fn);}
 
 try{
-  await page.goto(origin);await page.getByRole('button',{name:'Workshop',exact:true}).click();
-  await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();
+  await page.goto(origin);await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.locator('dialog').evaluate(d=>d.matches(':modal')));
   const powerNames=['Ink Blaster','Flame Sword','Frost Gauntlet','Ember Boots','Storm Halo','Kai Blaster Arm','Ink Shield','Rapid Fire','Fan Shots','Heat Seekers','Gravity Core','Health Heart','Rush Star'];
   evidence.powerups=[];
   for(const name of powerNames){
     await page.getByRole('button',{name:`Preview ${name}`,exact:true}).click();
-    await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();
+    await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
     const frames=await sampleFrames();assert(frames.length>=3,`${name} animates: ${frames}`);
-    const pixels=await page.locator('.workshop-stage canvas').evaluate(c=>[...c.getContext('2d').getImageData(0,0,320,320).data].filter((v,i)=>i%4===3&&v>50).length);
+    const pixels=await page.locator('.combat-gallery-stage canvas').evaluate(c=>[...c.getContext('2d').getImageData(0,0,320,320).data].filter((v,i)=>i%4===3&&v>50).length);
     assert(pixels>500,`${name} has visible art`);evidence.powerups.push({name,frames,pixels});
   }
   await page.getByRole('button',{name:'Preview Frost Gauntlet',exact:true}).click();
-  await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();await shot('workshop-powerups-desktop');
+  await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();await shot('workshop-powerups-desktop');
   await page.getByRole('button',{name:'Pause',exact:true}).click();
   const paused=await frame();await page.waitForTimeout(300);assert.equal(await frame(),paused);
   await page.getByRole('button',{name:'Next pose',exact:true}).click();await page.waitForTimeout(60);assert.equal(await frame(),(paused+1)%4);
-  const before=await page.locator('.workshop-stage canvas').evaluate(c=>c.toDataURL());
+  const before=await page.locator('.combat-gallery-stage canvas').evaluate(c=>c.toDataURL());
   await page.getByRole('button',{name:'Face left',exact:true}).click();await page.waitForTimeout(60);
-  assert.notEqual(await page.locator('.workshop-stage canvas').evaluate(c=>c.toDataURL()),before);
+  assert.notEqual(await page.locator('.combat-gallery-stage canvas').evaluate(c=>c.toDataURL()),before);
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await page.getByRole('button',{name:'Buddies · 3',exact:true}).click();evidence.buddies=[];
   for(const name of ['Dinio','Doghost','Teleportation C']){
     await page.getByRole('button',{name:`Preview ${name}`,exact:true}).click();
-    const actions=page.locator('.workshop-actions button');
+    const actions=page.locator('.combat-gallery-actions button');
     for(let n=0;n<await actions.count();n++){
-      await actions.nth(n).click();await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();
+      await actions.nth(n).click();await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
       const frames=await sampleFrames(900);assert(frames.length>=3,`${name} action ${n}`);
       evidence.buddies.push({name,action:await actions.nth(n).innerText(),frames});
     }
     await shot(`workshop-${name.toLowerCase().replaceAll(' ','-')}`);
   }
-  await page.getByRole('button',{name:'Move',exact:true}).click();await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();await shot('workshop-buddies-desktop');
+  await page.getByRole('button',{name:'Move',exact:true}).click();await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();await shot('workshop-buddies-desktop');
   await page.keyboard.press('Escape');await page.locator('dialog').waitFor({state:'detached'});
-  assert(await page.getByRole('button',{name:'Workshop',exact:true}).evaluate(b=>document.activeElement===b));
-  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Workshop',exact:true}).click();
-  await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();
+  assert(await page.getByRole('button',{name:'Art Gallery',exact:true}).evaluate(b=>document.activeElement===b));
+  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.locator('dialog').evaluate(d=>d.scrollWidth<=d.clientWidth+1));
   await shot('workshop-phone-portrait');await page.getByRole('button',{name:'Buddies · 3',exact:true}).click();
   await page.getByRole('button',{name:'Preview Doghost',exact:true}).click();await shot('workshop-phone-buddy');
   await page.setViewportSize({width:844,height:390});
   assert(await page.locator('dialog').evaluate(d=>d.scrollWidth<=d.clientWidth+1));
-  await page.locator('.workshop-stage').scrollIntoViewIfNeeded();await shot('workshop-phone-landscape');
-  await page.getByRole('button',{name:'Close workshop',exact:true}).click();
-  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Workshop',exact:true}).click();
-  await page.locator('.workshop-stage canvas[data-ready=true]').waitFor();
+  await page.locator('.combat-gallery-stage').scrollIntoViewIfNeeded();await shot('workshop-phone-landscape');
+  await page.getByRole('button',{name:'Close gallery',exact:true}).click();
+  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.getByRole('button',{name:'Play',exact:true}).isVisible());const reduced=await frame();await page.waitForTimeout(350);assert.equal(await frame(),reduced);
   evidence.pauseStepFacingKeyboardPhoneAndReducedMotion=true;
   await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:1440,height:900});

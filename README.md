@@ -13,9 +13,9 @@ A hand-drawn side-scrolling action platformer built with React, Phaser and Vite.
 | 5 | Starbreak Run — spaceship flight | Pursuer |
 | 6 | Dread Planet | Void Regent |
 
-After The Scratch ending, **Alley Rescue** follows X God on the road to the Graveyard. Enter the house and help Killer Kai in the spare gun room to unlock him and earn the blaster-arm connection. Finish the scene to continue the campaign; the title-screen Alley Rescue button remains available for replay and for existing saves beyond Level 1. Ink Blaster pickups equip the handheld weapon. After X God unlocks the arm, the later blaster supply in each ground stage is labeled **Kai Blaster Arm**. Both versions use the same durability and upgrade rules.
+After The Scratch ending, **Alley Rescue** follows X God on the road to the Graveyard. Enter the house and help Killer Kai in the spare gun room to unlock him. In an X God campaign, Kai gives him a blaster-arm power-up for that run. Like the other power-ups, it replaces the currently equipped weapon and lasts for three unblocked hits; collecting a different power-up replaces it. Regular blaster pickups stay available without overwriting the arm. New games start with the regular blaster, even if Kai was rescued in an earlier game.
 
-The nine-character roster includes X God, Z-God, Barrett, Nico, Ezra, Teleportation C, Killer Kai, Kaden (Electric Ninja), and the unnamed Shadow Kid (displayed as ???). X God and Z-God are available from the start; the others follow the roster unlock rules. Main heroes share a 160px standing-height reference; Z-God is much shorter at 105px. Shadow Kid throws black holes and uses Void Burst as his special. Collect companion orbs to release Dinio, Doghost and Teleportation C on their stages. Heroes can equip the blaster, flame sword, frost gauntlet, ember boots or storm halo; three unblocked hits remove the equipped powerup. Drawn X God has dedicated Ice Gauntlet movement, casting and hurt art. The flight stage has destructible ships/asteroids and separate weapon upgrades.
+The nine core heroes are X God, Z-God, Barrett, Nico, Ezra, Teleportation C, Killer Kai, Kaden (Electric Ninja), and the unnamed Shadow Kid (displayed as ???). X God and Z-God are available from the start; the others follow the roster unlock rules. Main heroes share a 160px standing-height reference; Z-God is much shorter at 105px. Shadow Kid throws black holes and uses Void Burst as his special. Collect companion orbs to release Dinio, Doghost and Teleportation C on their stages. Heroes can equip the blaster, flame sword, frost gauntlet, ember boots or storm halo; three unblocked hits remove the equipped powerup. Drawn X God has dedicated Ice Gauntlet movement, casting and hurt art. The flight stage has destructible ships/asteroids and separate weapon upgrades.
 
 ## Encounters along the route
 
@@ -46,6 +46,8 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 
 ## Seasonal codes
 
+On the main screen or Pick Your Player, enter the exact-case code `SantaKisComing` to test Killer Klause and Christmas mode. No code is required during November 26 through December 25, 2026 (America/Denver). The preview can be turned off separately; saved runs retain their theme. See [Christmas preview notes](docs/christmas-v1/preview.md). The Turkey King and Killer Klause are additional seasonal characters.
+
 On **Pick Your Player**, enter `happyturkey` in **Secret code** and press **Apply code**, then choose a hero. Thanksgiving mode adds fall leaves and an autumn level-one skyline, and replaces Dark Dragon with a giant turkey that charges with its talons and blows players back with wing gusts. The **Turn off** button selects classic mode for the next new game. Continue preserves the saved campaign's theme. The original D-pad roster unlock still works. See [Thanksgiving notes](docs/thanksgiving-v1.md) for artwork and checks.
 
 ## Save and Continue
@@ -57,6 +59,8 @@ There is one campaign slot per browser/site. Choosing a new hero after confirmin
 Save regression: `node scripts/test_campaign_save_v1.mjs` with a running dev server (`GAME_TEST_URL` defaults to `http://127.0.0.1:4383`).
 
 ## Development and assets
+
+The title screen has **Kai’s Workshop** through the Gold wallet for supplies, cosmetics, specials and buddies, and a separate **Art Gallery** for read-only power-up and companion animation previews.
 
 - `components/PlatformerGameEngine.tsx`: ground campaign.
 - `components/FlightGameEngine.tsx` and `gameplay/flight*.ts`: flight simulation and presentation.

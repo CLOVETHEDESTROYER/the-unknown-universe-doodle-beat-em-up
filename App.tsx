@@ -1,8 +1,10 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
+import GameUpdates from "./components/GameUpdates";
+import { LATEST_UPDATE, markLatestUpdateSeen, readSeenUpdate } from "./gameplay/gameUpdates";
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import AlleyRescue from "./components/AlleyRescue";
-import {readKaiArmUnlocked, unlockKaiArm} from "./gameplay/kaiArmUnlock";
+import { ALLEY_MAIN_MUSIC } from "./audio/alleyRescueAudio";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
@@ -12,27 +14,34 @@ import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
-import { createLoadout } from './gameplay/powerups';
+import { createLoadout, equipKaiArm } from './gameplay/powerups';
 import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
 import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
 import SoundControls from './components/SoundControls';
+import { CAMERA_MOTION_KEY, readCameraMotion } from './gameplay/footfallCamera';
+import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
+import LevelResults from './components/LevelResults';
+import Workshop from './components/Workshop';
+import {WALLET_KEY,readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult,type Wallet} from './gameplay/levelRewards';
+import {buyShopItem,equipCosmetic} from './gameplay/workshop';
+import {equippedSpecial,SPECIALS,type ShopItemId,type CosmeticLoadout} from './gameplay/shopCatalog';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
-const MonsterIdeator = lazy(() => import("./components/MonsterIdeator"));
+const CombatGallery = lazy(() => import("./components/CombatGallery"));
 const loadPlatformer = () => import('./components/PlatformerGameEngine');
 const loadFlight = () => import('./components/FlightGameEngine');
 const loadLegacy = () => import('./components/GameEngine');
 const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
-type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue";
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue" | "results" | "workshop";
 const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
 const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
-type TitlePanel = "options" | "credits" | null;
+type TitlePanel = "options" | "credits" | "updates" | null;
 
 const LEVEL_MUSIC: Partial<Record<number, string>> = {
   1: "/TheUnknownUniverseTheme.mp3",
@@ -42,7 +51,7 @@ const LEVEL_MUSIC: Partial<Record<number, string>> = {
   5: "/audio/music/starbreak-overdrive.mp3",
   6: "/audio/music/dread-planet-level.mp3"
 };
-const START_SCREEN_MUSIC = "/GfunkAllStars.mp3";
+const START_SCREEN_MUSIC = "/audio/music/unknown-universe-intro-new.mp3";
 const BOSS_MUSIC: Partial<Record<number, { bossId: string; src: string }>> = {
   1: { bossId: "dark_dragon", src: "/audio/music/dark-dragon-dragons-breath.mp3" },
   2: { bossId: "killinas_daughter", src: "/audio/music/killinas-daughter-the-brooding-collosus.mp3" },
@@ -269,23 +278,50 @@ const getInitialStats = (): GameStats => {
 };
 
 const App: React.FC = () => {
+  const [wallet,setWallet]=useState(()=>readWallet(DEFAULT_STATS));
+  const walletRef=React.useRef(wallet);walletRef.current=wallet;
+  const [workshopReturn,setWorkshopReturn]=useState<'start'|'story'>('start');
+  const [shopError,setShopError]=useState('');
+  const [shopMessage,setShopMessage]=useState('');
+  const shopBusy=React.useRef(false);
+  const workshopClosing=React.useRef(false);
+  const initialResults=React.useRef(shouldBypassStartFlow()?null:wallet.pending).current;
+  const [results,setResults]=useState<LevelResult|null>(initialResults?.result??null);
+  const [resultError,setResultError]=useState('');
+  const pendingResult=React.useRef<PendingResult|null>(initialResults);
+  const resultsContinuing=React.useRef(false);
   // Read once at startup; engine snapshots drive writes without per-frame polling.
   const [savedCampaign, setSavedCampaign] = useState(() => readCampaignSave(DEFAULT_STATS));
   const [saveError, setSaveError] = useState('');
-  const [campaignActive, setCampaignActive] = useState(false);
+  const [campaignActive, setCampaignActive] = useState(Boolean(initialResults));
   const [alleyCampaign, setAlleyCampaign] = useState(false);
   const [alleyCompleted, setAlleyCompleted] = useState(false);
   const [restoreCheckpoint, setRestoreCheckpoint] = useState<GameStats['campaignCheckpoint']>();
   const [runId, setRunId] = useState(0);
   const [confirmNewRun, setConfirmNewRun] = useState(false);
-  const [stats, setStats] = useState<GameStats>(getInitialStats);
-  const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
+  const [stats, updateStats] = useState<GameStats>(()=>trackRewardRun(initialResults?.campaign.stats??getInitialStats()));
+  const setStats=React.useCallback((action:React.SetStateAction<GameStats>)=>{
+    updateStats(previous=>trackRewardRun(typeof action==='function'?action(previous):action));
+  },[]);
+  const [difficulty, setDifficulty] = useState<DifficultyMode>(()=>initialResults?.campaign.difficulty??getInitialDifficulty());
+  const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(()=>initialResults?.campaign.stats.selectedCharacterId??getInitialCharacterId());
+  const activeShopMove=equippedSpecial(wallet.equipped,selectedCharacterId);
+  const specialLabel=activeShopMove==='classic'?SIGNATURE_SPECIALS[selectedCharacterId].name:SPECIALS[activeShopMove].name;
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
   const [kaiRescued, setKaiRescued] = useState(readKaiRescued);
-  const [kaiArmUnlocked, setKaiArmUnlocked] = useState(readKaiArmUnlocked);
-  const rescueKai = React.useCallback(() => { unlockKaiArm(); setKaiArmUnlocked(true); setKaiRescued(true); try { localStorage.setItem(KAI_RESCUE_KEY, 'true'); } catch { /* Available for this session. */ } }, []);
-  const completeAlleyRescue = React.useCallback(() => { rescueKai(); if (alleyCampaign) setAlleyCompleted(true); }, [rescueKai, alleyCampaign]);
+  const completeAlleyRescue = React.useCallback(() => {
+    setKaiRescued(true);
+    try { localStorage.setItem(KAI_RESCUE_KEY, 'true'); } catch { /* Available for this session. */ }
+    if (alleyCampaign && !alleyCompleted) {
+      setStats(previous => previous.selectedCharacterId !== 'xgod' ? previous : {
+        ...previous,
+        equipment: equipKaiArm(previous.equipment ?? createLoadout('hands'), previous.level),
+        hasFlameSword: false,
+        swordDurability: 0
+      });
+      setAlleyCompleted(true);
+    }
+  }, [alleyCampaign, alleyCompleted]);
   const [thanksgivingEnabled,setThanksgivingEnabled] = useState(readThanksgivingEnabled);
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
@@ -302,11 +338,27 @@ const App: React.FC = () => {
   const newRunTheme=():GameStats['seasonalTheme']=>isChristmasAvailable()?'christmas':thanksgivingEnabled?'thanksgiving':undefined;
   const secretCodeProps={enabled:thanksgivingEnabled,onChange:changeThanksgiving,onTurkeyKing:activateTurkeyKing,
     christmasActive:christmasAvailable,christmasPreview,onChristmasPreview:changeChristmasPreview};
-  const [appPhase, setAppPhase] = useState<AppPhase>(() => (shouldBypassStartFlow() ? "game" : "start"));
-  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(null);
-  const storyTransitionRef = React.useRef(false);
+  const [appPhase, setAppPhase] = useState<AppPhase>(() => initialResults?initialResults.stage==='shop'?'workshop':'results':shouldBypassStartFlow() ? "game" : "start");
+  const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(initialResults?.campaign.story??null);
+  const storyTransitionRef = React.useRef(Boolean(initialResults));
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
+  const [seenUpdate, setSeenUpdate] = useState(readSeenUpdate);
+  const [hasLegacyPlayHistory] = useState(isRosterUnlockedFromStorage);
+  const returningPlayer = seenUpdate !== null || Boolean(savedCampaign) || kaiRescued || hasLegacyPlayHistory;
+  const [updatesAfter, setUpdatesAfter] = useState<number | null>(seenUpdate ?? 0);
+  const [titlePanel, setTitlePanel] = useState<TitlePanel>(() =>
+    appPhase === "start" && returningPlayer && (seenUpdate ?? 0) < LATEST_UPDATE ? "updates" : null
+  );
+
+  const closeUpdates = () => {
+    setSeenUpdate(markLatestUpdateSeen());
+    setTitlePanel(null);
+  };
+
+  const rememberPlay = () => {
+    // First-time players have already started on the current release.
+    if (seenUpdate === null) setSeenUpdate(markLatestUpdateSeen());
+  };
   const [workshopOpen,setWorkshopOpen]=useState(false);
   const workshopDialogRef=React.useRef<HTMLDialogElement>(null);
   const workshopTriggerRef=React.useRef<HTMLButtonElement>(null);
@@ -330,6 +382,17 @@ const App: React.FC = () => {
   const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
   const pendingMusicStartRef = React.useRef(false);
   const [audioSettings,setAudioSettings]=useState(getAudioSettings);
+  const [cameraMotion,setCameraMotion]=useState(readCameraMotion);
+  const cameraMotionOption = (
+    <label className="flex items-center justify-between gap-3 rounded-xl bg-slate-900/75 px-3 py-2 text-sm text-white">
+      <span>Camera motion</span>
+      <input type="checkbox" checked={cameraMotion} onChange={event=>{
+        const enabled = event.currentTarget.checked;
+        setCameraMotion(enabled);
+        try { localStorage.setItem(CAMERA_MOTION_KEY,enabled?'on':'off'); } catch { /* Use the setting for this visit. */ }
+      }} className="h-4 w-4 accent-amber-300" />
+    </label>
+  );
   useEffect(() => {
     const update = (event: Event) => setLoadingProgress((event as CustomEvent<number>).detail);
     window.addEventListener(GAME_LOADING_EVENT, update);
@@ -346,7 +409,7 @@ const App: React.FC = () => {
     const unsubscribe=subscribeAudioSettings(()=>setAudioSettings(getAudioSettings()));
     return ()=>{unsubscribe();removeDebug();removeAudio();};
   },[]);
-  useEffect(()=>{setEffectsPaused(appPhase!=='game'||gameSuspended);},[appPhase,gameSuspended]);
+  useEffect(()=>{setEffectsPaused((appPhase!=='game'&&appPhase!=='alleyRescue')||(appPhase==='game'&&gameSuspended));},[appPhase,gameSuspended]);
 
   useEffect(() => {
     let frame = 0;
@@ -434,6 +497,8 @@ const App: React.FC = () => {
         return;
       }
 
+      if (titlePanel === "updates") return;
+
       if (event.key === "Escape") {
         setTitlePanel(null);
         return;
@@ -480,7 +545,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const bossTrack = BOSS_MUSIC[stats.level];
     const musicSrc =
-      appPhase === "start" || appPhase === "characterSelect"
+      appPhase === "alleyRescue" ? null : appPhase === "workshop" ? ALLEY_MAIN_MUSIC : appPhase === "start" || appPhase === "characterSelect"
         ? START_SCREEN_MUSIC
         : appPhase === "story"
           ? LEVEL_MUSIC[storyChapter ? STORY_CHAPTERS[storyChapter].musicLevel : 1]
@@ -565,13 +630,27 @@ const App: React.FC = () => {
     const exitStory = LEVEL_EXIT_STORIES[stats.level];
     const finalStory = !stats.isVictory && stats.level === FINAL_LEVEL && newStats.isVictory === true;
     if (!useLegacyBrawler && appPhase === 'game' && (finalStory || exitStory && newStats.level === stats.level + 1)) {
-      // The engine reports its final rewards and equipment in this same snapshot.
-      // Keep that snapshot, release the old renderer, then mount the next level
-      // only after Continue/Skip. Never rebuild the loadout from defaults here.
+      // Freeze the final snapshot before releasing the renderer. The next level
+      // cannot mount until the player has reviewed results and finished the story.
+      const chapter=finalStory?'level6':exitStory!;
+      const updated=nextRewardLevel({...stats,...newStats,activeBossId:null});
+      const result=levelResult(stats,updated);
+      const pending:PendingResult={result,campaign:{version:1,savedAt:Date.now(),difficulty,stats:updated,story:chapter}};
+      pendingResult.current=pending;resultsContinuing.current=false;
+      setResults(result);setResultError('');
+      if(campaignActive){
+        try{setWallet(bankLevelResult(readWallet(DEFAULT_STATS),pending));}
+        catch{setResultError('Your reward could not be saved. Free up browser storage, then retry.');}
+      }else{
+        // Developer previews show the tally without modifying a real player's wallet or campaign.
+        setWallet(previous=>({...previous,gold:previous.gold+result.earnedGold}));
+      }
       storyTransitionRef.current = true;
-      setStoryChapter(finalStory ? 'level6' : exitStory!);
+      setStoryChapter(chapter);
       setIsPaused(false);
-      setAppPhase('story');
+      setStats(updated);
+      setAppPhase('results');
+      return;
     }
     setStats((previous) => {
       const updated = { ...previous, ...newStats };
@@ -585,6 +664,59 @@ const App: React.FC = () => {
       }
       return updated;
     });
+  };
+
+  const finishIntermission=()=>{
+    const pending=pendingResult.current;
+    if(!pending)return false;
+    if(campaignActive){
+      try{
+        if(pending.campaign.stats.isVictory)localStorage.removeItem(CAMPAIGN_SAVE_KEY);
+        else if(!writeCampaignSave(pending.campaign))throw Error('Campaign save failed');
+        setWallet(acknowledgeResults(readWallet(DEFAULT_STATS)));
+        setSavedCampaign(pending.campaign.stats.isVictory?null:pending.campaign);
+      }catch{
+        const message='Your progress could not be saved. Free up browser storage, then retry.';
+        if(appPhase==='workshop')setShopError(message);else setResultError(message);return false;
+      }
+    }
+    resultsContinuing.current=true;setResultError('');setShopError('');setResults(null);
+    setStats(pending.campaign.stats);setStoryChapter(pending.campaign.story);pendingResult.current=null;
+    setAppPhase('story');
+    return true;
+  };
+
+  const continueResults=()=>{
+    const pending=pendingResult.current;if(!pending||resultsContinuing.current)return;
+    try{
+      if(campaignActive)setWallet(bankLevelResult(readWallet(DEFAULT_STATS),pending));
+      if(pending.campaign.stats.isVictory){finishIntermission();return;}
+      const nextPending:PendingResult={...pending,stage:'shop'};
+      const next:Wallet=campaignActive?{...readWallet(DEFAULT_STATS),pending:nextPending}:{...walletRef.current,pending:nextPending};
+      if(campaignActive)localStorage.setItem(WALLET_KEY,JSON.stringify(next));
+      walletRef.current=next;setWallet(next);pendingResult.current=nextPending;
+      resultsContinuing.current=true;workshopClosing.current=false;setResultError('');setResults(null);setWorkshopReturn('story');setShopError('');setShopMessage('');setAppPhase('workshop');
+    }catch{setResultError('Your reward could not be saved. Free up browser storage, then retry.');}
+  };
+
+  const shopAction=(action:(current:Wallet)=>Wallet,message:string)=>{
+    if(shopBusy.current)return false;shopBusy.current=true;
+    try{
+      const persist=campaignActive||!pendingResult.current;
+      const current=persist?readWallet(DEFAULT_STATS):walletRef.current;
+      const next=action(current);
+      if(persist)try{localStorage.setItem(WALLET_KEY,JSON.stringify(next));}
+      catch{throw Error('That change could not be saved. Please try again.');}
+      walletRef.current=next;setWallet(next);if(next.pending){pendingResult.current=next.pending;setStats(next.pending.campaign.stats);}
+      setShopError('');setShopMessage(message);return true;
+    }catch(e){setShopError(e instanceof Error?e.message:'That change could not be saved. Please try again.');return false;}
+    finally{queueMicrotask(()=>{shopBusy.current=false;});}
+  };
+
+  const leaveWorkshop=()=>{
+    if(workshopClosing.current)return;workshopClosing.current=true;
+    if(pendingResult.current){if(!finishIntermission())workshopClosing.current=false;return;}
+    setShopError('');setAppPhase(workshopReturn==='start'?'start':'story');
   };
 
   const persistCampaign = React.useCallback(() => {
@@ -606,6 +738,7 @@ const App: React.FC = () => {
   const continueCampaign = () => {
     const save = readCampaignSave(DEFAULT_STATS);
     if (!save) {setSavedCampaign(null);setSaveError('That save could not be loaded. You can start a new game.');return;}
+    rememberPlay();
     // A title opened with preview parameters must restore the real campaign unchanged.
     window.history.replaceState(null, '', window.location.pathname + window.location.hash);
     setRequestedLegacyBrawler(false);
@@ -721,7 +854,7 @@ const App: React.FC = () => {
   };
 
   const restartGame = () => {
-    setCampaignActive(false);setRestoreCheckpoint(undefined);
+    setCampaignActive(false);setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     storyTransitionRef.current = false;
     setStoryChapter(null);
     setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:newRunTheme(), characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
@@ -745,6 +878,7 @@ const App: React.FC = () => {
       return;
     }
 
+    rememberPlay();
     setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     setCampaignActive(!requestedLegacyBrawler && !window.location.search && !playerSprite);
     setSelectedCharacterId(characterId);
@@ -828,6 +962,7 @@ const App: React.FC = () => {
             />
           ) : stats.level === FLIGHT_LEVEL ? (
             <FlightGameEngine
+              buddy={wallet.equipped.buddy}
               key={`flight-${selectedCharacterId}-${difficulty}-${runId}`}
               isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
               selectedCharacterId={selectedCharacterId}
@@ -838,6 +973,8 @@ const App: React.FC = () => {
             />
           ) : (
             <PlatformerGameEngine
+            cameraMotion={cameraMotion}
+            cosmetics={wallet.equipped}
               key={`platformer-${runId}-${playerSprite ? "custom-sprite" : "default"}-${selectedCharacterId}-${stats.level}-${difficulty}`}
             isPaused={appPhase !== "game" || gameSuspended || stats.isGameOver || stats.isVictory}
             currentLevel={stats.level}
@@ -846,11 +983,13 @@ const App: React.FC = () => {
             initialHealth={stats.health}
             initialCheckpoint={restoreCheckpoint}
             initialCompletedEncounters={stats.completedEncounters}
+            initialSupplyCrates={stats.supplyCrates}
             initialEquipment={stats.equipment}
             difficulty={difficulty}
             selectedCharacterId={selectedCharacterId}
             initialScore={stats.score}
             initialSouls={stats.souls}
+            initialCollectedGems={stats.collectedGems}
             initialMonstersDefeated={stats.monstersDefeated}
             playerSprite={playerSprite}
             initialSwordUnlocked={stats.swordUnlocked}
@@ -896,7 +1035,7 @@ const App: React.FC = () => {
           />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && !useLegacyDesktopControls && (
-          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? SIGNATURE_SPECIALS[selectedCharacterId].name : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (selectedCharacterId==='killer_klause'||stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
+          <TouchControls turkeyControls={selectedCharacterId==='turkey_king'} isPaused={gameSuspended} slamName={HERO_MOBILITY[selectedCharacterId].name} specialName={!useLegacyBrawler && stats.level!==FLIGHT_LEVEL ? specialLabel : undefined} flightMode={!useLegacyBrawler && stats.level === FLIGHT_LEVEL} isPlatformer={!useLegacyBrawler && stats.level !== FLIGHT_LEVEL} autoRun={!useLegacyBrawler && useAutoRun} starControls={selectedCharacterId === "zgod"} canCrouch={selectedCharacterId !== "xgod" || new URLSearchParams(window.location.search).get("xgodRun") !== "legacy" && new URLSearchParams(window.location.search).get("xgodArt") !== "model" && !playerSprite} canShoot={!useLegacyBrawler && (selectedCharacterId==='killer_klause'||stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} blasterEquipped={!useLegacyBrawler && (stats.equipment?.active==='blaster'||stats.equipment?.active==='frost'||selectedCharacterId==='killer_kai'&&stats.equipment?.active==='hands')} teleportControls={!useLegacyBrawler&&stats.level!==FLIGHT_LEVEL&&selectedCharacterId==='teleportation_c'} />
         )}
         {appPhase === "game" && !stats.isGameOver && !stats.isVictory && (
           <div className="phone-portrait-rotate pointer-events-auto absolute inset-0 z-[60] items-center justify-center bg-slate-950/86 p-6 text-center font-['Gochi_Hand'] text-white backdrop-blur-md">
@@ -907,7 +1046,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {appPhase === "alleyRescue" && <AlleyRescue onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={kaiArmUnlocked}
+        {appPhase === "alleyRescue" && <AlleyRescue buddy={wallet.equipped.buddy} onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={alleyCompleted}
           campaign={alleyCampaign} completed={alleyCompleted} saveError={saveError}
           onContinue={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase('game');}}
           onExit={() => {if(alleyCampaign && campaignActive) saveAndQuit(); else {setAlleyCampaign(false);setAppPhase('start');}}} />}
@@ -916,11 +1055,14 @@ const App: React.FC = () => {
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#312e81_0%,#0f172a_55%,#020617_100%)]" />
             <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 overflow-y-auto p-3 sm:p-5 md:p-8">
+              <div className="title-tools flex w-full max-w-5xl shrink-0 flex-wrap items-center justify-end gap-2"><button ref={workshopTriggerRef} type="button" onClick={()=>setWorkshopOpen(true)} className="rounded-full border-2 border-violet-200 bg-slate-950/90 px-3 py-1 font-bold text-violet-100 shadow-lg sm:px-5 sm:py-2">Art Gallery</button><button type="button" onClick={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button><button type="button" className="min-h-11 rounded-xl border-2 border-amber-200/70 bg-slate-950/95 px-3 py-1 text-sm font-['Gochi_Hand'] text-amber-200 sm:text-base md:text-lg" aria-label="Shop wallet" title="Open Kai’s Workshop" onClick={()=>{const saved=readWallet(DEFAULT_STATS);walletRef.current=saved;setWallet(saved);workshopClosing.current=false;setWorkshopReturn('start');setShopError('');setShopMessage('');setAppPhase('workshop');}}>
+                  Wallet: {wallet.gold.toLocaleString()} Gold <span className="block text-xs text-white">Kai’s Workshop →</span>
+                </button></div>
               <div
                 className="relative max-w-[1700px] shrink-0"
                 style={{
                   aspectRatio: "3172 / 1344",
-                  width: "min(100%, calc(70dvh * 2.3601))"
+                  width: "min(100%, calc(60dvh * 2.3601))"
                 }}
               >
                 <img
@@ -929,10 +1071,10 @@ const App: React.FC = () => {
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
 
-                <div className="absolute right-[5%] top-[5%] flex gap-2"><button ref={workshopTriggerRef} type="button" onClick={()=>setWorkshopOpen(true)} className="rounded-full border-2 border-violet-200 bg-slate-950/90 px-3 py-1 font-bold text-violet-100 shadow-lg sm:px-5 sm:py-2">Workshop</button><button type="button" onClick={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button></div>
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
                 </div>
+
 
                 {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
                   {savedCampaign && <><button id="continue-game-button" onClick={continueCampaign} className="rounded-full border-2 border-slate-900 bg-emerald-400 px-6 py-1 text-xl font-bold text-slate-950 sm:text-2xl">Continue Game</button>
@@ -977,7 +1119,17 @@ const App: React.FC = () => {
                 <button onClick={()=>setConfirmNewRun(false)} className="m-2 rounded-xl border px-4 py-2">Keep my save</button>
               </div>
             </div>}
-            {titlePanel && (
+            {returningPlayer && (
+              <button
+                type="button"
+                onClick={() => { setUpdatesAfter(null); setTitlePanel("updates"); }}
+                className="absolute bottom-3 right-3 z-10 min-h-11 rounded-full border-2 border-violet-300 bg-slate-950 px-4 py-2 font-['Gochi_Hand'] text-lg font-bold text-white hover:bg-violet-900 sm:bottom-5 sm:right-5"
+              >
+                What’s New
+              </button>
+            )}
+            {titlePanel === "updates" && <GameUpdates after={updatesAfter} onClose={closeUpdates} />}
+            {(titlePanel === "options" || titlePanel === "credits") && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
                 <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
                   <button
@@ -1020,6 +1172,7 @@ const App: React.FC = () => {
                         })}
                       </div>
                       <SoundControls settings={audioSettings} />
+                      {cameraMotionOption}
                     </>
                   ) : (
                     <>
@@ -1115,6 +1268,11 @@ const App: React.FC = () => {
         {appPhase === 'story' && storyChapter && (
           <CutscenePlayer key={storyChapter} chapter={STORY_CHAPTERS[storyChapter]} resumeStats={stats} onComplete={completeStory} />
         )}
+        {appPhase === 'results' && results && <LevelResults result={results} gold={wallet.gold} error={resultError} onContinue={continueResults} nextLabel={results.level<FINAL_LEVEL?'Visit Kai’s Workshop':undefined} />}
+        {appPhase === 'workshop' && <Workshop wallet={wallet} error={shopError} message={shopMessage} betweenLevels={Boolean(pendingResult.current)}
+          onBuy={id=>shopAction(w=>buyShopItem(w,id),'Purchased! Your supplies and collection are saved.')}
+          onEquip={(slot,id)=>shopAction(w=>equipCosmetic(w,slot,id),'Loadout updated.')}
+          onContinue={leaveWorkshop} />}
 
         {appPhase === "intro" && (
           <div className="level-intro pointer-events-none absolute inset-0 z-40 overflow-hidden bg-slate-950">
@@ -1163,6 +1321,8 @@ const App: React.FC = () => {
               )}
               {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='killer_klause'?'Killer Klause keeps his present launcher. Space / HIT: launcher bash. C / FIRE: launch a present. X / SP: call the medic and engineer elves.':selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
               <SoundControls settings={audioSettings} />
+              {cameraMotionOption}
+              <DisplayControls />
               <button
                 onClick={togglePause}
                 className="rounded-full border-4 border-slate-800 bg-blue-500 px-8 py-2 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-blue-600"
@@ -1200,25 +1360,7 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "game" && stats.isGameOver && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-900/80 backdrop-blur-md pointer-events-auto">
-            <div className="max-w-lg rotate-1 rounded-3xl border-8 border-slate-800 bg-white p-12 text-center font-['Gochi_Hand'] shadow-2xl">
-              <h2 className="mb-2 text-7xl font-bold text-red-600 underline decoration-slate-800">Game Over</h2>
-              <p className="mb-8 text-2xl italic text-slate-600">The Unknown Universe has reclaimed its doodles.</p>
-
-              <div className="mb-8 rounded-xl border-4 border-dashed border-slate-400 bg-slate-100 p-6">
-                <p className="mb-2 text-4xl text-amber-500">{stats.score} Points</p>
-                <p className="mb-2 text-3xl text-blue-600">{stats.souls} Souls Collected</p>
-                <p className="text-3xl text-red-500">{stats.monstersDefeated} Monsters Banished</p>
-              </div>
-
-              <button
-                onClick={restartGame}
-                className="rounded-full border-4 border-slate-800 bg-green-500 px-16 py-6 text-4xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-green-600"
-              >
-                Draw Again
-              </button>
-            </div>
-          </div>
+          <LevelResults result={unfinishedLevelResult(stats)} gold={wallet.gold} error="" outcome="defeat" onContinue={restartGame} />
         )}
 
         <div className={`pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 ${useLegacyDesktopControls ? "lg:block" : ""}`}>
@@ -1230,8 +1372,8 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {workshopOpen&&<dialog ref={workshopDialogRef} className="workshop-dialog" aria-label="The Workshop" onCancel={event=>{event.preventDefault();closeWorkshop();}}>
-        <Suspense fallback={<p className="p-8">Opening the workshop…</p>}><MonsterIdeator onClose={closeWorkshop} onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)}/></Suspense>
+      {workshopOpen&&<dialog ref={workshopDialogRef} className="combat-gallery-dialog" aria-label="Art Gallery" onCancel={event=>{event.preventDefault();closeWorkshop();}}>
+        <Suspense fallback={<p className="p-8">Opening the workshop…</p>}><CombatGallery onClose={closeWorkshop} onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)}/></Suspense>
       </dialog>}
       {useLegacyDesktopControls && appPhase === 'game' && <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
@@ -1257,7 +1399,7 @@ const App: React.FC = () => {
               </div>
             }
           >
-            <MonsterIdeator onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)} />
+            <CombatGallery onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)} />
           </Suspense>
         </div>
       </div>}

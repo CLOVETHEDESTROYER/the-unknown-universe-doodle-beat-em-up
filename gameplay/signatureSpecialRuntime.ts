@@ -20,7 +20,12 @@ interface Hooks {
 
 /** Owns on-foot signature attacks; weapons and their durability remain independent. */
 export class SignatureSpecialRuntime {
+  showEquippedMove(name:string,cooldown:number,color:number) {
+    this.hud.setText(`X / SP: ${name.toUpperCase()} · ${cooldown?((cooldown/1000).toFixed(1)+'s'):'READY'}`)
+      .setColor('#'+color.toString(16).padStart(6,'0'));
+  }
   readonly state=createSignatureState();
+  get visibleSprite(){return this.actor.visible ? this.actor : undefined;}
   private actor:Phaser.GameObjects.Sprite;
   private hud:Phaser.GameObjects.Text;
   private art:Phaser.GameObjects.Graphics;

@@ -1,7 +1,8 @@
 import { isEncounterId } from './routeEncounters';
+import { isSupplyCrateId } from './supplyCrates';
 import type { GameStats, DifficultyMode } from '../types';
 import { isCharacterId } from '../characters';
-import { isPowerup, restoreLoadout } from './powerups';
+import { equipKaiArm, isPowerup, restoreLoadout } from './powerups';
 import { STORY_CHAPTERS, type StoryChapterId } from '../story/campaignStory';
 
 export const CAMPAIGN_SAVE_KEY = 'unknownUniverse.campaign.v1';
@@ -9,8 +10,12 @@ export type CampaignInterlude = 'alley-rescue' | 'alley-rescue-complete';
 export interface CampaignSave { version: 1; savedAt: number; difficulty: DifficultyMode; stats: GameStats; story: StoryChapterId | null; interlude?: CampaignInterlude }
 // Reject incomplete, corrupt and future saves instead of feeding untrusted data to physics.
 export function readCampaignSave(defaults: GameStats): CampaignSave | null {
+  try { return parseCampaignSave(localStorage.getItem(CAMPAIGN_SAVE_KEY), defaults); }
+  catch { return null; }
+}
+
+export function parseCampaignSave(raw: string | null, defaults: GameStats, allowCompleted = false): CampaignSave | null {
   try {
-    const raw = localStorage.getItem(CAMPAIGN_SAVE_KEY);
     if (!raw) return null;
     const save = JSON.parse(raw), s = save.stats;
     if (save.version !== 1 || !Number.isFinite(save.savedAt) || !['EASY','HARD','X-GOD'].includes(save.difficulty) || !s || !isCharacterId(s.selectedCharacterId)) return null;
@@ -20,9 +25,28 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
       if (typeof defaults[key] === 'number' && (!Number.isFinite(s[key]) || s[key] < 0 || s[key] > 1e9)) return null;
       (stats as any)[key] = s[key];
     }
-    if (!Number.isInteger(s.level) || s.level < 1 || s.level > 6 || s.health <= 0 || s.health > 100 || !Number.isInteger(s.lives) || s.lives < 1 || s.lives > s.maxLives || s.maxLives > 99 || s.isVictory || s.isGameOver || s.isDying) return null;
+    if (!Number.isInteger(s.level) || s.level < 1 || s.level > 6 || s.health <= 0 || s.health > 100 || !Number.isInteger(s.lives) || s.lives < 1 || s.lives > s.maxLives || s.maxLives > 99 || s.isVictory && !allowCompleted || s.isGameOver || s.isDying) return null;
+    if (s.rewardProgress !== undefined) {
+      const p = s.rewardProgress;
+      if (!p || typeof p.runId !== 'string' || !/^[a-zA-Z0-9-]{1,80}$/.test(p.runId)
+        || !['startScore','startGems','startMonsters'].every(key => Number.isSafeInteger(p[key]) && p[key] >= 0 && p[key] <= 1e9)
+        || p.startScore > s.score || p.startGems > s.souls || p.startMonsters > s.monstersDefeated) return null;
+      stats.rewardProgress = {...p};
+    }
+    if(s.collectedGems!==undefined){
+      const g=s.collectedGems;
+      if(!g||!Number.isInteger(g.level)||g.level<1||g.level>6||!Array.isArray(g.ids)||g.ids.length>2000
+        ||!g.ids.every((id:unknown)=>typeof id==='string'&&id.length<80&&/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(id)))return null;
+      if(g.level===s.level)stats.collectedGems={level:g.level,ids:[...new Set<string>(g.ids)]};
+    }
     if (!s.equipment || !isPowerup(s.equipment.active) || !Number.isFinite(s.equipment.hits) || !Array.isArray(s.equipment.unlocked)) return null;
     stats.equipment = restoreLoadout(s.equipment, 'hands');
+    if(s.supplyCrates!==undefined){
+      const c=s.supplyCrates;
+      if(!c||!Array.isArray(c.broken)||!Array.isArray(c.collected)||!c.broken.every(isSupplyCrateId)||!c.collected.every((id:unknown)=>isSupplyCrateId(id)&&c.broken.includes(id)))return null;
+      if(c.landed!==undefined&&(!Array.isArray(c.landed)||!c.landed.every(isSupplyCrateId)))return null;
+      stats.supplyCrates={broken:[...new Set<string>(c.broken)],collected:[...new Set<string>(c.collected)],landed:[...new Set<string>(c.landed??[])]};
+    }
     stats.isDying = false; stats.activeBossId = null;
     if (s.seasonalTheme !== undefined && s.seasonalTheme !== 'thanksgiving' && s.seasonalTheme !== 'christmas') return null;
     stats.seasonalTheme = s.seasonalTheme;
@@ -37,9 +61,16 @@ export function readCampaignSave(defaults: GameStats): CampaignSave | null {
       if (![0,6000,11500,15300].includes(f.checkpoint) || !['twin','spread','lance','homing'].includes(f.weapon) || !Number.isInteger(f.hits) || f.hits < 0 || f.hits > 3 || !Number.isInteger(f.seed) || f.seed < 0 || f.seed > 4294967295 || !Array.isArray(f.collectedWeapons) || !f.collectedWeapons.every((n:unknown)=>Number.isInteger(n)&&Number(n)>=0&&Number(n)<6) || !Array.isArray(f.collected) || !f.collected.every((n:unknown)=>Number.isInteger(n)&&Number(n)>=0&&Number(n)<10)) return null;
       stats.flightSave = f;
     }
-    if (save.story !== null && (typeof save.story !== 'string' || !Object.hasOwn(STORY_CHAPTERS,save.story) || save.story === 'level6')) return null;
-    if (save.story && (save.story === 'prologue'||save.story === 'christmas' ? s.level !== 1 : s.level !== Number(save.story.slice(5)) + 1)) return null;
+    if (save.story !== null && (typeof save.story !== 'string' || !Object.hasOwn(STORY_CHAPTERS,save.story) || save.story === 'level6' && !allowCompleted)) return null;
+    if (save.story && (save.story === 'prologue'||save.story === 'christmas' ? s.level !== 1 : save.story === 'level6' ? s.level !== 6 || !s.isVictory : s.level !== Number(save.story.slice(5)) + 1)) return null;
     if (save.interlude !== undefined && (!['alley-rescue','alley-rescue-complete'].includes(save.interlude) || save.story !== null || s.level !== 2)) return null;
+    // Older saves made immediately after the rescue predate the per-run arm.
+    // Only that explicit checkpoint proves the gift was earned in this campaign.
+    if (save.interlude === 'alley-rescue-complete' && s.selectedCharacterId === 'xgod' && !s.equipment.blasterVariant) {
+      stats.equipment = equipKaiArm(stats.equipment, s.level);
+      stats.hasFlameSword = false;
+      stats.swordDurability = 0;
+    }
     return {version:1,savedAt:save.savedAt,difficulty:save.difficulty,stats,story:save.story,...(save.interlude ? {interlude:save.interlude as CampaignInterlude} : {})};
   } catch { return null; }
 }

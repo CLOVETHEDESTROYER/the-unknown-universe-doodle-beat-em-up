@@ -7,7 +7,7 @@ export class ChargedBlasterEffects {
   private readonly ink: Phaser.GameObjects.Graphics;
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  constructor(private readonly scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene,private readonly color:()=>number=()=>0x74e6ff) {
     this.ink = scene.add.graphics().setDepth(21);
     const art = scene.add.graphics();
     art.fillStyle(0x14334e).fillEllipse(31,20,60,31);
@@ -27,8 +27,8 @@ export class ChargedBlasterEffects {
     const fraction = chargeMs / BLASTER_CHARGE_MS;
     const ready = fraction >= 1;
     const radius = 9 + fraction * 11;
-    this.ink.fillStyle(0x74e6ff,ready ? .3 : .14).fillCircle(x,y,radius+5);
-    this.ink.lineStyle(ready ? 3 : 2,ready ? 0xd7ffff : 0x7ceaff,.92).strokeCircle(x,y,radius);
+    this.ink.fillStyle(this.color(),ready ? .3 : .14).fillCircle(x,y,radius+5);
+    this.ink.lineStyle(ready ? 3 : 2,ready ? 0xd7ffff : this.color(),.92).strokeCircle(x,y,radius);
     this.ink.lineStyle(3,0xf6ffff,1).beginPath().arc(x,y,radius+4,-Math.PI/2,-Math.PI/2+fraction*Math.PI*2).strokePath();
     if (this.reducedMotion.matches) return;
     for (const direction of [-1,1]) {
@@ -42,15 +42,15 @@ export class ChargedBlasterEffects {
     if (length < 4) return;
     const tip = x - direction * 8;
     const tail = x - direction * length;
-    this.ink.fillStyle(0x2786e0,.25).fillTriangle(tail,y,tip,y-21,tip,y+21);
-    this.ink.fillStyle(0x33d9ff,.76).fillTriangle(tail,y,tip,y-11,tip,y+11);
+    this.ink.fillStyle(this.color(),.25).fillTriangle(tail,y,tip,y-21,tip,y+21);
+    this.ink.fillStyle(this.color(),.76).fillTriangle(tail,y,tip,y-11,tip,y+11);
     this.ink.fillStyle(0xf1ffff,.9).fillTriangle(x-direction*length*.64,y,tip,y-4,tip,y+4);
   }
 
   impact(x: number, y: number, direct: boolean) {
     const burst = this.scene.add.graphics({x,y}).setDepth(26);
     const radius = direct ? 22 : 13;
-    burst.fillStyle(0x43d8ff,.27).fillCircle(0,0,radius+8);
+    burst.fillStyle(this.color(),.27).fillCircle(0,0,radius+8);
     burst.lineStyle(4,0x153d69,.95).strokeCircle(0,0,radius);
     burst.lineStyle(3,0xc8fcff,1).strokeCircle(0,0,radius-3);
     for (let ray=0;ray<8;ray++) {

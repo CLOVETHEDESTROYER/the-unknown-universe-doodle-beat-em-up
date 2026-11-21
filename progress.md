@@ -1512,11 +1512,25 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Selected and edited five Kenney CC0 cues for Starbreak liftoff, Pursuer arrival and lock-on, Void Regent phase changes, and nearby vent warnings. The in-game Credits and the asset folder identify the pack and license. The full audition shortlist remains under art/audio-kenney-scifi-selection.
 - The audio commit is isolated from the in-progress Alley Rescue and character changes. The isolated production build passes. Headphone and physical device mix review remain open.
 
+
 ## 2026-11-13 - Integrate Alley Rescue into the campaign
 
 - Routed the Level 1 ending into Alley Rescue and then the Graveyard. Existing Level 1 ending art supplies the bridge; the alley opens with a short on-road story caption. X God performs the canonical rescue while the selected hero and completed run snapshot are retained for Level 2. The title-screen replay remains available for older saves.
 - Added validated, backward-compatible campaign interlude save markers for before/after the rescue. Save & Quit resumes the interlude; a completed rescue resumes with Continue to Graveyard available. The roster and arm reward remain persistent. Existing saves already beyond Level 1 load their current level unchanged.
 - Verified Level 1 gate -> story -> rescue -> Save & Quit/reload both before and after the gift -> Graveyard, preserving sword and score; existing level-two and story saves; phone controls; campaign save regression; actual Turkey King boss defeat and continuation with native equipment; standalone rescue and stride. Existing Level 2 story test placement corrected from y=520 to its actual floor y=480. Browser evidence in output/alley-campaign. No physical-device test.
+
+
+## 2026-11-13 - Kai arm as a campaign power-up
+
+- Removed the title-screen Alley Rescue shortcut and the global browser-wide arm override. Kai remains a persistent roster unlock, but X God receives the arm only by finishing the rescue in his current campaign. It replaces the active weapon and follows the normal three-hit and power-up replacement rules. Ordinary ink-blaster pickups do not immediately overwrite the gift; they remain available once the arm is gone. New campaigns ignore the previous global arm flag and start with the ordinary blaster.
+- The per-run variant is validated and restored with the equipment save; old saves explicitly at the completed rescue migrate once. Earlier completed campaigns and old global unlocks do not automatically equip it. Updated release notes and regression setup for the removal of the shortcut.
+- Integrated the latest main and verified the production build, full rescue and gift, save/reload with remaining durability, actual shot damage, three-hit loss, weapon replacement, normal pickup afterward, a new campaign with the old flag, legacy completed-rescue migration, phone entry, run-and-gun, campaign saves, and gun upgrades.
+
+## 2026-11-13 - Campaign audio and Kenney sci-fi effects
+
+- Added the supplied Witchwood, Dread Planet, Kilina and Void Pursuer tracks plus the ground boss warning. Replaced Furnace music with Cave Drip Logic2 at the existing track path.
+- Selected and edited five Kenney CC0 cues for Starbreak liftoff, Pursuer arrival and lock-on, Void Regent phase changes, and nearby vent warnings. The in-game Credits and the asset folder identify the pack and license. The full audition shortlist remains under art/audio-kenney-scifi-selection.
+- The production build passed and Chromium verified the new cues and replacement Furnace track. Headphone and physical device mix review remain open.
 
 ## 2026-11-17 — Charged blaster and wisp patrol experiment
 
@@ -1573,3 +1587,103 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 
 - Final Christmas verification: exact-case/calendar/storage tests; 442 asset checks; all 16 browser scenarios, including public no-code activation, post-expiry save continuation, all campaign stages, helper support, mobility, death and real boss victory; standard develop-web-game smoke; existing Turkey King progression and campaign save suites all pass. Production build passes with the existing Phaser chunk-size advisory.
 - User additionally requested merging all recent unmerged branches to main and pushing Git. After fetching origin, the only unmerged branch tips are codex/alley-killer-kai and codex/kai-workshop-generated-art (both November 20). Other worktrees are clean; older branch work is already in main. Integration and final merged-build verification are next.
+
+## 2026-11-17 — Integrate local gameplay with the latest main
+
+- Started from origin/main at 2e3ccd0. Kept the shipped Alley and party tracks, dance, supply crates, mobile layout, and full-health checkpoint retries. Kai's arm remains an equipment variant earned during the current campaign. Ink Blaster supplies are available when the arm is out of the loadout.
+- Moved Lockwing between the first checkpoint and spring pad so the gate does not overlap Ink Rush. Preserved the charge feedback, Butt Bomb contact and reactions, and mouthless running and Kai-arm pose art. Kept the main branch's firing cap and slam damage to crates.
+- Build and browser tests passed for Alley audio and campaign save/resume, Level 1 encounter pacing, charged Lockwing defeat and guarded boss smash.
+
+## 2026-11-17 — Rim Runt and The Scratch camera
+
+- Added Rim Runt at the solid hurdle to the left of the fourth checkpoint. The throw has a low arrow tell. The wheel settles onto the floor, reverses on solid sides with a spark and clack, and remains dangerous on the way back. It expires or breaks after three side rebounds. Source and atlas packer are in art/rim-runt-v1.
+- Added a small footfall dip and eased directional look-ahead in The Scratch. The dip uses stride distance, the HUD stays fixed, and motion settles while aiming or airborne. Camera motion can be disabled in Options or Pause and also respects the system reduced-motion preference.
+- Production build passed. Local browser checks covered rebound direction, jump dodge and damage, camera movement and settling, aiming and airborne behavior, the saved toggle, and reduced motion. Reviewed the in-game tell and rebound screenshots. Preview query: ?autostart=1&level=1&rimRuntPreview=1.
+
+## 2026-11-17 — Wheel block impact dust
+
+- Rim Runt wheel rebounds now kick up short-lived chalk dust and fragments at the solid block, with less movement for reduced-motion users. Production build and existing rebound, jump dodge, damage and camera checks passed. Reviewed the rebound screenshot.
+
+## 2026-11-17 — Unarmed running pace
+
+- X God runs at 405 units/sec empty-handed, with 34 units per run frame (previously 350 and 27). Camera footfall timing follows the longer stride. Alley unarmed pace is 380 units/sec with 27 units per frame. Build passed and isolated browser movement exercised all eight frames and stopped cleanly.
+
+## 2026-11-17 — Gun-running legs
+
+- Registered a new mouthless, two-handed gun torso to the approved eight-frame running legs, replacing the repetitive gun-run shuffle. Preserved the original assets and added per-frame muzzle attachments. Reproducible source and packing script: art/xgod-gun-run-v2.
+- Build and browser checks passed: all eight frames, running and firing together, both facing directions, correct barrel alignment, no failed assets or page errors. Ran the game skill action client and reviewed gameplay screenshots. Local preview remains on port 5175.
+
+## 2026-11-17 — Run proportions
+
+- Added fixed animation-family scaling for drawn X God: both hands and Ink Blaster runs are 10% wider, with height factors .98 and .90 respectively. Feet retain their origin; world collider dimensions and muzzle attachments follow the existing sizing path. Original art is unchanged.
+- Production build and browser checks passed for all eight frames, both directions, firing, idle scale restoration and fixed collider/foot baseline. Visible run heights stay about 156–164 world pixels against 160 idle. Reviewed screenshots and ran the game skill action client.
+
+## 2026-11-17 — Larger first-level dragon
+
+- Increased Dark Dragon scale from 1.05 to 1.26 (20% wider and taller). Collision body and attack poses use the same base scale; fire origins scale with the dragon, while low breath stays near the floor.
+- Production build and browser checks passed for tell, fire volley and recovery. Body is 242 by 252 world pixels with feet at floor 480. Ran the game skill action client and reviewed the enlarged dragon screenshots.
+
+## 2026-11-17 — Wallet and level results
+
+- Added a manual Continue results screen before every campaign chapter story, including the flight stage and finale. It shows level points, campaign points, gems, enemies defeated, Gold breakdown and wallet balance. Gem count is visible in the gameplay HUD; the title shows saved Gold.
+- Gold starts at 5 per gem plus 100 per clear and 10 per full 1,000 eligible points (maximum 150 performance Gold). Pickup points and the standard clear points are excluded from the performance conversion. Points stay intact.
+- A browser-local wallet atomically stores level credit, a unique run/level receipt and the pending next-level snapshot. Reload returns to unacknowledged results; Continue saves the campaign before clearing the pending result. New campaigns keep Gold. Preview runs cannot modify a real wallet.
+- Saved per-level baselines preserve totals across checkpoint resume. Collected gem IDs prevent their respawn on reload. Old saves remain compatible. Includes a run-ID fallback for non-secure LAN previews.
+- Production build, the dedicated results browser test, existing campaign story/save regressions and the game skill action client passed. Verified actual boss exits, checkpoint totals, removed gems, reload, repeated claims, storage failure/retry, new campaign persistence, finale, keyboard Continue, equipment preservation and desktop/phone layouts. Screenshots reviewed in output/level-results and output/level-results-client-final.
+- Next authorized phase after user playtest: working shop. Wallet format and current tuning are documented in docs/wallet-level-results.md. Named profiles and cross-device saves remain future work.
+
+## 2026-11-17 — Animated totals and drawn Game Over
+
+- Results totals roll up in 1.15 seconds, then points pulse twice with a warm halo and sparkle; gems and Gold receive a short glow. Continue remains available throughout. Reduced motion shows final values immediately and disables effects.
+- Replaced the old Game Over overlay with the paper results card for ground and flight deaths after the last life. Shows unfinished-level points/gems and existing saved Gold without awarding clear rewards. Normal checkpoint respawns are unchanged. Fixed autostart Draw again by remounting a fresh engine.
+- Production build, wallet/campaign browser regression, game action client and dedicated motion/death test passed. Verified 16 intermediate point values, exact settled totals, pulse styles, restart, both death modes, wallet preservation, phone layouts and reduced motion. Reviewed screenshots in output/results-motion.
+
+## 2026-11-18 — Lockwing visible from the opening and dual volleys
+
+- Lockwing now spawns with the level instead of waiting for gate activation. Increased its presentation from 112 by 88 to 150 by 118. It begins at the upper limit, then descends, pauses low and rises on its existing 3.2-second patrol. Retries restore one guard at the top; completed gates stay complete.
+- Added two large 72 by 44 energy bolts fired from upper and lower ports toward the player. The ports glow and mark their lanes for 550 ms before firing, with a proximity-based arrival grace. Shots deal normal enemy-projectile damage, stop on solid terrain, and expire. Defeating or resetting Lockwing clears its shots and warnings.
+- Fixed Arcade body offset synchronization so the guard stays at its authored patrol coordinates.
+- Production build and dedicated browser playtest passed: visibility before any attack/kill, initial downward movement, both projectile ports and damage, pause, retry, gate opening and projectile cleanup. Ran the game skill action client through the actual opening and reviewed screenshots in output/lockwing-volley and output/lockwing-volley-client.
+
+## 2026-11-18 — Workshop, collection, pricing, combat effects, playtest preparation
+
+- Added Kai's Workshop between results and the existing story, with title-wallet access to browse the collection. Supplies are a 75 Gold weapon tune-up, 100 Gold shield and 150 Gold life refill. Unnecessary/full/incompatible supplies are blocked with explanations. Purchases require confirmation and are limited to one of each supply per visit.
+- Added permanent Arctic Ink / Neon Rose colors (250 each), Chalk Sparks (400), Starlight (650) and Prism Burst (600). Includes animated previews, owned/equipped collection states and free classic-style resets. Ink colors affect blaster shots and charge effects; trails and burst styles appear in combat.
+- Extended the existing wallet without dropping old saves. Purchases atomically store Gold, benefits, collection and equipped styles. Reloading a shop visit restores its pending campaign. Continue preserves upgrades, Kai's gift, shields/lives and the existing story/Alley Rescue sequence. Duplicate activation is guarded; failed saves stay recoverable.
+- Added bounded additive muzzle/shot glows, readable colored trail/ring outlines, short visual-only enemy hit silhouettes and slam landing rings/fragments. Normal and charged damage remain 2 and 6 in the tested base blaster case. Reduced motion keeps attack cues with fewer animated accents.
+- Calibrated initial prices against live route counts. Illustrative 60%-gem / 70%-initial-foe budgets are 315, 285, 225, 255 and 225 Gold for levels 1,2,3,4,6; these are estimates rather than human playtest results. Guaranteed clear Gold covers a basic supply. Report and rerunnable analysis: output/shop-economy and scripts/analyze_shop_economy.mjs.
+- Production build, typecheck and browser checks passed: workshop transactions, no double charge, insufficient funds, purchase/Continue storage failures, reload, free equip/reset, permanent ownership, next-level supplies through Alley Rescue, colors/trails, damage preservation, hit/slam effects, reduced motion, results/finale and campaign story regressions across desktop/phone/tablet. Ran the game skill action client and reviewed workshop and combat screenshots. React/UI review completed.
+- Human friends' playtesting cannot be performed by automation. Prepared docs/holiday-playtest.md with a session guide, questions and notes sheet. Implementation and pricing details: docs/workshop.md. Local server: port 5175.
+
+## 2026-11-19 — X God wardrobe prototype
+
+- Added Rooftop Shades, Sunset Headband, and Blue Kicks to Kai’s Workshop. The three slots equip independently and retain ownership and selection through the existing wallet.
+- The Wardrobe shelf previews the actual blaster idle, run, jump, and crouch frames. In the platformer an accessory layer follows frame-specific anchors and mirrors with the live sprite. Blue Kicks recolors the lime shoe accents in the lower part of supported poses.
+- Checked purchase persistence, all four previews, and live idle, running, crouching, and a left-facing jump in Chrome. Ground art has frame anchors for the main weapon sets, Frost, mobility, and several reaction and celebration sequences. Story and flight art are outside the prototype.
+
+## Workshop combat loadouts
+
+- Added two permanent specials for each of X God and Killer Kai. Each hero can equip one move on X / SP and restore the original signature in the Workshop.
+- Added Spark Moth and Patch Beetle as permanent buddies. One accompanies the selected hero through ground levels, Starbreak, and the Alley. The two buddies attack or intercept during combat. Existing orb helpers still use their original campaign rules.
+- Added campaign purchases for Frost Gauntlet and Ember Boots after the Graveyard. Each replaces the current power-up and begins at full durability. The shop makes the replacement and the Gold deduction in the same wallet write.
+- The production build passed. Chrome verified all six permanent purchases, all four specials dealing damage, cooldowns, Spark Moth attacking, Patch Beetle intercepting a Lockwing shot, and the buddy appearing in Starbreak.
+
+## 2026-11-20 — Generated art for the actual Kai's Workshop catalog
+
+- User clarified the target is Kai's Workshop: the purchasable supplies, permanent specials, Spark Moth / Patch Beetle, ink/trails and wardrobe. Located its current 19-item catalog in the newer the-unknown-universe-main-updates checkout at 8700fef; isolated changes on codex/kai-workshop-generated-art. The earlier general asset browser belongs to the older checkout and was not installed here.
+- Built-in ImageGen produced generated catalog art and action/effect sheets for every entry. Matching Frost/Ember/Shield/Heart artwork from the earlier pass is copied into this self-contained pack with original prompts. All 19 IDs, 136 distinct painted frames, native alpha and sheet dimensions pass the packing audit. Three pale source mattes were corrected with ImageGen; originals and alpha-cleaned versions are retained. Sources/prompts/review contact/GIF live in art/kai-workshop-v1; runtime WebP sheets/posters/manifest in public/workshop/kai-v1. Maximum texture dimension is 1024.
+- Replaced all stock glyph cards and the selected item's placeholder preview with generated art. Added item/action or idle/flight/assist selection, pause, pose stepping, facing and reduced-motion behavior. Preserved the original purchase confirmation, wallet/ownership/loadout state, shelves, prices and classic resets. Wardrobe still exposes actual hero pose previews; generated shades/headband art follow existing anchors and Blue Kicks keeps the existing sneaker recolor.
+- Spark Moth and Patch Beetle use generated idle/flight/assist frames in ground gameplay and generated flight sprites in Starbreak and the Alley. Four specials use generated activation effects. Arctic/Neon shots and Chalk/Starlight trails use separate visual sprites following existing physical projectiles, preserving their bodies and damage. Prism has generated impact/landing frames. Effects are bounded and equipment art loads conditionally.
+- Production TypeScript/build and diff checks pass. Existing workshop transaction regression passes confirmation, no double charge, supplies, permanent cosmetics, insufficient funds, save failure/retry, reload, story/next-level carryover and phone layout. Existing combat cosmetics regression passes real normal/charged damage (2/6), colors/trails, hit effects, landing and reduced motion. Standard develop-web-game client smoke passed; inspected its screenshot/text state and generated shop, buddy, special, ink and wardrobe screenshots.
+- The dedicated full art test is finishing the current campaign route into the Alley. Earlier test corrections: actually pass Killer Kai to the hero boot helper, and use an explicitly incoming capture-fixture projectile for the interception test (the old default fixture intentionally has zero velocity). Neither correction changes normal combat. Capture hook accepts optional incoming=true; stationary legacy fixture behavior stays intact.
+- Final dedicated art regression passed: all 19 item loops and 13 additional action/effect modes, generated card images, pause/pose/facing, wallet preview isolation, six permanent special/buddy purchases and reload, portrait/landscape layouts, reduced-motion defaults, wardrobe try-on in all four poses, all four real specials, Spark Moth firing, Patch Beetle intercepting a moving projectile, generated Arctic/Chalk effects, Starbreak buddy and the Alley buddy through the supported campaign interlude. No missing assets or page errors. Inspected final screenshots, the 19-item contact sheet and both-buddy GIF.
+- Final production build and standard develop-web-game smoke pass; inspected the smoke image and text state. Existing transaction and cosmetic damage regressions pass. Browser checks used installed Chrome and production preview servers; external Google Fonts CSS was fulfilled only in the restricted-host test harness. Physical phones were not tested. No further required implementation remains for the clarified request.
+
+## 2026-11-21 — Integrate recent branches into main
+
+- Fetched origin and audited branch ancestry and linked worktrees. The only unmerged tips were codex/alley-killer-kai and codex/kai-workshop-generated-art; all older tips already belonged to main's history.
+- Committed the Christmas preview as 66be244, then combined the recent branches on codex/christmas-main-integration. Resolved content conflicts while retaining the newer wallet/shop, results, camera/combat effects, supplies, route pacing, Alley dance/music, current-run Kai arm and the new Christmas runtime.
+- Preserved the previous animation viewer as CombatGallery (title button Art Gallery) with separately scoped CSS, alongside the purchasable Kai Workshop. Kept animated campaign pickup/companion artwork. Added native-weapon shop compatibility so Klause/Turkey King cannot spend Gold on ignored weapon supplies; extra lives remain available.
+- Merged-build checks passed: TypeScript/production build; 16 Christmas browser scenarios; 442 export checks; 13 gallery power-ups and 11 companion loops; 19 generated Kai catalog items and 13 action loops; shop confirmation/charging/persistence; native supply compatibility; results payout/reload/storage/finale; standard game smoke with inspected screenshot/text state. Results regression ran on Vite dev because its assertions import TypeScript; the others used production preview.
+- Merge details and evidence scope: docs/main-integration-2026-11-21.md. Main update and Git push follow final ancestry verification.
+- Final merged Turkey King progression also passes, including results/shop → story → Alley → level two. Its regression now follows the new manual intermission screens rather than assuming a direct story transition. All Git conflict markers are resolved and the merged build is ready for the requested main push.
