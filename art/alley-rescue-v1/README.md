@@ -1,0 +1,11 @@
+# Alley Rescue environment artwork
+
+Generated with the built-in image generation tool. Each original PNG is preserved here; the game uses quality-88 WebP copies in `public/levels/alley-rescue-v1`.
+
+All three prompts used the existing `public/dark_alleyway_1.png`, `public/characters/xgod/runner-v4/idle.png`, and `public/characters/killer-kai-v1/reactions-0.webp` as style and character references. Characters are not baked into the backgrounds: the game draws its existing X God idle/run and injured Killer Kai sprite frames over them.
+
+Shared prompt: “Use case: illustration-story. Asset: 16:9 side-view 2D game background. Reference images: first is the existing notebook-paper alley environment, second and third are the actual character sprites for matching hand-drawn ink and colored-pencil texture and scale. Create a detailed cohesive environment in their exact handmade doodle aesthetic, black ink outlines and colored pencil on ruled notebook paper. No characters, text, UI, labels, logos, or watermarks; the existing sprites are composited separately. Orthographic straight-on side view, flat walkable ground around 83% image height, clear silhouette, no foreground objects hiding characters.”
+
+- `alley.png`: “Scene: an atmospheric urban back alley with brick walls, wiring, trash bins, and a small distinct house facade at the right. Place its closed entrance door near 85% of image width, bottom aligned to the walkway. Purple-gray bricks, subdued green accents, readable warm doorway. Full scene fills frame.”
+- `hall.png`: “Scene: inside the same modest worn house, a cozy but abandoned narrow hallway. One clear closed exterior exit door on the far left and another closed interior door on the far right, both reaching the floor. Scuffed walls, modest table and framed picture, warm muted tan and purple pencil colors. Full scene fills frame.”
+- `gunroom.png`: “Scene: a spare gun room inside the same house, with a closed exit door on the far left and an organized wall rack of sci-fi blasters and stored equipment in the middle. On the right leave a clear low resting space for an injured character sprite to be composited. Muted gray-green and warm brown pencil tones. Full scene fills frame.”

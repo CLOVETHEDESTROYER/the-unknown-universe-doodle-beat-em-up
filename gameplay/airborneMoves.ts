@@ -17,7 +17,8 @@ interface Hooks {
   equipment?:()=>string;
   canUse: () => boolean;
   clearLine: (enemy: Enemy) => boolean;
-  damage: (enemy: Enemy, amount: number) => boolean;
+  damage: (enemy: Enemy, amount: number, direct: boolean) => boolean;
+  smashSources?: (enemy: Enemy) => Phaser.GameObjects.Sprite[];
 }
 
 /** Airborne moves share the ordinary player collider, input edges and scene clock. */
@@ -31,6 +32,8 @@ export class AirborneMoves {
   private impact: { x: number; y: number; at: number; left: number; right: number } | null = null;
   private knockouts = new Set<Phaser.GameObjects.Sprite>();
   private targets = new Set<Enemy>();
+  private diveBottom = 0;
+  private smashes = new Map<Phaser.GameObjects.Sprite, Map<Phaser.GameObjects.Sprite, number>>();
   private hidden = false;
   private alive = true;
   private jumps = 0;
@@ -68,6 +71,7 @@ export class AirborneMoves {
     if (this.busy || !this.hooks.canUse()) return false;
     this.phase = 'windup'; this.phaseAt = this.scene.time.now;
     this.jumpAt = -9999; this.targets.clear(); this.bombs++;
+    this.diveBottom = this.body.bottom;
     this.body.setAllowGravity(false).setVelocity(0, 0);
     playSfx('slamCharge');
     return true;
@@ -80,6 +84,13 @@ export class AirborneMoves {
 
   update(grounded: boolean) {
     const now = this.scene.time.now, body = this.body;
+    if (this.diving && this.isButtBomb) {
+      for (const child of this.hooks.enemies.getChildren()) {
+        const enemy = child as Enemy;
+        if (this.crossesEnemyTop(enemy)) this.hit(enemy,HERO_MOBILITY[this.hero].direct,true);
+      }
+      this.diveBottom = body.bottom;
+    }
     if (grounded && body.velocity.y >= 0) {
       this.available = true; this.jumpAt = -9999;
       if (this.phase === 'diving') this.land();
@@ -88,6 +99,7 @@ export class AirborneMoves {
       body.setVelocity(0, 0);
       if (now-this.phaseAt >= 150) {
         this.phase = 'diving'; this.phaseAt = now;
+        this.diveBottom = body.bottom;
         body.setAllowGravity(true).setVelocityY(900);
       }
     } else if (this.phase === 'diving') body.setVelocity(0, 900);
@@ -101,13 +113,25 @@ export class AirborneMoves {
   /** A clean head hit keeps the dive going, with one hit per enemy per bomb. */
   contact(enemy: Enemy, fromAbove: boolean) {
     if (this.phase === 'landing' && this.targets.has(enemy)) return true;
-    if (!this.diving || (!fromAbove && !this.targets.has(enemy))) return false;
-    this.hit(enemy, HERO_MOBILITY[this.hero].direct);
+    if (!this.diving) return false;
+    if (this.targets.has(enemy)) return true;
+    if (!fromAbove && !(this.isButtBomb && this.crossesEnemyTop(enemy))) return false;
+    this.hit(enemy, HERO_MOBILITY[this.hero].direct,true);
     return true;
   }
 
-  private hit(enemy: Enemy, amount: number) {
-    if (this.targets.has(enemy)) return;
+  private get isButtBomb() { return this.hero === 'xgod' || this.hero === 'elytron'; }
+
+  private crossesEnemyTop(enemy: Enemy) {
+    if (!enemy.active || this.targets.has(enemy) || !this.hooks.clearLine(enemy)) return false;
+    const player = this.body, target = enemy.body as Phaser.Physics.Arcade.Body;
+    return target.enable && player.right > target.left+3 && player.left < target.right-3
+      && this.diveBottom <= target.top+16 && player.bottom >= target.top
+      && player.bottom >= this.diveBottom;
+  }
+
+  private hit(enemy: Enemy, amount: number, direct = false) {
+    if (!enemy.active || this.targets.has(enemy)) return;
     this.targets.add(enemy);
     const star = this.hero === 'zgod';
     // Keep a brief airborne KO pose after the real enemy is defeated. Bosses use
@@ -115,8 +139,16 @@ export class AirborneMoves {
     const copy = star && enemy.getData('kind') !== 'boss' ? this.scene.add.sprite(enemy.x, enemy.y, enemy.texture.key, enemy.frame.name)
       .setOrigin(enemy.originX, enemy.originY).setScale(enemy.scaleX, enemy.scaleY)
       .setRotation(enemy.rotation).setFlip(enemy.flipX, enemy.flipY).setDepth(22) : null;
-    if (!this.hooks.damage(enemy, star ? Number(enemy.getData('hp')) : amount)) { copy?.destroy(); return; }
+    const sources = this.isButtBomb ? this.hooks.smashSources?.(enemy) ?? [enemy] : [];
+    const source = sources[0];
+    const smash = source ? this.scene.add.sprite(source.x,source.y,source.texture.key,source.frame.name)
+      .setOrigin(source.originX,source.originY).setFlip(source.flipX,source.flipY)
+      .setScale(source.scaleX*1.17,source.scaleY*.47).setDepth(23) : null;
+    if (!this.hooks.damage(enemy, star ? Number(enemy.getData('hp')) : amount,direct)) {
+      copy?.destroy();smash?.destroy();return;
+    }
     this.hits++;
+    if (smash) this.presentSmash(sources,smash);
     if (copy) {
       this.knockouts.add(copy);
       const direction = copy.x < this.body.center.x ? -1 : 1;
@@ -130,6 +162,37 @@ export class AirborneMoves {
       if(this.hero==='teleportation_c')enemy.setData('slamPullX',this.body.center.x).setData('slamPullUntil',this.scene.time.now+move.stun);
       enemy.setVelocity(this.hero==='teleportation_c'?Math.sign(this.body.center.x-enemy.x)*180:0, -move.launch);
     }
+  }
+
+  private presentSmash(sources: Phaser.GameObjects.Sprite[], pose: Phaser.GameObjects.Sprite) {
+    this.smashes.set(pose,new Map(sources.filter(source=>source.active).map(source=>[source,source.alpha])));
+    this.refreshSmashVisibility();
+    pose.setTint(0xffdda1);
+    playSfx('enemyHit',{pitch:1.35,volume:.8});
+    this.scene.tweens.add({
+      targets:pose, scaleX:pose.scaleX*.94, scaleY:pose.scaleY*1.48,
+      alpha:{value:0,delay:65,duration:125}, duration:190, ease:'quad.in',
+      onComplete:()=>this.endSmash(pose),
+    });
+  }
+
+  refreshSmashVisibility() {
+    for (const sources of this.smashes.values()) {
+      for (const source of sources.keys()) {
+        if (!source.active || source.alpha === 0) continue;
+        // A boss can swap to a separate attack sprite and refresh its opacity during update.
+        sources.set(source,source.alpha);
+        source.setAlpha(0);
+      }
+    }
+  }
+
+  private endSmash(pose: Phaser.GameObjects.Sprite) {
+    for (const [source,alpha] of this.smashes.get(pose) ?? []) {
+      if (source.active && source.alpha === 0) source.setAlpha(alpha);
+    }
+    this.smashes.delete(pose);
+    pose.destroy();
   }
 
   private land() {
@@ -261,6 +324,7 @@ export class AirborneMoves {
       bombs: this.bombs, impacts: this.impacts, hits: this.hits,
       name: HERO_MOBILITY[this.hero].name, screenClears: this.screenClears,
       clearedShots: this.clearedShots, shockwaveActive: Boolean(this.impact), knockoutPoses: this.knockouts.size,
+      smashPoses: this.smashes.size,
       texture: this.actor.visible ? this.actor.texture.key : null,
       frame: this.actor.visible ? Number(this.actor.frame.name) : null };
   }
@@ -271,6 +335,10 @@ export class AirborneMoves {
     this.targets.clear(); this.actor.setVisible(false); this.ink.clear();
     for (const copy of this.knockouts) { this.scene.tweens.killTweensOf(copy); copy.destroy(); }
     this.knockouts.clear();
+    for (const pose of this.smashes.keys()) {
+      this.scene.tweens.killTweensOf(pose);
+      this.endSmash(pose);
+    }
     if (this.hooks.player.active) {
       this.body.setAllowGravity(true);
       if (this.hidden) this.hooks.player.setVisible(true);

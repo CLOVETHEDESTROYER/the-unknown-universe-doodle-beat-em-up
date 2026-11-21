@@ -1,0 +1,132 @@
+{
+  "blaster": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "sword": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "frost": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "ember": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "storm": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "kai-arm": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "shield": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "rapid": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "fan": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "homing": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "gravity": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "heart": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "rush-star": {
+    "columns": 4,
+    "rows": 1,
+    "frames": 4,
+    "frameSize": 192,
+    "fps": 7
+  },
+  "dinio": {
+    "columns": 4,
+    "rows": 4,
+    "frames": 16,
+    "frameSize": 320,
+    "fps": 10,
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bodyHeight": 260,
+    "scale": 0.9808917197452229
+  },
+  "doghost": {
+    "columns": 4,
+    "rows": 4,
+    "frames": 16,
+    "frameSize": 320,
+    "fps": 10,
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bodyHeight": 200,
+    "scale": 0.8421052631578947
+  },
+  "teleportation-c": {
+    "columns": 4,
+    "rows": 6,
+    "frames": 24,
+    "frameSize": 320,
+    "fps": 10,
+    "origin": [
+      0.5,
+      0.9375
+    ],
+    "bodyHeight": 220,
+    "scale": 0.9302325581395349
+  }
+}

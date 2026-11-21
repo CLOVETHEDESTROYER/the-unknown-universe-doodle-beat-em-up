@@ -1,0 +1,2172 @@
+{
+  "version": 1,
+  "status": "art-review; not integrated",
+  "baseFacing": "right",
+  "heroWorldStandingHeight": 160,
+  "sheets": {
+    "klause-movement": {
+      "image": "killer-klause/movement.png",
+      "columns": 4,
+      "rows": 4,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "frameCount": 16,
+      "anchor": [
+        320,
+        600
+      ],
+      "origin": [
+        0.5,
+        0.9375
+      ],
+      "sharedSourceScale": 1.4736842105263157,
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "run": {
+          "frames": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 10,
+          "repeat": -1
+        },
+        "crouch": {
+          "frames": [
+            8
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        },
+        "jump": {
+          "frames": [
+            9,
+            10,
+            11
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        },
+        "dash": {
+          "frames": [
+            12,
+            13
+          ],
+          "frameRate": 10,
+          "repeat": 0
+        },
+        "slam": {
+          "frames": [
+            14,
+            15
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            118,
+            96,
+            356,
+            381
+          ],
+          "exportBounds": [
+            161,
+            181,
+            512,
+            601
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            117,
+            95,
+            358,
+            381
+          ],
+          "exportBounds": [
+            159,
+            180,
+            514,
+            601
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            98,
+            110,
+            359,
+            377
+          ],
+          "exportBounds": [
+            114,
+            202,
+            499,
+            595
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            113,
+            110,
+            363,
+            379
+          ],
+          "exportBounds": [
+            209,
+            202,
+            577,
+            598
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            91,
+            105,
+            373,
+            371
+          ],
+          "exportBounds": [
+            43,
+            207,
+            459,
+            599
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            127,
+            104,
+            374,
+            371
+          ],
+          "exportBounds": [
+            260,
+            205,
+            624,
+            598
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            106,
+            105,
+            373,
+            373
+          ],
+          "exportBounds": [
+            231,
+            207,
+            624,
+            602
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            124,
+            106,
+            369,
+            374
+          ],
+          "exportBounds": [
+            224,
+            208,
+            585,
+            603
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            120,
+            138,
+            363,
+            371
+          ],
+          "exportBounds": [
+            177,
+            257,
+            535,
+            600
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            114,
+            76,
+            350,
+            316
+          ],
+          "exportBounds": [
+            146,
+            165,
+            494,
+            519
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            92,
+            104,
+            351,
+            362
+          ],
+          "exportBounds": [
+            105,
+            207,
+            487,
+            587
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            115,
+            142,
+            366,
+            371
+          ],
+          "exportBounds": [
+            183,
+            263,
+            553,
+            600
+          ]
+        },
+        {
+          "frame": 12,
+          "sourceBounds": [
+            89,
+            136,
+            378,
+            370
+          ],
+          "exportBounds": [
+            198,
+            254,
+            624,
+            599
+          ]
+        },
+        {
+          "frame": 13,
+          "sourceBounds": [
+            96,
+            123,
+            368,
+            369
+          ],
+          "exportBounds": [
+            95,
+            235,
+            496,
+            598
+          ]
+        },
+        {
+          "frame": 14,
+          "sourceBounds": [
+            116,
+            73,
+            348,
+            305
+          ],
+          "exportBounds": [
+            149,
+            161,
+            491,
+            503
+          ]
+        },
+        {
+          "frame": 15,
+          "sourceBounds": [
+            76,
+            166,
+            365,
+            373
+          ],
+          "exportBounds": [
+            146,
+            298,
+            572,
+            603
+          ]
+        }
+      ]
+    },
+    "klause-combat": {
+      "image": "killer-klause/combat.png",
+      "columns": 4,
+      "rows": 4,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "frameCount": 16,
+      "anchor": [
+        320,
+        600
+      ],
+      "origin": [
+        0.5,
+        0.9375
+      ],
+      "sharedSourceScale": 1.516245487364621,
+      "animations": {
+        "fire": {
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 12,
+          "repeat": 0
+        },
+        "reload": {
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        },
+        "melee": {
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 12,
+          "repeat": 0
+        },
+        "hurt": {
+          "frames": [
+            12,
+            13
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        },
+        "victory": {
+          "frames": [
+            14,
+            15
+          ],
+          "frameRate": 3,
+          "repeat": -1
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            122,
+            96,
+            364,
+            373
+          ],
+          "exportBounds": [
+            161,
+            180,
+            528,
+            600
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            124,
+            104,
+            364,
+            374
+          ],
+          "exportBounds": [
+            158,
+            192,
+            522,
+            601
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            112,
+            100,
+            360,
+            373
+          ],
+          "exportBounds": [
+            141,
+            186,
+            517,
+            600
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            106,
+            96,
+            345,
+            373
+          ],
+          "exportBounds": [
+            162,
+            180,
+            524,
+            600
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            118,
+            95,
+            350,
+            373
+          ],
+          "exportBounds": [
+            157,
+            178,
+            509,
+            600
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            93,
+            96,
+            345,
+            374
+          ],
+          "exportBounds": [
+            127,
+            179,
+            509,
+            601
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            114,
+            94,
+            334,
+            374
+          ],
+          "exportBounds": [
+            170,
+            176,
+            504,
+            601
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            105,
+            94,
+            347,
+            373
+          ],
+          "exportBounds": [
+            161,
+            176,
+            528,
+            599
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            114,
+            96,
+            337,
+            371
+          ],
+          "exportBounds": [
+            126,
+            182,
+            464,
+            599
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            94,
+            95,
+            356,
+            372
+          ],
+          "exportBounds": [
+            127,
+            180,
+            524,
+            600
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            74,
+            96,
+            362,
+            372
+          ],
+          "exportBounds": [
+            117,
+            182,
+            554,
+            600
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            108,
+            95,
+            335,
+            372
+          ],
+          "exportBounds": [
+            161,
+            180,
+            505,
+            600
+          ]
+        },
+        {
+          "frame": 12,
+          "sourceBounds": [
+            104,
+            105,
+            345,
+            375
+          ],
+          "exportBounds": [
+            105,
+            191,
+            470,
+            600
+          ]
+        },
+        {
+          "frame": 13,
+          "sourceBounds": [
+            105,
+            99,
+            346,
+            375
+          ],
+          "exportBounds": [
+            132,
+            182,
+            497,
+            600
+          ]
+        },
+        {
+          "frame": 14,
+          "sourceBounds": [
+            91,
+            97,
+            343,
+            375
+          ],
+          "exportBounds": [
+            115,
+            178,
+            497,
+            600
+          ]
+        },
+        {
+          "frame": 15,
+          "sourceBounds": [
+            98,
+            79,
+            325,
+            376
+          ],
+          "exportBounds": [
+            124,
+            151,
+            468,
+            601
+          ]
+        }
+      ]
+    },
+    "klause-special": {
+      "image": "killer-klause/special.png",
+      "columns": 4,
+      "rows": 4,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "frameCount": 16,
+      "anchor": [
+        320,
+        600
+      ],
+      "origin": [
+        0.5,
+        0.9375
+      ],
+      "sharedSourceScale": 1.390728476821192,
+      "animations": {
+        "helper-call": {
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        },
+        "medic": {
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 6,
+          "repeat": 0
+        },
+        "defeat": {
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 5,
+          "repeat": 0
+        },
+        "air-fire": {
+          "frames": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameRate": 10,
+          "repeat": 0
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            111,
+            92,
+            359,
+            394
+          ],
+          "exportBounds": [
+            164,
+            180,
+            509,
+            600
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            97,
+            90,
+            357,
+            394
+          ],
+          "exportBounds": [
+            146,
+            177,
+            508,
+            600
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            119,
+            92,
+            358,
+            394
+          ],
+          "exportBounds": [
+            175,
+            180,
+            507,
+            600
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            111,
+            92,
+            359,
+            394
+          ],
+          "exportBounds": [
+            163,
+            180,
+            508,
+            600
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            108,
+            119,
+            361,
+            384
+          ],
+          "exportBounds": [
+            199,
+            231,
+            551,
+            600
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            92,
+            119,
+            361,
+            384
+          ],
+          "exportBounds": [
+            178,
+            231,
+            552,
+            600
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            115,
+            119,
+            361,
+            384
+          ],
+          "exportBounds": [
+            210,
+            231,
+            552,
+            600
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            110,
+            119,
+            363,
+            384
+          ],
+          "exportBounds": [
+            200,
+            231,
+            552,
+            600
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            98,
+            99,
+            333,
+            362
+          ],
+          "exportBounds": [
+            118,
+            240,
+            445,
+            606
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            92,
+            136,
+            350,
+            361
+          ],
+          "exportBounds": [
+            198,
+            291,
+            557,
+            604
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            45,
+            178,
+            354,
+            353
+          ],
+          "exportBounds": [
+            185,
+            350,
+            615,
+            593
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            54,
+            241,
+            370,
+            355
+          ],
+          "exportBounds": [
+            123,
+            437,
+            562,
+            596
+          ]
+        },
+        {
+          "frame": 12,
+          "sourceBounds": [
+            105,
+            91,
+            352,
+            350
+          ],
+          "exportBounds": [
+            148,
+            169,
+            492,
+            529
+          ]
+        },
+        {
+          "frame": 13,
+          "sourceBounds": [
+            98,
+            86,
+            335,
+            356
+          ],
+          "exportBounds": [
+            155,
+            162,
+            485,
+            537
+          ]
+        },
+        {
+          "frame": 14,
+          "sourceBounds": [
+            100,
+            106,
+            345,
+            381
+          ],
+          "exportBounds": [
+            192,
+            190,
+            533,
+            572
+          ]
+        },
+        {
+          "frame": 15,
+          "sourceBounds": [
+            106,
+            140,
+            363,
+            401
+          ],
+          "exportBounds": [
+            156,
+            237,
+            513,
+            600
+          ]
+        }
+      ]
+    },
+    "elf-medic": {
+      "image": "elves/medic.png",
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "frameCount": 12,
+      "anchor": [
+        160,
+        300
+      ],
+      "origin": [
+        0.5,
+        0.9375
+      ],
+      "sharedSourceScale": 0.6865671641791045,
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "run": {
+          "frames": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 10,
+          "repeat": -1
+        },
+        "assist": {
+          "frames": [
+            8,
+            9,
+            10
+          ],
+          "frameRate": 6,
+          "repeat": 0
+        },
+        "celebrate": {
+          "frames": [
+            11
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            202,
+            96,
+            393,
+            431
+          ],
+          "exportBounds": [
+            87,
+            71,
+            218,
+            301
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            201,
+            96,
+            394,
+            431
+          ],
+          "exportBounds": [
+            99,
+            71,
+            232,
+            301
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            169,
+            100,
+            392,
+            428
+          ],
+          "exportBounds": [
+            59,
+            74,
+            212,
+            299
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            177,
+            101,
+            386,
+            413
+          ],
+          "exportBounds": [
+            129,
+            74,
+            272,
+            288
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            181,
+            99,
+            392,
+            422
+          ],
+          "exportBounds": [
+            57,
+            79,
+            202,
+            301
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            186,
+            91,
+            390,
+            417
+          ],
+          "exportBounds": [
+            142,
+            73,
+            282,
+            297
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            166,
+            93,
+            390,
+            421
+          ],
+          "exportBounds": [
+            34,
+            75,
+            188,
+            300
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            177,
+            93,
+            389,
+            421
+          ],
+          "exportBounds": [
+            79,
+            75,
+            225,
+            300
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            159,
+            110,
+            386,
+            430
+          ],
+          "exportBounds": [
+            81,
+            80,
+            237,
+            300
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            157,
+            114,
+            442,
+            430
+          ],
+          "exportBounds": [
+            91,
+            83,
+            287,
+            300
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            175,
+            90,
+            381,
+            428
+          ],
+          "exportBounds": [
+            78,
+            67,
+            219,
+            299
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            154,
+            95,
+            399,
+            431
+          ],
+          "exportBounds": [
+            71,
+            70,
+            239,
+            301
+          ]
+        }
+      ]
+    },
+    "elf-engineer": {
+      "image": "elves/engineer.png",
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "frameCount": 12,
+      "anchor": [
+        160,
+        300
+      ],
+      "origin": [
+        0.5,
+        0.9375
+      ],
+      "sharedSourceScale": 0.6705539358600583,
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "run": {
+          "frames": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 10,
+          "repeat": -1
+        },
+        "assist": {
+          "frames": [
+            8,
+            9,
+            10
+          ],
+          "frameRate": 6,
+          "repeat": 0
+        },
+        "celebrate": {
+          "frames": [
+            11
+          ],
+          "frameRate": 1,
+          "repeat": 0
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            182,
+            98,
+            397,
+            441
+          ],
+          "exportBounds": [
+            75,
+            72,
+            219,
+            302
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            175,
+            99,
+            389,
+            441
+          ],
+          "exportBounds": [
+            74,
+            72,
+            217,
+            301
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            162,
+            106,
+            389,
+            436
+          ],
+          "exportBounds": [
+            44,
+            77,
+            196,
+            298
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            157,
+            103,
+            388,
+            407
+          ],
+          "exportBounds": [
+            145,
+            75,
+            300,
+            279
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            154,
+            102,
+            394,
+            432
+          ],
+          "exportBounds": [
+            41,
+            83,
+            202,
+            304
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            168,
+            102,
+            387,
+            391
+          ],
+          "exportBounds": [
+            72,
+            85,
+            219,
+            279
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            164,
+            102,
+            388,
+            432
+          ],
+          "exportBounds": [
+            50,
+            83,
+            200,
+            304
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            166,
+            102,
+            384,
+            414
+          ],
+          "exportBounds": [
+            95,
+            85,
+            241,
+            294
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            142,
+            115,
+            404,
+            437
+          ],
+          "exportBounds": [
+            67,
+            84,
+            243,
+            300
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            140,
+            114,
+            404,
+            437
+          ],
+          "exportBounds": [
+            66,
+            83,
+            243,
+            300
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            165,
+            101,
+            427,
+            437
+          ],
+          "exportBounds": [
+            82,
+            75,
+            258,
+            300
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            162,
+            96,
+            382,
+            439
+          ],
+          "exportBounds": [
+            76,
+            71,
+            224,
+            301
+          ]
+        }
+      ]
+    },
+    "effects": {
+      "image": "effects/christmas-fx.png",
+      "columns": 4,
+      "rows": 5,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 20,
+      "anchor": [
+        128,
+        128
+      ],
+      "origin": [
+        0.5,
+        0.5
+      ],
+      "sharedSourceScale": 0.7452471482889734,
+      "animations": {
+        "gift-flight": {
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "frameRate": 10,
+          "repeat": -1
+        },
+        "gift-burst": {
+          "frames": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameRate": 14,
+          "repeat": 0
+        },
+        "muzzle": {
+          "frames": [
+            8,
+            9,
+            10,
+            11
+          ],
+          "frameRate": 20,
+          "repeat": 0
+        },
+        "healing": {
+          "frames": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        },
+        "transformation": {
+          "frames": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "frameRate": 8,
+          "repeat": 0
+        }
+      },
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            99,
+            173,
+            300,
+            312
+          ],
+          "exportBounds": [
+            53,
+            76,
+            203,
+            180
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            82,
+            163,
+            302,
+            308
+          ],
+          "exportBounds": [
+            46,
+            74,
+            210,
+            182
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            76,
+            151,
+            310,
+            307
+          ],
+          "exportBounds": [
+            41,
+            70,
+            215,
+            186
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            85,
+            137,
+            325,
+            301
+          ],
+          "exportBounds": [
+            38,
+            67,
+            217,
+            189
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            142,
+            163,
+            279,
+            306
+          ],
+          "exportBounds": [
+            77,
+            74,
+            179,
+            181
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            83,
+            115,
+            356,
+            332
+          ],
+          "exportBounds": [
+            26,
+            47,
+            229,
+            209
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            61,
+            96,
+            350,
+            351
+          ],
+          "exportBounds": [
+            20,
+            33,
+            235,
+            223
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            100,
+            123,
+            325,
+            335
+          ],
+          "exportBounds": [
+            44,
+            49,
+            212,
+            207
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            151,
+            164,
+            257,
+            254
+          ],
+          "exportBounds": [
+            88,
+            94,
+            167,
+            161
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            82,
+            121,
+            331,
+            300
+          ],
+          "exportBounds": [
+            35,
+            61,
+            221,
+            194
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            104,
+            142,
+            315,
+            274
+          ],
+          "exportBounds": [
+            49,
+            79,
+            206,
+            177
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            150,
+            181,
+            270,
+            240
+          ],
+          "exportBounds": [
+            83,
+            106,
+            172,
+            150
+          ]
+        },
+        {
+          "frame": 12,
+          "sourceBounds": [
+            149,
+            115,
+            263,
+            244
+          ],
+          "exportBounds": [
+            85,
+            80,
+            170,
+            176
+          ]
+        },
+        {
+          "frame": 13,
+          "sourceBounds": [
+            99,
+            68,
+            289,
+            273
+          ],
+          "exportBounds": [
+            57,
+            51,
+            199,
+            204
+          ]
+        },
+        {
+          "frame": 14,
+          "sourceBounds": [
+            76,
+            52,
+            324,
+            280
+          ],
+          "exportBounds": [
+            35,
+            43,
+            220,
+            213
+          ]
+        },
+        {
+          "frame": 15,
+          "sourceBounds": [
+            99,
+            91,
+            311,
+            268
+          ],
+          "exportBounds": [
+            49,
+            62,
+            207,
+            194
+          ]
+        },
+        {
+          "frame": 16,
+          "sourceBounds": [
+            139,
+            103,
+            275,
+            247
+          ],
+          "exportBounds": [
+            77,
+            74,
+            178,
+            181
+          ]
+        },
+        {
+          "frame": 17,
+          "sourceBounds": [
+            87,
+            62,
+            300,
+            266
+          ],
+          "exportBounds": [
+            48,
+            52,
+            207,
+            204
+          ]
+        },
+        {
+          "frame": 18,
+          "sourceBounds": [
+            54,
+            30,
+            334,
+            293
+          ],
+          "exportBounds": [
+            23,
+            30,
+            232,
+            226
+          ]
+        },
+        {
+          "frame": 19,
+          "sourceBounds": [
+            95,
+            64,
+            316,
+            255
+          ],
+          "exportBounds": [
+            45,
+            57,
+            210,
+            199
+          ]
+        }
+      ]
+    },
+    "props": {
+      "image": "props/workshop-props.png",
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "frameCount": 12,
+      "anchor": [
+        160,
+        160
+      ],
+      "origin": [
+        0.5,
+        0.5
+      ],
+      "sharedSourceScale": 0.6363636363636364,
+      "animations": {},
+      "bounds": [
+        {
+          "frame": 0,
+          "sourceBounds": [
+            97,
+            140,
+            522,
+            399
+          ],
+          "exportBounds": [
+            25,
+            77,
+            295,
+            242
+          ]
+        },
+        {
+          "frame": 1,
+          "sourceBounds": [
+            179,
+            125,
+            436,
+            406
+          ],
+          "exportBounds": [
+            78,
+            70,
+            242,
+            249
+          ]
+        },
+        {
+          "frame": 2,
+          "sourceBounds": [
+            139,
+            125,
+            408,
+            408
+          ],
+          "exportBounds": [
+            74,
+            70,
+            245,
+            250
+          ]
+        },
+        {
+          "frame": 3,
+          "sourceBounds": [
+            73,
+            146,
+            445,
+            392
+          ],
+          "exportBounds": [
+            41,
+            81,
+            278,
+            238
+          ]
+        },
+        {
+          "frame": 4,
+          "sourceBounds": [
+            129,
+            109,
+            435,
+            371
+          ],
+          "exportBounds": [
+            62,
+            76,
+            257,
+            243
+          ]
+        },
+        {
+          "frame": 5,
+          "sourceBounds": [
+            131,
+            102,
+            416,
+            387
+          ],
+          "exportBounds": [
+            69,
+            69,
+            250,
+            250
+          ]
+        },
+        {
+          "frame": 6,
+          "sourceBounds": [
+            103,
+            73,
+            426,
+            401
+          ],
+          "exportBounds": [
+            57,
+            55,
+            263,
+            264
+          ]
+        },
+        {
+          "frame": 7,
+          "sourceBounds": [
+            144,
+            68,
+            385,
+            400
+          ],
+          "exportBounds": [
+            83,
+            54,
+            236,
+            265
+          ]
+        },
+        {
+          "frame": 8,
+          "sourceBounds": [
+            118,
+            59,
+            400,
+            429
+          ],
+          "exportBounds": [
+            70,
+            42,
+            249,
+            277
+          ]
+        },
+        {
+          "frame": 9,
+          "sourceBounds": [
+            95,
+            52,
+            315,
+            425
+          ],
+          "exportBounds": [
+            90,
+            41,
+            230,
+            278
+          ]
+        },
+        {
+          "frame": 10,
+          "sourceBounds": [
+            0,
+            70,
+            380,
+            429
+          ],
+          "exportBounds": [
+            39,
+            46,
+            281,
+            274
+          ]
+        },
+        {
+          "frame": 11,
+          "sourceBounds": [
+            8,
+            68,
+            448,
+            426
+          ],
+          "exportBounds": [
+            20,
+            46,
+            300,
+            274
+          ]
+        }
+      ]
+    }
+  },
+  "backgrounds": [
+    {
+      "name": "north-pole",
+      "image": "backgrounds/north-pole.webp",
+      "width": 2172,
+      "height": 724,
+      "tileable": false,
+      "use": "Background only; retain runtime collision and foreground geometry."
+    },
+    {
+      "name": "workshop",
+      "image": "backgrounds/workshop.webp",
+      "width": 2172,
+      "height": 724,
+      "tileable": false,
+      "use": "Background only; retain runtime collision and foreground geometry."
+    },
+    {
+      "name": "city",
+      "image": "backgrounds/city.webp",
+      "width": 2172,
+      "height": 724,
+      "tileable": false,
+      "use": "Background only; retain runtime collision and foreground geometry."
+    }
+  ],
+  "props": [
+    {
+      "name": "present-launcher",
+      "image": "props/present-launcher.png"
+    },
+    {
+      "name": "red-gift",
+      "image": "props/red-gift.png"
+    },
+    {
+      "name": "green-gift",
+      "image": "props/green-gift.png"
+    },
+    {
+      "name": "santas-hat",
+      "image": "props/santas-hat.png"
+    },
+    {
+      "name": "medic-satchel",
+      "image": "props/medic-satchel.png"
+    },
+    {
+      "name": "bandages",
+      "image": "props/bandages.png"
+    },
+    {
+      "name": "gift-crate",
+      "image": "props/gift-crate.png"
+    },
+    {
+      "name": "candy-cane",
+      "image": "props/candy-cane.png"
+    },
+    {
+      "name": "snowy-pine",
+      "image": "props/snowy-pine.png"
+    },
+    {
+      "name": "workshop-lantern",
+      "image": "props/workshop-lantern.png"
+    },
+    {
+      "name": "broken-beam",
+      "image": "props/broken-beam.png"
+    },
+    {
+      "name": "toy-workbench",
+      "image": "props/toy-workbench.png"
+    }
+  ],
+  "story": [
+    {
+      "id": "01",
+      "image": "story/01.webp",
+      "durationMs": 4200,
+      "caption": "Before Earthior fell, he was a Navy SEAL medic. His mission was to bring people home.",
+      "beat": "Adult medic kneels beside a survivor as the asteroid appears over Earthior."
+    },
+    {
+      "id": "02",
+      "image": "story/02.webp",
+      "durationMs": 3200,
+      "caption": "Then the asteroid struck. The world broke, and the Void opened beneath him.",
+      "beat": "Earthior's horizon fractures; medic falls into a violet dimensional tear."
+    },
+    {
+      "id": "03",
+      "image": "story/03.webp",
+      "durationMs": 3200,
+      "caption": "He fell out of the darkness above the North Pole\u2014and straight through a workshop roof.",
+      "beat": "North Pole arrival and crash through the snowy workshop roof."
+    },
+    {
+      "id": "04",
+      "image": "story/04.webp",
+      "durationMs": 4600,
+      "caption": "Bruised and bleeding, he searched the wreckage. Most of the workshop had fallen silent. Santa had not survived.",
+      "beat": "Wounded medic, broken toy benches, a covered still figure, and Santa's fallen hat."
+    },
+    {
+      "id": "05",
+      "image": "story/05.webp",
+      "durationMs": 3000,
+      "caption": "Among the ruins, he found Santa's hat. He put it on.",
+      "beat": "Kneeling medic lifts the red hat onto his head."
+    },
+    {
+      "id": "06",
+      "image": "story/06.webp",
+      "durationMs": 3600,
+      "caption": "Power surged through him. The mantle of Santa Claus had found its next guardian.",
+      "beat": "Warm gold and icy turquoise magic transforms medic into muscular Santa."
+    },
+    {
+      "id": "07",
+      "image": "story/07.webp",
+      "durationMs": 3000,
+      "caption": "Then came a rumble beneath the wreckage. Someone was still alive.",
+      "beat": "New Santa turns toward a small elf hand emerging beneath a fallen beam."
+    },
+    {
+      "id": "08",
+      "image": "story/08.webp",
+      "durationMs": 4200,
+      "caption": "He lifted the beams and treated the survivors. Before he was Santa, he was a medic.",
+      "beat": "Killer Klause rescues two elves and bandages one elf's arm."
+    },
+    {
+      "id": "09",
+      "image": "story/09.webp",
+      "durationMs": 3400,
+      "caption": "Together, they gave the workshop a new purpose. The next delivery would fight back.",
+      "beat": "Elves and Klause assemble a ribbon-wrapped present rocket launcher at a toy workbench; proposed connective scene."
+    },
+    {
+      "id": "10",
+      "image": "story/10.webp",
+      "durationMs": 3400,
+      "caption": "Killer Klause set out to learn what happened to Earthior\u2014and stand against the Void.",
+      "beat": "Klause and elves step from workshop toward a violet rift, gift launcher ready."
+    },
+    {
+      "id": "11",
+      "image": "story/11.webp",
+      "durationMs": 4000,
+      "caption": "He found X-God and the crew. They had lost the same home. They would face the darkness together.",
+      "beat": "Klause meets the lime-haired X-God; no claims about the fates of X-God's parents."
+    },
+    {
+      "id": "12",
+      "image": "story/12.webp",
+      "durationMs": 4200,
+      "caption": "A new Santa. The same mission: protect the people who still need him.",
+      "beat": "Klause launches a wrapped present at Void creatures while X-God and the elves stand with him."
+    }
+  ],
+  "hero": {
+    "id": "killer_klause",
+    "name": "Killer Klause",
+    "portrait": "killer-klause/portrait.webp",
+    "idle": "killer-klause/idle.png",
+    "visibleIdleHeight": 420,
+    "runtimeStandingHeightProposal": 160,
+    "collision": "Define during integration; artwork bounds are not hitboxes.",
+    "eventMarkersProposal": {
+      "fire": {
+        "frame": 1,
+        "emit": "present-projectile"
+      },
+      "reload": {
+        "frame": 2,
+        "emit": "reload-complete"
+      },
+      "helper-call": {
+        "frame": 2,
+        "emit": "elf-assist"
+      }
+    },
+    "card": "killer-klause/card.webp"
+  },
+  "releaseWindow": {
+    "eventId": "christmas-2026",
+    "characterId": "killer_klause",
+    "timeZone": "America/Denver",
+    "startsAt": "2026-11-26T07:00:00.000Z",
+    "endsAtExclusive": "2026-12-26T07:00:00.000Z",
+    "lastActiveLocalDay": "2026-12-25",
+    "status": "asset-production-only",
+    "automationInstalled": false,
+    "runtimeIntegrated": false,
+    "expiryPolicyProposal": "Hide event entry for new runs after expiry; preserve existing runs and saves."
+  }
+}

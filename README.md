@@ -13,11 +13,13 @@ A hand-drawn side-scrolling action platformer built with React, Phaser and Vite.
 | 5 | Starbreak Run — spaceship flight | Pursuer |
 | 6 | Dread Planet | Void Regent |
 
+After The Scratch ending, **Alley Rescue** follows X God on the road to the Graveyard. Enter the house and help Killer Kai in the spare gun room to unlock him and earn the blaster-arm connection. Finish the scene to continue the campaign; the title-screen Alley Rescue button remains available for replay and for existing saves beyond Level 1. Ink Blaster pickups equip the handheld weapon. After X God unlocks the arm, the later blaster supply in each ground stage is labeled **Kai Blaster Arm**. Both versions use the same durability and upgrade rules.
+
 The nine-character roster includes X God, Z-God, Barrett, Nico, Ezra, Teleportation C, Killer Kai, Kaden (Electric Ninja), and the unnamed Shadow Kid (displayed as ???). X God and Z-God are available from the start; the others follow the roster unlock rules. Main heroes share a 160px standing-height reference; Z-God is much shorter at 105px. Shadow Kid throws black holes and uses Void Burst as his special. Collect companion orbs to release Dinio, Doghost and Teleportation C on their stages. Heroes can equip the blaster, flame sword, frost gauntlet, ember boots or storm halo; three unblocked hits remove the equipped powerup. Drawn X God has dedicated Ice Gauntlet movement, casting and hurt art. The flight stage has destructible ships/asteroids and separate weapon upgrades.
 
 ## Encounters along the route
 
-The Scratch has a cracking rooftop escape, the Graveyard has a guarded Doghost rescue, and Witchwood has a two-wave moving-ferry ambush. Each has a warning, objective and one-time reward. They do not lock the route to the boss. Completed encounters are remembered by Save and Continue. See [encounter notes](docs/route-encounters-v1.md) for previews and checks.
+The Scratch has a gate guarded by Lockwing and a cracking rooftop escape. The Graveyard has a guarded Doghost rescue, and Witchwood has a two-wave moving-ferry ambush. Lockwing rises and falls in front of its gate. Wait for it to come down, then shoot or punch it to open the path. Completed encounters are remembered by Save and Continue. See [encounter notes](docs/route-encounters-v1.md) for previews and checks.
 
 ## Run locally
 
@@ -36,7 +38,7 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 
 - Left/right arrows: move; reverse direction to skid.
 - Z or Up: jump. Down: crouch where supported.
-- Space or C: use the equipped weapon/power, or punch while unarmed.
+- Space or C: use the equipped weapon/power, or punch while unarmed. With the blaster or Kai arm cannon, hold for about 1.4 seconds and release for a charged shot; ordinary shots continue while charging.
 - Teleportation C: X to blink; R or Down+X to return to a valid anchor.
 - Flight: arrows to steer; Space/C to fire.
 - P: pause. Options and Pause contain separate music/effects volume and mute controls.
@@ -48,7 +50,7 @@ On **Pick Your Player**, enter `happyturkey` in **Secret code** and press **Appl
 
 ## Save and Continue
 
-Normal campaigns autosave to this browser as progress changes. Use **P → Save & Quit** to return to the title, then **Continue Game** (or Enter) to resume your hero, difficulty, health, lives, score, equipment, companions and last activated checkpoint. Story chapters between levels resume too. Enemies and hazards reset when loading; this is a checkpoint save rather than a frozen scene.
+Normal campaigns autosave to this browser as progress changes. Use **P → Save & Quit** to return to the title, then **Continue Game** (or Enter) to resume your hero, difficulty, health, lives, score, equipment, companions and last activated checkpoint. Story chapters and the Alley Rescue interlude between levels resume too; the interlude restarts its current scene after an interruption. Enemies and hazards reset when loading; this is a checkpoint save rather than a frozen scene.
 
 There is one campaign slot per browser/site. Choosing a new hero after confirming a new campaign replaces it. Completing the campaign clears it; death/game over keeps the last healthy save. Clearing browser data removes the save, and saves do not sync between devices. Query-string preview/test runs, the legacy brawler and custom uploaded sprites do not autosave. Storage errors are shown in the pause menu, and Save & Quit keeps you in-game if saving fails.
 

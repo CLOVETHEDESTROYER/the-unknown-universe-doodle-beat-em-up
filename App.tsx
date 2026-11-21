@@ -1,6 +1,8 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
+import AlleyRescue from "./components/AlleyRescue";
+import {readKaiArmUnlocked, unlockKaiArm} from "./gameplay/kaiArmUnlock";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
@@ -26,7 +28,9 @@ const loadLegacy = () => import('./components/GameEngine');
 const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
-type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game";
+type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue";
+const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
+const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
 type TitlePanel = "options" | "credits" | null;
 
 const LEVEL_MUSIC: Partial<Record<number, string>> = {
@@ -136,7 +140,7 @@ const getInitialCharacterId = (): CharacterId => {
   }
   if(requested==='turkey_king')return readTurkeyKingUnlocked()?requested:'xgod';
 
-  if (requested === "xgod" || requested === "zgod" || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
+  if (requested === "xgod" || requested === "zgod" || requested === "killer_kai" && readKaiRescued() || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
     return requested;
   }
 
@@ -265,6 +269,8 @@ const App: React.FC = () => {
   const [savedCampaign, setSavedCampaign] = useState(() => readCampaignSave(DEFAULT_STATS));
   const [saveError, setSaveError] = useState('');
   const [campaignActive, setCampaignActive] = useState(false);
+  const [alleyCampaign, setAlleyCampaign] = useState(false);
+  const [alleyCompleted, setAlleyCompleted] = useState(false);
   const [restoreCheckpoint, setRestoreCheckpoint] = useState<GameStats['campaignCheckpoint']>();
   const [runId, setRunId] = useState(0);
   const [confirmNewRun, setConfirmNewRun] = useState(false);
@@ -272,6 +278,10 @@ const App: React.FC = () => {
   const [difficulty, setDifficulty] = useState<DifficultyMode>(getInitialDifficulty);
   const [selectedCharacterId, setSelectedCharacterId] = useState<CharacterId>(getInitialCharacterId);
   const [isRosterUnlocked, setIsRosterUnlocked] = useState(() => isRosterUnlockedFromStorage() || isRosterUnlockBypassed());
+  const [kaiRescued, setKaiRescued] = useState(readKaiRescued);
+  const [kaiArmUnlocked, setKaiArmUnlocked] = useState(readKaiArmUnlocked);
+  const rescueKai = React.useCallback(() => { unlockKaiArm(); setKaiArmUnlocked(true); setKaiRescued(true); try { localStorage.setItem(KAI_RESCUE_KEY, 'true'); } catch { /* Available for this session. */ } }, []);
+  const completeAlleyRescue = React.useCallback(() => { rescueKai(); if (alleyCampaign) setAlleyCompleted(true); }, [rescueKai, alleyCampaign]);
   const [thanksgivingEnabled,setThanksgivingEnabled] = useState(readThanksgivingEnabled);
   const [turkeyKingUnlocked,setTurkeyKingUnlocked] = useState(readTurkeyKingUnlocked);
   const activateTurkeyKing=()=>{unlockTurkeyKing();setTurkeyKingUnlocked(true);setSelectedCharacterId('turkey_king');storeThanksgivingEnabled(true);setThanksgivingEnabled(true);};
@@ -281,6 +291,13 @@ const App: React.FC = () => {
   const storyTransitionRef = React.useRef(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [titlePanel, setTitlePanel] = useState<TitlePanel>(null);
+  const [workshopOpen,setWorkshopOpen]=useState(false);
+  const workshopDialogRef=React.useRef<HTMLDialogElement>(null);
+  const workshopTriggerRef=React.useRef<HTMLButtonElement>(null);
+  const closeWorkshop=()=>{workshopDialogRef.current?.close();setWorkshopOpen(false);workshopTriggerRef.current?.focus();};
+  useEffect(()=>{
+    if(workshopOpen)workshopDialogRef.current?.showModal();
+  },[workshopOpen]);
   const [isIntroExiting, setIsIntroExiting] = useState(false);
   const introStartedRef = React.useRef(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -396,6 +413,7 @@ const App: React.FC = () => {
     }
 
     const handleStartShortcut = (event: KeyboardEvent) => {
+      if(workshopOpen)return;
       if (event.repeat) {
         return;
       }
@@ -420,7 +438,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleStartShortcut);
     };
-  }, [appPhase, titlePanel, savedCampaign, confirmNewRun]);
+  }, [appPhase, titlePanel, savedCampaign, confirmNewRun,workshopOpen]);
 
   useEffect(() => {
     const handleFullscreenToggle = (event: KeyboardEvent) => {
@@ -555,13 +573,13 @@ const App: React.FC = () => {
 
   const persistCampaign = React.useCallback(() => {
     if (!campaignActive || useLegacyBrawler || playerSprite || stats.isDying || stats.health <= 0 || stats.lives <= 0 || stats.isGameOver || stats.isVictory) return false;
-    const save: CampaignSave = {version:1,savedAt:Date.now(),difficulty,stats:{...stats,activeBossId:null},story:appPhase === 'story' ? storyChapter : null};
+    const save: CampaignSave = {version:1,savedAt:Date.now(),difficulty,stats:{...stats,activeBossId:null},story:appPhase === 'story' ? storyChapter : null,...(appPhase === 'alleyRescue' && alleyCampaign ? {interlude:alleyCompleted ? 'alley-rescue-complete' as const : 'alley-rescue' as const} : {})};
     if (!writeCampaignSave(save)) {setSaveError('Saving is unavailable in this browser. Keep playing, or enable browser storage and try again.');return false;}
     setSavedCampaign(save); setSaveError(''); return true;
-  }, [campaignActive,useLegacyBrawler,playerSprite,stats,difficulty,appPhase,storyChapter]);
+  }, [campaignActive,useLegacyBrawler,playerSprite,stats,difficulty,appPhase,storyChapter,alleyCampaign,alleyCompleted]);
 
   useEffect(() => {
-    if (!campaignActive || !['game','intro','story'].includes(appPhase)) return;
+    if (!campaignActive || !['game','intro','story'].includes(appPhase) && !(appPhase === 'alleyRescue' && alleyCampaign)) return;
     if (stats.isVictory) {
       try {localStorage.removeItem(CAMPAIGN_SAVE_KEY);setSavedCampaign(null);} catch {setSaveError('Could not clear the completed campaign save.');}
       return;
@@ -579,7 +597,8 @@ const App: React.FC = () => {
     setStats(save.stats);setRestoreCheckpoint(save.stats.campaignCheckpoint);setRunId(n=>n+1);
     setPlayerSprite(null);setIsPaused(false);setTitlePanel(null);setConfirmNewRun(false);
     setCampaignActive(true);setSaveError('');
-    storyTransitionRef.current=!!save.story;setStoryChapter(save.story);setAppPhase(save.story?'story':'game');
+    setAlleyCampaign(Boolean(save.interlude));setAlleyCompleted(save.interlude === 'alley-rescue-complete');
+    storyTransitionRef.current=!!save.story;setStoryChapter(save.story);setAppPhase(save.story?'story':save.interlude?'alleyRescue':'game');
   };
 
   const saveAndQuit = () => {
@@ -704,7 +723,7 @@ const App: React.FC = () => {
   };
 
   const beginRunWithCharacter = (characterId: CharacterId) => {
-    const canSelect = characterId==='turkey_king'?turkeyKingUnlocked:characterId === "xgod" || characterId === "zgod" || isRosterUnlocked;
+    const canSelect = characterId==='turkey_king'?turkeyKingUnlocked:characterId === "xgod" || characterId === "zgod" || characterId === "killer_kai" && kaiRescued || isRosterUnlocked;
     if (!canSelect) {
       return;
     }
@@ -731,7 +750,8 @@ const App: React.FC = () => {
   const completeStory = () => {
     storyTransitionRef.current = false;
     setIsPaused(false);
-    setAppPhase(storyChapter === 'prologue' ? 'intro' : 'game');
+    if (storyChapter === 'level1') { setAlleyCampaign(true); setAlleyCompleted(false); setAppPhase('alleyRescue'); }
+    else setAppPhase(storyChapter === 'prologue' ? 'intro' : 'game');
     setStoryChapter(null);
   };
 
@@ -870,6 +890,11 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {appPhase === "alleyRescue" && <AlleyRescue onRescue={completeAlleyRescue} alreadyRescued={kaiRescued} armUnlocked={kaiArmUnlocked}
+          campaign={alleyCampaign} completed={alleyCompleted} saveError={saveError}
+          onContinue={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase('game');}}
+          onExit={() => {if(alleyCampaign && campaignActive) saveAndQuit(); else {setAlleyCampaign(false);setAppPhase('start');}}} />}
+
         {appPhase === "start" && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#312e81_0%,#0f172a_55%,#020617_100%)]" />
@@ -887,13 +912,14 @@ const App: React.FC = () => {
                   className="absolute inset-0 block h-full w-full object-contain drop-shadow-[0_22px_65px_rgba(0,0,0,0.55)]"
                 />
 
+                <div className="absolute right-[5%] top-[5%] flex gap-2"><button ref={workshopTriggerRef} type="button" onClick={()=>setWorkshopOpen(true)} className="rounded-full border-2 border-violet-200 bg-slate-950/90 px-3 py-1 font-bold text-violet-100 shadow-lg sm:px-5 sm:py-2">Workshop</button><button type="button" onClick={() => {setAlleyCampaign(false);setAlleyCompleted(false);setAppPhase("alleyRescue");}} className="rounded-full border-2 border-amber-200 bg-slate-950/90 px-3 py-1 font-bold text-amber-100 shadow-lg sm:px-5 sm:py-2">Alley Rescue</button></div>
                 <div className="pointer-events-none absolute left-[5.5%] top-[5.2%] rounded-full border-2 border-slate-900/70 bg-black/30 px-3 py-1 text-sm font-['Gochi_Hand'] text-white sm:text-base md:text-lg">
                   Mode: {difficulty}
                 </div>
 
                 {(savedCampaign || saveError) && <div className="absolute left-[12%] right-[12%] top-[42%] mx-auto max-w-md flex flex-col items-center gap-1 rounded-2xl border-2 border-slate-800 bg-slate-950/95 p-2 text-center font-['Gochi_Hand'] text-white sm:p-3">
                   {savedCampaign && <><button id="continue-game-button" onClick={continueCampaign} className="rounded-full border-2 border-slate-900 bg-emerald-400 px-6 py-1 text-xl font-bold text-slate-950 sm:text-2xl">Continue Game</button>
-                  <p className="text-xs sm:text-base">{CHARACTER_CONFIGS[savedCampaign.stats.selectedCharacterId].name} · Level {savedCampaign.stats.level} · {savedCampaign.difficulty} · {savedCampaign.stats.campaignCheckpoint?.level === savedCampaign.stats.level && savedCampaign.stats.campaignCheckpoint.index >= 0 ? `Checkpoint ${savedCampaign.stats.campaignCheckpoint.index+1}` : savedCampaign.stats.flightSave?.checkpoint ? 'Flight checkpoint' : 'Chapter start'}</p></>}
+                  <p className="text-xs sm:text-base">{CHARACTER_CONFIGS[savedCampaign.stats.selectedCharacterId].name} · {savedCampaign.interlude ? 'Alley Rescue' : `Level ${savedCampaign.stats.level}`} · {savedCampaign.difficulty} · {savedCampaign.stats.campaignCheckpoint?.level === savedCampaign.stats.level && savedCampaign.stats.campaignCheckpoint.index >= 0 ? `Checkpoint ${savedCampaign.stats.campaignCheckpoint.index+1}` : savedCampaign.stats.flightSave?.checkpoint ? 'Flight checkpoint' : 'Chapter start'}</p></>}
                   {saveError && <p role="alert">{saveError}</p>}
                 </div>}
                 <div className="absolute left-[12.2%] right-[12.2%] top-[74.5%] grid h-[19%] grid-cols-3 gap-[2.4%]">
@@ -1005,7 +1031,7 @@ const App: React.FC = () => {
                   <p className="character-select-description mt-1 max-w-3xl text-base text-violet-100 sm:text-xl md:text-2xl">
                     {isRosterUnlocked
                       ? "The roster is unlocked. Choose who enters the Unknown Universe."
-                      : "X God and Z-God are ready. Beat the game with X God to unlock the other heroes."}
+                      : "X God and Z-God are ready. Rescue Killer Kai in the alley, or beat the game with X God to unlock the other heroes."}
                   </p>
                 </div>
                 <RosterUnlockPad unlocked={isRosterUnlocked} onUnlock={unlockRoster} />
@@ -1022,7 +1048,7 @@ const App: React.FC = () => {
               <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
-                  const locked = characterId==='turkey_king'?!turkeyKingUnlocked:characterId !== "xgod" && characterId !== "zgod" && !isRosterUnlocked;
+                  const locked = characterId==='turkey_king'?!turkeyKingUnlocked:characterId !== "xgod" && characterId !== "zgod" && !(characterId === "killer_kai" && kaiRescued) && !isRosterUnlocked;
                   return (
                     <button
                       key={character.id}
@@ -1030,7 +1056,7 @@ const App: React.FC = () => {
                       disabled={locked}
                       data-character-id={character.id}
                       autoFocus={character.id === selectedCharacterId}
-                      aria-label={`${character.name}: ${locked ? characterId==='turkey_king'?'Locked. Enter his secret code to unlock.':'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
+                      aria-label={`${character.name}: ${locked ? characterId==='turkey_king'?'Locked. Enter his secret code to unlock.':characterId==='killer_kai'?'Locked. Find him in the Alley Rescue level.':'Locked. Beat the game with X God to unlock.' : 'Select character'}`}
                       onClick={() => beginRunWithCharacter(character.id)}
                       className={`character-card group relative flex min-h-0 flex-col overflow-hidden rounded-2xl border-4 bg-white text-left shadow-[8px_8px_0_rgba(0,0,0,0.45)] transition ${
                         locked
@@ -1186,6 +1212,9 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {workshopOpen&&<dialog ref={workshopDialogRef} className="workshop-dialog" aria-label="The Workshop" onCancel={event=>{event.preventDefault();closeWorkshop();}}>
+        <Suspense fallback={<p className="p-8">Opening the workshop…</p>}><MonsterIdeator onClose={closeWorkshop} onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)}/></Suspense>
+      </dialog>}
       {useLegacyDesktopControls && appPhase === 'game' && <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
           !useLegacyDesktopControls ? "hidden" : isIdeatorCollapsed || appPhase !== "game" ? "w-0" : "hidden w-0 lg:block lg:w-80"

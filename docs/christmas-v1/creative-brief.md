@@ -1,0 +1,47 @@
+# Killer Klause — Christmas asset pack v1
+
+This is an asset-production pass. The live roster, gameplay, saves, Thanksgiving mode, and deployment are not changed by this pack. Artwork is available for review in `art/seasonal/christmas-v1/`; prepared exports are in `public/seasonal/christmas-v1/`.
+
+## Creator-established story
+
+Killer Klause was an adult Navy SEAL medic on Earthior before the asteroid catastrophe. He fell into a void, emerged over the North Pole, and crashed through Santa's workshop. Badly bruised and bleeding, he discovered that most of the workshop's residents, including Santa, had not survived.
+
+He put on Santa's hat. A surge of power transformed him into the new Santa Claus and gave him the powers of the mantle. Hearing movement beneath the wreckage, he found surviving elves and used his medic training to help them. He now seeks the truth about the destruction of his home and fights the evils of the Unknown Universe and the Void. He meets X-God and the crew and joins their fight.
+
+The new adult origin is an explicit addition to the cast; the older story bible's schoolmate description does not apply to Killer Klause. Earthior is the home world's name, and the asteroid is the event that destroyed it. No explanation of who originally made the hat, no resurrection of the original Santa, and no new answers about X-God's parents are established here.
+
+## Visual direction
+
+Very muscular adult Santa commando, white beard, red Santa hat, sleeveless red fur-trim vest, olive combat shirt, red tactical trousers, black boots, dog tags, medic pouch, and fingerless gloves. Present rocket launcher: forest-green tube, red ribbon, gold details, wrapped gifts as ammunition. Bold black doodle contours and colored-pencil shading match the game. His medic identity remains visible alongside his strength.
+
+Story injury is conveyed with bruises, torn clothing, and small dried blood marks. Workshop losses are conveyed by empty stations, a fallen hat, and a covered still figure; no graphic injury. Playable sprites show his healed Santa form.
+
+Proposed helper designs: an elf field medic with a cream satchel, and an elf engineer with brass goggles and a gift/tool pack. These roles and their optional dialogue are production proposals; no names or extra family histories are canonized.
+
+## Asset coverage
+
+- Killer Klause master/portrait; idle, locomotion, crouch, jump rise/fall/land, dash, air slam, launcher fire/reload, launcher melee, hurt, defeat, victory, and magic/helper-call poses.
+- Medic and engineer elf helpers: idle, run, assist, and celebrate.
+- Gift flight, muzzle burst, gift explosion, healing sparkle, and hat transformation effects.
+- Separate gift launcher, presents, rescue/medic supplies, workshop debris, and Christmas dressing.
+- Three broad backgrounds: ruined North Pole workshop exterior, workshop rescue interior, and a Christmas version of the existing Earthior-survivor city route.
+- Twelve storyboard panels and a caption/timing manifest covering the creator's complete origin and alliance.
+- Prepared PNG sheets, animation metadata, GIF review loops, background WebP exports, and a standalone local review gallery.
+
+## Integration contract
+
+Base facing is right. Flip in the renderer for left-facing movement; do not generate a second mirrored identity. Hero sheets use 640-square frames and a consistent foot origin at (320, 600). Helpers use 320-square frames and origin (160, 300). Effects and props use centered anchors unless metadata overrides them. Standing visible-height target is 160 world pixels, consistent with the shared hero reference; calculate runtime scale from the exported idle body's actual visible height. The launcher muzzle and healing sockets are presentation sockets, not hitbox definitions.
+
+Frame timing, proposed combat powers, helper roles, and balance remain integration proposals. This art pack does not add damage, collision, invulnerability, ammo rules, save migrations, an unlock code, or a replacement boss. Review the animation loops in the gallery before adding the asset index to Phaser.
+
+## Seasonal release requirement
+
+Target start: **Thursday, November 26, 2026 at 00:00 America/Denver** (Thanksgiving).
+
+Target end: **Saturday, December 26, 2026 at 00:00 America/Denver**, exclusive; the event remains active throughout Christmas Day.
+
+UTC interval: `[2026-11-26T07:00:00.000Z, 2026-12-26T07:00:00.000Z)`.
+
+These dates are recorded in `release-window.json`. This is a release specification, not an installed automation or an active event switch. After the reviewed assets are integrated and deployed, automatic availability should be computed from authoritative time using this interval, checked when entering the menu and starting a run. The event should expire for new runs at the boundary while existing runs and saves remain loadable with their captured theme/character. Browser clock manipulation must not be described as server-enforced scheduling. Keep normal roster unlocks and Thanksgiving saves compatible. Decide the event's coexistence/priority with Thanksgiving during integration, since both begin on Thanksgiving Day.
+
+Before release: integrate and verify roster selection, launcher combat, elf support, collision/readability, mobile scale, story playback, old saves, event boundary behavior, pause/reduced motion, and the deployed build. No scheduled deployment has been installed during asset production.

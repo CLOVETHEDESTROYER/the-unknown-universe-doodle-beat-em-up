@@ -1,3 +1,4 @@
+import {completeAlleyRescue} from './alley_test_helpers.mjs';
 import {chromium,webkit,devices} from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -64,7 +65,7 @@ async function defeatAndExit(level){
   await page.keyboard.down('Space');await page.waitForTimeout(300);await page.keyboard.up('Space');
   await wait(s=>s.bossDeath?.stage==='finished'&&s.bossDefeated);
   state=await read();await shot(`level${level}-boss-defeated`);
-  await page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x:state.progress.levelEndX,y:level===1?480:520});
+  await page.evaluate(({x,y})=>window.__unknownPlatformerSetPlayerPosition(x,y),{x:state.progress.levelEndX,y:level<=2?480:520});
   const ending=await story(`level${level}`);
   assert.equal(ending.resume.level,level+1);assert.equal(ending.resume.selectedCharacterId,'zgod');
   assert(ending.resume.score>=state.progress.score+900,'The clear reward is granted before story playback');
@@ -130,6 +131,7 @@ try{
   await page.setViewportSize({width:852,height:393});await bounds();await shot('level1-ending-phone');
   const stable=JSON.stringify(saved);await page.waitForTimeout(1000);assert.equal(JSON.stringify((await read()).resume),stable,'Run stats stay frozen during the scene');
   await page.getByRole('button',{name:'Skip story',exact:true}).click();
+  await completeAlleyRescue(page);
   let state=await playable(2);compareSnapshot(state,saved);await shot('level2-resumed');
   saved=await defeatAndExit(2);
   for(let index=1;index<4;index++){

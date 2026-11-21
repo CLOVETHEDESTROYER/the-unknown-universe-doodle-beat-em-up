@@ -1,0 +1,96 @@
+{
+  "title": "Killer Klause: A Light at the North Pole",
+  "status": "Creator origin adapted to proposed cutscene captions",
+  "panels": [
+    {
+      "id": "01",
+      "image": "story/01.webp",
+      "durationMs": 4200,
+      "caption": "Before Earthior fell, he was a Navy SEAL medic. His mission was to bring people home.",
+      "beat": "Adult medic kneels beside a survivor as the asteroid appears over Earthior."
+    },
+    {
+      "id": "02",
+      "image": "story/02.webp",
+      "durationMs": 3200,
+      "caption": "Then the asteroid struck. The world broke, and the Void opened beneath him.",
+      "beat": "Earthior's horizon fractures; medic falls into a violet dimensional tear."
+    },
+    {
+      "id": "03",
+      "image": "story/03.webp",
+      "durationMs": 3200,
+      "caption": "He fell out of the darkness above the North Pole\u2014and straight through a workshop roof.",
+      "beat": "North Pole arrival and crash through the snowy workshop roof."
+    },
+    {
+      "id": "04",
+      "image": "story/04.webp",
+      "durationMs": 4600,
+      "caption": "Bruised and bleeding, he searched the wreckage. Most of the workshop had fallen silent. Santa had not survived.",
+      "beat": "Wounded medic, broken toy benches, a covered still figure, and Santa's fallen hat."
+    },
+    {
+      "id": "05",
+      "image": "story/05.webp",
+      "durationMs": 3000,
+      "caption": "Among the ruins, he found Santa's hat. He put it on.",
+      "beat": "Kneeling medic lifts the red hat onto his head."
+    },
+    {
+      "id": "06",
+      "image": "story/06.webp",
+      "durationMs": 3600,
+      "caption": "Power surged through him. The mantle of Santa Claus had found its next guardian.",
+      "beat": "Warm gold and icy turquoise magic transforms medic into muscular Santa."
+    },
+    {
+      "id": "07",
+      "image": "story/07.webp",
+      "durationMs": 3000,
+      "caption": "Then came a rumble beneath the wreckage. Someone was still alive.",
+      "beat": "New Santa turns toward a small elf hand emerging beneath a fallen beam."
+    },
+    {
+      "id": "08",
+      "image": "story/08.webp",
+      "durationMs": 4200,
+      "caption": "He lifted the beams and treated the survivors. Before he was Santa, he was a medic.",
+      "beat": "Killer Klause rescues two elves and bandages one elf's arm."
+    },
+    {
+      "id": "09",
+      "image": "story/09.webp",
+      "durationMs": 3400,
+      "caption": "Together, they gave the workshop a new purpose. The next delivery would fight back.",
+      "beat": "Elves and Klause assemble a ribbon-wrapped present rocket launcher at a toy workbench; proposed connective scene."
+    },
+    {
+      "id": "10",
+      "image": "story/10.webp",
+      "durationMs": 3400,
+      "caption": "Killer Klause set out to learn what happened to Earthior\u2014and stand against the Void.",
+      "beat": "Klause and elves step from workshop toward a violet rift, gift launcher ready."
+    },
+    {
+      "id": "11",
+      "image": "story/11.webp",
+      "durationMs": 4000,
+      "caption": "He found X-God and the crew. They had lost the same home. They would face the darkness together.",
+      "beat": "Klause meets the lime-haired X-God; no claims about the fates of X-God's parents."
+    },
+    {
+      "id": "12",
+      "image": "story/12.webp",
+      "durationMs": 4200,
+      "caption": "A new Santa. The same mission: protect the people who still need him.",
+      "beat": "Klause launches a wrapped present at Void creatures while X-God and the elves stand with him."
+    }
+  ],
+  "playbackRequirements": [
+    "Captions are separate from artwork for accessibility and localization.",
+    "Pause freezes scene timing; offer Skip and replay.",
+    "Reduced motion replaces bright transformation flashes with a steady glow.",
+    "Helper names, weapon construction scene, and dialogue are proposals pending review."
+  ]
+}

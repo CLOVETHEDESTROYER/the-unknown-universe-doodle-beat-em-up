@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "checks": 442,
+  "frames": 104,
+  "backgrounds": 3,
+  "storyPanels": 12,
+  "errors": [],
+  "scope": "Static export integrity; not a gameplay integration test."
+}

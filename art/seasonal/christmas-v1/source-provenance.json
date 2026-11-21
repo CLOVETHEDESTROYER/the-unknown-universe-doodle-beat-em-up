@@ -1,0 +1,153 @@
+{
+  "productionDate": "2026-11-20",
+  "timeZone": "America/Denver",
+  "assets": [
+    {
+      "asset": "killer-klause-master",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/killer-klause-master.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-21604229-b540-424b-9b53-d287f2d3245c.png",
+      "prompt": "Use case: stylized-concept. Asset: one transparent full-body seed sprite for The Unknown Universe doodle beat-em-up. Reference image is STYLE ONLY, not the subject: bold scratchy black ink contours, colored-pencil fills, readable friendly cartoon proportions, side-scrolling game. Create original KILLER KLAUSE: a very buff adult Santa commando, former Navy SEAL medic, huge muscular exposed arms, white beard and mustache, red Santa hat with white pompom, sleeveless open red fur-trim Santa vest over olive combat shirt, red tactical trousers, wide black belt gold buckle, black combat boots, fingerless gloves, dog tags, small olive field medic pouch with simple white plus. Face determined but compassionate, eyebrow scar. He carries a chunky forest-green present rocket launcher at shoulder, muzzle pointing RIGHT, red ribbon wrapped around tube, gold fittings, visible red gift box with golden bow loaded in muzzle. One coherent iconic silhouette, chest and beard readable, 3/4 side view facing RIGHT, both boots on same baseline, whole hat and weapon in frame. No injuries in playable design. Transparent alpha background, no scenery, no ground shadow, no text, no grid, no border. Large centered character with generous clear padding. Hand-drawn 2D cartoon, no photorealism, no 3D, no pixel art.",
+      "references": null
+    },
+    {
+      "asset": "klause-movement",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/klause-movement.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-bd332fdf-1c5c-410c-a3e5-a30c0bbb5b50.png",
+      "prompt": "Use case: stylized-concept. Production 2D game sprite animation sheet, not a poster. Use the reference as the exact character design for Killer Klause. Same very muscular adult Santa, SAME white beard, face, red hat, sleeveless fur red vest, olive undershirt, red tactical pants, dog tags, medic pouch, black boots, fingerless gloves, and forest-green ribbon-wrapped gift launcher with gold rim. Same bold black ink and colored-pencil doodle style. Every pose faces RIGHT in 3/4 side view, no camera rotations, no identity changes. Transparent alpha background, no labels, no text, no borders, no grid lines, no shadows/scenery, generous empty gaps. Exactly FOUR equal columns and FOUR equal rows, SIXTEEN complete isolated full-body frames in row-major order, each body the SAME standing scale, ground baseline consistent across its row. Keep every hat, launcher, hand, boot fully inside its own slot with large margin. Sequential layout: row1 frames1-2 idle breathing with shoulder launcher, frames3-4 running contact then passing; row2 frames5-8 continue four DISTINCT run poses to finish a six-pose running loop, alternating feet clearly, launcher steady. Row3 frames9 crouch both knees bent, 10 jump rising knees bent, 11 fall arms braced, 12 land deep crouch. Row4 frames13 dash leaning forward,14 dash braking,15 airborne downward slam knees tucked,16 heavy slam landing fist down. No added VFX or loose projectiles. Feet should share baseline for grounded poses; airborne poses may elevate within cell. Body remains same size in all cells.",
+      "references": null
+    },
+    {
+      "asset": "klause-combat",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/klause-combat.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-60b547d7-583e-4410-a483-fac425f3a1fd.png",
+      "prompt": "Use case: stylized-concept. Production 2D game sprite animation sheet, not a poster. Use the reference as the exact character design for Killer Klause. Same very muscular adult Santa, SAME white beard, face, red hat, sleeveless fur red vest, olive undershirt, red tactical pants, dog tags, medic pouch, black boots, fingerless gloves, and forest-green ribbon-wrapped gift launcher with gold rim. Same bold black ink and colored-pencil doodle style. Every pose faces RIGHT in 3/4 side view, no camera rotations, no identity changes. Transparent alpha background, no labels, no text, no borders, no grid lines, no shadows/scenery, generous empty gaps. Exactly FOUR equal columns and FOUR equal rows, SIXTEEN complete isolated full-body frames in row-major order, each body the SAME standing scale, ground baseline consistent across its row. Keep every hat, launcher, hand, boot fully inside its own slot with large margin. Sequential layout: row1 frames1-4 consecutive present launcher FIRE cycle: aim ready, trigger pull and shoulder recoil, recoil settle, return ready. Launcher always points right; NO separate muzzle flash or projectiles baked into frame. Row2 frames5-8 consecutive RELOAD cycle: lower weapon, offhand draws red wrapped gift from pouch, insert gift into gold-rim muzzle, raise launcher ready. Row3 frames9-12 consecutive launcher-butt MELEE cycle: wind back, swing stock forwards right, full extension, recover. Row4 frames13-14 HIT REACTION flinch and recover, frames15-16 VICTORY raising free fist then triumphant pose with launcher upright. Keep grounded boot soles on row baseline; never mirror character.",
+      "references": null
+    },
+    {
+      "asset": "klause-special",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/klause-special.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-1104bdca-c1c2-488a-b34a-1b715aae1e8f.png",
+      "prompt": "Use case: stylized-concept. Production 2D game sprite animation sheet, not a poster. Use the reference as the exact character design for Killer Klause. Same very muscular adult Santa, SAME white beard, face, red hat, sleeveless fur red vest, olive undershirt, red tactical pants, dog tags, medic pouch, black boots, fingerless gloves, and forest-green ribbon-wrapped gift launcher with gold rim. Same bold black ink and colored-pencil doodle style. Every pose faces RIGHT in 3/4 side view, no camera rotations, no identity changes. Transparent alpha background, no labels, no text, no borders, no grid lines, no shadows/scenery, generous empty gaps. Exactly FOUR equal columns and FOUR equal rows, SIXTEEN complete isolated full-body frames in row-major order, each body the SAME standing scale, ground baseline consistent across its row. Keep every hat, launcher, hand, boot fully inside its own slot with large margin. Sequential layout: row1 frames1-4 MAGIC HAT/ELF CALL: ready; lift free hand to Santa hat; raise palm forward summoning; lower hand recover. No particles baked in. Row2 frames5-8 MEDIC SUPPORT: kneel with launcher slung, open medic pouch, extend glowing palm (no glow drawn), return kneeling. Row3 frames9-12 DEFEAT sequence: hit stagger, drops to one knee, falls onto side, lies still on side. Non-graphic cartoon defeat, not dead gore. Row4 frames13-16 AIR LAUNCHER: jump tuck aiming right, airborne fire recoil, fall with launcher right, landing braced. Same exact Santa design and body scale even when prone; do not enlarge prone poses to fill cells.",
+      "references": null
+    },
+    {
+      "asset": "background-north-pole",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/background-north-pole.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-58825eba-84ec-47d5-b949-469f5a7284cc.png",
+      "prompt": "Use case: stylized-concept. Asset: ultra-wide side-scrolling game BACKGROUND, landscape approximately 1792x1024 or wider. The Unknown Universe Christmas edition. Hand-drawn colored-pencil textures with thick scratchy black ink outlines, flat readable cartoon shapes, layered distant scenery. No characters, no interface, no lettering, no watermark. Cool blue snow, teal night sky, warm amber windows, deep violet Void accents, red-and-green Christmas accents. Keep the lower 25 percent quiet and uncluttered for gameplay and readable character silhouettes; no foreground obstacles or implied collidable platforms. Background-only establishing scenery, panoramic composition. North Pole workshop EXTERIOR after the dimensional catastrophe. Snowy pine hills and distant icy peaks, emerald aurora sky with a faint violet tear far away. Santa's cozy timber workshop in the middle distance, snowy gabled red roofs, warm surviving windows, visibly broken central roof with missing beams, dim string lights and a few toppled decorative candy canes near buildings. Quiet solemn hope, repairs beginning, not a joyful pristine untouched village. Snowy open play lane across lower foreground.",
+      "references": null
+    },
+    {
+      "asset": "background-workshop",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/background-workshop.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-25e4d549-a277-4766-9502-e20813d0bca4.png",
+      "prompt": "Use case: stylized-concept. Asset: ultra-wide side-scrolling game BACKGROUND, landscape approximately 1792x1024 or wider. The Unknown Universe Christmas edition. Hand-drawn colored-pencil textures with thick scratchy black ink outlines, flat readable cartoon shapes, layered distant scenery. No characters, no interface, no lettering, no watermark. Cool blue snow, teal night sky, warm amber windows, deep violet Void accents, red-and-green Christmas accents. Keep the lower 25 percent quiet and uncluttered for gameplay and readable character silhouettes; no foreground obstacles or implied collidable platforms. Background-only establishing scenery, panoramic composition. INTERIOR of Santa's damaged toy workshop. Wide cutaway room with broken timber rafters high above, hole in roof showing turquoise aurora, wooden toy benches and gears in background, gift conveyors and shelves with a few presents, small lanterns and Christmas bulbs, visible fallen beam against far wall, rescue supplies on background bench. Warm pockets of light in cold blue room. No people or bodies. Floor occupies quiet lower quarter, clean horizontal space for actors.",
+      "references": null
+    },
+    {
+      "asset": "background-city",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/background-city.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-a34f75e9-ebec-4087-9f69-532f64e9c630.png",
+      "prompt": "Use case: stylized-concept. Asset: ultra-wide side-scrolling game BACKGROUND, landscape approximately 1792x1024 or wider. The Unknown Universe Christmas edition. Hand-drawn colored-pencil textures with thick scratchy black ink outlines, flat readable cartoon shapes, layered distant scenery. No characters, no interface, no lettering, no watermark. Cool blue snow, teal night sky, warm amber windows, deep violet Void accents, red-and-green Christmas accents. Keep the lower 25 percent quiet and uncluttered for gameplay and readable character silhouettes; no foreground obstacles or implied collidable platforms. Background-only establishing scenery, panoramic composition. CHRISTMAS variant of the game's school-district city skyline, surviving Earthior characters' first route in the Unknown Universe. Distant brick school buildings, clock tower, water tower, rooftop silhouettes, snowy evergreens, holiday lights around windows, rooftops dusted white. Snowy blue night sky and emerald aurora, small distant purple dimensional cracks. The lower quarter is a quiet pale snow band, not cluttered. Festive but still a city in a dangerous unknown world.",
+      "references": null
+    },
+    {
+      "asset": "elf-helpers-master",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/elf-helpers-master.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-5475ed3e-40d8-405b-b1fb-bff2f2152e8b.png",
+      "prompt": "Use case: stylized-concept. Production transparent 2D game character model sheet for The Unknown Universe Christmas edition. EXACTLY TWO full-body elf helpers SIDE BY SIDE, equal scale and baseline, generous gap and clear margins. Bold black doodle contours and textured colored-pencil fill, readable at small scale. Character LEFT is a short adult elf FIELD MEDIC with pointed ears, warm brown skin, dark curly hair, green pointed cap tipped in a small gold bell, cream-and-green tunic, red scarf, green tights, curled dark boots, cream field satchel with a simple green plus. They carry a rolled bandage. Character RIGHT is a short adult elf ENGINEER with pointed ears, light skin, auburn hair, red pointed cap, brass goggles on forehead, green work overalls, red sleeves, tool belt, curled dark boots, tan gift/tool backpack, small wooden toy wrench. Both friendly determined, 3/4 view facing RIGHT. These are Santa's surviving workshop helpers. One of each only, no injuries, no weapons, no other characters, no scenery, no shadow, no labels, no text, no grid, genuine transparent alpha.",
+      "references": null
+    },
+    {
+      "asset": "elf-medic",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/elf-medic.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-0fdcf257-4308-4667-8ef5-788b6175452d.png",
+      "prompt": "Use case: stylized-concept. Transparent production animation sprite sheet for The Unknown Universe Christmas game. Reference shows TWO elf designs. Draw ONLY the specified single elf, exactly the SAME design throughout sheet. Same face, pointed ears, skin tone, cap, palette, costume proportions, bold black outlines and colored-pencil shading. Every pose 3/4 facing RIGHT. EXACTLY FOUR columns by THREE rows of TWELVE separate complete full-body poses, equal cell sizes, SAME character scale and row baseline. Large clear gaps, all features fully within each slot. No other elf, no labels, no text, no lines, no scenery, no cast shadow, no glow or colored backdrop, real transparent alpha. Layout row1: frame1 idle, frame2 idle breathing, frame3 run right foot contact, frame4 run passing. Row2: frames5-8 four successive run poses completing six-pose alternating-feet loop. Row3: frame9 kneel/prepare assist, frame10 perform assist, frame11 recover, frame12 both arms up celebrating. ONLY the LEFT FIELD MEDIC: warm brown skin, dark curly hair, green cap with gold bell, red scarf, green-and-cream tunic, green tights, dark curled boots, cream satchel with GREEN plus. Carry rolled bandage; assist frames opening satchel and offering bandage to the right. Same design as left elf in reference. Do not draw the engineer.",
+      "references": [
+        "elf-helpers-master"
+      ]
+    },
+    {
+      "asset": "elf-engineer",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/elf-engineer.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-319dce94-02ec-4240-873e-816a3e70916c.png",
+      "prompt": "Use case: stylized-concept. Transparent production animation sprite sheet for The Unknown Universe Christmas game. Reference shows TWO elf designs. Draw ONLY the specified single elf, exactly the SAME design throughout sheet. Same face, pointed ears, skin tone, cap, palette, costume proportions, bold black outlines and colored-pencil shading. Every pose 3/4 facing RIGHT. EXACTLY FOUR columns by THREE rows of TWELVE separate complete full-body poses, equal cell sizes, SAME character scale and row baseline. Large clear gaps, all features fully within each slot. No other elf, no labels, no text, no lines, no scenery, no cast shadow, no glow or colored backdrop, real transparent alpha. Layout row1: frame1 idle, frame2 idle breathing, frame3 run right foot contact, frame4 run passing. Row2: frames5-8 four successive run poses completing six-pose alternating-feet loop. Row3: frame9 kneel/prepare assist, frame10 perform assist, frame11 recover, frame12 both arms up celebrating. ONLY the RIGHT ENGINEER: light skin, auburn hair, red cap with brass goggles on forehead, red shirt, green overalls, brown toolbelt, tan gift backpack, dark curled boots. Assist frames takes gift/tool from backpack and offers red wrapped present to the right. Same design as right elf in reference. Do not draw the medic.",
+      "references": [
+        "elf-helpers-master"
+      ]
+    },
+    {
+      "asset": "effects",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/effects.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-3cb69015-13d0-4cc2-86c5-2ccc5e7d8866.png",
+      "prompt": "Use case: stylized-concept. Production game VFX sprite atlas, bold ink and colored-pencil cartoon matching reference's red/gold/green presents. EXACTLY FOUR equal columns by FIVE equal rows, TWENTY separate effects, transparent alpha, clear wide gaps, each effect fully in own slot. No characters, no weapon, no text, no labels, no scenery, no backdrop, no grid lines. Each row is one FOUR-frame animation at shared scale. Row1 four flight frames of ONE red wrapped GIFT BOX with golden ribbon, oriented to travel RIGHT, subtle golden propulsion trail to left; keep gift identity constant, bob/tilt gradually. Row2 four consecutive GIFT EXPLOSION stages: tight gold/red burst, expanding ribbons and stars, peak ring with paper fragments, fading tiny confetti. Row3 four MUZZLE FLASH stages directed RIGHT: small gold star pop, larger warm white/gold star, tapered star, small fading glint. Row4 four HEALING effect stages: small green/gold sparkle and plus, rising curling light, larger gentle ring, fading stars. Row5 four TRANSFORMATION/HAT MAGIC effect stages: tight turquoise/gold light, expanding snowflake halo, widest radiant icy ring, fading snowflake sparks. No solid backgrounds, no black squares.",
+      "references": [
+        "killer-klause-master"
+      ]
+    },
+    {
+      "asset": "props",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/props.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-f8f21e2d-18da-4f19-87d0-c13acbf39184.png",
+      "prompt": "Use case: stylized-concept. Production game prop atlas for Christmas edition of The Unknown Universe. Match reference's thick black doodle ink and colored-pencil red/green/gold palette. EXACTLY FOUR equal columns by THREE rows, TWELVE isolated objects, one per slot in row-major order. Row1: 1 forest-green PRESENT ROCKET LAUNCHER matching reference precisely, red ribbon gold rim pointing right, weapon alone no hands; 2 red gift box gold ribbon; 3 green gift box red ribbon; 4 Santa red fur-trim hat. Row2: 5 olive medic satchel white plus; 6 rolled bandages; 7 wooden crate filled with wrapped presents; 8 tall candy cane in snow base. Row3: 9 short snow-covered pine tree; 10 warm glowing workshop lantern; 11 broken timber roof beam; 12 wooden toy workshop workbench with tools and one small toy. Each object whole, generous transparent padding, no overlapping objects, no text, no labels, no grid lines, no background, genuine transparent alpha. No people or faces. Different prop sizes may differ naturally; preserve readable silhouette.",
+      "references": [
+        "killer-klause-master"
+      ]
+    },
+    {
+      "asset": "storyboard-1",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/storyboard-1.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-22fb399c-d15f-4960-8d16-4029a02ea600.png",
+      "prompt": "Use case: illustration-story. Asset: polished text-free STORYBOARD PAGE for The Unknown Universe Christmas origin. EXACTLY FOUR equal landscape PANELS arranged TWO columns by TWO rows, fill canvas roughly 1536x1024. Straight boundaries at exact horizontal and vertical midpoint, no wide gutters, no panel insets, no irregular panel shapes. Each panel is a complete independent cinematic scene. Bold black doodle ink, rich colored-pencil texture, cartoon comic style, cool turquoise snow and gold lanterns, violet Void magic. NO TEXT at all, no lettering, captions, speech bubbles or logos. Reference1 is the definitive muscular white-bearded SANTA form of Killer Klause; preserve that outfit/face/launcher after transformation. His BEFORE-SANTA form has the SAME broad nose, brow and forehead scar but short dark hair, dark stubble, no white beard, olive sleeveless combat shirt, olive tactical pants, boots and medic pouch/dogtags. Same adult person, not a boy. Mild bruises and small blood marks only, non-graphic. Panel TOP LEFT: BEFORE transformation, strong adult Navy SEAL medic on Earthior kneels and bandages a civilian while a giant blazing asteroid appears in the sky behind a city, emotional medium wide shot. TOP RIGHT: asteroid catastrophe fractures city horizon, same dark-haired medic tumbles into a spiraling violet dimensional void, no Santa costume yet. BOTTOM LEFT: same medic falls from violet sky over snowy North Pole and breaks through timber roof of damaged Santa workshop (matching reference2 workshop); dynamic wide view. BOTTOM RIGHT: inside ruined toy workshop, wounded dark-haired medic kneels amid broken benches, notices red Santa hat beside a respectfully covered still figure in red clothing; somber loss, no exposed corpse or graphic injuries, his own head uncovered. Preserve chronological transformation: absolutely NO white beard or Santa clothing on the medic anywhere on this page.",
+      "references": [
+        "killer-klause-master",
+        "background-north-pole"
+      ]
+    },
+    {
+      "asset": "storyboard-2",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/storyboard-2.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-295f9e7f-45d4-4e86-9761-016992d21848.png",
+      "prompt": "Use case: illustration-story. Asset: polished text-free STORYBOARD PAGE for The Unknown Universe Christmas origin. EXACTLY FOUR equal landscape PANELS arranged TWO columns by TWO rows, fill canvas roughly 1536x1024. Straight boundaries at exact horizontal and vertical midpoint, no wide gutters, no panel insets, no irregular panel shapes. Each panel is a complete independent cinematic scene. Bold black doodle ink, rich colored-pencil texture, cartoon comic style, cool turquoise snow and gold lanterns, violet Void magic. NO TEXT at all, no lettering, captions, speech bubbles or logos. Reference1 is the definitive muscular white-bearded SANTA form of Killer Klause; preserve that outfit/face/launcher after transformation. His BEFORE-SANTA form has the SAME broad nose, brow and forehead scar but short dark hair, dark stubble, no white beard, olive sleeveless combat shirt, olive tactical pants, boots and medic pouch/dogtags. Same adult person, not a boy. Mild bruises and small blood marks only, non-graphic. Reference2 defines exact elf pair: brown-skinned curly dark-haired green-cap medic and light-skinned auburn red-cap goggled engineer. Reference3 defines damaged workshop setting. TOP LEFT: BEFORE-SANTA dark-haired wounded adult medic lifts the fallen red Santa hat onto his own head; close medium view among wreckage, olive combat shirt and dogtags. TOP RIGHT: transformative turquoise-and-gold magical surge, he becomes the exact giant white-bearded muscular Santa in reference1, red sleeveless vest and Santa hat, power flowing from hat, no launcher yet. BOTTOM LEFT: transformed Klause hears a rumble and looks toward a little elf hand emerging from beneath a broken timber beam, alert compassionate expression. BOTTOM RIGHT: transformed Klause has lifted beam and kneels bandaging the surviving brown-skinned green-cap medic elf's arm while auburn red-cap engineer elf sits safely nearby; medic skill used kindly, no launcher yet, small bruises, both elves alive, relieved. Same two elf identities only.",
+      "references": [
+        "killer-klause-master",
+        "elf-helpers-master",
+        "background-workshop"
+      ]
+    },
+    {
+      "asset": "storyboard-3",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/storyboard-3.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-6a232d44-5ade-4595-b80b-1e8f9d05b17c.png",
+      "prompt": "Use case: illustration-story. Asset: polished text-free STORYBOARD PAGE for The Unknown Universe Christmas origin. EXACTLY FOUR equal landscape PANELS arranged TWO columns by TWO rows, fill canvas roughly 1536x1024. Straight boundaries at exact horizontal and vertical midpoint, no wide gutters, no panel insets, no irregular panel shapes. Each panel is a complete independent cinematic scene. Bold black doodle ink, rich colored-pencil texture, cartoon comic style, cool turquoise snow and gold lanterns, violet Void magic. NO TEXT at all, no lettering, captions, speech bubbles or logos. Reference1 is the definitive muscular white-bearded SANTA form of Killer Klause; preserve that outfit/face/launcher after transformation. His BEFORE-SANTA form has the SAME broad nose, brow and forehead scar but short dark hair, dark stubble, no white beard, olive sleeveless combat shirt, olive tactical pants, boots and medic pouch/dogtags. Same adult person, not a boy. Mild bruises and small blood marks only, non-graphic. Reference2 defines exact two surviving elves. Reference3 defines X-GOD: young cartoon hero lime-green spiky hair, X-shaped eyes, pale face, white t-shirt with yellow doodle skull face, orange cargo pants, black/green sneakers; preserve these signature traits. TOP LEFT: transformed Klause and both elves build the precise green gold-rim red-ribbon PRESENT ROCKET LAUNCHER from reference1 at repaired toy workbench. TOP RIGHT: Klause carrying that launcher and both elves step out of snowy ruined workshop toward violet portal, aurora overhead, determined mission. BOTTOM LEFT: in a snowy city street Klause meets and clasps hands with the much shorter young X-God, both friendly hopeful; both elves nearby, don't invent replacement hero designs. BOTTOM RIGHT: action alliance: massive Santa fires a red gold-bow wrapped present from launcher toward distant violet ink Void monsters at RIGHT; X-God beside him projects fire and two elves assist behind them. Show exactly same Klause, two elves and X-God; no duplicate Santas; no graphic violence.",
+      "references": [
+        "killer-klause-master",
+        "elf-helpers-master",
+        "xgod"
+      ]
+    },
+    {
+      "asset": "killer-klause-card",
+      "tool": "built-in image_gen.imagegen",
+      "source": "source/killer-klause-card.png",
+      "originalGeneratedFile": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb8b-1a83-7f20-b6b4-9b3e53448870\\exec-9bbbed2c-075f-4ccb-b468-235698fa3f48.png",
+      "prompt": "Use case: illustration-story. Asset: collectible CHARACTER CARD for The Unknown Universe Christmas edition, portrait 2:3 composition. Reference1 is exact original Killer Klause full-body character; keep face, giant muscular arms, white beard, red Santa hat, red sleeveless fur vest, green undershirt, red tactical pants, medic pouch, dogtags, black combat boots, and GREEN red-ribbon gold-rim present rocket launcher pointing right. Reference2 is STYLE/FORMAT ONLY: cream ruled notebook paper, doodle black ink borders, colored-pencil fills, big readable hand-lettered headings, energetic sticker-like graphics. Make a beautiful Christmas red, evergreen and gold card with all lettering precisely legible. Main heading exact 'KILLER KLAUSE'. Small series line exact 'THE UNKNOWN UNIVERSE'. Subtitle exact 'NAVY SEAL MEDIC / SANTA'. Large hero occupying center, warm green/gold magical snowflake accents, a couple small wrapped gifts. Lower three compact ability strips each with one icon and heading only, exact headings 'PRESENT LAUNCHER', 'ELF HELPERS', 'NORTH POLE POWER'. Footer exact 'CHRISTMAS 2026'. No numeric stats and no extra text. No real military insignia. Crisp finished game collectible artwork, textured pencil, not photorealistic. Entire card border visible with padding.",
+      "references": null
+    }
+  ]
+}

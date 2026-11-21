@@ -15,6 +15,9 @@ export const SOUND_BANK = {
   enemyDeath:{variants:2,volume:.55,gap:80,priority:1},
   bossDeath:{variants:1,volume:.85,gap:900,priority:3},
   blaster:{variants:3,volume:.38,gap:90,priority:0},
+  blasterChargeReady:{variants:1,volume:.57,gap:240,priority:2},
+  blasterChargeFire:{variants:1,volume:.58,gap:200,priority:2},
+  blasterChargeHit:{variants:1,volume:.54,gap:90,priority:2},
   shipHit:{variants:2,volume:.7,gap:150,priority:2},
   shipExplosion:{variants:2,volume:.8,gap:700,priority:3},
   explosion:{variants:3,volume:.55,gap:90,priority:1},
@@ -47,7 +50,7 @@ const enhanced=new Set<string>(['blaster','shipLaser','shipLance','shipMissile',
 const kenney=new Set<SoundName>(['shipLaunch','pursuerArrival','pursuerLockOn','regentPhase','ventWarning']);
 export function soundPath(name:SoundName,variant:number){
   if(name==='bossWarning')return '/audio/boss-attack-warning.mp3';
-  const bank=kenney.has(name)?'kenney':enhanced.has(name)?'v2':'v1';
+  const bank=kenney.has(name)?'kenney':enhanced.has(name)||name.startsWith('blasterCharge')?'v2':'v1';
   return `/audio/sfx-${bank}/${name}-${variant+1}.wav`;
 }
 export const SLAM_SOUNDS = {turkey_king:'slamBarrett',elytron:'slamTeleport',killer_kai:'slamNico',xgod:'slamXgod',zgod:'slamZgod',barrett:'slamBarrett',nico:'slamNico',ezra:'slamEzra',teleportation_c:'slamTeleport'} as const;

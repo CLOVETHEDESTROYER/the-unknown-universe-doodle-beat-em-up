@@ -1,3 +1,4 @@
+import {completeAlleyRescue} from './alley_test_helpers.mjs';
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import os from 'node:os';
 const out=process.env.GAME_TEST_OUTPUT||path.join(os.tmpdir(),'turkey-king-progression');await fs.mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true});const errors=[];
@@ -14,7 +15,7 @@ try{
  await page.screenshot({path:path.join(out,'king-level1-victory.png')});
  await page.evaluate(()=>{const s=JSON.parse(window.render_game_to_text());window.__unknownPlatformerSetPlayerPosition(s.progress.levelEndX,480);});
  s=await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');assert.equal(s.resume.selectedCharacterId,'turkey_king');assert.equal(s.resume.equipment.active,'hands');
- await page.getByRole('button',{name:'Skip story',exact:true}).click();s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.equipment.active,'hands');assert.deepEqual(s.failedAssets,[]);
+ await page.getByRole('button',{name:'Skip story',exact:true}).click();await completeAlleyRescue(page);s=await wait(s=>s.mode==='platforming'&&s.level===2&&s.player?.grounded);assert.equal(s.selectedCharacter.id,'turkey_king');assert.equal(s.equipment.active,'hands');assert.deepEqual(s.failedAssets,[]);
  await page.screenshot({path:path.join(out,'king-level2.png')});assert.deepEqual(errors,[]);
  console.log(JSON.stringify({passed:true,actualBossDefeat:true,victoryArt:true,clearDoesNotEquipSword:true,chapter2NativeWeapons:true,errors}));
 }finally{await browser.close();}

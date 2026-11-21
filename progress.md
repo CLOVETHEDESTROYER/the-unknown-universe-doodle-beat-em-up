@@ -1473,3 +1473,93 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 
 - Creator renamed Elytron to Kaden; Electric Ninja is the smaller descriptor under KADEN. Used built-in image_gen for the two card-heading replacements, preserving approved design, stats and Pulse Storm. Saved public/cards/kaden-card.png and source/prompt in art/kaden-card-v1.
 - Changed shared character config to Kaden / Electric Ninja so roster, HUD and game labels update together. Kept internal elytron ID and sprite paths stable for save/link compatibility. Updated preview title, sprite metadata, current documentation and packer metadata. Printable generator now uses Kaden card and matching shared QR back.
+
+## 2026-11-12 - Alley Rescue
+
+- Created branch codex/alley-killer-kai. Added a title-accessible standalone alley rescue level with an enterable house, hall, spare gun room, injured Kai and a persistent roster unlock. Existing roster-unlocked players retain access; campaign saves are untouched. Controls support keyboard and touch. This is an exploration encounter, separate from the six-stage combat campaign.
+- Verified keyboard traversal, both directions through doors, rescue, roster selection availability after reload, phone-sized touch movement and house entry, build, diff check, and standard game smoke client. Inspected desktop and phone screenshots. Browser evidence is under ignored output/alley-rescue. Existing unrelated working tree changes were preserved.
+- Follow-up: expand the rescue into a full combat stage or campaign chapter if desired; current encounter uses simple drawn interiors and existing character art.
+
+## 2026-11-12 - Alley Rescue artwork
+
+- Built-in image generation produced three matching notebook-pencil backgrounds for the alley, hall and spare gun room, using existing environment and X God/Kai sprites as references. Original PNGs and prompts are in art/alley-rescue-v1; WebP runtime assets are in public/levels/alley-rescue-v1. X God's existing idle/run frames animate and Kai remains a separate injured sprite.
+- Build, browser rescue/door/unlock/reload test, phone touch/entry test and shared browser smoke passed. Inspected desktop screenshots of all three rooms. Existing separate campaign and unrelated changes preserved.
+
+## 2026-11-12 - Alley X God size
+
+- Switched Alley Rescue to the first campaign level's drawn blaster idle/run sheets, frame layout, animation rates and equivalent viewport-scaled size; anchored his feet to the floor. Browser traversal/rescue/unlock test, production build and smoke client pass. Inspected alley and Kai encounter screenshots.
+
+## 2026-11-12 - Kai rescue and blaster arm
+
+- Built timed approach, fire-sword energy transfer, Kai recovery, thanks and blaster-arm gift; reward and roster unlock persist only on completion, and previously rescued players can still see the sequence. New arm idle/fire and run sheets generated from existing character references; source, normalized frames and prompts in art/kai-rescue-arm-v1. Existing sword and Kai reaction sprites drive the rescue. C/FIRE demonstrates the arm in the rescue.
+- X God uses the saved arm when the blaster is equipped in the modern ground campaign, with normal blaster damage, upgrades and durability. New sprites cover grounded idle, shot and running; jump/crouch still use existing art. Cyan projectiles and HUD distinguish it. End-to-end test verifies each stage, delayed reward, reload, roster, campaign idle/run/fire and actual enemy damage. Phone FIRE, build and shared smoke passed; inspected scene and campaign screenshots. No physical-device test.
+
+## 2026-11-12 - Larger unarmed X God and arm equip
+
+- Alley Rescue starts with the unarmed drawn idle/run, 1.35 times the prior rescue display size and the same floor anchor, including when the reward is already unlocked. FIRE equips the existing saved arm. Existing reward holders can interact with Kai to replay the rescue and new eight-frame hand-fitting animation; C is disabled during the sequence and the reward is granted at its end.
+- Generated new normal-blaster and Kai-arm eight-pose running sheets from the approved unarmed run, preserved original generations, normalized frames and prompts in art/xgod-run-v2. Both ground campaign gun runs now use these cycles. Generated and normalized an eight-frame equip sheet in art/kai-rescue-arm-v1; original and cleaned source preserved.
+- Browser tests pass initial unarmed run, all rescue phases and equip poses, no early shot/unlock, persistent reward and enemy damage, eight normal gun run frames and running-shot damage, existing-unlock replay, phone FIRE, production build and smoke. Inspected desktop and phone screenshots. Existing large Vite chunk advisory remains.
+
+## 2026-11-12 - Exit gate animation and alley movement
+
+- Campaign gate clear kept Arcade physics moving while returning before per-frame pose updates. Added a gate-only runout path that continues each hero's normal visual update during the clear delay, and clears an active attack/skid pose when the gate takes over. Game-over and respawn handling retain their original path.
+- Increased Alley Rescue player speed from 230 to 320 units/sec and rescue approach from 150 to 210; both unarmed and arm run frames now advance by actual distance and stop at a wall. The scripted approach never moves X God backward if he is already next to Kai.
+- Capture-only gate fixture and scripts/test_gate_runout.mjs exercise all ten heroes, X God's sword and Kai arm, and X God/Kai entering while firing: each advances at least three animation frames through the real gate transition. scripts/test_alley_stride.mjs checks measured speed, stride frame variation, both doors and stopping at the boundary. Full rescue/unlock/campaign firing regression, build and shared smoke passed. Inspected hallway and gun-room gameplay captures.
+
+## 2026-11-13 - Campaign audio and Kenney sci-fi effects
+
+- Added the supplied Witchwood, Dread Planet, Kilina and Void Pursuer tracks plus the ground boss warning. Replaced Furnace music with Cave Drip Logic2 at the existing track path.
+- Selected and edited five Kenney CC0 cues for Starbreak liftoff, Pursuer arrival and lock-on, Void Regent phase changes, and nearby vent warnings. The in-game Credits and the asset folder identify the pack and license. The full audition shortlist remains under art/audio-kenney-scifi-selection.
+- The audio commit is isolated from the in-progress Alley Rescue and character changes. The isolated production build passes. Headphone and physical device mix review remain open.
+
+## 2026-11-13 - Integrate Alley Rescue into the campaign
+
+- Routed the Level 1 ending into Alley Rescue and then the Graveyard. Existing Level 1 ending art supplies the bridge; the alley opens with a short on-road story caption. X God performs the canonical rescue while the selected hero and completed run snapshot are retained for Level 2. The title-screen replay remains available for older saves.
+- Added validated, backward-compatible campaign interlude save markers for before/after the rescue. Save & Quit resumes the interlude; a completed rescue resumes with Continue to Graveyard available. The roster and arm reward remain persistent. Existing saves already beyond Level 1 load their current level unchanged.
+- Verified Level 1 gate -> story -> rescue -> Save & Quit/reload both before and after the gift -> Graveyard, preserving sword and score; existing level-two and story saves; phone controls; campaign save regression; actual Turkey King boss defeat and continuation with native equipment; standalone rescue and stride. Existing Level 2 story test placement corrected from y=520 to its actual floor y=480. Browser evidence in output/alley-campaign. No physical-device test.
+
+## 2026-11-17 — Charged blaster and wisp patrol experiment
+
+- Added a 1.4-second charge to the blaster and Kai arm cannon while retaining held rapid fire. Releasing a full charge fires a six-damage glowing projectile; existing boss guard rules still apply. Charge cancels on respawn, freeze, celebrations, or loss of eligibility. Added charge state to gameplay text output.
+- Expanded Red Wisp vertical patrol from 13 to 55 world pixels as an initial airborne movement variation. This is not a mandatory enemy gate. Playtest sightlines and fairness before adding dedicated blocking enemies.
+- TypeScript and production build passed. Browser gameplay state confirmed rapid fire and a released 6-damage charged projectile. Inspected a gameplay screenshot via browser compositor; the normal canvas capture was black. The browser logged one unidentified 404, while the game reported no failed assets. Touch release, bosses and wisp behavior still need human playtesting.
+
+## 2026-11-17 — X God running and arm cannon poses
+
+- Restored the clean two-handed Ink Blaster run with its matching muzzle metadata. The revised unarmed run layers new arm-swing poses over the original eight leg poses and is shared by the campaign and Alley Rescue. Source art and rebuild scripts are in art/xgod-run-v2.
+- X God keeps the equipped Kai arm cannon in crouch, jump, landing, skid, run and idle poses. Barrel anchors follow the selected frame for shots and charge effects.
+- Production build and local Playwright checks passed. Checked both original run modes and arm cannon crouch, jump, firing and landing with desktop and mobile graphics. Reviewed the run sheet and browser screenshots.
+
+## 2026-11-17 — Ink Blaster pickup after Kai rescue
+
+- Regular Ink Blaster supplies equip the handheld blaster. After the rescue unlock, the later supply offers the Kai Blaster Arm. Explicit selections persist through loadout restore, and old saves retain their prior default.
+- The revised unarmed run is used for empty hands. Ink, Kai, sword, frost and elemental equipment keep their respective running art.
+- Production build and browser verification passed. Walked into the Ink supply with the arm unlocked, fired normal and charged shots, lost the weapon and ran unarmed, then collected the Kai arm and crouched.
+
+## 2026-11-17 — Lockwing gate playtest
+
+- Added one original flying blocker to The Scratch using the route encounter and save systems. Its 3.2-second patrol includes a low hold for melee and ranged attacks. The gate blocks player movement and teleport paths until Lockwing is defeated. The preview places its retry checkpoint just before the encounter.
+- Source sprite: art/lockwing-v1/source.png. Runtime transparent image: public/enemies/lockwing.webp.
+- Production build passed. Chromium playtest verified vertical motion, a closed gate blocking movement and a jump, checkpoint reset, and clears with X God's Ink Blaster and Barrett's fists. Inspected the in-game capture. Hold further recommendation work until the first encounter is playtested.
+
+## 2026-11-17 — Charge shot feedback and Butt Bomb contact
+
+- Added original charge-ready, launch and impact sounds, a barrel charge indicator, a cyan projectile trail, and a distinct impact burst. Charge timing and damage stay at 1.4 seconds and six damage. Lockwing wobbles on hits and snaps open before tumbling on defeat. Source art: art/lockwing-v1/defeat-source.png.
+- X God and Elytron check the full path of a Butt Bomb descent for direct hits. Direct contact has a brief hit pause. Hit enemies and ground bosses display a squashed pose made from their current sprite; the reaction does not resize their collision bodies. The dive and shockwave share the same target list.
+- Production build and Chrome checks passed. Verified the three charge sounds, charged Lockwing defeat, direct and shockwave damage without double hits, and the Dark Dragon squash while guarded. Reviewed the charge and boss screenshots.
+
+## 2026-11-17 — Boss landing camera shake
+
+- Added brief Dragon and Cinder Colossus landing shakes and retained Killina's Daughter's landing shake; all three respect reduced motion. Production build passes. Browser verification attempted; see current test results for local browser connectivity.
+
+## 2026-11-20 — Generated workshop power-ups and buddies
+
+- User requested generated versions of all workshop power-ups, then the buddies, with animations. Built-in ImageGen produced 13 four-frame pickup loops and complete Dinio (16), Doghost (16), and Teleportation C (24) action sheets: 108 generated frames. Exact prompts, tool provenance, shipped seed references and originals are in art/workshop-v1; runtime lossless WebP sheets/posters are in public/workshop/v1.
+- Added a title-screen Workshop with a generated-art collection, action selector, animated canvas preview, facing, pause/pose stepping, reduced-motion support, native modal keyboard/focus behavior and the existing Doodle Scanner. It remains lazy-loaded. Applied the React guidance to keep animation frames in canvas/refs instead of per-frame React state.
+- Modern ground campaign now uses animated station/pickup art and generated buddy bodies; companion attack timing/damage and power rules remain unchanged. Dinio run poses follow displacement, Doghost distinguishes idle/glide/howl, and Teleportation C retains the established 24-frame semantic mapping. Stage assets load selectively. Prior source assets and unrelated working tree changes are preserved.
+- Production build passed. Native transparency, cell layout and source-frame coverage passed packing assertions; manually inspected contact and buddy sheets and fixed neighboring crown/howl components crossing approximate grid cuts. Browser tests are in progress; sandbox-local browser connectivity required a self-contained server/client runner. Record final browser results below before finishing.
+- Final verification passed against the production build: all 13 animated previews and 11 buddy actions; actual rendered pixels; stable pause/next-pose/facing controls; Escape and opener focus restoration; portrait/landscape phone layouts; reduced motion; real station collection; buddy movement, damage and pause. Inspected desktop/phone workshop and gameplay screenshots. No page errors or missing game assets.
+- Existing test_powerups_v1.mjs passed all 14 checks, including actual pickup collection on all five ground stages, three-hit wear/refills, death, elemental damage, boss guards, touch cancel and pause. Existing test_companion_assists_v2.mjs passed real kills/piercing/boss openings and all-companion pause with the new art. The standard develop-web-game client passed the smoke action sequence; inspected its screenshot and text state. Production TypeScript/build and diff checks pass; existing large Phaser chunk advisory remains.
+- Browser verification used installed Chrome because the sandbox's default headless-shell environment was unreliable. Restricted-host Google Fonts CSS and favicon requests were fulfilled only in the test harness; game assets and behavior were real. Final checks use the immutable production preview to avoid unrelated development hot reloads. No physical-device check.
+- Fixed two issues caught in review: clear/recreate the canvas on asset changes so the previous item never lingers, and explicitly close the native dialog before restoring opener focus. Fixed test fixture placement to use the established open firing lane; companions correctly refuse shots through intervening platforms.
+- Review animation: art/workshop-v1/buddies.gif. Exact generated originals and prompts remain versioned alongside it; public/workshop/v1 contains all runtime sheets. No remaining required work for this request; future changes can tune individual art/action choices from the Workshop previews.

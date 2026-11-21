@@ -1,3 +1,4 @@
+import {completeAlleyRescue} from './alley_test_helpers.mjs';
 import {chromium,devices} from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -37,7 +38,7 @@ try{
  // Story transition saves resume the chapter and retain the next-level snapshot.
  fixture.stats.level=2;delete fixture.stats.flightSave;fixture.story='level1';fixture.stats.hasDinio=true;fixture.stats.dinioUnlocked=true;fixture.stats.equipment={active:'sword',hits:2,unlocked:['blaster','sword']};
  await page.evaluate(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});
- await page.goto(origin);await page.locator('#continue-game-button').click();await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');await page.getByRole('button',{name:'Skip story',exact:true}).click();s=await wait(s=>s.mode==='platforming'&&s.level===2);assert.equal(s.equipment.active,'sword');assert.equal(s.equipment.hits,2);assert(s.dinio.active);assert.equal(s.checkpoint.index,-1);
+ await page.goto(origin);await page.locator('#continue-game-button').click();await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');await page.getByRole('button',{name:'Skip story',exact:true}).click();await completeAlleyRescue(page);s=await wait(s=>s.mode==='platforming'&&s.level===2);assert.equal(s.equipment.active,'sword');assert.equal(s.equipment.hits,2);assert(s.dinio.active);assert.equal(s.checkpoint.index,-1);
  console.log('Story restored');
  // Preview must leave the campaign slot untouched.
  await page.keyboard.press('p');await page.waitForTimeout(100);const beforePreview=await saved();await page.goto(origin+'/?autostart=1&level=3');await wait(s=>s.mode==='platforming');assert.deepEqual(await saved(),beforePreview);

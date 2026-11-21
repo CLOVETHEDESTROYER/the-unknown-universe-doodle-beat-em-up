@@ -1,6 +1,8 @@
+import {readKaiArmUnlocked} from '../gameplay/kaiArmUnlock';
 import { encountersForLevel } from '../gameplay/routeEncounters';
 import {TurkeyKingCombat,loadTurkeyKingAssets} from '../gameplay/turkeyKing';
 import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
+import { BLASTER_CHARGE_MS, CHARGED_BOLT_TEXTURE, ChargedBlasterEffects } from '../gameplay/chargedBlasterEffects';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
 import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
 import React, { useEffect, useRef } from "react";
@@ -28,8 +30,9 @@ import { RESTORED_ENEMY_BODIES } from "../gameplay/restoredEnemyBodies";
 import {GUN_UPGRADES,gunInterval} from '../gameplay/gunUpgrades';
 import type {GunUpgradeId} from '../gameplay/gunUpgrades';
 import {makeGunUpgradeTextures,steerGunSeekers} from '../gameplay/gunUpgradeRuntime';
+import {loadWorkshopPickup,makeWorkshopAnimations,animateWorkshopPickup,workshopKey} from '../gameplay/workshopRuntime';
 import { POWERUPS, restoreLoadout, equipPowerup, hitPowerup, powerupRoute, gunUpgradeRoute, upgradeGun } from '../gameplay/powerups';
-import type { PowerupLoadout, EquippedPowerup } from '../gameplay/powerups';
+import type { BlasterStyle, PowerupLoadout, EquippedPowerup } from '../gameplay/powerups';
 import { createTeleport, blinkDestination, safeTeleportPoint, teleportPathClear, startTeleport, resetTeleport, BLINK_COOLDOWN } from '../gameplay/teleportation';
 import { playSfx } from '../audio/gameAudio';
 import {companionStride,stepCompanionGround} from '../gameplay/companionMotion';
@@ -166,6 +169,7 @@ declare global {
     __unknownPlatformerCollectPickup?: (kind?: string) => void;
     __unknownPlatformerSpecialTest?: (options?: {offsets?:number[];hp?:number;projectile?:boolean;boss?:boolean;guarded?:boolean;lift?:number}) => void;
     __unknownPlatformerEnemyTest?: (kind:string,hp?:number)=>void;
+    __unknownPlatformerPrepareGateTest?: () => void;
     __unknownPlatformerBossRulesTest?: (options:{state:'tell'|'attack'|'recover';contact?:boolean;shot?:'boss'|'enemy'|'freeze';cooldown?:boolean;regentMove?:string;stageMove?:string;naturalTiming?:boolean;phase?:1|2|3;hp?:number})=>void;
     advanceTime?: (ms: number) => Promise<void>;
     render_game_to_text?: () => string;
@@ -1072,6 +1076,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const debugCheckpoint = params.get("checkpoint") === "1";
     const useSideScrollXGodRun = params.get("xgodRun") !== "legacy" && !playerSprite;
     const useDrawnXGod = isXGod && useSideScrollXGodRun && params.get('xgodArt') !== 'model';
+    const kaiArmUnlocked = useDrawnXGod && readKaiArmUnlocked();
     const isAutoRun = ["1", "true", "yes"].includes(params.get("autoRun") ?? "")
       && !["1", "true", "yes"].includes(params.get("manualRun") ?? "");
     const playFeel = CHARACTER_FEEL[selectedCharacterId];
@@ -1153,6 +1158,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let projectiles: Phaser.Physics.Arcade.Group;
     let dinioCompanion: Phaser.GameObjects.Sprite | null = null;
     const dinioStride=companionStride();
+    let dinioDistance=0;
     let dinioShots=0,dinioHits=0,doghostShots=0,doghostHits=0,doghostNextShotAt=0,doghostAttackUntil=0,doghostAttackFacing=1;
     let dinioNextShotAt = 0;
     let dinioAttackUntil = 0;
@@ -1234,6 +1240,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let lastAttackAt = -9999;
     let lastShotAt = -9999;
     let shotsFired = 0;
+    let blasterChargeMs = 0;
+    let chargeWasHeld = false;
+    let chargeEffects: ChargedBlasterEffects;
     let shotRecoilUntil = -9999;
     let lastAttackInputAt = -9999;
     let attackComboStep = 0;
@@ -1281,11 +1290,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const gunStations:Array<{mode:GunUpgradeId;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     const availablePowers=(['blaster','sword','frost','ember','storm'] as EquippedPowerup[])
       .filter(id=>POWERUPS[id].level<=currentLevel||equipment.active===id);
-    const powerStations:Array<{kind:EquippedPowerup;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
+    const powerStations:Array<{kind:EquippedPowerup;blasterStyle?:BlasterStyle;x:number;y:number;nextAt:number;sprite:Phaser.Physics.Arcade.Sprite;label:Phaser.GameObjects.Text}>=[];
     let bossDefeated = !level.enemies.some((enemy) => enemy.kind === "boss");
     let activeBossId: BossId | null = null;
     let bossAttackAt = -9999;
     let isLevelClearing = false;
+    let isGateRunout = false;
     let heroCelebration:HeroCelebration|null=null;
     const celebrationQueue:CelebrationKind[]=[];
     let swordPresentationSeen=initialSwordUnlocked||initialHasFlameSword;
@@ -1378,6 +1388,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       });
 
       if (currentLevel === 1) {
+        loadGameImage(this.load, "lockwing", "enemies/lockwing.webp");
+        loadGameImage(this.load, "lockwing_open", "enemies/lockwing-open.webp");
         loadGameImage(this.load, "platform_school_block", "platformer/school-rooftop-block.png");
         loadGameImage(this.load, "school_rooftop_panorama", thanksgiving?'seasonal/thanksgiving-v1/autumn-skyline.webp':"platformer/school-rooftop-panorama.png");
         loadGameImage(this.load, "platform_ink_hazard", "platformer/ink-hazard-generated.png");
@@ -1410,13 +1422,23 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (isXGod && useSideScrollXGodRun) {
         if (useDrawnXGod) {
           const folder='characters/xgod/drawn-v1';
+          if(kaiArmUnlocked){
+            const armFolder = 'characters/xgod/kai-arm-v1';
+            const armSheets = {xgod_kai_arm:'arm', xgod_kai_arm_run:'run-v2', xgod_kai_arm_crouch:'crouch', xgod_kai_arm_jump:'jump'};
+            for (const [key, sheet] of Object.entries(armSheets)) {
+              loadGameSheet(this.load,key,`${armFolder}/${sheet}.png`,{frameWidth:768,frameHeight:512});
+            }
+            this.load.json('xgod_kai_arm_meta',`${armFolder}/muzzles.json`);
+          }
           if(availablePowers.includes('frost')){
             for(const action of XGOD_FROST_ACTIONS)this.load.multiatlas('hero_frost_'+action,XGOD_FROST_FOLDER+action+'.json',XGOD_FROST_FOLDER);
             this.load.json('xgod_frost_meta',XGOD_FROST_FOLDER+'metadata.json');
           }
           for (const action of ['idle','run','jump','attack','crouch','skid','blaster-idle','blaster-run','blaster-jump','blaster-attack','blaster-crouch','blaster-skid','sword-idle','sword-jump','sword-crouch','sword-skid']) {
-            loadGameSheet(this.load,`runner_${action}`,`${folder}/${action}.png`,{frameWidth:768,frameHeight:512});
+            const sheet = action === 'run' ? 'run-swing' : action;
+            loadGameSheet(this.load,`runner_${action}`,`${folder}/${sheet}.png`,{frameWidth:768,frameHeight:512});
           }
+          loadGameSheet(this.load,'runner_elemental-run',`${folder}/run.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'xgod_side_scroll_fire_sword_run_v1',`${folder}/sword-run.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'xgod_side_scroll_fire_sword_attack_v1',`${folder}/sword-attack.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'runner_damage',`${folder}/damage.png`,{frameWidth:768,frameHeight:512});
@@ -1453,15 +1475,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
+      // Load animated art only for the equipment and pickups this stage can display.
+      const workshopPickups=new Set<string>([...availablePowers,'heart','shield','gravity']);
+      if(kaiArmUnlocked)workshopPickups.add('kai-arm');
+      if(gunUpgradePlans.length)for(const id of ['rapid','fan','homing'])workshopPickups.add(id);
+      if(level.rooftopRush)workshopPickups.add('rush-star');
+      workshopPickups.forEach(id=>loadWorkshopPickup(this.load,id));
       if (hasDinio || level.pickups.some(p => p.kind === 'dinio')) {
         loadGameImage(this.load, "dinio_pickup", "doodles/dinio_orb.png");
         loadGameImage(this.load, "dinio_shot", "doodles/dinio_shot.png");
-        loadGameSheet(this.load, "dinio_walk", "companions/dinio/hybrid-v1/walk.png", { frameWidth: 320, frameHeight: 320 });
-        loadGameSheet(this.load, "dinio_attack", "companions/dinio/hybrid-v1/attack.png", { frameWidth: 448, frameHeight: 320 });
+        this.load.spritesheet('workshop_dinio','/workshop/v1/dinio.webp',{frameWidth:320,frameHeight:320,endFrame:15});
       }
       if (hasDoghost || level.pickups.some(p => p.kind === 'doghost')) {
         loadGameImage(this.load, "doghost_pickup", "doodles/doghost_orb.png");
-        this.load.multiatlas("doghost_walk","/companions/motion-v2/doghost.json","/companions/motion-v2/");
+        this.load.spritesheet('workshop_doghost','/workshop/v1/doghost.webp',{frameWidth:320,frameHeight:320,endFrame:15});
       }
       if (hasTeleportationC || level.pickups.some(p => p.kind === 'teleportation_c')) {
         loadTeleportHelper(this.load);
@@ -1599,6 +1626,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       makeBackground(scene);
       makeCinderShockwaveTexture(scene);
       makeAnimations(scene);
+      makeWorkshopAnimations(scene);
 
       platforms = scene.physics.add.staticGroup();
       hazards = scene.physics.add.staticGroup();
@@ -1606,6 +1634,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       pickups = scene.physics.add.group({ allowGravity: false });
       projectiles = scene.physics.add.group({ allowGravity: false });
       fireBlades = new FireBlades(scene,projectiles);
+      chargeEffects = new ChargedBlasterEffects(scene);
       const shotArtwork = scene.add.graphics();
       shotArtwork.fillStyle(0x1c1824).fillEllipse(2, 2, 32, 17);
       shotArtwork.fillStyle(0xf4f0b3).fillEllipse(5, 4, 25, 12);
@@ -1626,7 +1655,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (pickup.kind === "teleportation_c") return !teleportationCUnlocked;
         return true;
       }).forEach((pickup) => addPickup(scene, pickup));
-      routePowers.forEach(plan=>addPowerStation(scene,plan));
+      // The first supply still equips Ink; the late supply offers the rescue reward.
+      const lateBlaster = routePowers.filter(plan=>plan.kind==='blaster')[1];
+      routePowers.forEach(plan=>addPowerStation(scene,{
+        ...plan,
+        blasterStyle: plan.kind==='blaster' ? (kaiArmUnlocked && plan===lateBlaster ? 'kai-arm' : 'ink') : undefined,
+      }));
       makeGunUpgradeTextures(scene);
       gunUpgradePlans.forEach(plan=>addGunStation(scene,plan));
       level.enemies.forEach((enemy) => addEnemy(scene, enemy));
@@ -1702,7 +1736,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(level.platformRoute)platformRoute=new PlatformRouteRuntime(scene,level.platformRoute,player,currentLevel,()=>damagePlayer(scene,12,false));
       routeEncounters = encounterPlans.map(plan => new RouteEncounterRuntime(scene, plan, {
         player,
-        spawn: enemy => addEnemy(scene, enemy),
+        spawn: enemy => {
+          if(enemy.kind!=='lockwing')return addEnemy(scene,{...enemy,kind:enemy.kind});
+          const sprite = enemies.create(enemy.x,enemy.y,'lockwing') as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+          sprite.setDisplaySize(112,88).setDepth(14)
+            .setData('kind','lockwing').setData('hp',6).setData('maxHp',6)
+            .setData('baseScale',sprite.scaleX).setData('attackState','patrol').setData('move','vertical_patrol');
+          sprite.body.setAllowGravity(false).setSize(sprite.width*.66,sprite.height*.65,true);
+          return sprite;
+        },
         rescued: () => isTurkeyKing||doghostUnlocked,
         releaseDoghost: () => addPickup(scene, {kind:'doghost',x:plan.marker.x,y:plan.marker.y}),
         complete: id => {
@@ -1723,7 +1765,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         },
         onFerry: () => lifts.some(({plan:lift,body}) => lift.x===7260 && player.body!.right>body.left && player.body!.left<body.right
           && Math.abs(player.body!.bottom-body.top)<8 && (player.body as Phaser.Physics.Arcade.Body).velocity.y>=-20)
-      }, completedEncounters.has(plan.id), viewport.width, Math.min(gameContainerRef.current!.clientWidth/viewport.width,gameContainerRef.current!.clientHeight/viewport.height)));
+      }, completedEncounters.has(plan.id)||Boolean(plan.gate&&checkpoint.x>plan.gate.x), viewport.width, Math.min(gameContainerRef.current!.clientWidth/viewport.width,gameContainerRef.current!.clientHeight/viewport.height)));
       scene.cameras.main.startFollow(player, true, 0.12, 0.12, 0, 45);
 
       endGate = scene.physics.add.staticSprite(level.endX, 410, "end_gate");
@@ -1774,14 +1816,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       });
       scene.physics.add.collider(enemies, platforms, undefined, (enemy, platform) => {
         const kind = (enemy as Phaser.Physics.Arcade.Sprite).getData("kind");
-        if(kind==='ghost')return false;
+        if(kind==='ghost'||kind==='lockwing')return false;
         if(!(platform as Phaser.GameObjects.Rectangle).getData('oneWay'))return true;
         if(kind==='boss')return false;
         const body=(enemy as Phaser.Physics.Arcade.Sprite).body as Phaser.Physics.Arcade.Body;
         const surface=(platform as Phaser.GameObjects.Rectangle).body as Phaser.Physics.Arcade.StaticBody;
         return body.velocity.y>=0&&body.prev.y+body.height<=surface.top+8;
       });
-      scene.physics.add.collider(projectiles, platforms, (projectile) => uniqueProjectileWall(scene,projectile as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody), (_, platform) =>
+      scene.physics.add.collider(projectiles, platforms, (projectile) => {
+        const shot = projectile as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+        if (shot.active && shot.getData('chargedShot')) chargeEffects.impact(shot.x,shot.y,false);
+        uniqueProjectileWall(scene,shot);
+      }, (_, platform) =>
         !(platform as Phaser.GameObjects.Rectangle).getData("oneWay"));
       scene.physics.add.overlap(player, hazards, () => damagePlayer(scene, 12, false));
       scene.physics.add.overlap(player, enemies, (_, enemyObj) => handlePlayerEnemyOverlap(scene, enemyObj as Phaser.Physics.Arcade.Sprite));
@@ -1798,6 +1844,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
         const damage = Number(projectile.getData("damage")) || (selectedCharacterId === "nico" ? 3 : 2);
         const isPlayerShot = Boolean(projectile.getData("playerShotExpiresAt"));
+        const charged = Boolean(projectile.getData('chargedShot'));
         const frost=Boolean(projectile.getData('frostShot'));
         const elytronPulse=Boolean(projectile.getData('elytronPulse'));
         const shadowSpecial=Boolean(projectile.getData('shadowSpecial'));
@@ -1808,7 +1855,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         targets?.add(enemy);
         const pierces=Number(projectile.getData('companionPierces')??1);
         if(pierces<=1)projectileObj.destroy();else projectile.setData('companionPierces',pierces-1);
-        const damaged=damageEnemy(scene,enemy,damage,isPlayerShot||Boolean(companion),false,false,elytronPulse);
+        const damaged=charged
+          ? hitChargedShot(scene,enemy,damage)
+          : damageEnemy(scene,enemy,damage,isPlayerShot||Boolean(companion),false,false,elytronPulse);
         if(elytronPulse||shadowSpecial)signature?.recordPulseHit(damaged);
         if(companion&&damaged){if(companion==='dinio')dinioHits++;else doghostHits++;}
         if(companion&&!damaged&&projectile.active)projectile.destroy();
@@ -1907,7 +1956,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         damagePlayer(scene, damage, false);
       };
       const encounterPreview=encounterPlans.find(plan=>plan.id===params.get('encounter'));
-      if (encounterPreview) placePlayerOnPlatform(encounterPreview.entry-60,getPlatformStandY(encounterPreview.entry-60)??480);
+      if (encounterPreview) {
+        const x=encounterPreview.entry-60,y=getPlatformStandY(x)??480;
+        placePlayerOnPlatform(x,y);
+        if(encounterPreview.kind==='gate')checkpoint={x,y};
+      }
       window.__unknownPlatformerSetPlayerPosition = (x: number, y?: number) => {
         if (!player?.active) return;
         placePlayerOnPlatform(x, y ?? getPlatformStandY(x) ?? player.y);
@@ -1930,6 +1983,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         addEnemy(scene,{kind:kind as GroundFoe,x:360,y:currentLevel<=2?450:470,left:240,right:680});
         const enemy=enemies.getChildren().at(-1) as Phaser.Physics.Arcade.Sprite;
         enemy.setData('hp',hp).setData('maxHp',hp).setData('nextAttackAt',scene.time.now+650);
+      };
+      if(params.get('capture')==='1')window.__unknownPlatformerPrepareGateTest=()=>{
+        enemies.getChildren().slice().forEach(enemy=>enemy.destroy());
+        projectiles.getChildren().slice().forEach(projectile=>projectile.destroy());
+        routeEncounters.forEach(encounter=>encounter.destroy());routeEncounters=[];
+        bossDefeated=true;bossBarrier?.destroy();bossBarrier=null;setBossArenaCamera(scene,null,false);
+        placePlayerOnPlatform(level.endX-180,getPlatformStandY(level.endX-180)??480);
       };
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerBossRulesTest=options=>{
         const boss=enemies.getChildren().find(e=>e.getData('kind')==='boss') as Phaser.Physics.Arcade.Sprite;
@@ -2007,7 +2067,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         canUse: () => !isRespawning && !isLevelClearing && !heroCelebration?.active && !celebrationQueue.length && !signature?.casting
           && scene.time.now >= emberUntil && scene.time.now >= movementLockedUntil,
         clearLine: enemy => !platformSeparatesPlayerAndEnemy(enemy),
-        damage: (enemy, amount) => damageEnemy(scene, enemy, amount, false, true, true),
+        damage: (enemy, amount, direct) => {
+          const damaged = damageEnemy(scene, enemy, amount, false, true, true);
+          if (direct && damaged && (isXGod || isElytron)) triggerHitStop(scene,72);
+          return damaged;
+        },
+        smashSources: enemy => {
+          if(enemy.getData('kind')!=='boss'||!bossAttackVisual?.active)return [enemy];
+          return bossAttackVisual.visible ? [bossAttackVisual,enemy] : [enemy,bossAttackVisual];
+        },
       }, selectedCharacterId);
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
@@ -2057,7 +2125,18 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function update(this: Phaser.Scene, _time: number, delta: number) {
       const scene = this;
       autumnLeaves?.update(delta);
-      if (!player || !player.active || isLevelClearing || isRespawning) {turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide(); return; }
+      if (!player || !player.active || isLevelClearing || isRespawning) {
+        turkeyKing?.cancel(true); signature?.cancel(false); mobility?.cancel(); emberJets?.hide(); fireBlades?.clear(); bossVulnerabilityCue?.hide();
+        blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
+        // Arcade physics still carries the hero past the gate during the clear
+        // delay. Keep every hero's normal movement poses in step with that motion.
+        if (player?.active && isGateRunout && !isRespawning) {
+          latestSceneTime = scene.time.now;
+          const body = player.body as Phaser.Physics.Arcade.Body;
+          updatePlayerVisual(scene, isPlayerGrounded(body), delta);
+        }
+        return;
+      }
 
       const course=level.platformRoute;
       const followHeights=!bossArenaCameraLocked&&Boolean(course&&player.x>=course.start-80&&player.x<=course.start+course.length+80);
@@ -2091,6 +2170,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         ||performance.now()-jumpQueuedAt<180||performance.now()-equipmentAttackQueuedAt<180;
       playerFreeze?.update(delta,escapeHeld,freezeTapQueued);freezeTapQueued=false;
       if(wasFrozen){
+        blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
         turkeyKing?.updateEffects(delta);
         jumpQueuedAt=downQueuedAt=specialQueuedAt=blinkQueuedAt=recallQueuedAt=equipmentAttackQueuedAt=jumpBufferedAt=-9999;
         jumpWasHeld=jumpKey.isDown||jumpAltKey.isDown||Boolean(touch.jump||touch.up);
@@ -2112,6 +2192,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }
       }
       if(heroCelebration?.active){
+        blasterChargeMs=0; chargeWasHeld=false; chargeEffects?.clear();
         body.setVelocityX(0);
         heroCelebration.update(delta,body.center.x,body.bottom,facingDirection);
         jumpQueuedAt=downQueuedAt=specialQueuedAt=blinkQueuedAt=recallQueuedAt=equipmentAttackQueuedAt=jumpBufferedAt=-9999;
@@ -2248,6 +2329,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const attackQueued = performance.now() - equipmentAttackQueuedAt < ATTACK_BUFFER_MS;
       const attackHeld = shootKey.isDown || Boolean(touch.attack || touch.shoot);
       const canAttack = !signature?.casting && !mobility?.busy;
+      const chargeEligible = !isTurkeyKing && canAttack && (equipment.active==='blaster' || isKai && equipment.active==='hands');
+      const chargeHeld = attackKey.isDown || attackHeld;
+      if(chargeEligible && chargeHeld) {
+        const wasReady = blasterChargeMs >= BLASTER_CHARGE_MS;
+        blasterChargeMs = Math.min(BLASTER_CHARGE_MS,blasterChargeMs+delta);
+        if (!wasReady && blasterChargeMs >= BLASTER_CHARGE_MS) playSfx('blasterChargeReady');
+      }
+      else {
+        if(chargeEligible && chargeWasHeld && blasterChargeMs>=BLASTER_CHARGE_MS && firePlayerShot(scene,true)){
+          lastShotAt=now; shotRecoilUntil=now+180;
+        }
+        blasterChargeMs=0;
+      }
+      chargeWasHeld=chargeEligible && chargeHeld;
       if (canAttack && blasterEquipped && (attackQueued || attackHeld || attackKey.isDown) && now >= attackVisualUntil && now - lastShotAt >= (isKai&&equipment.active==='hands'?280:equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)) {
         if (equipment.active==='frost'?fireFrostShot(scene):firePlayerShot(scene)) {
           equipmentAttackQueuedAt = -9999;
@@ -2306,8 +2401,20 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       updateDoghostCompanion(scene, delta);
       updateTeleportationCCompanion(scene, delta);
       cleanupProjectiles(delta);
+      chargeEffects.clear();
+      if (blasterChargeMs >= 350) {
+        const {x,y} = blasterMuzzle(scene);
+        chargeEffects.muzzle(x,y,blasterChargeMs,scene.time.now);
+      }
+      for (const child of projectiles.getChildren()) {
+        const shot = child as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+        if (shot.active && shot.getData('chargedShot')) {
+          chargeEffects.trail(shot.x,shot.y,Number(shot.getData('chargeOriginX')),Math.sign(shot.body.velocity.x));
+        }
+      }
       fireBlades?.update(delta);
       updateBossHud(scene);
+      mobility?.refreshSmashVisibility();
       updateRooftopRush(scene);
 
       if (player.y > WORLD_HEIGHT + 160) {
@@ -2800,6 +2907,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const rectangles=[...level.platforms,...lifts.map(l=>({x:l.body.x,y:l.body.y,w:l.body.width,h:l.body.height})),
         ...crumbleLedges.filter(l=>l.body.enable).map(l=>l.plan)];
       const solids=rectangles.filter(r=>r.h>56);
+      for(const encounter of routeEncounters){
+        const gate=encounter.barrier();
+        if(gate)solids.push(gate);
+      }
       if(bossBarrier?.active&&bossBarrier.body){const b=bossBarrier.body as Phaser.Physics.Arcade.StaticBody;if(b.enable)solids.push({x:b.x,y:b.y,w:b.width,h:b.height});}
       return {solids,supports:rectangles,hazards:[...level.hazards,...vents.filter(v=>v.phase==='active').map(v=>({x:v.body.x,y:v.body.y,w:v.body.width,h:v.body.height}))],
         left:bossArenaBounds?.left??0,right:bossArenaBounds?.right??level.endX,
@@ -2855,11 +2966,16 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       return equipment.active==='sword'?'runner_sword-':equipment.active==='blaster'?'runner_blaster-':'runner_';
     }
 
-    function applyEquipment(scene:Phaser.Scene,id:EquippedPowerup){
+    function isUsingKaiArm(){
+      return kaiArmUnlocked && equipment.active==='blaster' && equipment.blasterStyle!=='ink';
+    }
+
+    function applyEquipment(scene:Phaser.Scene,id:EquippedPowerup,blasterStyle?:BlasterStyle){
       if(isTurkeyKing)return;
-      const next=equipPowerup(equipment,id,currentLevel);
+      const next=equipPowerup(equipment,id,currentLevel,blasterStyle);
       if(next===equipment)return;
       equipmentAttackQueuedAt = -9999;
+      blasterChargeMs=0;chargeWasHeld=false;
       stopEmber();
       equipment=next;hasFlameSword=id==='sword';swordDurability=hasFlameSword?equipment.hits:0;
       const firstSword=isXGod&&id==='sword'&&!swordPresentationSeen;
@@ -2867,7 +2983,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(hasFlameSword)swordUnlocked=true;
       characterPowerUnlocked=true;emberUntil=-9999;powerAura?.clear();
       lastShotAt=lastAttackAt=-9999;attackVisualUntil=shotRecoilUntil=-9999;
-      if(!firstSword)showCompanionJoinNotice(scene,`${POWERUPS[id].name.toUpperCase()} · 3 HITS`, '#'+POWERUPS[id].color.toString(16).padStart(6,'0'));
+      if(!firstSword)showCompanionJoinNotice(scene,`${isUsingKaiArm()?'KAI BLASTER ARM':POWERUPS[id].name.toUpperCase()} · 3 HITS`, isUsingKaiArm()?'#8feaff':'#'+POWERUPS[id].color.toString(16).padStart(6,'0'));
       if(firstSword)requestSwordPresentation();
       syncStats();
     }
@@ -2878,7 +2994,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function addGunStation(scene:Phaser.Scene,plan:{mode:GunUpgradeId;x:number;y:number}){
-      const sprite=pickups.create(plan.x,plan.y,'gun_upgrade_'+plan.mode) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+      const sprite=pickups.create(plan.x,plan.y,workshopKey(plan.mode)) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+      animateWorkshopPickup(sprite,plan.mode);
       sprite.setDisplaySize(58,58).setDepth(10).setData('kind','gun_'+plan.mode).setData('gunStation',true);
       (sprite.body as Phaser.Physics.Arcade.Body).setSize(sprite.width*.85,sprite.height*.85,true).setAllowGravity(false);
       const label=scene.add.text(plan.x,plan.y+35,GUN_UPGRADES[plan.mode].name.toUpperCase(),{fontFamily:'Gochi Hand, sans-serif',fontSize:'16px',color:'#'+GUN_UPGRADES[plan.mode].color.toString(16),stroke:'#19182e',strokeThickness:4}).setOrigin(.5).setDepth(10).setVisible(false);
@@ -2886,11 +3003,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       scene.tweens.add({targets:sprite,y:plan.y-8,yoyo:true,repeat:-1,duration:850,ease:'sine.inOut'});
     }
 
-    function addPowerStation(scene:Phaser.Scene,plan:{kind:EquippedPowerup;x:number;y:number}){
-      const sprite=pickups.create(plan.x,plan.y,`equipment_${plan.kind}`) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    function addPowerStation(scene:Phaser.Scene,plan:{kind:EquippedPowerup;blasterStyle?:BlasterStyle;x:number;y:number}){
+      const artId=plan.blasterStyle==='kai-arm'?'kai-arm':plan.kind;
+      const sprite=pickups.create(plan.x,plan.y,workshopKey(artId)) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+      animateWorkshopPickup(sprite,artId);
       sprite.setDisplaySize(58,58).setDepth(10).setData('kind',plan.kind).setData('powerStation',true);
       sprite.body.setSize(sprite.width*.85,sprite.height*.85,true);
-      const label=scene.add.text(plan.x,plan.y+35,POWERUPS[plan.kind].name.toUpperCase(),{fontFamily:'Gochi Hand, sans-serif',fontSize:'16px',color:'#'+POWERUPS[plan.kind].color.toString(16).padStart(6,'0'),stroke:'#19182e',strokeThickness:4})
+      const arm = plan.blasterStyle==='kai-arm';
+      const label=scene.add.text(plan.x,plan.y+35,arm?'KAI BLASTER ARM':POWERUPS[plan.kind].name.toUpperCase(),{fontFamily:'Gochi Hand, sans-serif',fontSize:'16px',color:arm?'#8feaff':'#'+POWERUPS[plan.kind].color.toString(16).padStart(6,'0'),stroke:'#19182e',strokeThickness:4})
         .setOrigin(.5).setDepth(10);
       powerStations.push({...plan,nextAt:0,sprite,label});
       scene.tweens.add({targets:sprite,y:plan.y-8,yoyo:true,repeat:-1,duration:850,ease:'sine.inOut'});
@@ -2951,12 +3071,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const now=scene.time.now,body=player.body as Phaser.Physics.Arcade.Body;
       powerHud.setText(`${POWERUPS[equipment.active].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(equipment.active==='hands'?0:3-equipment.hits)}\n${POWERUPS[equipment.active].hint}`)
         .setColor('#'+POWERUPS[equipment.active].color.toString(16).padStart(6,'0'));
-      if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE · X / SP: THUNDERFALL`).setColor('#8feaff');
+      if(isUsingKaiArm()&&!equipment.gunUpgrade)powerHud.setText(`KAI BLASTER ARM ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE, RELEASE: CHARGE`).setColor('#8feaff');
+      if(isKai&&(equipment.active==='hands'||equipment.active==='blaster'))powerHud.setText(`ARM CANNON ${equipment.active==='hands'?'': '●'.repeat(equipment.hits)}\nHOLD FIRE, RELEASE: CHARGE · X: SPECIAL`).setColor('#8feaff');
       if(isShadow&&equipment.active==='hands')powerHud.setText('BLACK HOLES\nATTACK: THROW Â· X / SP: VOID BURST').setColor('#c69aff');
       if(isElytron&&equipment.active==='hands')powerHud.setText('ELECTRIC FISTS\nX / SP: PULSE STORM').setColor('#ffda39');
       if(isTurkeyKing)powerHud.setText('ROYAL STAFF + TURKEY TOSS\nSPACE: STAFF · C: TOSS · X: STORM').setColor('#ffdb9c');
       if (isZGod) powerHud.setText(`INVINCIBLE · ONE-HIT POWER · ${POWERUPS[equipment.active].name.toUpperCase()}`).setColor('#ffd0e5');
-      if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE · INK BLASTER`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
+      if(equipment.active==='blaster'&&equipment.gunUpgrade)powerHud.setText(`${GUN_UPGRADES[equipment.gunUpgrade].name.toUpperCase()}  ${'●'.repeat(equipment.hits)}${'○'.repeat(3-equipment.hits)}\nHOLD FIRE, RELEASE: CHARGE`).setColor('#'+GUN_UPGRADES[equipment.gunUpgrade].color.toString(16));
       powerAura.clear();
       if(now>=emberUntil)body.setMaxVelocity(520,900);
       if(selectedCharacterId==='teleportation_c'&&teleport.anchor){
@@ -3007,6 +3128,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (pickup.kind === "power") sprite.setDisplaySize(64, 64);
       if (pickup.bounceReward) sprite.setDisplaySize(54, 54);
       if (pickup.kind === "rush_star") sprite.setTexture("rooftop_rush_star").setDisplaySize(44, 44);
+      const artId=pickup.kind==='power'?'sword':pickup.kind==='rush_star'?'rush-star':pickup.kind;
+      if(scene.anims.exists(workshopKey(artId))){
+        const size=pickup.kind==='heart'?54:pickup.kind==='rush_star'?44:pickup.kind==='power'?64:54;
+        sprite.setTexture(workshopKey(artId),0).setDisplaySize(size,size);
+        animateWorkshopPickup(sprite,artId);
+      }
       sprite.body.setSize(sprite.width * 0.65, sprite.height * 0.75, true);
       scene.tweens.add({ targets: sprite, y: pickup.y - 10, yoyo: true, repeat: -1, duration: 900, ease: "sine.inOut" });
     }
@@ -3015,7 +3142,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (dinioCompanion?.active || !player?.active) return;
       const feet = (player.body as Phaser.Physics.Arcade.Body).bottom;
       const travelDirection = getCompanionTravelDirection();
-      dinioCompanion = scene.add.sprite(player.x - travelDirection * 112, feet, "dinio_walk", 0)
+      dinioCompanion = scene.add.sprite(player.x - travelDirection * 112, feet, "workshop_dinio", 0)
         .setOrigin(0.5, 0.9375).setScale(0.39).setDepth(19);
       dinioNextShotAt = scene.time.now + 500;
     }
@@ -3029,6 +3156,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const targetX = player.x - travelDirection * 112;
       const targetY = (player.body as Phaser.Physics.Arcade.Body).bottom;
       const position=stepCompanionGround(dinioStride,dinio,{x:scene.time.now<dinioAttackUntil?dinio.x:targetX,y:targetY,airborne:!(player.body as Phaser.Physics.Arcade.Body).blocked.down},delta,companionFloorAt);
+      dinioDistance+=Math.abs(position.x-dinio.x);
       dinio.setPosition(position.x,position.y);
 
       const now = scene.time.now;
@@ -3055,12 +3183,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         });
       }
       if (now < dinioAttackUntil) {
-        const remaining = dinioAttackUntil - now;
-        dinio.setTexture("dinio_attack", remaining > 240 ? 0 : remaining > 120 ? 1 : 2);
-        dinio.setOrigin(dinioAttackFacing < 0 ? 1 - 160 / 448 : 160 / 448, 0.9375);
+        const age=360-(dinioAttackUntil-now);
+        dinio.setFrame(12+Math.min(3,Math.floor(age/90)));
+        dinio.setOrigin(0.5, 0.9375);
         dinio.setFlipX(dinioAttackFacing < 0);
       } else {
-        dinio.setTexture("dinio_walk", !dinioStride.grounded?2:Math.abs(dinioStride.vx)>18?Math.floor(now / 80) % 6:0);
+        dinio.setFrame(!dinioStride.grounded?7:Math.abs(dinioStride.vx)>18?4+Math.floor(dinioDistance/14)%8:Math.floor(now/200)%4);
         dinio.setOrigin(0.5, 0.9375);
         dinio.setFlipX(travelDirection < 0);
       }
@@ -3070,9 +3198,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (doghostCompanion?.active || !player?.active) return;
       const feet = (player.body as Phaser.Physics.Arcade.Body).bottom;
       const travelDirection = getCompanionTravelDirection();
-      doghostCompanion = scene.add.sprite(player.x - travelDirection * 190, feet - 54, "doghost_walk", 0)
-        .setOrigin(0.5, 0.9).setScale(.48).setAlpha(0.94).setDepth(18);
-      if (scene.anims.exists("platformer_doghost_walk")) doghostCompanion.play("platformer_doghost_walk");
+      doghostCompanion = scene.add.sprite(player.x - travelDirection * 190, feet - 54, "workshop_doghost", 0)
+        .setOrigin(0.5, 0.9375).setScale(.36).setAlpha(0.94).setDepth(18);
     }
 
     function updateDoghostCompanion(scene: Phaser.Scene, delta: number) {
@@ -3084,6 +3211,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const travelDirection = getCompanionTravelDirection();
       const targetX = player.x - travelDirection * 190;
       const targetY = feet - 54 + Math.sin(scene.time.now * 0.006) * 7;
+      const moving=Math.abs(targetX-doghost.x)>8;
       followCompanion(doghost, targetX, targetY, delta);
       const now=scene.time.now;
       if(!scene.textures.exists('doghost_pulse')){
@@ -3105,8 +3233,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           pulse.body.setAllowGravity(false).setSize(42,42,true);doghostShots++;playSfx('frost',{volume:.2,pitch:.65});
         });
       }
-      if(now<doghostAttackUntil){doghost.anims.stop();doghost.setFrame(String(8+Math.min(3,Math.floor((440-(doghostAttackUntil-now))/110)))).setFlipX(doghostAttackFacing<0);}
-      else{doghost.anims.play('platformer_doghost_walk',true);doghost.setFlipX(travelDirection<0);}
+      if(now<doghostAttackUntil)doghost.setFrame(12+Math.min(3,Math.floor((440-(doghostAttackUntil-now))/110))).setFlipX(doghostAttackFacing<0);
+      else doghost.setFrame(moving?4+Math.floor(now/85)%8:Math.floor(now/200)%4).setFlipX(travelDirection<0);
       doghost.setDepth(17);
     }
 
@@ -3313,6 +3441,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemies.getChildren().forEach((child) => {
         const enemy = child as Phaser.Physics.Arcade.Sprite;
         if (!enemy.active) return;
+        if (enemy.getData('kind')==='lockwing') return;
         if(now<Number(enemy.getData('specialStunUntil')??0)){
           const pull=now<Number(enemy.getData('slamPullUntil')??0);
           enemy.setVelocityX(pull?Phaser.Math.Clamp((Number(enemy.getData('slamPullX'))-enemy.x)*4,-180,180):0);return;
@@ -3488,7 +3617,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       enemy.anims.play(foeWalk(kind),true);
       enemy.anims.timeScale=1;
       if(kind==='ghost'){
-        placeBossAt(enemy,enemy.x,Number(enemy.getData('homeY'))+Math.sin(now/460+Number(enemy.getData('spawnX')))*13);
+        placeBossAt(enemy,enemy.x,Number(enemy.getData('homeY'))+Math.sin(now/850+Number(enemy.getData('spawnX')))*55);
         enemy.setAngle(Math.sin(now/600)*4);
       }else enemy.setAngle(0);
       enemy.setVelocityX(direction*def.speed);
@@ -3906,6 +4035,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           }
           if (t >= 1 && !boss.getData("landingFired")) {
             boss.setData("landingFired", true);
+            if (!bossVulnerabilityCue?.reducedMotion && (move === "dragon_lunge" || move === "cinder_bound")) {
+              scene.cameras.main.shake(200, move === "cinder_bound" ? 0.006 : 0.005, true);
+            }
             if (move === "cinder_bound") { hitStageBossLanding(scene, boss); stageBossWaves(scene, boss); }
             if (move === "shadow_dash" && phaseTwo) stageBossWaves(scene, boss, "shadow_wave");
             if (move === "witch_step") stageBossWaves(scene, boss, "witch_wisp");
@@ -4204,7 +4336,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function landKilina(scene: Phaser.Scene, boss: Phaser.Physics.Arcade.Sprite) {
       hitKilinaAxe(scene, boss, true);
-      scene.cameras.main.shake(170, 0.005);
+      if (!bossVulnerabilityCue?.reducedMotion) scene.cameras.main.shake(170, 0.005, true);
       const floor = boss.getData("floorY") as number;
       const ripple = scene.add.image(boss.x, floor - 6, "boss_tell_ring").setDisplaySize(230, 42).setTint(0xd8a4ff).setDepth(15);
       scene.tweens.add({ targets: ripple, alpha: 0, scaleX: ripple.scaleX * 1.5, duration: 330, onComplete: () => ripple.destroy() });
@@ -4352,46 +4484,58 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       pulse.body.setAllowGravity(false);
     }
 
-    function firePlayerShot(scene: Phaser.Scene) {
+    function blasterMuzzle(scene: Phaser.Scene) {
+      const heldMuzzle=armCannonMuzzle(scene) ?? (isCrouching?crouchMuzzle():heroAttachment(scene,'muzzle'));
+      if (heldMuzzle) return heldMuzzle;
+      const action = player.texture.key.replace('runner_', '');
+      const attachmentSet=useDrawnXGod?'xgod_drawn_meta':action==='blaster-run'?'xgod_blaster_run_v3_meta':action==='blaster-jump'?'xgod_jump_v3_meta':'xgod_motion_v2_meta';
+      const muzzle = !hasFlameSword && scene.cache.json.get(attachmentSet)?.actions[action]?.attachments[Number(player.frame.name)]?.muzzle;
+      return muzzle
+        ? {x:player.x+facingDirection*(muzzle[0]-(useDrawnXGod?384:256))*player.scaleX,y:player.y+(muzzle[1]-480)*player.scaleY}
+        : {x:player.x+facingDirection*(hasFlameSword?76:82),y:player.y-(hasFlameSword?72:92)};
+    }
+
+    function hitChargedShot(scene: Phaser.Scene, enemy: Phaser.Physics.Arcade.Sprite, damage: number) {
+      const {x,y} = (enemy.body as Phaser.Physics.Arcade.Body).center;
+      if (!damageEnemy(scene,enemy,damage,true)) return false;
+      chargeEffects.impact(x,y,true);
+      playSfx('blasterChargeHit');
+      return true;
+    }
+
+    function firePlayerShot(scene: Phaser.Scene, charged=false) {
       const activeShots = projectiles.getChildren().filter((child) => {
         const shot = child as Phaser.Physics.Arcade.Sprite;
         return shot.active && shot.getData("playerShotExpiresAt");
       }).length;
-      const mode=equipment.active==='blaster'?equipment.gunUpgrade:undefined;
+      const mode=!charged&&equipment.active==='blaster'?equipment.gunUpgrade:undefined;
       const spec=mode?GUN_UPGRADES[mode]:undefined;
-      if (activeShots+(spec?.angles.length??1) > (spec?.limit??3)) return false;
+      if (!charged && activeShots+(spec?.angles.length??1) > (spec?.limit??3)) return false;
 
       const body = player.body as Phaser.Physics.Arcade.Body;
       if(!isXGod&&!isKai&&!isElytron&&!isShadow){
         updatePlayerVisual(scene,isPlayerGrounded(body),0);
         if(!isCrouching&&isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
       }
-      if (equipment.active==='blaster' && isXGod && !isCrouching && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
+      if (equipment.active==='blaster' && isXGod && !isUsingKaiArm() && !isCrouching && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
         // Releasing crouch and firing should use the raised barrel immediately.
         player.anims.stop();
         player.setTexture("runner_blaster-attack", useDrawnXGod ? 1 : 0);
       }
-      // Use the rendered hand/prop socket so shots follow the barrel in every pose.
-      const action = player.texture.key.replace("runner_", "");
-      const attachmentSet=useDrawnXGod?'xgod_drawn_meta':action==='blaster-run'?'xgod_blaster_run_v3_meta':action==='blaster-jump'?'xgod_jump_v3_meta':'xgod_motion_v2_meta';
-      const attachment = !hasFlameSword && scene.cache.json.get(attachmentSet)?.actions[action]?.attachments[Number(player.frame.name)];
-      const heldMuzzle=isCrouching?crouchMuzzle():heroAttachment(scene,'muzzle');
-      const muzzleX = heldMuzzle?.x ?? (attachment?.muzzle
-        ? player.x + facingDirection * (attachment.muzzle[0] - (useDrawnXGod?384:256)) * player.scaleX
-        : player.x + facingDirection * (hasFlameSword ? 76 : 82));
-      const muzzleY = heldMuzzle?.y ?? (attachment?.muzzle
-        ? player.y + (attachment.muzzle[1] - 480) * player.scaleY
-        : player.y - (hasFlameSword ? 72 : 92));
-      const damage=spec?.damage??(hasFlameSword?1:2);
+      const {x:muzzleX,y:muzzleY} = blasterMuzzle(scene);
+      const damage=charged?6:spec?.damage??(hasFlameSword?1:2);
       let shot:Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
       for(const angle of spec?.angles??[0]){
-        const bolt=projectiles.create(muzzleX,muzzleY,isKai?'kai_fx':'player_ink_shot',isKai?'0':undefined) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+        const texture = charged ? CHARGED_BOLT_TEXTURE : isKai ? 'kai_fx' : 'player_ink_shot';
+        const bolt=projectiles.create(muzzleX,muzzleY,texture,!charged&&isKai?'0':undefined) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
         bolt.setData('damage',damage).setData('playerShotExpiresAt',scene.time.now+(spec?.lifetime??900))
           .setDepth(22).setFlipX(facingDirection<0).setVelocity(facingDirection*Math.cos(angle)*(spec?.speed??650),Math.sin(angle)*(spec?.speed??650));
-        if(isKai)bolt.setDisplaySize(42,22).play('kai_pellet');
-        if(spec)bolt.setTint(spec.color).setData('gunUpgrade',mode).setData('gunDirection',facingDirection).setData('pattern','gun_'+mode);
+        if(!charged&&isKai)bolt.setDisplaySize(42,22).play('kai_pellet');
+        if(charged)bolt.setData('chargedShot',true).setData('chargeOriginX',muzzleX);
+        else if(spec)bolt.setTint(spec.color).setData('gunUpgrade',mode).setData('gunDirection',facingDirection).setData('pattern','gun_'+mode);
         else if(hasFlameSword)bolt.setTint(0xffb35c);
-        (bolt.body as Phaser.Physics.Arcade.Body).setSize(isKai?160:27,isKai?130:13,true).setAllowGravity(false);
+        else if(isUsingKaiArm())bolt.setTint(0x60eaff);
+        (bolt.body as Phaser.Physics.Arcade.Body).setSize(charged?bolt.width*.8:isKai?160:27,charged?bolt.height*.8:isKai?130:13,true).setAllowGravity(false);
         if(angle===0)shot=bolt;
       }
 
@@ -4406,13 +4550,14 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         }).sort((a, b) => Math.abs(a.x - player.x) - Math.abs(b.x - player.x))[0];
       if (closeTarget) {
         shot!.destroy();
-        damageEnemy(scene, closeTarget, damage, true);
+        if (charged) hitChargedShot(scene,closeTarget,damage);
+        else damageEnemy(scene, closeTarget, damage, true);
       }
 
-      const flash = scene.add.ellipse(muzzleX, muzzleY, 26, 20, 0xf4f0b3, 0.85).setDepth(21);
+      const flash = scene.add.ellipse(muzzleX, muzzleY, charged?70:26, charged?55:20, charged?0x9bf5ff:0xf4f0b3, 0.85).setDepth(21);
       scene.tweens.add({ targets: flash, scaleX: 1.5, scaleY: 0.3, alpha: 0, duration: 90, onComplete: () => flash.destroy() });
       shotsFired += 1;
-      playSfx('blaster');
+      playSfx(charged ? 'blasterChargeFire' : 'blaster');
       return true;
     }
 
@@ -4745,6 +4890,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     function updateDrawnXGodVisual(scene:Phaser.Scene,grounded:boolean,delta:number){
       const now=scene.time.now,body=player.body as Phaser.Physics.Arcade.Body;
       const prefix=playerPosePrefix();
+      const armCannon = isUsingKaiArm();
+      const jumpTexture = armCannon ? 'xgod_kai_arm_jump' : prefix+'jump';
       if(!grounded){
         if(!jumpVisualAirborne||body.velocity.y< -300&&lastAirborneVelocity>=0)jumpVisualStartedAt=now;
         jumpVisualAirborne=true;lastAirborneVelocity=body.velocity.y;landingVisualStartedAt=-9999;
@@ -4763,7 +4910,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         return;
       }
       if(isCrouching||crouchVisualProgress>0){
-        player.setTexture(prefix+'crouch',isCrouching?(crouchVisualProgress<.5?0:1):3);
+        const crouchFrame = armCannon && isCrouching
+          ? Math.min(2, Math.floor(crouchVisualProgress * 3))
+          : isCrouching ? (crouchVisualProgress < .5 ? 0 : 1) : 3;
+        player.setTexture(armCannon ? 'xgod_kai_arm_crouch' : prefix+'crouch',crouchFrame);
       }else if(now<attackVisualUntil){
         const elapsed=now-attackStartedAt;
         if(hasFlameSword){
@@ -4771,20 +4921,24 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           player.setTexture('xgod_side_scroll_fire_sword_attack_v1',frame);
         }else player.setTexture(prefix+'attack',elapsed<140?0:elapsed<275?1:2);
       }else if(equipment.active==='blaster'&&grounded&&Math.abs(body.velocity.x)<=18&&now<shotRecoilUntil){
-        player.setTexture('runner_blaster-attack',now-lastShotAt<90?1:2);
+        const shotAge = now - lastShotAt;
+        if (armCannon) player.setTexture('xgod_kai_arm',shotAge<65?2:3);
+        else player.setTexture('runner_blaster-attack',shotAge<90?1:2);
       }else if(!grounded){
-        player.setTexture(prefix+'jump',now-jumpVisualStartedAt<55&&body.velocity.y< -300?0:body.velocity.y< -180?1:body.velocity.y<150?2:3);
+        player.setTexture(jumpTexture,now-jumpVisualStartedAt<55&&body.velocity.y< -300?0:body.velocity.y< -180?1:body.velocity.y<150?2:3);
       }else if(now-landingVisualStartedAt<(Math.abs(body.velocity.x)>80?65:110)){
-        player.setTexture(prefix+'jump',0);
+        player.setTexture(jumpTexture,0);
       }else if(isSkidding){
         const frame=Math.min(3,Math.floor((now-skidUntil+TURN_SKID_DURATION_MS)/50));
-        player.setTexture(prefix+'skid',Math.max(0,frame));
+        player.setTexture(armCannon ? 'xgod_kai_arm' : prefix+'skid',armCannon?1:Math.max(0,frame));
       }else if(Math.abs(body.velocity.x)>18){
         characterStride+=Math.abs(body.velocity.x)*delta/1000;
-        const key=hasFlameSword?'xgod_side_scroll_fire_sword_run_v1':prefix+'run';
+        const elemental = equipment.active==='ember' || equipment.active==='storm';
+        const key=armCannon?'xgod_kai_arm_run':hasFlameSword?'xgod_side_scroll_fire_sword_run_v1':elemental?'runner_elemental-run':prefix+'run';
         player.setTexture(key,Math.floor(characterStride/27)%8);
       }else{
-        characterStride=0;player.setTexture(prefix+'idle',Math.floor(now/170)%4);
+        characterStride=0;
+        player.setTexture(armCannon ? 'xgod_kai_arm' : prefix+'idle',armCannon ? 0 : Math.floor(now/170)%4);
       }
       player.setOrigin(.5,480/512);
       const height=isCrouching?160:270;
@@ -4862,7 +5016,21 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       return {x:player.x+facingDirection*60,y:body.bottom-38};
     }
 
+    function armCannonMuzzle(scene: Phaser.Scene) {
+      if (!isUsingKaiArm()) return null;
+      const point = scene.cache.json.get('xgod_kai_arm_meta')?.[player.texture.key]?.[Number(player.frame.name)];
+      if (!point) return null;
+      return {
+        x: player.x + (point[0] - 384) * player.scaleX * facingDirection,
+        y: player.y + (point[1] - 480) * player.scaleY,
+      };
+    }
+
     function heroAttachment(scene:Phaser.Scene,field:'hand'|'muzzle'){
+      if(field==='muzzle'){
+        const muzzle = armCannonMuzzle(scene);
+        if (muzzle) return muzzle;
+      }
       if(useDrawnXGod&&equipment.active==='frost'&&player.texture.key.startsWith('hero_frost_')){
         const action=player.texture.key.slice('hero_frost_'.length);
         const point=scene.cache.json.get('xgod_frost_meta')?.actions[action]?.poses[Number(player.frame.name)]?.hand;
@@ -4989,6 +5157,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(!electric&&!isButtBomb)playSfx(isStomp?'stomp':isLightShot?'enemyHit':equipment.active==='sword'?'swordHit':'punchHit');
       else if(!electric&&isBoss)playSfx('enemyHit',{volume:.45});
       enemy.setData("hp", hp);
+      if (enemy.getData('kind')==='lockwing') enemy.setData('wobbleUntil',scene.time.now+300);
       const baseScale = enemy.getData("baseScale") as number;
       const knockDirection = enemy.x < player.x ? -1 : 1;
       if (isBoss) {
@@ -5023,6 +5192,19 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         currentScore += isBoss ? 1500 : 150;
         if (isBoss) {
           playBossDefeat(scene, enemy);
+        } else if(enemy.getData('kind')==='lockwing'){
+          playSfx('enemyDeath');
+          const fallen=scene.add.sprite(enemy.x,enemy.y,'lockwing_open').setDisplaySize(enemy.displayWidth,enemy.displayHeight).setDepth(14).setData('kind','lockwing');
+          enemyDeaths.add(fallen);
+          enemy.destroy();
+          const fallTo = fallen.y+110;
+          scene.tweens.add({targets:fallen,y:fallen.y-23,angle:-12,duration:125,ease:'quad.out',onComplete:()=>{
+            if(!fallen.active)return;
+            scene.tweens.add({targets:fallen,y:fallTo,angle:63,alpha:0,duration:470,ease:'quad.in',onComplete:()=>{
+              enemyDeaths.delete(fallen);
+              fallen.destroy();
+            }});
+          }});
         } else {playSfx('enemyDeath');clearEnemyIntent(enemy);playEnemyDefeat(scene,enemy,enemyDeaths);}
         syncStats();
       }
@@ -5414,7 +5596,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if(!pickup.body?.enable)return;
         station.sprite.disableBody(true,true);station.label.setVisible(false);station.nextAt=scene.time.now+12000;
         currentScore+=station.sprite.getData('collectedOnce')?0:150;station.sprite.setData('collectedOnce',true);
-        applyEquipment(scene,station.kind);return;
+        applyEquipment(scene,station.kind,station.blasterStyle);return;
       }
       pickup.destroy();
       if(kind!=='power')playSfx(kind==='coin'||kind==='rush_star'?'pickup':kind==='shield'?'shield':'powerup');
@@ -5510,6 +5692,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         if (celebrationQueue.length) return;
       }
       isLevelClearing = true;
+      isGateRunout = true;
+      // The runout takes over from any attack or turn animation at the gate.
+      attackVisualUntil=shotRecoilUntil=lastShotAt=lastAttackAt=-9999;
+      isSkidding=false;
       currentScore += 900;
       if(currentLevel===1)characterPowerUnlocked=true;
       scene.add.text(viewport.width / 2, 210, currentLevel >= MAX_LEVEL ? "UNIVERSE SAVED!" : "LEVEL CLEAR!", {
@@ -5606,6 +5792,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const activePickups = pickups
         ? pickups.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite).filter((pickup) => pickup.active).map((pickup) => ({
           kind: pickup.getData("kind"),
+          texture:pickup.texture.key,frame:pickup.frame.name,
           bounceReward: Boolean(pickup.getData("bounceReward")),
           x: Math.round(pickup.x),
           y: Math.round(pickup.y)
@@ -5630,6 +5817,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           velocityY: Math.round((projectile.body as Phaser.Physics.Arcade.Body).velocity.y),
           playerShot: Boolean(projectile.getData("playerShotExpiresAt")),
           frostShot: Boolean(projectile.getData('frostShot')),
+          chargedShot: Boolean(projectile.getData('chargedShot')),
           fireBlade: Boolean(projectile.getData('fireBlade')),
           texture:projectile.texture.key,frame:projectile.frame.name,
           fireBladeAge:projectile.getData('fireBladeAge')??null,
@@ -5676,7 +5864,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           visualScale:player.scaleY,
           visibleHeight:params.get('capture')==='1'?visibleCharacterHeight(player):undefined,
           facing: facingDirection === 1 ? "right" : "left",
-          rangedTool: isKai&&(equipment.active==='blaster'||equipment.active==='hands')?'plasma_arm_cannon':equipment.active==='blaster'?'ink_marker_blaster':equipment.active==='frost'?'frost_gauntlet':null,
+          rangedTool: isKai&&(equipment.active==='blaster'||equipment.active==='hands')||isUsingKaiArm()?'plasma_arm_cannon':equipment.active==='blaster'?'ink_marker_blaster':equipment.active==='frost'?'frost_gauntlet':null,
           texture: player.texture.key,
           frame: player.frame.name,
           visible: player.visible,
@@ -5689,12 +5877,12 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         heroDeath: !isXGod || useDrawnXGod ? {active:Boolean(heroDeathVisual?.active),frame:heroDeathVisual?.active?Number(heroDeathVisual.frame.name):null,
           elapsedMs:heroDeathVisual?.active?Math.max(0,(gameRef.current?.scene.getScene('PlatformerScene').time.now??latestSceneTime)-heroDeathStartedAt):0,
           final:playerLives<=0,respawning:isRespawning} : null,
-        weapon: { primary: isTurkeyKing?'royal_staff':equipment.active, shotsFired,fireBlades:fireBlades?.read()??null },
+        weapon: { primary: isTurkeyKing?'royal_staff':equipment.active, kaiArm: kaiArmUnlocked, shotsFired, chargeMs:Math.round(blasterChargeMs), chargeReady:blasterChargeMs>=BLASTER_CHARGE_MS,fireBlades:fireBlades?.read()??null },
         equipment:{...equipment,name:isKai&&equipment.active==='hands'?'Arm Cannon':POWERUPS[equipment.active].name,maxHits:3,uses:powerUses,hitsLanded:powerHits,clearedBolts,
           cooldownRemainingMs:Math.max(0,(equipment.active==='blaster'?gunInterval(equipment.gunUpgrade):POWERUPS[equipment.active].cooldown)-(latestSceneTime-Math.max(lastShotAt,lastAttackAt))),emberActive:latestSceneTime<emberUntil,
           emberRemainingMs:Math.max(0,emberUntil-latestSceneTime),emberSpeed:EMBER_DASH.speed,emberDurationMs:EMBER_DASH.duration,emberJets:emberJets?.read()??null},
         gunUpgradeStations:gunStations.map(p=>({mode:p.mode,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
-        powerStations:powerStations.map(p=>({kind:p.kind,x:p.x,y:p.y,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
+        powerStations:powerStations.map(p=>({kind:p.kind,blasterStyle:p.blasterStyle,x:p.x,y:p.y,texture:p.sprite.texture.key,frame:p.sprite.frame.name,available:p.sprite.visible,rechargeMs:Math.max(0,p.nextAt-latestSceneTime)})),
         bossDefeated,
         routeEncounters: routeEncounters.map(encounter=>encounter.read()),
         completedEncounters: [...completedEncounters],
@@ -5891,6 +6079,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       window.__unknownPlatformerCollectPickup = undefined;
       window.__unknownPlatformerSpecialTest = undefined;
       window.__unknownPlatformerEnemyTest = undefined;
+      window.__unknownPlatformerPrepareGateTest = undefined;
       window.__unknownPlatformerBossRulesTest = undefined;
       autumnLeaves?.destroy();autumnLeaves=null;
       playerFreeze?.destroy();playerFreeze=null;

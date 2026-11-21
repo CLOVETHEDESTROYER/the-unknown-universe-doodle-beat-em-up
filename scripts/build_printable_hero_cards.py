@@ -1,70 +1,112 @@
-"""Build nine-character duplex sheets from approved fronts and recovered QR back.
+"""Build printable hero card fronts and QR backs for US Letter duplex printing.
+
 Requires reportlab, pymupdf, Pillow and opencv-python.
 """
 from pathlib import Path
-import sys, json
-ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'output/pdf-deps'))
+import sys
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'output/pdf-deps'))
+
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.pagesizes import letter
 from PIL import Image
-import pymupdf,cv2
-OUT=ROOT/'output/pdf';OUT.mkdir(parents=True,exist_ok=True)
-URL='https://the-unknown-universe-doodle-beat-em.vercel.app/'
-BACK=ROOT/'art/printable-cards/card-back.png'
-fronts=[('X God','xgod-current-v2.webp'),('Barrett','barrett-card.png'),('Nico','nico-card.png'),('Ezra','ezra-card.png'),('Teleportation C','teleportation-c-card.png'),('Z-God','z-god-card.png'),('Killer Kai','killer-kai-card-v2.webp'),('Kaden','kaden-card.png'),('???','shadow-kid-card-v1.png')]
-CW,CH=180,252
+import pymupdf
+import cv2
 
-def art(c,p,x,y):
- im=Image.open(p).convert('RGB');w,h=im.size;s=min(CW/w,CH/h)
- c.drawImage(ImageReader(im),x+(CW-w*s)/2,y+(CH-h*s)/2,w*s,h*s)
- c.linkURL(URL,(x,y,x+CW,y+CH),relative=0,thickness=0)
+OUT = ROOT / 'output/pdf'
+OUT.mkdir(parents=True, exist_ok=True)
+URL = 'https://the-unknown-universe-doodle-beat-em.vercel.app/'
+BACK = ROOT / 'art/printable-cards/card-back.png'
+PREFIX = 'unknown-universe-nine-hero-cards'
+REGULAR_FRONTS = [
+    'xgod-current-v2.webp',
+    'barrett-card.png',
+    'nico-card.png',
+    'ezra-card.png',
+    'teleportation-c-card.png',
+    'z-god-card.png',
+    'killer-kai-card-v2.webp',
+    'kaden-card.png',
+    'shadow-kid-card-v1.png',
+]
+EDITIONS = {
+    'regular': REGULAR_FRONTS,
+    'thanksgiving': [*REGULAR_FRONTS[:-1], 'turkey-king-card.png'],
+}
+CW, CH = 180, 252
+PRINT_SCALE = 300 / 72
 
-def marks(c,x,y):
- c.setStrokeColorRGB(.65,.65,.65);c.setLineWidth(.3)
- c.rect(x,y,CW,CH)
 
-pdf=OUT/'unknown-universe-nine-hero-cards-duplex.pdf'
-c=canvas.Canvas(str(pdf),pagesize=letter);c.setTitle('The Unknown Universe - Nine Hero Cards - Duplex')
-for back in [False,True]:
- for i,(name,file) in enumerate(fronts):
-  row,col=divmod(i,3)
-  if back:col=2-col
-  x=36+col*CW;y=18+(2-row)*CH
-  art(c,BACK if back else ROOT/'public/cards'/file,x,y);marks(c,x,y)
- c.showPage()
-c.save()
-individual=OUT/'unknown-universe-nine-hero-cards-individual.pdf'
-c=canvas.Canvas(str(individual),pagesize=(CW,CH));c.setTitle('The Unknown Universe - Individual Fronts and Backs')
-for name,file in fronts:
- for p in [ROOT/'public/cards'/file,BACK]:art(c,p,0,0);c.showPage()
-c.save()
-# Separate sheets support printers with manual duplex workflows.
-with pymupdf.open(pdf) as duplex:
- for page_index,side in enumerate(['fronts','backs']):
-  with pymupdf.open() as sheet:
-   sheet.insert_pdf(duplex,from_page=page_index,to_page=page_index)
-   sheet.save(OUT/f'unknown-universe-nine-hero-cards-{side}.pdf')
-results=[]
-for path in [pdf,individual]:
- doc=pymupdf.open(path)
- for i,page in enumerate(doc):
-  pix=page.get_pixmap(matrix=pymupdf.Matrix(300/72,300/72));png=OUT/f'{path.stem}-page-{i+1}.png';pix.save(str(png))
-  if (path==pdf and i==1) or (path==individual and i%2==1):
-   img=cv2.imread(str(png))
-   if path==pdf:
-    # Decode every occupied back cell independently at final 300-dpi print scale.
-    for j in range(len(fronts)):
-     row,col=divmod(j,3);col=2-col
-     x=round((36+col*CW)*300/72);y=round((18+row*CH)*300/72)
-     crop=img[y:y+1050,x:x+750]
-     decoded,_,_=cv2.QRCodeDetector().detectAndDecode(crop)
-     assert decoded==URL,(j,decoded)
-    results.append(f'All {len(fronts)} sheet-back QR codes decode at 300 DPI')
-   else:
-    decoded,_,_=cv2.QRCodeDetector().detectAndDecode(img);assert decoded==URL
- results.append({'file':path.name,'pages':len(doc)})
-(OUT/'verification.json').write_text(json.dumps({'url':URL,'checks':results},indent=2))
-(OUT/'PRINT-INSTRUCTIONS.txt').write_text('US Letter paper. Print unknown-universe-nine-hero-cards-duplex.pdf at Actual size / 100%, portrait, flip on LONG edge.\nPage 1 fronts; page 2 mirrored backs. Nine 2.5 x 3.5 inch trim boxes.\nKaden: bottom-center front and matching bottom-center QR back.\n???: bottom-right front and matching bottom-left QR back on page 2. His name remains unknown.\nAll nine cards use the shared illustrated Unknown Universe backing with Scan to Play QR code.\nSeparate fronts and backs PDFs are also included for manual duplex printing.\nDo not fit or scale to page. Test one sheet on plain paper before cardstock.\nCard art is contained without cropping; white margins preserve differing source proportions.\nIndividual PDF: alternating front/back pages at 2.5 x 3.5 inches for print shops.\nQR codes open '+URL+'\n')
-print(json.dumps(results,indent=2))
+def art(c, path, x, y):
+    with Image.open(path) as source:
+        image = source.convert('RGB')
+    width, height = image.size
+    scale = min(CW / width, CH / height)
+    width, height = width * scale, height * scale
+    c.drawImage(ImageReader(image), x + (CW - width) / 2, y + (CH - height) / 2, width, height)
+    c.linkURL(URL, (x, y, x + CW, y + CH), relative=0, thickness=0)
+
+
+def slot(index, back):
+    row, col = divmod(index, 3)
+    if back:
+        col = 2 - col
+    return 36 + col * CW, 18 + (2 - row) * CH
+
+
+def build_duplex(edition, fronts):
+    path = OUT / f'{PREFIX}-{edition}-duplex.pdf'
+    c = canvas.Canvas(str(path), pagesize=letter)
+    c.setTitle(f'The Unknown Universe - Nine Hero Cards - {edition.title()}')
+    for back in (False, True):
+        for index, filename in enumerate(fronts):
+            x, y = slot(index, back)
+            art(c, BACK if back else ROOT / 'public/cards' / filename, x, y)
+            c.setStrokeColorRGB(.65, .65, .65)
+            c.setLineWidth(.3)
+            c.rect(x, y, CW, CH)
+        c.showPage()
+    c.save()
+    return path
+
+
+def verify_duplex(path, count):
+    with pymupdf.open(path) as document:
+        assert len(document) == 2
+        for index, page in enumerate(document, start=1):
+            assert (page.rect.width, page.rect.height) == letter
+            assert len(page.get_links()) == count
+            pixmap = page.get_pixmap(matrix=pymupdf.Matrix(PRINT_SCALE, PRINT_SCALE))
+            preview = OUT / f'{path.stem}-page-{index}.png'
+            pixmap.save(preview)
+        printed = cv2.imread(str(preview))
+        detector = cv2.QRCodeDetector()
+        for index in range(count):
+            x, y = slot(index, back=True)
+            left = round(x * PRINT_SCALE)
+            top = round((letter[1] - y - CH) * PRINT_SCALE)
+            width, height = round(CW * PRINT_SCALE), round(CH * PRINT_SCALE)
+            crop = printed[top:top + height, left:left + width]
+            decoded, _, _ = detector.detectAndDecode(crop)
+            assert decoded == URL, (path.name, index + 1, decoded)
+    return {'file': path.name, 'pages': 2, 'verifiedQRBacks': count}
+
+
+results = []
+for edition, fronts in EDITIONS.items():
+    assert len(fronts) == 9
+    results.append(verify_duplex(build_duplex(edition, fronts), len(fronts)))
+
+(OUT / 'verification.json').write_text(json.dumps({'url': URL, 'checks': results}, indent=2), encoding='utf-8')
+(OUT / 'PRINT-INSTRUCTIONS.txt').write_text(
+    f'Regular edition: {PREFIX}-regular-duplex.pdf (Mystery Shadow Kid in the bottom-right slot).\n'
+    f'Thanksgiving edition: {PREFIX}-thanksgiving-duplex.pdf (Turkey King in the bottom-right slot).\n'
+    'Each PDF has the nine fronts on page 1 and the mirrored QR backs on page 2.\n'
+    'Print on US Letter at Actual size / 100%, portrait, flip on LONG edge.\n'
+    'Trim each card at the 2.5 x 3.5 inch box.\n',
+    encoding='utf-8',
+)
+print(json.dumps(results, indent=2))

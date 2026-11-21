@@ -14,7 +14,8 @@ VARIANTS={'blaster':3,'shipLaser':3,'shipLance':2,'shipMissile':2,'enemyLaser':2
  'jump':3,'doubleJump':3,'landing':2,'slamCharge':2,'slamXgod':2,'slamBarrett':2,
  'slamNico':2,'slamEzra':2,'slamTeleport':2,'slamZgod':2,'punchSwing':3,'punchHit':3,
  'swordSwing':2,'swordHit':2,'enemyHit':3,'explosion':3,'shipHit':2,'shipExplosion':2,
- 'frost':2,'ember':2,'storm':2,'teleport':3,'stomp':3,'spring':2}
+ 'frost':2,'ember':2,'storm':2,'teleport':3,'stomp':3,'spring':2,
+ 'blasterChargeReady':1,'blasterChargeFire':1,'blasterChargeHit':1}
 
 class Sound:
  def __init__(self,duration,rng):self.y=np.zeros(round(duration*RATE));self.rng=rng;self.layers=[]
@@ -58,6 +59,18 @@ def recipe(name,v,rng):
   s.noise(.2,450,3500,.13,at=.012,decay=5,label='barrel air and electric grit')
   if not ship:s.modes(.11,540,.10,at=.014,metal=True)
   if lance:s.tone(.25,2400,620,.17,at=.035,decay=5,fm=.3,label='lance harmonic tail')
+ elif name=='blasterChargeReady':
+  s.tone(.125,660,760,.36,decay=3,label='rising first chime')
+  s.tone(.27,1047,1080,.4,at=.075,decay=3.5,label='clear full-charge chime')
+  s.tone(.20,1568,gain=.13,at=.075,decay=4,label='chime overtone')
+ elif name=='blasterChargeFire':
+  s.tone(.23,350,85,.43,decay=4.5,fm=.7,label='heavy discharge')
+  s.tone(.29,1700,330,.32,decay=4,fm=1.4,label='descending energy sweep')
+  s.noise(.12,500,4200,.22,decay=5,label='charged muzzle snap')
+ elif name=='blasterChargeHit':
+  s.tone(.21,230,75,.46,decay=5,label='impact thump')
+  s.noise(.08,700,5600,.26,decay=6,label='ink splash snap')
+  s.modes(.24,560,.20,at=.018,metal=True)
  elif name=='shipMissile':
   s.noise(.26,150,2800,.35,decay=4,attack=.009,label='rocket propellant rush');s.tone(.18,180,65,.3,label='launch thump');s.tone(.26,230,690,.17,fm=.35,label='accelerating motor')
  elif name in ('jump','doubleJump','spring'):

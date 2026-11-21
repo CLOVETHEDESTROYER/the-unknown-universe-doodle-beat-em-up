@@ -1,3 +1,4 @@
+import {completeAlleyRescue} from './alley_test_helpers.mjs';
 import {chromium} from 'playwright';
 import {build} from 'esbuild';
 import assert from 'node:assert/strict';
@@ -56,6 +57,6 @@ try{
  s=await read();let boss=s.enemies.find(e=>e.kind==='boss');await place(boss.x-220,boss.floorY);await page.keyboard.press('ArrowRight',{delay:20});await page.keyboard.down('Space');await wait(s=>s.bossDefeated);await page.keyboard.up('Space');
  await wait(s=>s.bossDeath.stage==='finished'&&!s.celebration.active);s=await read();await place(s.progress.levelEndX,480);
  s=await wait(s=>s.mode==='campaign-story'&&s.chapter==='level1');assert.equal(s.resume.equipment.active,'blaster');assert.equal(s.resume.equipment.gunUpgrade,'rapid');
- await page.getByRole('button',{name:'Skip story',exact:true}).click();await wait(s=>s.level===2&&s.player?.grounded&&s.equipment.gunUpgrade==='rapid',60000);evidence.actualBossVictoryCarriesGun=true;
+ await page.getByRole('button',{name:'Skip story',exact:true}).click();await completeAlleyRescue(page);await wait(s=>s.level===2&&s.player?.grounded&&s.equipment.gunUpgrade==='rapid',60000);evidence.actualBossVictoryCarriesGun=true;
  assert.deepEqual(errors,[]);await fs.writeFile(path.join(out,'report.json'),JSON.stringify({evidence,errors},null,2));console.log(JSON.stringify(evidence,null,2));
 }finally{await browser.close();}

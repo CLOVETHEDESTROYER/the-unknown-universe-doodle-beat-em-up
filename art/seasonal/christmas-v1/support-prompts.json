@@ -1,0 +1,34 @@
+[
+  {
+    "name": "elf-medic",
+    "transparent": true,
+    "refs": [
+      "elf-helpers-master"
+    ],
+    "prompt": "Use case: stylized-concept. Transparent production animation sprite sheet for The Unknown Universe Christmas game. Reference shows TWO elf designs. Draw ONLY the specified single elf, exactly the SAME design throughout sheet. Same face, pointed ears, skin tone, cap, palette, costume proportions, bold black outlines and colored-pencil shading. Every pose 3/4 facing RIGHT. EXACTLY FOUR columns by THREE rows of TWELVE separate complete full-body poses, equal cell sizes, SAME character scale and row baseline. Large clear gaps, all features fully within each slot. No other elf, no labels, no text, no lines, no scenery, no cast shadow, no glow or colored backdrop, real transparent alpha. Layout row1: frame1 idle, frame2 idle breathing, frame3 run right foot contact, frame4 run passing. Row2: frames5-8 four successive run poses completing six-pose alternating-feet loop. Row3: frame9 kneel/prepare assist, frame10 perform assist, frame11 recover, frame12 both arms up celebrating. ONLY the LEFT FIELD MEDIC: warm brown skin, dark curly hair, green cap with gold bell, red scarf, green-and-cream tunic, green tights, dark curled boots, cream satchel with GREEN plus. Carry rolled bandage; assist frames opening satchel and offering bandage to the right. Same design as left elf in reference. Do not draw the engineer."
+  },
+  {
+    "name": "elf-engineer",
+    "transparent": true,
+    "refs": [
+      "elf-helpers-master"
+    ],
+    "prompt": "Use case: stylized-concept. Transparent production animation sprite sheet for The Unknown Universe Christmas game. Reference shows TWO elf designs. Draw ONLY the specified single elf, exactly the SAME design throughout sheet. Same face, pointed ears, skin tone, cap, palette, costume proportions, bold black outlines and colored-pencil shading. Every pose 3/4 facing RIGHT. EXACTLY FOUR columns by THREE rows of TWELVE separate complete full-body poses, equal cell sizes, SAME character scale and row baseline. Large clear gaps, all features fully within each slot. No other elf, no labels, no text, no lines, no scenery, no cast shadow, no glow or colored backdrop, real transparent alpha. Layout row1: frame1 idle, frame2 idle breathing, frame3 run right foot contact, frame4 run passing. Row2: frames5-8 four successive run poses completing six-pose alternating-feet loop. Row3: frame9 kneel/prepare assist, frame10 perform assist, frame11 recover, frame12 both arms up celebrating. ONLY the RIGHT ENGINEER: light skin, auburn hair, red cap with brass goggles on forehead, red shirt, green overalls, brown toolbelt, tan gift backpack, dark curled boots. Assist frames takes gift/tool from backpack and offers red wrapped present to the right. Same design as right elf in reference. Do not draw the medic."
+  },
+  {
+    "name": "effects",
+    "transparent": true,
+    "refs": [
+      "killer-klause-master"
+    ],
+    "prompt": "Use case: stylized-concept. Production game VFX sprite atlas, bold ink and colored-pencil cartoon matching reference's red/gold/green presents. EXACTLY FOUR equal columns by FIVE equal rows, TWENTY separate effects, transparent alpha, clear wide gaps, each effect fully in own slot. No characters, no weapon, no text, no labels, no scenery, no backdrop, no grid lines. Each row is one FOUR-frame animation at shared scale. Row1 four flight frames of ONE red wrapped GIFT BOX with golden ribbon, oriented to travel RIGHT, subtle golden propulsion trail to left; keep gift identity constant, bob/tilt gradually. Row2 four consecutive GIFT EXPLOSION stages: tight gold/red burst, expanding ribbons and stars, peak ring with paper fragments, fading tiny confetti. Row3 four MUZZLE FLASH stages directed RIGHT: small gold star pop, larger warm white/gold star, tapered star, small fading glint. Row4 four HEALING effect stages: small green/gold sparkle and plus, rising curling light, larger gentle ring, fading stars. Row5 four TRANSFORMATION/HAT MAGIC effect stages: tight turquoise/gold light, expanding snowflake halo, widest radiant icy ring, fading snowflake sparks. No solid backgrounds, no black squares."
+  },
+  {
+    "name": "props",
+    "transparent": true,
+    "refs": [
+      "killer-klause-master"
+    ],
+    "prompt": "Use case: stylized-concept. Production game prop atlas for Christmas edition of The Unknown Universe. Match reference's thick black doodle ink and colored-pencil red/green/gold palette. EXACTLY FOUR equal columns by THREE rows, TWELVE isolated objects, one per slot in row-major order. Row1: 1 forest-green PRESENT ROCKET LAUNCHER matching reference precisely, red ribbon gold rim pointing right, weapon alone no hands; 2 red gift box gold ribbon; 3 green gift box red ribbon; 4 Santa red fur-trim hat. Row2: 5 olive medic satchel white plus; 6 rolled bandages; 7 wooden crate filled with wrapped presents; 8 tall candy cane in snow base. Row3: 9 short snow-covered pine tree; 10 warm glowing workshop lantern; 11 broken timber roof beam; 12 wooden toy workshop workbench with tools and one small toy. Each object whole, generous transparent padding, no overlapping objects, no text, no labels, no grid lines, no background, genuine transparent alpha. No people or faces. Different prop sizes may differ naturally; preserve readable silhouette."
+  }
+]
