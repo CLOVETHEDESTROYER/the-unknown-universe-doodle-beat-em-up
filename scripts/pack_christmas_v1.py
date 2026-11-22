@@ -227,6 +227,15 @@ def main():
     if (SOURCE / 'klause-run-v2.png').exists():
         from pack_klause_run_v2 import pack
         MANIFEST['sheets']['klause-run-v2'] = pack()
+    if (SOURCE / 'klause-combo-v2.png').exists():
+        from pack_klause_combo_v2 import pack
+        pack()
+        MANIFEST['sheets']['klause-combo-v2'] = {'image': 'killer-klause/combo-v2.png', 'columns': 4,
+            'rows': 3, 'frameWidth': 640, 'frameHeight': 640, 'frameCount': 12,
+            'origin': [.5, .9375], 'worldStandingHeight': 160,
+            'animations': {'lead-jab': {'frames': [0,1,2,3], 'frameRate': 14, 'repeat': 0},
+                'heavy-hook': {'frames': [4,5,6,7], 'frameRate': 12, 'repeat': 0},
+                'gift-launcher-uppercut': {'frames': [8,9,10,11], 'frameRate': 12, 'repeat': 0}}}
     save_json(OUT / 'manifest.json', MANIFEST)
     # Keep the gallery self-contained for file:// review as well as Vite.
     template = (ART / 'review-template.html').read_text(encoding='utf-8')

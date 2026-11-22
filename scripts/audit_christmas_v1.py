@@ -46,7 +46,7 @@ for name, spec in manifest['sheets'].items():
         check(animation['frameRate'] > 0, f'{name}:{action}: valid playback speed')
     total_frames += spec['frameCount']
 
-check(total_frames == 112, 'complete frame coverage: 56 hero + 24 elf + 20 effect + 12 prop frames')
+check(total_frames == 124, 'complete frame coverage: 68 hero + 24 elf + 20 effect + 12 prop frames')
 check(len(manifest['backgrounds']) == 3, 'three environment exports')
 for bg in manifest['backgrounds']:
     image = Image.open(OUT / bg['image'])
