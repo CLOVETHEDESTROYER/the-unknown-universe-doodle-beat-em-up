@@ -30,7 +30,7 @@ Proposed helper designs: an elf field medic with a cream satchel, and an elf eng
 
 ## Integration contract
 
-Base facing is right. Flip in the renderer for left-facing movement; do not generate a second mirrored identity. Hero sheets use 640-square frames and a consistent foot origin at (320, 600). Helpers use 320-square frames and origin (160, 300). Effects and props use centered anchors unless metadata overrides them. Standing visible-height target is 160 world pixels, consistent with the shared hero reference; calculate runtime scale from the exported idle body's actual visible height. The launcher muzzle and healing sockets are presentation sockets, not hitbox definitions.
+Base facing is right. Flip in the renderer for left-facing movement; do not generate a second mirrored identity. Hero sheets use 640-square frames and a consistent foot origin at (320, 600). Helpers use 320-square frames and origin (160, 300). Effects and props use centered anchors unless metadata overrides them. Killer Klause's standing visible-height target is 240 world pixels (1.5× the regular 160-pixel child heroes); calculate runtime scale from the exported idle body's actual visible height. The launcher muzzle and healing sockets are presentation sockets, not hitbox definitions.
 
 The initial playable preview now uses the existing collision and boss-guard paths, a present launcher and bash, medic/engineer support, and a native weapon loadout. Timing and balance are documented in `preview.md` and remain open to playtesting. No replacement Christmas boss or separate new level geometry is introduced.
 

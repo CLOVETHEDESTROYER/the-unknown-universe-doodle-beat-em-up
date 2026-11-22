@@ -19,7 +19,7 @@ SOURCE = ART / 'source'
 OUT = ROOT / 'public/seasonal/christmas-v1'
 PREVIEW = ART / 'previews'
 MANIFEST: dict = {'version': 1, 'status': 'playable-preview; pending deployment', 'baseFacing': 'right',
-                  'heroWorldStandingHeight': 160, 'sheets': {}, 'backgrounds': [], 'props': [], 'story': []}
+                  'heroWorldStandingHeight': 240, 'sheets': {}, 'backgrounds': [], 'props': [], 'story': []}
 
 
 def save_json(path: Path, value):
@@ -180,7 +180,7 @@ def main():
     master.save(OUT / 'killer-klause/portrait.webp', lossless=True)
     MANIFEST['hero'] = {'id': 'killer_klause', 'name': 'Killer Klause', 'portrait': 'killer-klause/portrait.webp',
                         'idle': 'killer-klause/idle.png', 'visibleIdleHeight': hero_movement[0].getbbox()[3] - hero_movement[0].getbbox()[1],
-                        'runtimeStandingHeightProposal': 160, 'collision': 'Define during integration; artwork bounds are not hitboxes.',
+                        'runtimeStandingHeightProposal': 240, 'collision': 'Define during integration; artwork bounds are not hitboxes.',
                         'eventMarkersProposal': {'fire': {'frame': 1, 'emit': 'present-projectile'},
                                                  'reload': {'frame': 2, 'emit': 'reload-complete'},
                                                  'helper-call': {'frame': 2, 'emit': 'elf-assist'}}}

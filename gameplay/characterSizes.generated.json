@@ -161,7 +161,7 @@
     "target": 105
   },
   "killer_klause": {
-    "target": 160, "base": 420, "special": 420, "mobility": 420,
+    "target": 240, "base": 420, "special": 420, "mobility": 420,
     "victory": 420, "death": 420, "flight": 420,
     "equipment": {}, "textures": {"klause_body":420,"klause_run":420,"klause_combat":420,"klause_special":420}
   },

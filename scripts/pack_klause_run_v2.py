@@ -52,7 +52,7 @@ def pack():
     entry = {'image': 'killer-klause/run-v2.png', 'columns': 4, 'rows': 2,
              'frameWidth': 640, 'frameHeight': 640, 'frameCount': 8,
              'origin': [.5, .9375], 'sharedSourceScale': scale,
-             'worldStandingHeight': 160, 'worldDistancePerFrame': 24, 'muzzles': muzzles,
+             'worldStandingHeight': 240, 'worldDistancePerFrame': 24, 'muzzles': muzzles,
              'animations': {'run': {'frames': list(range(8)), 'frameRate': 12.5, 'repeat': -1}}, 'bounds': audit}
     (OUT / 'killer-klause/run-v2.json').write_text(json.dumps(entry, indent=2) + '\n')
     runtime = {'distancePerFrame': 24, 'muzzles': muzzles}
