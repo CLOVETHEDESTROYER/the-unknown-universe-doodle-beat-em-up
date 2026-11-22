@@ -617,7 +617,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
           this.load.multiatlas('flight_hero',XGOD_FROST_FOLDER+'run.json',XGOD_FROST_FOLDER);
           this.load.multiatlas('flight_head',XGOD_FROST_FOLDER+'idle.json',XGOD_FROST_FOLDER);
         }else if(turkeyKing){
-          loadGameSheet(this.load,'flight_hero',klause?'seasonal/christmas-v1/killer-klause/movement.png':'characters/turkey-king-v3/flight-walk.png',{frameWidth:640,frameHeight:640});
+          loadGameSheet(this.load,'flight_hero',klause?'seasonal/christmas-v1/killer-klause/run-v2.png':'characters/turkey-king-v3/flight-walk.png',{frameWidth:640,frameHeight:640});
           loadGameImage(this.load,'flight_head',klause?'seasonal/christmas-v1/killer-klause/idle.png':'characters/turkey-king-v3/idle.png');
         }else if(shadow){
           this.load.multiatlas('flight_hero',SHADOW_ART.folder+'run.json',SHADOW_ART.folder);
@@ -656,7 +656,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         walker=this.add.sprite(120,492,'flight_hero',0).setOrigin(.5,(zgod||xgod||kai)?0.9375:1).setScale(kai?.782:xgod?.34:.39).setDepth(16);
         if(shadow)walker.setOrigin(.5,352/384).setScale(SHADOW_ART.scale);
         if(elytron)walker.setOrigin(.5,ELYTRON_ART.baseline/ELYTRON_ART.height).setScale(ELYTRON_ART.scale);
-        this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero',klause?{start:2,end:7}:{}),frameRate:12,repeat:-1});
+        this.anims.create({key:'flight_board_walk',frames:elytron||shadow||frostXgod?this.anims.generateFrameNames('flight_hero',{start:0,end:7}):this.anims.generateFrameNumbers('flight_hero'),frameRate:12,repeat:-1});
         sizeCharacter(walker,selectedCharacterId,'flight');
         if(frostXgod)walker.setScale(characterScale('xgod','hero_frost_run'));
         if(turkeyKing)walker.setOrigin(.5,600/640);

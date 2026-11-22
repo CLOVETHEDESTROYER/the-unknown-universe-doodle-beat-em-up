@@ -224,6 +224,9 @@ def main():
         card = Image.open(SOURCE / 'killer-klause-card.png').convert('RGB')
         card.save(OUT / 'killer-klause/card.webp', quality=94)
         MANIFEST['hero']['card'] = 'killer-klause/card.webp'
+    if (SOURCE / 'klause-run-v2.png').exists():
+        from pack_klause_run_v2 import pack
+        MANIFEST['sheets']['klause-run-v2'] = pack()
     save_json(OUT / 'manifest.json', MANIFEST)
     # Keep the gallery self-contained for file:// review as well as Vite.
     template = (ART / 'review-template.html').read_text(encoding='utf-8')

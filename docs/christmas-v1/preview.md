@@ -8,7 +8,7 @@ The preview remains enabled in this browser after reload. **Christmas preview ON
 
 - Arrows / A,D: move; Z / Up / JUMP: jump and double jump. Down in midair triggers North Pole Drop.
 - Space / HIT: launcher bash, three damage through the ordinary melee/guard path.
-- C / FIRE: launch a wrapped present, five damage through ordinary projectile collisions and boss guards, followed by the reload animation. The full firing cycle takes 900 ms; the next shot becomes available after 950 ms.
+- C / FIRE: launch a wrapped present, five damage through ordinary projectile collisions and boss guards. Tap once or hold for repeated fire. A tap during reload queues one next shot. The firing cycle takes 900 ms; the next shot becomes available after 950 ms. Presents fly at 520 world pixels/second and remain larger and visible for up to 2.4 seconds, ending on impact. Standing fire plays the reload; moving fire keeps the eight-frame run cycle. Each run frame advances with 24 world pixels of movement, with fixed scale and hip/floor registration.
 - X / SP: call the surviving elves. The medic restores up to twelve health; the engineer fires two supporting presents, three damage each. Ten-second cooldown. Finish a committed attack/reload and damage recovery before calling helpers.
 - P or the pause button: pause. Helper cooldowns and animations freeze with the game.
 
@@ -25,5 +25,7 @@ Existing runs and saves retain their captured theme and hero after the public wi
 ## Verification
 
 `node scripts/test_christmas_event_v1.mjs` checks exact-case matching, Denver midnight boundaries, override reset, and blocked storage. `node scripts/test_christmas_preview_v1.mjs` checks real menu entry, all twelve story panels, movement/projectile defeat, elf healing/fire, pause, saves after expiry, code-free public opening, mobile title layouts, Thanksgiving compatibility, every campaign stage, double jump/slam, defeat/respawn, and boss victory. The latter uses `GAME_TEST_URL` for an already running built-game preview and optionally `GAME_TEST_BROWSER` for an installed Chromium executable.
+
+The November 21 launcher/run pass adds `node scripts/test_klause_launcher_run.mjs`: released keyboard taps, quick FIRE clicks, one queued shot during reload, pause, repeat/release, both directions, actual enemy defeat, every live run frame, fixed collider/scale, moving fire, jump/landing, phone landscape and Starbreak assets. It copies the rendered canvas while presents are in flight; earlier screenshots only captured the enemy after impact. Evidence is in `output/klause-launcher-run/`. The generated eight-frame source, built-in ImageGen prompt/provenance and preview GIF are in `art/seasonal/christmas-v1/`; `scripts/pack_klause_run_v2.py` reproduces hip/floor registration and the barrel anchors used by gameplay. The main packer also includes it, and the export audit now covers 112 frames.
 
 Evidence: `output/christmas-preview-v1/`. The standard develop-web-game client also ran through `scripts/run_game_test.mjs`, and its screenshot/text state are in `output/christmas-smoke-v1/`. Existing Turkey King progression checks passed. These are browser checks, not a physical-phone certification or a deployed-site check.

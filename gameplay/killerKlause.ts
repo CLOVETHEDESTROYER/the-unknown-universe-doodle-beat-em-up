@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import {playSfx} from '../audio/gameAudio';
+import run from './klauseRun.generated.json';
 
 type Sprite = Phaser.Physics.Arcade.Sprite;
 interface Hooks {
@@ -12,6 +13,7 @@ export const KLAUSE_ART = '/seasonal/christmas-v1/';
 export function loadKillerKlauseAssets(load:Phaser.Loader.LoaderPlugin) {
   for (const [key,file] of [['klause_body','movement'],['klause_combat','combat'],['klause_special','special'],['hero_death','special']])
     load.spritesheet(key,KLAUSE_ART+`killer-klause/${file}.png`,{frameWidth:640,frameHeight:640});
+  load.spritesheet('klause_run',KLAUSE_ART+'killer-klause/run-v2.png',{frameWidth:640,frameHeight:640});
   load.spritesheet('klause_fx',KLAUSE_ART+'effects/christmas-fx.png',{frameWidth:256,frameHeight:256});
   for (const role of ['medic','engineer']) load.spritesheet('klause_elf_'+role,KLAUSE_ART+`elves/${role}.png`,{frameWidth:320,frameHeight:320});
 }
@@ -24,6 +26,8 @@ export class KillerKlauseCombat {
   private action:'fire'|'melee'|'helpers'|null=null;
   private actionAt=-9999;
   private readyAt=0;
+  private fireWasHeld=false;
+  private fireBufferedUntil=-1;
   private helperReadyAt=0;
   private helperAt=-9999;
   private resolved=false;
@@ -48,18 +52,24 @@ export class KillerKlauseCombat {
   }
   get casting(){return this.action==='fire'||this.action==='helpers';}
   get swinging(){return this.action==='melee';}
-  get facing(){return this.action?this.direction:this.hooks.facing();}
+  get facing(){return this.action==='melee'?this.direction:this.hooks.facing();}
   updateEffects(delta:number) { this.advance(delta); }
   update(melee:boolean,fire:boolean,special:boolean,delta:number) {
     this.advance(delta);
     const age=this.clock-this.actionAt;
     if(this.action&&age>=(this.action==='fire'?900:this.action==='helpers'?500:420))this.action=null;
     if(!this.hooks.canUse()){this.cancel();return;}
+    // Keep one tap through a committed reload. Holding FIRE repeats without
+    // leaving an extra shot queued when the button is released.
+    if(fire&&!this.fireWasHeld)this.fireBufferedUntil=this.clock+1000;
+    this.fireWasHeld=fire;
     if(!this.action){
       if(special&&this.clock>=this.helperReadyAt){
         this.action='helpers';this.helperAt=this.clock;this.helperReadyAt=this.clock+10000;
         this.medicDone=false;this.engineerShots=0;this.calls++;
-      }else if(fire&&this.clock>=this.readyAt){this.action='fire';this.readyAt=this.clock+950;}
+      }else if((fire||this.clock<=this.fireBufferedUntil)&&this.clock>=this.readyAt){
+        this.action='fire';this.readyAt=this.clock+950;this.fireBufferedUntil=-1;
+      }
       else if(melee&&this.clock>=this.readyAt){this.action='melee';this.readyAt=this.clock+550;this.swings++;}
       if(this.action){this.actionAt=this.clock;this.direction=this.hooks.facing();this.resolved=false;}
     }
@@ -111,18 +121,21 @@ export class KillerKlauseCombat {
   }
   private launchGift(x?:number,y?:number,damage=5) {
     const p=this.hooks.player,d=this.facing;
-    x??=p.x+d*225*p.scaleX;y??=this.feet-345*p.scaleY;
+    const anchor=p.texture.key==='klause_run'?run.muzzles[Number(p.frame.name)]:undefined;
+    const muzzleX=x??p.x+d*(anchor?anchor[0]-320:190)*p.scaleX;
+    const muzzleY=y??this.feet+(anchor?anchor[1]-600:-345)*p.scaleY;
+    x??=muzzleX+d*14;y??=muzzleY;
     const target=(this.hooks.enemies.getChildren() as Sprite[]).filter(e=>e.active&&d*(e.x-x!)>15&&d*(e.x-x!)<850&&this.hooks.clearLine(e))
       .sort((a,b)=>Math.abs(a.x-x!)-Math.abs(b.x-x!))[0];
     const dy=target?(target.body as Phaser.Physics.Arcade.Body).center.y-y:0;
     const angle=target?Phaser.Math.Clamp(Math.atan2(dy,Math.max(80,Math.abs(target.x-x))),-.65,.65):0;
     const shot=this.hooks.projectiles.create(x,y,'klause_fx',0) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    shot.setScale(.46).setFlipX(d<0).setDepth(22).play('klause_gift_flight')
+    shot.setScale(.55).setFlipX(d<0).setDepth(22).play('klause_gift_flight')
       .setData('damage',damage).setData('pattern','present_rocket').setData('klauseProjectile',true)
-      .setData('playerShotExpiresAt',this.scene.time.now+1900).setVelocity(d*Math.cos(angle)*680,Math.sin(angle)*680);
+      .setData('playerShotExpiresAt',this.scene.time.now+2400).setVelocity(d*Math.cos(angle)*520,Math.sin(angle)*520);
     shot.body.setAllowGravity(false).setSize(92,84,true);
     shot.once('destroy',()=>{if(this.alive&&!this.clearing&&this.scene.sys.isActive())this.effect(shot.x,shot.y,4,.65);});
-    this.effect(x,y,8,.45,d);this.shots++;this.hooks.fired();playSfx('punchSwing',{pitch:.55,volume:.65});
+    this.effect(muzzleX,muzzleY,8,.45,d);this.shots++;this.hooks.fired();playSfx('punchSwing',{pitch:.55,volume:.65});
   }
   private effect(x:number,y:number,start:number,scale:number,direction=1) {
     const sprite=this.scene.add.sprite(x,y,'klause_fx',start).setScale(scale).setFlipX(direction<0).setDepth(23);
@@ -133,14 +146,18 @@ export class KillerKlauseCombat {
     if(hurtAge<300)return {texture:'klause_combat',frame:hurtAge<150?12:13};
     if(this.action==='helpers')return {texture:'klause_special',frame:Math.min(3,Math.floor(age/125))};
     if(this.action==='melee')return {texture:'klause_combat',frame:8+Math.min(3,Math.floor(age/105))};
-    if(this.action==='fire')return {texture:'klause_combat',frame:age<335?Math.min(3,Math.floor(age/84)):4+Math.min(3,Math.floor((age-335)/140))};
-    return {texture:'klause_body',frame:!grounded?vy<0?9:10:crouching?8:Math.abs(vx)>18?2+Math.floor(stride/26)%6:Math.floor(this.clock/480)%2};
+    // Moving fire keeps the legs running; standing fire plays the full reload.
+    if(this.action==='fire'&&grounded&&Math.abs(vx)<=18&&!crouching)
+      return {texture:'klause_combat',frame:age<335?Math.min(3,Math.floor(age/84)):4+Math.min(3,Math.floor((age-335)/140))};
+    if(grounded&&!crouching&&Math.abs(vx)>18)return {texture:'klause_run',frame:Math.floor(stride/run.distancePerFrame)%8};
+    return {texture:'klause_body',frame:!grounded?vy<0?9:10:crouching?8:Math.floor(this.clock/480)%2};
   }
   read(){return {name:'Present Launcher',shots:this.shots,meleeSwings:this.swings,meleeHits:this.hits,active:this.casting,
-    cooldownRemainingMs:Math.max(0,this.readyAt-this.clock),helpers:{active:this.clock-this.helperAt<2800,calls:this.calls,
+    cooldownRemainingMs:Math.max(0,this.readyAt-this.clock),fireQueued:this.clock<=this.fireBufferedUntil,helpers:{active:this.clock-this.helperAt<2800,calls:this.calls,
       healing:this.healing,engineerShots:this.engineerShots,cooldownRemainingMs:Math.max(0,this.helperReadyAt-this.clock)}};}
   cancel(clearEffects=false) {
     this.action=null;this.actionAt=-9999;this.resolved=true;
+    this.fireBufferedUntil=-1;this.fireWasHeld=false;
     if(clearEffects){
       this.helperAt=-9999;this.medic.setVisible(false);this.engineer.setVisible(false);this.clearing=true;
       for(const shot of [...this.hooks.projectiles.getChildren()])if(shot.getData('klauseProjectile'))shot.destroy();

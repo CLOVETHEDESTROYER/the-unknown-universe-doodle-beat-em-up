@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Edit target: first reference is the shipped Killer Klause game sprite. Supporting second reference is its expanded transparent animation workspace, showing identity only. Create the COMPLETE eight-frame run cycle in ONE sprite sheet, exactly 4 columns by 2 rows, chronological left-to-right top-to-bottom. Deliver 8 separate full-body sprites with ample transparent gutters, no overlap. Transparent background, no scenery, text, numbers or labels.\nSame character in every frame: very muscular white-bearded military Santa, red Santa hat, sleeveless red fur vest, olive shirt, dog tags, black fingerless gloves, olive medic belt pouch, red cargo pants, black lace boots. Same green/red present rocket launcher with golden muzzle and red ribbon held steadily on right shoulder pointing RIGHT. Preserve exact cartoon ink illustration style, face, palette, proportions and size of shipped reference. Production game sprites, not concept art.\nAnimation: genuine continuous RUN, not 8 variations of one pose. Frame1 near leg forward contact/far leg back, 2 near leg compresses and far knee swings through, 3 far knee lifted passing pose, 4 airborne near leg back/far leg forward, 5 far leg forward contact/near leg back, 6 far leg compresses/near knee swings through, 7 near knee lifted passing pose, 8 airborne near leg forward/far leg back continuing naturally into1. Clearly alternate near/far legs, show full boot silhouettes. Small natural torso bob and elbow counterbalance, shoulder cannon remains steady, hips centered on the SAME vertical axis in every slot and same floor line across all frames. No foot skating or wobbling torso. Slight forward lean, heroic heavy powerful run. Keep all eight hats, weapons and boots inside individual cells, all same scale.",
+  "source": "C:/Users/analo/.codex/generated_images/01a1fb8b-1a83-7f20-b6b4-9b3e53448870/exec-7535d98d-f7e8-49a4-8c65-75e8d806a5f7.png",
+  "references": [
+    "frames/klause-movement/00.png",
+    "source/klause-run-v2-reference.png"
+  ],
+  "packing": "scripts/pack_klause_run_v2.py",
+  "runtime": "public/seasonal/christmas-v1/killer-klause/run-v2.png"
+}

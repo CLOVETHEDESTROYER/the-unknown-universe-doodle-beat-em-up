@@ -4769,7 +4769,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       player.setFlipX(facingDirection < 0);
       const body = player.body as Phaser.Physics.Arcade.Body;
       if(isNativeHero){
-        characterStride+=Math.abs(body.velocity.x)*delta/1000;
+        if(isKlause){
+          // Air travel and idle time must not advance the ground run cycle.
+          characterStride=grounded&&Math.abs(body.velocity.x)>18?characterStride+Math.abs(body.velocity.x)*delta/1000:0;
+        }else characterStride+=Math.abs(body.velocity.x)*delta/1000;
         const pose=nativeCombat?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:isKlause?'klause_body':'turkey_king_body',frame:0};
         player.anims.stop();player.setTexture(pose.texture,pose.frame)
           .setOrigin(.5,600/640).setFlipX((nativeCombat?.facing??facingDirection)<0).setAngle(0);

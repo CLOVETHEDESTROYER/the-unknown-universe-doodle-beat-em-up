@@ -1,0 +1,203 @@
+{
+  "image": "killer-klause/run-v2.png",
+  "columns": 4,
+  "rows": 2,
+  "frameWidth": 640,
+  "frameHeight": 640,
+  "frameCount": 8,
+  "origin": [
+    0.5,
+    0.9375
+  ],
+  "sharedSourceScale": 1.0796915167095116,
+  "worldStandingHeight": 160,
+  "worldDistancePerFrame": 24,
+  "muzzles": [
+    [
+      490,
+      251
+    ],
+    [
+      484,
+      273
+    ],
+    [
+      487,
+      252
+    ],
+    [
+      488,
+      293
+    ],
+    [
+      491,
+      256
+    ],
+    [
+      485,
+      273
+    ],
+    [
+      489,
+      254
+    ],
+    [
+      490,
+      287
+    ]
+  ],
+  "animations": {
+    "run": {
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "frameRate": 12.5,
+      "repeat": -1
+    }
+  },
+  "bounds": [
+    {
+      "frame": 0,
+      "sourceBounds": [
+        181,
+        139,
+        530,
+        528
+      ],
+      "exportBounds": [
+        135,
+        181,
+        511,
+        599
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 1,
+      "sourceBounds": [
+        222,
+        150,
+        530,
+        528
+      ],
+      "exportBounds": [
+        176,
+        193,
+        506,
+        599
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 2,
+      "sourceBounds": [
+        205,
+        139,
+        529,
+        528
+      ],
+      "exportBounds": [
+        161,
+        181,
+        509,
+        599
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 3,
+      "sourceBounds": [
+        194,
+        129,
+        528,
+        470
+      ],
+      "exportBounds": [
+        148,
+        221,
+        507,
+        586
+      ],
+      "hipX": 320,
+      "floorY": 588
+    },
+    {
+      "frame": 4,
+      "sourceBounds": [
+        176,
+        141,
+        530,
+        525
+      ],
+      "exportBounds": [
+        131,
+        186,
+        511,
+        599
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 5,
+      "sourceBounds": [
+        225,
+        151,
+        530,
+        526
+      ],
+      "exportBounds": [
+        179,
+        196,
+        507,
+        599
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 6,
+      "sourceBounds": [
+        207,
+        140,
+        529,
+        526
+      ],
+      "exportBounds": [
+        163,
+        184,
+        509,
+        600
+      ],
+      "hipX": 320,
+      "floorY": 600
+    },
+    {
+      "frame": 7,
+      "sourceBounds": [
+        191,
+        127,
+        529,
+        471
+      ],
+      "exportBounds": [
+        145,
+        218,
+        508,
+        588
+      ],
+      "hipX": 320,
+      "floorY": 588
+    }
+  ]
+}
