@@ -36,6 +36,7 @@ export class KillerKlauseCombat {
   private alive=true;
   private clearing=false;
   private hud:Phaser.GameObjects.Text;
+  private rainbow:Phaser.GameObjects.Sprite;
   private medic:Phaser.GameObjects.Sprite;
   private engineer:Phaser.GameObjects.Sprite;
   private fx:Array<{sprite:Phaser.GameObjects.Sprite;at:number;start:number;fps:number}>=[];
@@ -48,11 +49,21 @@ export class KillerKlauseCombat {
     this.medic=scene.add.sprite(0,0,'klause_elf_medic',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
     this.engineer=scene.add.sprite(0,0,'klause_elf_engineer',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
     this.hud=scene.add.text(24,108,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'19px',color:'#b8f6da',stroke:'#192831',strokeThickness:5}).setScrollFactor(0).setDepth(83);
+    this.rainbow=scene.add.sprite(0,0,'klause_body',0).setOrigin(.5,600/640).setDepth(20.1).setAlpha(0).setBlendMode(Phaser.BlendModes.SCREEN);
     scene.anims.create({key:'klause_gift_flight',frames:[0,1,2,3].map(frame=>({key:'klause_fx',frame})),frameRate:10,repeat:-1});
   }
   get casting(){return this.action==='fire'||this.action==='helpers';}
   get swinging(){return this.action==='melee';}
   get facing(){return this.action==='melee'?this.direction:this.hooks.facing();}
+  present(player:Sprite,invulnerable:boolean,now:number){
+    if(!invulnerable||!player.visible){this.rainbow.setVisible(false);return;}
+    const hue=(now/1900)%1;
+    const color=(offset:number)=>Phaser.Display.Color.HSVToRGB((hue+offset)%1,.88,1).color;
+    this.rainbow.setVisible(true).setPosition(player.x,player.y).setTexture(player.texture.key,player.frame.name)
+      .setOrigin(player.originX,player.originY).setScale(player.scaleX,player.scaleY)
+      .setFlipX(player.flipX).setFlipY(player.flipY).setAngle(player.angle).setDepth(player.depth+.1)
+      .setTint(color(0),color(.23),color(.57),color(.8)).setAlpha(.34+.06*Math.sin(now/85));
+  }
   updateEffects(delta:number) { this.advance(delta); }
   update(melee:boolean,fire:boolean,special:boolean,delta:number) {
     this.advance(delta);
@@ -165,5 +176,5 @@ export class KillerKlauseCombat {
       for(const fx of this.fx)fx.sprite.destroy();this.fx=[];
     }
   }
-  destroy(){if(!this.alive)return;this.alive=false;this.cancel(true);this.medic.destroy();this.engineer.destroy();this.hud.destroy();}
+  destroy(){if(!this.alive)return;this.alive=false;this.cancel(true);this.medic.destroy();this.engineer.destroy();this.hud.destroy();this.rainbow.destroy();}
 }

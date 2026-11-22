@@ -4776,6 +4776,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const pose=nativeCombat?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:isKlause?'klause_body':'turkey_king_body',frame:0};
         player.anims.stop();player.setTexture(pose.texture,pose.frame)
           .setOrigin(.5,600/640).setFlipX((nativeCombat?.facing??facingDirection)<0).setAngle(0);
+        if(isKlause&&nativeCombat instanceof KillerKlauseCombat)nativeCombat.present(player,scene.time.now-lastDamageAt>=0&&scene.time.now-lastDamageAt<850,scene.time.now);
         return;
       }
       if(!isXGod){
