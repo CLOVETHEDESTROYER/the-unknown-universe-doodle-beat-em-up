@@ -2,9 +2,13 @@
 export const CHRISTMAS_START = Date.parse('2026-11-26T07:00:00.000Z');
 export const CHRISTMAS_END = Date.parse('2026-12-26T07:00:00.000Z');
 export const CHRISTMAS_PREVIEW_KEY = 'unknownUniverse.christmasPreview.2026';
+export const SPIRIT_OF_CHRISTMAS_KEY = 'unknownUniverse.spiritOfChristmas.2026';
 let sessionPreview = false;
 
 export const acceptsChristmasCode = (code: string) => code === 'SantaKisComing';
+export const acceptsSpiritOfChristmasCode = (code: string) => code === 'spirit of christmas';
+export function readSpiritOfChristmasUnlock(){try{return localStorage.getItem(SPIRIT_OF_CHRISTMAS_KEY)==='true';}catch{return false;}}
+export function unlockSpiritOfChristmas(){try{localStorage.setItem(SPIRIT_OF_CHRISTMAS_KEY,'true');}catch{/* Current session still receives the powered variant. */}}
 export const isChristmasEventLive = (now = Date.now()) => now >= CHRISTMAS_START && now < CHRISTMAS_END;
 export function readChristmasPreview() {
   try { return sessionPreview || localStorage.getItem(CHRISTMAS_PREVIEW_KEY) === 'true'; }

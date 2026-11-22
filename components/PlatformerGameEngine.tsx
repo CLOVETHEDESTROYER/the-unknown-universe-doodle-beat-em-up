@@ -99,6 +99,7 @@ interface PlatformerGameEngineProps {
   initialGravityCoreUnlocked: boolean;
   initialGravityCoreCharges: number;
   initialCharacterPowerUnlocked: boolean;
+  initialKlauseInvincible?: boolean;
   onStatsUpdate: (stats: Partial<GameStats>) => void;
   onTogglePause: () => void;
 }
@@ -1050,6 +1051,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   initialGravityCoreUnlocked,
   initialGravityCoreCharges,
   initialCharacterPowerUnlocked,
+  initialKlauseInvincible=false,
   cameraMotion = true,
   cosmetics = DEFAULT_COSMETICS,
   onStatsUpdate,
@@ -4776,7 +4778,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const pose=nativeCombat?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:isKlause?'klause_body':'turkey_king_body',frame:0};
         player.anims.stop();player.setTexture(pose.texture,pose.frame)
           .setOrigin(.5,600/640).setFlipX((nativeCombat?.facing??facingDirection)<0).setAngle(0);
-        if(isKlause&&nativeCombat instanceof KillerKlauseCombat)nativeCombat.present(player,scene.time.now-lastDamageAt>=0&&scene.time.now-lastDamageAt<850,scene.time.now);
+        if(isKlause&&nativeCombat instanceof KillerKlauseCombat)nativeCombat.present(player,initialKlauseInvincible||scene.time.now-lastDamageAt>=0&&scene.time.now-lastDamageAt<850,scene.time.now);
         return;
       }
       if(!isXGod){
@@ -5559,6 +5561,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function damagePlayer(scene: Phaser.Scene, damage: number, forceRespawn: boolean, sourceBoss?:Phaser.Physics.Arcade.Sprite, sourceProjectile=false) {
       if(isRespawning||isLevelClearing)return;
+      if(isKlause&&initialKlauseInvincible)return;
       if(heroCelebration?.active&&!forceRespawn)return;
       if(forceRespawn&&(heroCelebration?.active||celebrationQueue.length)){
         heroCelebration?.cancel();celebrationQueue.length=0;player.setVisible(true);

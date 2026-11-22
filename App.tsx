@@ -9,7 +9,7 @@ import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
 import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
 import {readThanksgivingEnabled,storeThanksgivingEnabled} from './gameplay/seasonalTheme';
-import {acceptsChristmasCode,isChristmasAvailable,readChristmasPreview,storeChristmasPreview,watchChristmasAvailability} from './gameplay/christmasEvent';
+import {acceptsChristmasCode,acceptsSpiritOfChristmasCode,isChristmasAvailable,readChristmasPreview,storeChristmasPreview,watchChristmasAvailability,readSpiritOfChristmasUnlock,unlockSpiritOfChristmas} from './gameplay/christmasEvent';
 import UIOverlay from "./components/UIOverlay";
 import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
@@ -143,6 +143,7 @@ const getInitialCharacterId = (): CharacterId => {
 
   const params = new URLSearchParams(window.location.search);
   const requested = params.get("character");
+  if(acceptsSpiritOfChristmasCode(params.get('code')??'')){unlockSpiritOfChristmas();storeChristmasPreview(true);return 'killer_klause';}
   if(acceptsChristmasCode(params.get('code')??'')){storeChristmasPreview(true);return 'killer_klause';}
   if(requested==='killer_klause')return isChristmasAvailable()?requested:'xgod';
   if(!requested&&readChristmasPreview())return 'killer_klause';
@@ -240,6 +241,7 @@ const getInitialStats = (): GameStats => {
   const gravityCoreUnlocked = readBooleanQuery(params.get("gravityCoreUnlocked")) || readBooleanQuery(params.get("gravityCore"));
   const gravityCoreChargesParam = Number.parseInt(params.get("gravityCoreCharges") ?? "", 10);
   const selectedCharacterId = getInitialCharacterId();
+  const klauseInvincible=selectedCharacterId==='killer_klause'&&(acceptsSpiritOfChristmasCode(params.get('code')??'')||readSpiritOfChristmasUnlock());
   const characterPowerUnlocked = selectedCharacterId === 'zgod' || readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
   const inkShieldReadyParam = params.get("shieldReady");
   const swordDurabilityParam = Number.parseInt(params.get("swordDurability") ?? "", 10);
@@ -249,6 +251,7 @@ const getInitialStats = (): GameStats => {
   return {
     ...DEFAULT_STATS,
     seasonalTheme: isChristmasAvailable() ? 'christmas' : readThanksgivingEnabled() ? 'thanksgiving' : undefined,
+    klauseInvincible,
     level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'killer_klause' && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
     health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
     lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
@@ -328,6 +331,7 @@ const App: React.FC = () => {
   const changeThanksgiving = (enabled:boolean) => {storeThanksgivingEnabled(enabled);setThanksgivingEnabled(enabled);};
   const [christmasAvailable,setChristmasAvailable]=useState(isChristmasAvailable);
   const [christmasPreview,setChristmasPreview]=useState(readChristmasPreview);
+  const [spiritOfChristmasUnlocked,setSpiritOfChristmasUnlocked]=useState(readSpiritOfChristmasUnlock);
   useEffect(()=>watchChristmasAvailability(setChristmasAvailable),[]);
   const changeChristmasPreview=(enabled:boolean)=>{
     storeChristmasPreview(enabled);setChristmasPreview(enabled);
@@ -335,9 +339,10 @@ const App: React.FC = () => {
     if(enabled)setSelectedCharacterId('killer_klause');
     else if(!available&&selectedCharacterId==='killer_klause')setSelectedCharacterId('xgod');
   };
+  const activateSpiritOfChristmas=()=>{unlockSpiritOfChristmas();setSpiritOfChristmasUnlocked(true);changeChristmasPreview(true);setSelectedCharacterId('killer_klause');};
   const newRunTheme=():GameStats['seasonalTheme']=>isChristmasAvailable()?'christmas':thanksgivingEnabled?'thanksgiving':undefined;
   const secretCodeProps={enabled:thanksgivingEnabled,onChange:changeThanksgiving,onTurkeyKing:activateTurkeyKing,
-    christmasActive:christmasAvailable,christmasPreview,onChristmasPreview:changeChristmasPreview};
+    christmasActive:christmasAvailable,christmasPreview,onChristmasPreview:changeChristmasPreview,onSpiritOfChristmas:activateSpiritOfChristmas};
   const [appPhase, setAppPhase] = useState<AppPhase>(() => initialResults?initialResults.stage==='shop'?'workshop':'results':shouldBypassStartFlow() ? "game" : "start");
   const [storyChapter, setStoryChapter] = useState<StoryChapterId | null>(initialResults?.campaign.story??null);
   const storyTransitionRef = React.useRef(Boolean(initialResults));
@@ -857,7 +862,7 @@ const App: React.FC = () => {
     setCampaignActive(false);setRestoreCheckpoint(undefined);setRunId(n=>n+1);
     storyTransitionRef.current = false;
     setStoryChapter(null);
-    setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:newRunTheme(), characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
+    setStats({ ...DEFAULT_STATS, selectedCharacterId, seasonalTheme:newRunTheme(), klauseInvincible:selectedCharacterId==='killer_klause'&&spiritOfChristmasUnlocked, characterPowerUnlocked:selectedCharacterId==='zgod', equipment:createLoadout(selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands') });
     setIsPaused(false);
     setTitlePanel(null);
     setIsIntroExiting(false);
@@ -886,6 +891,7 @@ const App: React.FC = () => {
     setStats({
       ...DEFAULT_STATS,
       selectedCharacterId: characterId,
+      klauseInvincible:characterId==='killer_klause'&&spiritOfChristmasUnlocked,
       seasonalTheme: newRunTheme(),
       characterPowerUnlocked: characterId === 'zgod',
       equipment:createLoadout(characterId==='xgod'||characterId==='killer_kai'?'blaster':'hands')
@@ -1007,6 +1013,7 @@ const App: React.FC = () => {
             initialGravityCoreUnlocked={stats.gravityCoreUnlocked}
             initialGravityCoreCharges={stats.gravityCoreCharges}
             initialCharacterPowerUnlocked={stats.characterPowerUnlocked}
+            initialKlauseInvincible={stats.klauseInvincible}
             onStatsUpdate={handleStatsUpdate}
             onTogglePause={togglePause}
           />

@@ -2,6 +2,8 @@
 
 On the main screen, enter **`SantaKisComing`** in **Secret code**, then choose **Apply code** or press Enter. The match is exact and case sensitive, including spacing. `santakiscoming` and `SANTAKISCOMING` do not work. Choose **Start game**, then **Killer Klause**. The same field also works on Pick Your Player.
 
+Enter the exact lowercase phrase **`spirit of christmas`** to unlock Klause's invincible rainbow form. The unlock persists in this browser. Choose Killer Klause from the roster to play him; he ignores all damage and shows the moving translucent rainbow overlay. This code also enables the Christmas preview outside the seasonal window.
+
 The preview remains enabled in this browser after reload. **Christmas preview ON · Turn off** disables the testing override. If browser storage is unavailable, activation still works for the current page session. The code does not unlock unrelated heroes or replace a saved campaign until the existing new-game confirmation is accepted.
 
 ## Playing Killer Klause

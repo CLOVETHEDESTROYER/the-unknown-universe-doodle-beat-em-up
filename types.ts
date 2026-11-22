@@ -13,6 +13,7 @@ export interface GameStats {
   collectedGems?: {level:number;ids:string[]};
   supplyCrates?: import('./gameplay/supplyCrates').SupplyCrateSave;
   seasonalTheme?: import('./gameplay/seasonalTheme').SeasonalTheme;
+  klauseInvincible?: boolean;
   completedEncounters?: string[];
   campaignCheckpoint?: { level: number; index: number };
   flightSave?: { checkpoint: number; weapon: 'twin' | 'spread' | 'lance' | 'homing'; hits: number; collectedWeapons: number[]; collected: number[]; seed: number };
