@@ -1700,3 +1700,9 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - Replaced the repeated short bash pose with generated 12-frame transparent artwork: lead jab, heavy hook and two-handed gift-launcher uppercut. Source, reference, built-in prompt, frame exports, contact sheet and three GIFs are archived under art/seasonal/christmas-v1.
 - Runtime combo uses separate windups, hit timing, reach and damage (4/5/8); buffered follow-up presses chain within the window. The uppercut gets a wider hit region and stronger gift-burst impact. Pause help describes the three moves. Main packer and audit now account for 124 frames.
 - Sprite packing and TypeScript/production build pass. Browser combo testing was not run in this iteration.
+
+## 2026-11-22 — Klause double-jump flip and larger always-visible helpers
+
+- The second jump now rotates Klause through one full somersault around his body center; ordinary jump, slam, and landing poses remain distinct. Fixed the airborne copy's jump-age gate so its spin pose is only active after a real double-jump.
+- The medic and engineer now flank Klause throughout the ground run at 0.58 sprite scale (up from 0.36), following idle/run/assist poses. Their healing and support fire remain tied to X / SP.
+- Updated preview controls and built the production bundle successfully.

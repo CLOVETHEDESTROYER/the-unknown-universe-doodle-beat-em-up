@@ -250,7 +250,7 @@ export class AirborneMoves {
   present(obscured: boolean, hidePlayer: boolean, crouch?:{equipment:string;firing:boolean}) {
     if (!this.alive || !this.hooks.player.active) return;
     const now = this.scene.time.now, age = now-this.jumpAt;
-    const spin = age < 420;
+    const spin = this.jumpAt>=0&&age>=0&&age<420;
     const duck=Boolean(crouch)&&hasNewMobilityArt(this.hero)&&this.hero!=='elytron'&&!this.busy;
     const visible = !obscured && (this.busy || spin || duck);
     this.actor.setVisible(visible);
@@ -265,7 +265,14 @@ export class AirborneMoves {
         .setPosition(this.hooks.player.x, this.body.bottom).setFlipX(this.hooks.facing()<0);
       if(this.hero==='elytron')this.actor.setFrame(String(this.phase==='windup'?4:this.phase==='diving'?5:this.phase==='landing'?(now-this.phaseAt<180?6:7):Math.min(3,Math.floor(age/105))));
       if(this.hero==='turkey_king')this.actor.setTexture('turkey_king_body',this.phase==='landing'?11:this.phase==='windup'?8:this.phase==='diving'||this.body.velocity.y>0?10:9).setOrigin(.5,600/640);
-      if(this.hero==='killer_klause')this.actor.setTexture('klause_body',this.phase==='landing'?15:this.phase==='windup'?8:this.phase==='diving'?14:this.body.velocity.y>0?10:9).setOrigin(.5,.9375);
+      if(this.hero==='killer_klause'){
+        this.actor.setTexture('klause_body',this.phase==='landing'?15:this.phase==='windup'?8:this.phase==='diving'?14:this.body.velocity.y>0?10:9);
+        if(this.phase==='ready'&&age<420){
+          const direction=this.hooks.facing();
+          this.actor.setOrigin(.5,.5).setPosition(this.hooks.player.x,this.body.center.y)
+            .setAngle(direction*360*Phaser.Math.Clamp(age/420,0,1));
+        }else this.actor.setOrigin(.5,.9375).setPosition(this.hooks.player.x,this.body.bottom).setAngle(0);
+      }
       if(this.hero==='xgod'){
         if(this.hooks.equipment?.()==='frost'){
           const crouched=this.phase==='windup'||this.phase==='landing';

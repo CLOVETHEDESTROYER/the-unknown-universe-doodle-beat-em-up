@@ -55,8 +55,8 @@ export class KillerKlauseCombat {
   private calls=0;
   private healing=0;
   constructor(private scene:Phaser.Scene,private hooks:Hooks) {
-    this.medic=scene.add.sprite(0,0,'klause_elf_medic',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
-    this.engineer=scene.add.sprite(0,0,'klause_elf_engineer',0).setOrigin(.5,.9375).setScale(.36).setDepth(19).setVisible(false);
+    this.medic=scene.add.sprite(0,0,'klause_elf_medic',0).setOrigin(.5,.9375).setScale(.58).setDepth(19).setVisible(false);
+    this.engineer=scene.add.sprite(0,0,'klause_elf_engineer',0).setOrigin(.5,.9375).setScale(.58).setDepth(19).setVisible(false);
     this.hud=scene.add.text(24,108,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'19px',color:'#b8f6da',stroke:'#192831',strokeThickness:5}).setScrollFactor(0).setDepth(83);
     this.rainbowKey=`klause_rainbow_${scene.sys.settings.key}`;
     if(scene.textures.exists(this.rainbowKey))scene.textures.remove(this.rainbowKey);
@@ -156,12 +156,16 @@ export class KillerKlauseCombat {
     if(gap>80)for(const shot of this.hooks.projectiles.getChildren())if(shot.getData('klauseProjectile'))
       shot.setData('playerShotExpiresAt',Number(shot.getData('playerShotExpiresAt'))+gap);
     this.lastSceneAt=this.scene.time.now;this.clock+=Math.max(0,delta);
-    const age=this.clock-this.helperAt,visible=age>=0&&age<2800;
+    const age=this.clock-this.helperAt;
     const d=this.hooks.facing(),p=this.hooks.player;
+    const body=p.body as Phaser.Physics.Arcade.Body;
     for(const [i,elf] of [this.medic,this.engineer].entries()){
       const assisting=age>=350&&age<1600;
-      elf.setVisible(visible).setPosition(p.x-d*(70+i*52),this.feet).setFlipX(d<0)
-        .setFrame(assisting?8+Math.min(2,Math.floor((age-350)/400)):age>=1600?11:2+Math.floor(age/75)%6);
+      const celebrating=age>=1600&&age<2800;
+      const following=Math.abs(body.velocity.x)>18||!body.onFloor();
+      const frame=assisting?8+Math.min(2,Math.floor((age-350)/400))
+        :celebrating?11:following?2+Math.floor(this.clock/110)%6:Math.floor(this.clock/480)%2;
+      elf.setVisible(p.active).setPosition(p.x-d*(105+i*82),this.feet).setFlipX(d<0).setFrame(frame);
     }
     this.fx=this.fx.filter(fx=>{
       const frame=Math.floor((this.clock-fx.at)*fx.fps/1000);

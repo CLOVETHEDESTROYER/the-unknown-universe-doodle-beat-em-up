@@ -8,10 +8,11 @@ The preview remains enabled in this browser after reload. **Christmas preview ON
 
 ## Playing Killer Klause
 
-- Arrows / A,D: move; Z / Up / JUMP: jump and double jump. Down in midair triggers North Pole Drop.
+- Arrows / A,D: move; Z / Up / JUMP: jump and double jump. Klause somersaults on his second jump. Down in midair triggers North Pole Drop.
 - Space / HIT: a three-piece melee combo. Rapid presses chain a four-damage jab, five-damage heavy hook, and eight-damage gift-launcher uppercut. Each hit has its own reach, windup, impact and recovery; the finisher has the longest reach and strongest impact.
 - C / FIRE: launch a wrapped present, five damage through ordinary projectile collisions and boss guards. Tap once or hold for repeated fire. A tap during reload queues one next shot. The firing cycle takes 900 ms; the next shot becomes available after 950 ms. Presents fly at 520 world pixels/second and remain larger and visible for up to 2.4 seconds, ending on impact. Standing fire plays the reload; moving fire keeps the eight-frame run cycle. Each run frame advances with 24 world pixels of movement, with fixed scale and hip/floor registration.
 - X / SP: call the surviving elves. The medic restores up to twelve health; the engineer fires two supporting presents, three damage each. Ten-second cooldown. Finish a committed attack/reload and damage recovery before calling helpers.
+- His medic and engineer visibly flank him for the whole ground run, growing alongside his 1.5× hero scale; they switch into assisting poses and attacks when X / SP is used.
 - P or the pause button: pause. Helper cooldowns and animations freeze with the game.
 
 Killer Klause keeps his native weapons. Coins and hearts remain available; generic weapon swaps, gun upgrades, and ordinary campaign companions are disabled for his run. His medic and engineer elves are his support ability. Existing collision geometry, boss guards, rewards, and progression remain in use. The existing campaign includes his boarding/pilot and victory artwork in Starbreak Run.
