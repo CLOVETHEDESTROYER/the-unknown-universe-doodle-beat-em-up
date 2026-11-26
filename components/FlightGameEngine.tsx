@@ -1,4 +1,5 @@
 import {loadKaiEquippedArt,makeKaiArtAnimations} from '../gameplay/kaiWorkshopRuntime';
+import {isNewBuddy,newBuddyState,updateBuddyHelp} from '../gameplay/buddyAbilities';
 import {buddyFrame,kaiArtKey} from '../gameplay/kaiWorkshopArt';
 import {DEFAULT_COSMETICS,type BuddyId} from '../gameplay/shopCatalog';
 import React, { useEffect, useRef } from 'react';
@@ -107,6 +108,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let atmosphere:Phaser.GameObjects.Graphics;
     let buddyArt:Phaser.GameObjects.Sprite|undefined;
     let nextBuddyAssist=0;
+    const buddyHelp=newBuddyState();
     const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
     let route:Phaser.GameObjects.Graphics,effects:Phaser.GameObjects.Graphics,combatArt:Phaser.GameObjects.Graphics,bossBar:Phaser.GameObjects.Graphics;
     let impact:Phaser.GameObjects.Image;
@@ -144,7 +146,18 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       if(!ready || disposed || paused.current)return;
       if(buddy!=='classic'&&state.phase==='flight'&&state.clock>=nextBuddyAssist){
         const combat=state.combat;
-        if(buddy==='patch-beetle'){
+        if(isNewBuddy(buddy)){
+          updateBuddyHelp(buddyHelp,buddy,state.clock,{
+            x:state.x,y:state.y,kills:combat.defeated.length,
+            targets:combat.enemies.filter(enemy=>enemy.hp>0&&!['incoming','exit','dying','transition'].includes(enemy.phase)).map(enemy=>({x:enemy.x,y:enemy.y,hp:enemy.hp,boss:enemy.kind==='pursuer',
+              hit:amount=>{combat.bolts.push({id:combat.nextId++,owner:'player',x:enemy.x-8,y:enemy.y,vx:410,vy:0,damage:amount,expires:state.clock+180});return true;},
+              slow:()=>{enemy.buddySlowUntil=state.clock+650;},})),
+            shots:combat.bolts.filter(shot=>shot.owner==='enemy').map(shot=>({x:shot.x,y:shot.y,vx:shot.vx,vy:shot.vy,deflect:()=>{shot.vx=(shot.x<state.x?-1:1)*300;shot.vy=(shot.y<state.y?-1:1)*220;}})),
+            heal:amount=>{if(state.invincible||state.hull<=0)return 0;const before=state.hull;state.hull=Math.min(100,state.hull+amount);return state.hull-before;},
+            repair:()=>{if(turkeyKing||state.combat.weapon==='twin'||state.weaponHits>=3)return false;state.weaponHits++;return true;},
+            magnet:()=>{for(const repair of combat.repairs){if(Math.hypot(repair.x-state.x,repair.y-state.y)<150){repair.x=Phaser.Math.Linear(repair.x,state.x,.15);repair.y=Phaser.Math.Linear(repair.y,state.y,.15);}}},
+          });
+        }else if(buddy==='patch-beetle'){
           const index=combat.bolts.findIndex(bolt=>bolt.owner==='enemy'&&Math.abs(bolt.x-state.x)<140&&
             Math.abs(bolt.y-state.y)<44&&(state.x-bolt.x)*bolt.vx+(state.y-bolt.y)*bolt.vy>0);
           if(index>=0){
@@ -276,7 +289,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         const flap=reducedMotion.matches?0:Math.sin(state.clock/110);
         const target=walker.visible?walker:ship;
         buddyArt.setVisible(target.visible).setPosition(target.x-74,target.y-(walker.visible?100:52)+flap*5);
-        if(target.visible)buddyArt.setFrame(buddyFrame(state.clock,true,-1,reducedMotion.matches));
+        if(target.visible)buddyArt.setFrame(buddyFrame(state.clock,true,state.clock-buddyHelp.assistAt<400?state.clock-buddyHelp.assistAt:-1,reducedMotion.matches));
       }
       const boss=state.combat.enemies.find(e=>e.kind==='pursuer');
       title.setText(boss?'VOID PURSUER':'STARBREAK RUN');
@@ -714,6 +727,7 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       beacons:FLIGHT_BEACONS.map((b,id)=>({...b,id,x:b.distance-state.distance,collected:state.collected.includes(id)})),
       powerups:{swordUnlocked:initialStats.swordUnlocked,hasFlameSword:initialStats.hasFlameSword,swordDurability:initialStats.swordDurability,gravityCoreUnlocked:initialStats.gravityCoreUnlocked},
       celebration:flightVictory?.read(),
+      workshopBuddy:{id:buddy,...buddyHelp},
       companionsOnboard:{dinio:initialStats.hasDinio,doghost:initialStats.hasDoghost,teleportationC:initialStats.hasTeleportationC},touchControls:window.__unknownUniverseTouchControls??{},
       combat:{shotsFired:state.combat.shotsFired,hits:state.combat.hits,guardedHits:state.combat.guardedHits,rockBlocks:state.combat.rockBlocks,kills:state.combat.defeated.length,
         asteroidHits:state.combat.rockHits,asteroidsDestroyed:state.combat.rocksDestroyed,visibleDebris:[...debris.values()].reduce((n,shards)=>n+shards.length,0),

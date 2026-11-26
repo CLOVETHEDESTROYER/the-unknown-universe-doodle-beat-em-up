@@ -1,62 +1,88 @@
 import type {Wallet} from './levelRewards';
-import {SHOP_ITEMS,isSupply,type ShopItemId,type CosmeticLoadout} from './shopCatalog';
-import {equipPowerup,POWERUP_HITS,restoreLoadout} from './powerups';
+import {SHOP_ITEMS,isSupply,type SupplyId,type CosmeticLoadout} from './shopCatalog';
+import {equipPowerup,equipKaiArm,upgradeGun,POWERUP_HITS,restoreLoadout,type EquippedPowerup} from './powerups';
 
-export function purchaseBlock(wallet:Wallet,id:ShopItemId):string|null{
-  const item=SHOP_ITEMS.find(i=>i.id===id)!;
-  if(isSupply(id)){
-    const p=wallet.pending,s=p?.campaign.stats;
-    if(!s||p?.stage!=='shop'||s.isVictory)return 'Supplies are available between levels.';
-    if(p.purchases?.includes(id))return 'Already bought on this visit.';
-    if(s.selectedCharacterId==='zgod')return 'Z-God already has invincibility and unlimited lives.';
-    if(id!=='life'&&(s.selectedCharacterId==='killer_klause'||s.selectedCharacterId==='turkey_king'))
-      return s.selectedCharacterId==='killer_klause'?'Killer Klause keeps his present launcher and elf support.':'The Turkey King keeps his royal weapons.';
-    if(id==='life'&&s.lives>=s.maxLives)return 'Your lives are already full.';
-    if(id!=='life'&&s.level===5)return 'Ground supplies return after Starbreak.';
-    if(id==='shield'&&s.inkShieldReady)return 'You already have an Ink Shield.';
-    if(id==='frost-kit'||id==='ember-kit'){
-      if(s.level<3)return 'Available after the Graveyard.';
-      if(s.selectedCharacterId==='turkey_king')return 'The Turkey King uses his royal weapons.';
-      if(p.purchases?.some(bought=>bought==='repair'||bought==='frost-kit'||bought==='ember-kit'))return 'You already tuned or replaced your weapon this visit.';
-      const active=id==='frost-kit'?'frost':'ember';
-      if(s.equipment?.active===active&&s.equipment.hits===POWERUP_HITS)return 'This power-up is already at full durability.';
-    }
-    if(id==='repair'){
-      if(p.purchases?.some(bought=>bought==='frost-kit'||bought==='ember-kit'))return 'Your new power-up is already at full durability.';
-      if(s.selectedCharacterId==='turkey_king')return 'The royal weapons do not need repairs.';
-      const loadout=restoreLoadout(s.equipment,'hands');
-      if(loadout.active==='hands')return 'Find a weapon before buying a tune-up.';
-      if(loadout.hits>=3)return 'Your equipped weapon is already fully repaired.';
-    }
-  }else if(wallet.owned.includes(id))return 'Already owned.';
-  return wallet.gold<item.price?'Not enough Gold.':null;
-}
+const WEAPON_KITS:Partial<Record<SupplyId,EquippedPowerup>>={
+  'blaster-kit':'blaster','sword-kit':'sword','frost-kit':'frost','ember-kit':'ember','storm-kit':'storm',
+};
+const GUN_KITS={'rapid-kit':'rapid','fan-kit':'fan','homing-kit':'homing'} as const;
 
-/** The returned wallet contains both the charge and its benefit for one atomic write. */
-export function buyShopItem(wallet:Wallet,id:ShopItemId):Wallet{
-  const blocked=purchaseBlock(wallet,id);if(blocked)throw Error(blocked);
-  const item=SHOP_ITEMS.find(i=>i.id===id)!;
-  if(!isSupply(id)){
-    const slot=item.type as keyof CosmeticLoadout;
-    return {...wallet,gold:wallet.gold-item.price,owned:[...wallet.owned,id],equipped:{...wallet.equipped,[slot]:id}};
+export function supplyBlock(wallet:Wallet,id:SupplyId):string|null {
+  const pending=wallet.pending,stats=pending?.campaign.stats;
+  if(!stats||pending?.stage!=='shop'||stats.isVictory)return 'Save this supply for a workshop visit between levels.';
+  if(pending.purchases?.includes(id))return 'Already used on this visit. Save the rest for later.';
+  if(stats.selectedCharacterId==='zgod')return 'Z-God already has invincibility and unlimited lives.';
+  if(id!=='life'&&id!=='heart-kit'&&(stats.selectedCharacterId==='killer_klause'||stats.selectedCharacterId==='turkey_king'))
+    return stats.selectedCharacterId==='killer_klause'?'Killer Klause keeps his present launcher and elf support.':'The Turkey King keeps his royal weapons.';
+  if(id==='life'&&stats.lives>=stats.maxLives)return 'Your lives are already full.';
+  if(id==='heart-kit'&&stats.health>=stats.maxHealth)return 'Your health is already full.';
+  if(id!=='life'&&id!=='heart-kit'&&stats.level===5)return 'Save ground supplies until after Starbreak.';
+  if(id==='shield'&&stats.inkShieldReady)return 'You already have an Ink Shield.';
+  const loadout=restoreLoadout(stats.equipment,'hands');
+  const weapon=WEAPON_KITS[id];
+  if(weapon){
+    const minLevel=weapon==='sword'?2:weapon==='frost'?2:weapon==='ember'?3:weapon==='storm'?4:1;
+    if(stats.level<minLevel)return `Available from level ${minLevel}. Your supply will keep.`;
+    if(loadout.active===weapon&&loadout.hits===POWERUP_HITS)return 'This weapon is already at full durability.';
   }
-  const pending=wallet.pending!,s=pending.campaign.stats;
-  const stats={...s};
-  if(id==='life')stats.lives=Math.min(s.maxLives,s.lives+1);
-  if(id==='shield'){stats.shieldUnlocked=true;stats.inkShieldReady=true;}
-  if(id==='frost-kit'||id==='ember-kit'){
-    stats.equipment=equipPowerup(restoreLoadout(s.equipment,'hands'),id==='frost-kit'?'frost':'ember',s.level);
-    stats.hasFlameSword=false;
-    stats.swordDurability=0;
+  if(id==='kai-arm-kit'){
+    if(stats.selectedCharacterId!=='xgod')return 'Kai’s gift is a weapon for X God.';
+    if(stats.level<3&&loadout.blasterVariant!=='kai_arm')return 'Kai’s gift unlocks after the Alley Rescue. Save this kit for a later visit.';
+    if(loadout.blasterVariant==='kai_arm'&&loadout.hits===POWERUP_HITS)return 'Your arm cannon is already fully repaired.';
   }
   if(id==='repair'){
-    stats.equipment={...restoreLoadout(s.equipment,'hands'),hits:3};
-    if(stats.equipment.active==='sword')stats.swordDurability=3;
+    if(loadout.active==='hands')return 'Find a weapon before using a tune-up.';
+    if(loadout.hits>=POWERUP_HITS)return 'Your equipped weapon is already fully repaired.';
   }
-  return {...wallet,gold:wallet.gold-item.price,pending:{...pending,purchases:[...(pending.purchases??[]),id],campaign:{...pending.campaign,stats}}};
+  if(Object.hasOwn(GUN_KITS,id)){
+    if(loadout.active!=='blaster')return 'Equip a blaster before using a gun upgrade.';
+    if(loadout.gunUpgrade===GUN_KITS[id as keyof typeof GUN_KITS])return 'This gun upgrade is already equipped.';
+  }
+  if(id==='dinio-orb'&&stats.hasDinio)return 'Dinio is already with you.';
+  if(id==='doghost-orb'&&stats.hasDoghost)return 'Doghost is already with you.';
+  if(id==='teleport-orb'){
+    if(stats.level<3)return 'Teleportation C joins from level three. Your orb will keep.';
+    if(stats.hasTeleportationC)return 'Teleportation C is already with you.';
+  }
+  if(id==='gravity-kit'&&stats.gravityCoreCharges>=3)return 'Your gravity core already has three charges.';
+  return null;
 }
-export function equipCosmetic(wallet:Wallet,slot:keyof CosmeticLoadout,id:string):Wallet{
-  const item=SHOP_ITEMS.find(i=>i.id===id);
-  if(id!=='classic'&&(!item||item.type!==slot||!wallet.owned.includes(item.id)))throw Error('Purchase this item before equipping it.');
+
+function applySupply(wallet:Wallet,id:SupplyId):Wallet {
+  const pending=wallet.pending!,s=pending.campaign.stats,stats={...s};
+  if(id==='life')stats.lives=Math.min(s.maxLives,s.lives+1);
+  if(id==='heart-kit')stats.health=Math.min(s.maxHealth,s.health+30);
+  if(id==='shield'){stats.shieldUnlocked=true;stats.inkShieldReady=true;}
+  const weapon=WEAPON_KITS[id];
+  if(weapon||id==='kai-arm-kit'){
+    const loadout=restoreLoadout(s.equipment,'hands');
+    stats.equipment=id==='kai-arm-kit'?equipKaiArm(loadout,s.level):equipPowerup(loadout,weapon!,s.level);
+    stats.hasFlameSword=stats.equipment.active==='sword';
+    stats.swordDurability=stats.hasFlameSword?POWERUP_HITS:0;
+    if(stats.hasFlameSword)stats.swordUnlocked=true;
+  }
+  if(id==='repair'){
+    stats.equipment={...restoreLoadout(s.equipment,'hands'),hits:POWERUP_HITS};
+    if(stats.equipment.active==='sword')stats.swordDurability=POWERUP_HITS;
+  }
+  if(Object.hasOwn(GUN_KITS,id))stats.equipment=upgradeGun(restoreLoadout(s.equipment,'hands'),GUN_KITS[id as keyof typeof GUN_KITS]);
+  if(id==='dinio-orb'){stats.dinioUnlocked=true;stats.hasDinio=true;}
+  if(id==='doghost-orb'){stats.doghostUnlocked=true;stats.hasDoghost=true;}
+  if(id==='teleport-orb'){stats.teleportationCUnlocked=true;stats.hasTeleportationC=true;}
+  if(id==='gravity-kit'){stats.gravityCoreUnlocked=true;stats.gravityCoreCharges=Math.min(3,s.gravityCoreCharges+1);}
+  return {...wallet,pending:{...pending,purchases:[...(pending.purchases??[]),id],campaign:{...pending.campaign,stats}}};
+}
+
+export function redeemSupply(wallet:Wallet,id:SupplyId):Wallet {
+  if(wallet.crateReveal)throw Error('Collect your crate reward first.');
+  if(!isSupply(id)||(wallet.inventory[id]??0)<1)throw Error('Find this supply in a crate first.');
+  const blocked=supplyBlock(wallet,id);if(blocked)throw Error(blocked);
+  return applySupply({...wallet,inventory:{...wallet.inventory,[id]:wallet.inventory[id]!-1}},id);
+}
+
+export function equipCosmetic(wallet:Wallet,slot:keyof CosmeticLoadout,id:string):Wallet {
+  const item=SHOP_ITEMS.find(entry=>entry.id===id);
+  if(wallet.crateReveal)throw Error('Collect your crate reward first.');
+  if(id!=='classic'&&(!item||item.type!==slot||!wallet.owned.includes(item.id)))throw Error('Collect this item before equipping it.');
   return {...wallet,equipped:{...wallet.equipped,[slot]:id}};
 }

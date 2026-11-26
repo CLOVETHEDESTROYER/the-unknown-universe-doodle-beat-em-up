@@ -38,7 +38,7 @@ const ShopItemPreview:React.FC<{id:ShopItemId}>=({id})=>{
     </div>
     {(asset.buddy||asset.hasEffect)&&<div className="kai-art-actions" role="group" aria-label="Animation actions">
       <button type="button" aria-pressed={mode==='item'} onClick={()=>choose('item')}>{asset.buddy?'Idle':'Item'}</button>
-      {asset.buddy?<><button type="button" aria-pressed={mode==='fly'} onClick={()=>choose('fly')}>Fly</button><button type="button" aria-pressed={mode==='assist'} onClick={()=>choose('assist')}>{id==='spark-moth'?'Spark shot':'Intercept'}</button></>:<button type="button" aria-pressed={mode==='effect'} onClick={()=>choose('effect')}>In action</button>}
+      {asset.buddy?<><button type="button" aria-pressed={mode==='fly'} onClick={()=>choose('fly')}>{id==='spark-moth'||id==='patch-beetle'?'Fly':'Move'}</button><button type="button" aria-pressed={mode==='assist'} onClick={()=>choose('assist')}>{id==='spark-moth'?'Spark shot':id==='patch-beetle'?'Intercept':'Assist'}</button></>:<button type="button" aria-pressed={mode==='effect'} onClick={()=>choose('effect')}>In action</button>}
     </div>}
   </div>;
 };

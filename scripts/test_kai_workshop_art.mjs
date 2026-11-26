@@ -21,17 +21,17 @@ async function samples(ms=800){return page.evaluate(ms=>new Promise(resolve=>{co
 async function shelf(name){await page.getByRole('button',{name,exact:true}).click();}
 async function select(name){await page.getByRole('button',{name:`Preview ${name}`,exact:true}).click();await ready();}
 async function seed(equipped,owned=Object.keys(manifest)){
-  await page.goto(origin);await page.evaluate(({equipped,owned,classic})=>localStorage.setItem('unknownUniverse.wallet.v1',JSON.stringify({version:1,gold:20000,receipts:[],pending:null,owned,equipped:{...classic,...equipped}})),{equipped,owned,classic});
+  await page.goto(origin);await page.evaluate(({equipped,owned,classic})=>localStorage.setItem('unknownUniverse.wallet.v1',JSON.stringify({version:1,gold:20000,receipts:[],pending:null,owned,inventory:Object.fromEntries(['repair','shield','life','frost-kit','ember-kit'].map(id=>[id,2])),equipped:{...classic,...equipped}})),{equipped,owned,classic});
 }
 async function boot(equipped,hero='xgod',level=1){await seed(equipped);await page.goto(`${origin}/?autostart=1&capture=1&unlockRoster=1&character=${hero}&level=${level}`);return until(s=>s.player?.grounded&&s.mode==='platforming'||s.engine==='flight');}
 try{
-  await seed({},[]);await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');
+  await seed({});await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');await page.getByRole('button',{name:/^Your inventory/}).click();
   for(const [tab,ids] of [
     ['Supplies',['repair','shield','life','frost-kit','ember-kit']],
     ['Specials',['ink-fan','chalk-ring','rail-pulse','static-net']],
     ['Buddies',['spark-moth','patch-beetle']],
-    ['Ink & trails',['arctic','rose','chalk','starlight','prism']],
-    ['Wardrobe',['rooftop-shades','sunset-band','blue-kicks']],
+    ['Style',['arctic','rose','chalk','starlight','prism']],
+    ['Style',['rooftop-shades','sunset-band','blue-kicks']],
   ]){
     await shelf(tab);
     for(const id of ids){
@@ -47,7 +47,7 @@ try{
     await shot(`shelf-${tab.toLowerCase().replaceAll(' ','-').replaceAll('&','and')}`);
   }
   assert.equal(evidence.items.length,Object.keys(manifest).length);assert.equal((await read()).wallet.gold,20000);
-  await shelf('Wardrobe');await select('Rooftop Shades');await page.getByText('Try on X God',{exact:true}).click();
+  await shelf('Style');await select('Rooftop Shades');await page.getByText('Try on X God',{exact:true}).click();
   for(const pose of ['Run','Jump','Crouch','Idle']){await page.getByRole('button',{name:pose,exact:true}).click();await page.waitForTimeout(250);await page.locator('.kai-try-on').screenshot({path:`${out}/try-on-${pose.toLowerCase()}.png`});}
   await shelf('Buddies');await select('Spark Moth');await page.getByRole('button',{name:'Pause',exact:true}).click();await ready();
   const frame=await page.locator('.kai-item-sprite').getAttribute('data-frame');await page.waitForTimeout(300);assert.equal(await page.locator('.kai-item-sprite').getAttribute('data-frame'),frame);
@@ -56,13 +56,13 @@ try{
     await page.setViewportSize({width,height});assert(await page.locator('.workshop').evaluate(e=>e.scrollWidth<=e.clientWidth+1));await shot(label);
   }
   await page.setViewportSize({width:1280,height:900});
-  // Real permanent-item purchases keep the original wallet confirmation flow.
+  // Owned permanent items still equip freely from the crate inventory. Crate transactions are tested in test_workshop_crates_v2.mjs.
   for(const [tab,ids] of [['Specials',['ink-fan','chalk-ring','rail-pulse','static-net']],['Buddies',['spark-moth','patch-beetle']]]){
-    await shelf(tab);for(const id of ids){await select(manifest[id].name);await page.locator('.workshop-item-info>button').click();await page.getByRole('button',{name:'Confirm purchase',exact:true}).click();assert((await read()).wallet.owned.includes(id));}
+    await shelf(tab);for(const id of ids){await select(manifest[id].name);await page.getByRole('button',{name:'Equip item',exact:true}).click();assert((await read()).wallet.owned.includes(id));}
   }
-  const bought=(await read()).wallet;await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');assert.equal((await read()).wallet.gold,bought.gold);assert.deepEqual((await read()).wallet.owned,bought.owned);
+  const bought=(await read()).wallet;await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');await page.getByRole('button',{name:/^Your inventory/}).click();assert.equal((await read()).wallet.gold,bought.gold);assert.deepEqual((await read()).wallet.owned,bought.owned);
   evidence.purchaseReloadAndControls=true;
-  await page.emulateMedia({reducedMotion:'reduce'});await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');await ready();assert(await page.getByRole('button',{name:'Play',exact:true}).isVisible());await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.emulateMedia({reducedMotion:'reduce'});await page.reload();await page.getByLabel('Shop wallet',{exact:true}).click();await until(s=>s.mode==='workshop');await page.getByRole('button',{name:/^Your inventory/}).click();await ready();assert(await page.getByRole('button',{name:'Play',exact:true}).isVisible());await page.emulateMedia({reducedMotion:'no-preference'});
   for(const [id,hero] of [['ink-fan','xgod'],['chalk-ring','xgod'],['rail-pulse','killer_kai'],['static-net','killer_kai']]){
     await boot({[hero==='xgod'?'xgodSpecial':'kaiSpecial']:id},hero);
     await page.evaluate(()=>window.__unknownPlatformerSpecialTest({offsets:[100,170,230],hp:50}));

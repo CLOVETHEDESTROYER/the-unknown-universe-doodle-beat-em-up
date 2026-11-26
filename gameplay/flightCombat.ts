@@ -13,7 +13,7 @@ export interface FlightEnemy {
   phase:EnemyPhase;phaseMs:number;aimX:number;aimY:number;startX:number;startY:number;
   move?:PursuerMove;phaseNumber?:number;attacks?:number;volley?:number;
   attackIndex?:number;launchY?:number;targetY?:number;safeY?:number;tellDurationMs?:number;
-  hitUntil?:number;
+  hitUntil?:number;buddySlowUntil?:number;
   counterStunned?:boolean;
   entry?:FlightEntry;entryDelayMs?:number;stageX?:number;
   chargeX?:number;chargeY?:number;
@@ -218,7 +218,7 @@ export function stepCombat(s:Host,c:FlightCombat,ms:number,fire:boolean,damage:(
   for(const e of c.enemies){
     e.age+=ms;e.phaseMs+=ms;
     if(e.kind==='pursuer')stepPursuer(s,c,e,ms,(kind,x,y)=>effect(c,s,kind,x,y));
-    else stepRegularEnemy(e,s,c,dt);
+    else if(s.clock>=(e.buddySlowUntil??0))stepRegularEnemy(e,s,c,dt);
     const halfW=e.kind==='pursuer'?85:e.kind==='gunship'?65:e.kind==='prism'?68:e.kind==='interceptor'?48:29,halfH=e.kind==='pursuer'?37:e.kind==='gunship'?30:e.kind==='prism'?25:21;
     if(e.phase!=='incoming'&&e.phase!=='dying'&&!(e.kind==='pursuer'&&e.phase==='recover')&&Math.abs(e.x-s.x)<halfW+46&&Math.abs(e.y-s.y)<halfH+16)damage(16);
     if(s.phase!=='flight'){clearCombat(c);return;}

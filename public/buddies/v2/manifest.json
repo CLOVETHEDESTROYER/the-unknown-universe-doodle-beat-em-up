@@ -1,0 +1,47 @@
+{
+  "scribble-fox": {
+    "name": "Scribble Fox",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  },
+  "puddle": {
+    "name": "Puddle",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  },
+  "rumble-puff": {
+    "name": "Rumble Puff",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  },
+  "chomp-chest": {
+    "name": "Chomp Chest",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  },
+  "orbit": {
+    "name": "Orbit",
+    "columns": 4,
+    "rows": 4,
+    "size": 256,
+    "frames": 16,
+    "hasEffect": false,
+    "buddy": true
+  }
+}

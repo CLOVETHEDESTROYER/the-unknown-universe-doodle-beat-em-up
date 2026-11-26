@@ -12,6 +12,9 @@ OUT=ROOT/'public/workshop/kai-v1'
 OUT.mkdir(parents=True,exist_ok=True)
 catalog=(ROOT/'gameplay/shopCatalog.ts').read_text(encoding='utf-8').split('] as const;')[0]
 items=re.findall(r"\{id:'([^']+)',name:'([^']+)'",catalog)
+# This pack owns the original 19 sheets; newer buddies have a separate packer.
+original_ids=set(json.loads((OUT/'manifest.json').read_text(encoding='utf-8')))
+items=[entry for entry in items if entry[0] in original_ids]
 effects={'arctic','rose','chalk','starlight','prism','ink-fan','chalk-ring','rail-pulse','static-net'}
 buddies={'spark-moth','patch-beetle'}
 metadata={}

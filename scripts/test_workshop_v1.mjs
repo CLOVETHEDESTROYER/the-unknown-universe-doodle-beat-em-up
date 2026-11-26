@@ -30,7 +30,7 @@ async function boot(level=1,extra=''){
 async function wait(fn,ms=12000){const end=Date.now()+ms;while(Date.now()<end){assert.deepEqual(errors,[]);const s=await read();if(fn(s))return s;await page.waitForTimeout(25);}throw Error('Timeout '+fn);}
 
 try{
-  await page.goto(origin);await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.goto(origin);await page.getByRole('button',{name:'Art Gallery',exact:true}).click();await page.getByRole('button',{name:'Power-ups · 13',exact:true}).click();
   await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.locator('dialog').evaluate(d=>d.matches(':modal')));
   const powerNames=['Ink Blaster','Flame Sword','Frost Gauntlet','Ember Boots','Storm Halo','Kai Blaster Arm','Ink Shield','Rapid Fire','Fan Shots','Heat Seekers','Gravity Core','Health Heart','Rush Star'];
@@ -65,7 +65,7 @@ try{
   await page.getByRole('button',{name:'Move',exact:true}).click();await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();await shot('workshop-buddies-desktop');
   await page.keyboard.press('Escape');await page.locator('dialog').waitFor({state:'detached'});
   assert(await page.getByRole('button',{name:'Art Gallery',exact:true}).evaluate(b=>document.activeElement===b));
-  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();await page.getByRole('button',{name:'Power-ups · 13',exact:true}).click();
   await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.locator('dialog').evaluate(d=>d.scrollWidth<=d.clientWidth+1));
   await shot('workshop-phone-portrait');await page.getByRole('button',{name:'Buddies · 3',exact:true}).click();
@@ -74,7 +74,7 @@ try{
   assert(await page.locator('dialog').evaluate(d=>d.scrollWidth<=d.clientWidth+1));
   await page.locator('.combat-gallery-stage').scrollIntoViewIfNeeded();await shot('workshop-phone-landscape');
   await page.getByRole('button',{name:'Close gallery',exact:true}).click();
-  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();
+  await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('button',{name:'Art Gallery',exact:true}).click();await page.getByRole('button',{name:'Power-ups · 13',exact:true}).click();
   await page.locator('.combat-gallery-stage canvas[data-ready=true]').waitFor();
   assert(await page.getByRole('button',{name:'Play',exact:true}).isVisible());const reduced=await frame();await page.waitForTimeout(350);assert.equal(await frame(),reduced);
   evidence.pauseStepFacingKeyboardPhoneAndReducedMotion=true;

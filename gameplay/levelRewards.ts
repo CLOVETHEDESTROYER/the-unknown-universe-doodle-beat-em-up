@@ -1,6 +1,8 @@
 import type { GameStats } from '../types';
 import { parseCampaignSave, type CampaignSave } from './campaignSave';
 import {DEFAULT_COSMETICS,isPermanentShopItem,isSupply,restoreCosmetics,type CosmeticLoadout,type ShopItemId,type SupplyId} from './shopCatalog';
+import {restoreCrateCollection,type CrateReveal} from './workshopCrates';
+import type {CardId} from './collectibleCards';
 
 export const WALLET_KEY = 'unknownUniverse.wallet.v1';
 export interface LevelResult {
@@ -8,8 +10,10 @@ export interface LevelResult {
   pickupGold: number; clearGold: number; performanceGold: number; earnedGold: number;
 }
 export interface PendingResult { result: LevelResult; campaign: CampaignSave;stage?:'results'|'shop';purchases?:SupplyId[] }
-export interface Wallet { version: 1; gold: number; receipts: string[]; pending: PendingResult | null;owned:ShopItemId[];equipped:CosmeticLoadout }
-export const emptyWallet = (): Wallet => ({version:1,gold:0,receipts:[],pending:null,owned:[],equipped:{...DEFAULT_COSMETICS}});
+export interface Wallet { version: 1; gold: number; receipts: string[]; pending: PendingResult | null;owned:ShopItemId[];equipped:CosmeticLoadout;
+  inventory:Partial<Record<SupplyId,number>>;cards:CardId[];crateReveal:CrateReveal|null;cratesOpened:number }
+export const emptyWallet = (): Wallet => ({version:1,gold:0,receipts:[],pending:null,owned:[],equipped:{...DEFAULT_COSMETICS},
+  inventory:{},cards:[],crateReveal:null,cratesOpened:0});
 
 /** A level's starting totals survive checkpoints, quit/resume, and renderer remounts. */
 export function trackRewardRun(stats: GameStats): GameStats {
@@ -60,7 +64,7 @@ export function readWallet(defaults: GameStats): Wallet {
       pending={result:r,campaign,stage:w.pending.stage??'results',purchases:[...new Set<SupplyId>(w.pending.purchases??[])]};
     }
     const owned:ShopItemId[]=Array.isArray(w.owned)?[...new Set<ShopItemId>(w.owned.filter(isPermanentShopItem))]:[];
-    return {version:1,gold:w.gold,receipts:[...new Set<string>(w.receipts)],pending,owned,equipped:restoreCosmetics(w.equipped,owned)};
+    return {version:1,gold:w.gold,receipts:[...new Set<string>(w.receipts)],pending,owned,equipped:restoreCosmetics(w.equipped,owned),...restoreCrateCollection(w)};
   } catch { return emptyWallet(); }
 }
 

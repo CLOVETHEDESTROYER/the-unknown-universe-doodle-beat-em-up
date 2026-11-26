@@ -1,55 +1,76 @@
-# Kai's Workshop
+# Kai’s Workshop · Crates & Collection
 
-Every catalog item now has generated raster artwork and animation. The generated previews cover all 19 entries, including the four alternate specials and the Spark Moth / Patch Beetle buddies. **In action** shows special/style effects; buddy previews include idle, flight and assist poses. Wardrobe entries retain **Try on X God**. Asset sources, prompts, frame layouts and rebuild instructions are in `art/kai-workshop-v1/README.md`.
+The workshop now sells **randomized crates for earned Gold**. Its three rooms are **The crates**, **Your inventory**, and **Character gallery**. Access it from the title wallet or after a level’s results. The campaign flow remains results → workshop → chapter story → next stage, including Alley Rescue after the first chapter.
 
-The flow is **level results → workshop → existing chapter story → next level**. The first chapter still leads through Alley Rescue. The finale goes straight to its story; the collection remains accessible from the title wallet button afterward.
+## Crates and rarity
 
-Supplies take effect in the upcoming campaign snapshot. Cosmetic purchases are permanent in the browser's wallet and automatically equip on purchase. Owned styles can be previewed and equipped again for free, or reset to the original look. The shop never increases weapon damage.
+| Crate | Gold | Common | Rare | Epic | Legendary |
+|---|---:|---:|---:|---:|---:|
+| Normal wooden crate | 125 | 60% | 28% | 10% | 2% |
+| Gem-studded metal legendary crate | 400 | 0% | 0% | 75% | 25% |
 
-| Item | Gold | Effect |
+Each opening grants **one reward** from the current 69-entry pool: 36 workshop items and 33 character illustrations. A rarity tier is selected first, then an eligible item is selected uniformly within that tier. Random rolls use the browser’s cryptographic random generator. Rarity follows the existing catalog price, now a reference value: Common ≤200, Rare 201–400, Epic 401–650, Legendary >650 Gold. Reference value is not a resale or refund amount.
+
+Already-owned permanent items and artwork leave the pool. Supplies can repeat and accumulate up to 999 of each kind. If a tier has no eligible rewards its weight is omitted and the other eligible tiers are normalized. Legendary crates therefore continue to guarantee Epic or better even when all Legendary artwork is collected. If no eligible rewards remain, opening is blocked without spending Gold. The **What could be inside?** disclosure shows current rarity and individual reward odds, reference values, and collected items.
+
+Opening uses generated closed, charged, opening, and open chest frames, with a growing rattle, recoil, expanding shockwave, colored fragments, rays, and a rising reward. Sounds use the existing effects channel and respect mute/volume. Animation can be skipped. Reduced motion displays the open chest and discovery without shake or bursts. Reloading during an opening restores the same reward immediately.
+
+## Supplies, specials, buddies, and style
+
+Supplies are stored in inventory and **used deliberately between levels**, without a second Gold charge. Winning a weapon never replaces an equipped one automatically. One use of each supply per visit retains the earlier workshop limit. A blocked supply stays in inventory for a later visit.
+
+| Supply | Reference value | Benefit / eligibility |
 |---|---:|---|
-| Weapon tune-up | 75 | Restore current ground weapon to three hits; keep its variant and upgrades |
-| Ink Shield | 100 | One shield, with no stacking |
-| Extra life | 150 | Restore one lost life, up to the campaign's existing maximum |
-| Arctic Ink | 250 | Permanent cyan ink color |
-| Neon Rose | 250 | Permanent pink ink color |
-| Chalk Sparks | 400 | Permanent dotted shot trail |
-| Prism Burst | 600 | Permanent colorful charge-hit and slam rings |
-| Starlight | 650 | Permanent star shot trail |
+| Weapon tune-up | 75 | Restore current ground weapon to three hits; keep its variant and gun upgrade |
+| Ink Shield | 100 | One shield; does not stack |
+| Extra life | 150 | Restore one life up to the existing campaign maximum |
+| Health Heart | 100 | Restore up to 30 health |
+| Ink Blaster | 100 | Equip a fresh blaster |
+| Flame Sword | 200 | Equip a fresh sword from level two |
+| Frost Gauntlet | 125 | Equip a fresh gauntlet from level two |
+| Ember Boots | 125 | Equip fresh boots from level three |
+| Storm Halo | 500 | Equip a fresh halo from level four |
+| Kai Blaster Arm | 500 | X God’s rescue gift; repair a held arm in level two, or equip from a later workshop visit |
+| Rapid Fire / Fan Shots / Heat Seekers | 200 / 250 / 350 | Modify an equipped blaster; retain existing durability and variant |
+| Dinio / Doghost | 300 / 350 | Recruit the existing companion for this campaign |
+| Teleportation C | 450 | Recruit the existing companion from level three |
+| Gravity Core | 450 | Add one charge, up to three |
 
-Supplies can be bought once per visit. Full, incompatible, or unnecessary supplies show a reason rather than taking Gold. Ground supplies are unavailable immediately before the flight stage. Z-God's invincibility does not need consumables. Existing normal weapon, shield, and life rules still apply.
+Ground gear waits through Starbreak; health and lives remain usable. Full health, full lives, full weapon durability, existing shields/companions/upgrades, native-weapon characters, and Z-God’s invincibility are checked before consuming supplies. Kai’s arm cannot bypass the first Alley Rescue. The Rush Star stays a route challenge objective rather than random crate loot.
 
-## Price calibration
+All earlier permanent workshop items remain in crates and retain their gameplay: Ink Fan, Chalk Ring, Rail Pulse, Static Net, Spark Moth, Patch Beetle, Arctic Ink, Neon Rose, Chalk Sparks, Starlight, Prism Burst, Rooftop Shades, Sunset Headband, and Blue Kicks. They are equipped from inventory for free; originals can be restored freely. Winning does not automatically change an existing loadout. Generated item/action previews and X God wardrobe try-ons remain available for owned items. Combat timing, damage, and collision bodies remain unchanged.
 
-The guaranteed 100 Gold clear reward covers a shield or a tune-up. A first cosmetic costs 250 Gold. Larger effects take more saving, while buying supplies remains a choice.
+## Character gallery
 
-`scripts/analyze_shop_economy.mjs` inspects the current live routes. These are **illustrative budgets**, using 60% of visible route gems and 70% of initially present regular enemies plus the boss. Optional encounters and challenge bonuses are excluded; this is not observed player performance.
+Artwork ownership is separate from equipment and playable-character unlocks. Locked illustrations remain concealed. Collected illustrations can be filtered by character or series and opened in a full-size viewer. The title **Art Gallery** also contains the character collection alongside the existing power-up and buddy studies.
 
-| Level | Route gems | Illustrative Gold per clear | All route gems and initial foes |
-|---|---:|---:|---:|
-| 1 | 66 | 315 | 460 |
-| 2 | 56 | 285 | 410 |
-| 3 | 36 | 225 | 310 |
-| 4 | 46 | 255 | 350 |
-| 6 | 36 | 225 | 300 |
+| Series | Count | Illustrations |
+|---|---:|---|
+| Harvest Party | 2 | Thanksgiving-suit X God; turkey-suit Killer Kai |
+| Style Switch | 4 | Pixel-art Nico; watercolor Z-God; noir Barrett; ink-wash Ezra |
+| Beyond the Page | 11 | 3D-rendered X God, Kai, Barrett, Nico, Ezra, Teleportation C, Z-God, Kaden, Shadow Kid, Turkey King, and Killer Klause |
 
-Flight still has a guaranteed 100 Gold clear reward; its dynamic combat rewards are not modeled in this table. The current estimates put a color within roughly one or two clears and a larger cosmetic within several clears if the player saves. Real playtest results should decide the next price changes.
+Gallery art does not change playable outfits or grant abilities. All 35 generated image originals, exact prompts, identity references, and contact sheets are in `art/workshop-crates-v2`. Runtime WebPs and crate strips are in `public/workshop/crates-v2` (about 17.25 MB combined). Rebuild with `python scripts/pack_workshop_crates_v2.py`; the script uses the project’s local originals and requires Pillow.
+
+## Playtime art expansion
+
+Six additional X God illustrations and one for each other character add four series. **Off Duty** has surfing, a moonwalk, sandcastles, camping, a portal garden, kite flying, and a royal beach day (7). **Family Album** has X God/Z-God game night, pancake-making, Ezra’s cookout, and Klause making toys (4). **Hero Academy** features X God and Kaden in dynamic team-comic poses (2). **City Legends** has X God’s sunset car-show pose, Nico’s basketball scene, and Shadow Kid’s neon arcade (3). X God now has eight collectible illustrations. The gallery discovers series from the catalog automatically. Exact new prompts and references are in `art/workshop-crates-v2/playtime-generation.json`; new entries are also in the main packing manifest.
 
 ## Saving and recovery
 
-The wallet's existing version remains backward compatible. Missing `owned` and `equipped` fields become an empty collection and classic styles. Pending results now record whether the player is at results or in the shop. A purchase writes its Gold deduction, ownership/equipment, and updated next-level supplies in one wallet operation. Reloading in the shop restores that visit and its purchases. Continue writes the campaign snapshot before acknowledging the pending result.
+The existing `unknownUniverse.wallet.v1` key and version remain compatible with old saves. Missing `inventory`, `cards`, `crateReveal`, and `cratesOpened` fields become empty collection state. Unknown optional collection entries are sanitized without resetting existing Gold, equipment, or campaign progress.
 
-Developer preview runs keep their purchases in memory and never modify a real wallet. The title workshop supports permanent cosmetics; supplies require a between-level visit.
+Opening writes its Gold debit, reward grant, opening count, and recovery receipt in **one localStorage operation**, before animation. The receipt stores the actual selected reward. A second opening is blocked until it is acknowledged. Acknowledgement clears only the receipt; it does not charge or grant again. A storage error leaves the original state unchanged and allows retry. Supply consumption similarly writes its inventory decrement and updated campaign snapshot atomically. Continue keeps the earlier campaign-write-before-results-acknowledgement flow. Developer preview runs retain the existing in-memory-only behavior.
 
-## Combat presentation
+## Validation
 
-Blaster shots gain a short glow and trail, charge colors follow equipped ink, accepted hits briefly flash the actual enemy pose, and slam landings add rings and fragments. Prism Burst adds colored ring outlines that stay readable over bright backgrounds. Effects have bounded pools and short lifetimes. Reduced motion removes orbiting/growing accents while keeping attack information visible. Damage, timing, and collision bodies are unchanged.
+- `scripts/test_workshop_crates_v2.mjs` / the established `scripts/test_workshop.mjs` entry point: 10,000 normal and 2,000 legendary rolls, reachability, probabilities, duplicate protection, complete/capped inventories, migration and corruption handling; browser charge/receipt/supply storage failures, double click, reload before reveal, regular/legendary/reduced-motion opening, card filters and full artwork, all 33 image files, free equipment, supply application/carryover, insufficient funds, and portrait/landscape phone layouts.
+- `scripts/test_kai_workshop_art.mjs`: the original 19 generated item loops, action previews and live ground/flight/Alley integrations, using the new inventory navigation.
+- `scripts/test_workshop_v1.mjs`: existing power-up and companion studies, animation controls, campaign art, and phone/reduced-motion behavior.
+- `scripts/test_level_results.mjs` / `scripts/test_campaign_story_v1.mjs`: existing reward banking, results recovery, campaign continuation, and finale flows.
 
-## Checks
+Playtest evidence stays ignored under `output`. Physical-device Safari and cross-device/account syncing are outside these browser-local checks.
 
-- `scripts/test_workshop.mjs`: confirmation, supplies, ownership, free equipment changes, no double charge, insufficient funds, storage failures, reload, mobile layout, Alley Rescue and next-level carryover.
-- `scripts/test_combat_cosmetics.mjs`: equipped colors/trails, unchanged normal and charged damage, hit flashes, slam effects, reduced motion.
-- `scripts/test_level_results.mjs` and `scripts/test_campaign_story_v1.mjs`: reward, story, finale, and campaign regression checks through the shop.
-- `scripts/analyze_shop_economy.mjs`: repeatable route/price budget report.
+## New selectable buddies
 
-See `holiday-playtest.md` for the friends' playtest guide and notes sheet.
+Scribble Fox (Rare, 350 value), Puddle (Rare, 350), Chomp Chest (Rare, 400), Rumble Puff (Epic, 550), and Orbit (Epic, 600) are now permanent chest rewards. The workshop shows all seven buddies; owned buddies can be equipped there or in **Bring a buddy** before choosing a hero. Ownership and selection persist without another purchase. Each new buddy has 16 generated poses, including its own assist action. Damage, combat-only healing, earned durability repairs, and projectile deflection use normal combat/save rules. See `art/buddies-v2/README.md` for full behavior, cooldowns, sprite sheets, previews, prompts, and packing instructions. The original two buddies retain their behavior.

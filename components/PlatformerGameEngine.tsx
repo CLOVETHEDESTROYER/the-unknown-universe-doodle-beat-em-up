@@ -2143,6 +2143,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         player,enemies,projectiles,facing:()=>facingDirection,
         damage:(enemy,amount)=>damageEnemy(scene,enemy,amount,true),
         clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),
+        heal:amount=>{if(isZGod||playerHealth<=0)return 0;const before=playerHealth;playerHealth=Math.min(100,playerHealth+amount);syncStats();return playerHealth-before;},
+        repair:()=>{if(isNativeHero||equipment.active==='hands'||equipment.hits>=3)return false;equipment={...equipment,hits:equipment.hits+1};if(equipment.active==='sword')swordDurability=equipment.hits;syncStats();return true;},
+        magnet:()=>{for(const child of pickups.getChildren()){const coin=child as Phaser.Physics.Arcade.Sprite;if(!coin.active||coin.getData('kind')!=='coin'||!coin.body?.enable||platformSeparatesPlayerAndEnemy(coin))continue;const d=Phaser.Math.Distance.Between(coin.x,coin.y,player.x,player.y-45);if(d<130){scene.tweens.killTweensOf(coin);coin.setPosition(Phaser.Math.Linear(coin.x,player.x,.12),Phaser.Math.Linear(coin.y,player.y-45,.12));}}},
       });
       if(!isNativeHero)signature = new SignatureSpecialRuntime(scene, selectedCharacterId, {
         player, enemies, projectiles,
@@ -5298,6 +5301,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (!electric && currentLevel >= 4 && enemy.getData("kind") === "boss") impact.setTint(currentLevel === 4 ? 0xf04c86 : 0xc084fc);
       scene.tweens.add({ targets: impact, scaleX: impact.scaleX * 1.7, scaleY: impact.scaleY * 1.7, alpha: 0, duration: 170, ease: "quad.out", onComplete: () => impact.destroy() });
       const hp = Math.max(0, (enemy.getData("hp") as number) - appliedDamage);
+      if(hp===0)workshopCombat?.enemyDefeated();
       combatEffects.hit(isBoss&&bossAttackVisual?.visible?bossAttackVisual:enemy,targetBody.center.x,targetBody.center.y,damage>=3||isButtBomb||electric);
       // Only the first accepted, nonlethal hit in this opening starts a stun.
       // Subsequent hits deal damage without refreshing it or cancelling attacks.

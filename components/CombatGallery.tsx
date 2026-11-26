@@ -1,8 +1,11 @@
 import React, {useEffect,useRef,useState} from 'react';
 import {WORKSHOP_ASSETS,workshopSheet,workshopPoster,type WorkshopAsset,type WorkshopAction} from '../gameplay/workshopAssets';
 import './CombatGallery.css';
+import CollectibleGallery from './CollectibleGallery';
+import type {CardId} from '../gameplay/collectibleCards';
+import {COLLECTIBLE_CARDS} from '../gameplay/collectibleCards';
 
-interface WorkshopProps { onSpriteUpload?: (e:React.ChangeEvent<HTMLInputElement>)=>void; isSpriteLoaded?:boolean; onClose?:()=>void }
+interface WorkshopProps { cards?:readonly CardId[];onSpriteUpload?: (e:React.ChangeEvent<HTMLInputElement>)=>void; isSpriteLoaded?:boolean; onClose?:()=>void }
 
 const SpritePreview:React.FC<{asset:WorkshopAsset;action:WorkshopAction;playing:boolean;left:boolean;step:number;frameRef:React.MutableRefObject<number>}>=({asset,action,playing,left,step,frameRef})=>{
   const canvasRef=useRef<HTMLCanvasElement>(null);
@@ -31,8 +34,8 @@ const SpritePreview:React.FC<{asset:WorkshopAsset;action:WorkshopAction;playing:
   return <div className="combat-gallery-stage"><canvas ref={canvasRef} width={320} height={320} role="img" aria-label={`${asset.name}: ${action.name} animation`} data-asset={asset.id}/>{error&&<p role="alert">This animation could not load. Reopen the workshop to try again.</p>}</div>;
 }
 
-export default function CombatGallery({onSpriteUpload,isSpriteLoaded,onClose}:WorkshopProps){
-  const [group,setGroup]=useState<'powerups'|'buddies'>('powerups');
+export default function CombatGallery({cards=[],onSpriteUpload,isSpriteLoaded,onClose}:WorkshopProps){
+  const [group,setGroup]=useState<'powerups'|'buddies'|'characters'>('characters');
   const [selected,setSelected]=useState('blaster'),[actionIndex,setActionIndex]=useState(0);
   const [playing,setPlaying]=useState(()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [left,setLeft]=useState(false),[step,setStep]=useState(0);
@@ -42,7 +45,8 @@ export default function CombatGallery({onSpriteUpload,isSpriteLoaded,onClose}:Wo
   const choose=(id:string)=>{setSelected(id);setActionIndex(0);setStep(0);};
   return <section className={`combat-gallery ${onClose?'combat-gallery-expanded':'combat-gallery-sidebar'}`} aria-labelledby="combat-gallery-heading">
     <header className="combat-gallery-header"><div><p className="combat-gallery-eyebrow">THE UNKNOWN UNIVERSE</p><h2 id="combat-gallery-heading">Art Gallery</h2><p>Little doodles. Big powers.</p></div>{onClose&&<button autoFocus type="button" onClick={onClose} className="combat-gallery-close" aria-label="Close gallery">Close ×</button>}</header>
-    <div className="combat-gallery-tabs" aria-label="Workshop collection">{(['powerups','buddies'] as const).map(g=><button key={g} type="button" aria-pressed={group===g} onClick={()=>{setGroup(g);choose(g==='powerups'?'blaster':'dinio');}}>{g==='powerups'?'Power-ups · 13':'Buddies · 3'}</button>)}</div>
+    <div className="combat-gallery-tabs" aria-label="Workshop collection">{(['characters','powerups','buddies'] as const).map(g=><button key={g} type="button" aria-pressed={group===g} onClick={()=>{setGroup(g);choose(g==='powerups'?'blaster':'dinio');}}>{g==='characters'?`Character art · ${cards.length}/${COLLECTIBLE_CARDS.length}`:g==='powerups'?'Power-ups · 13':'Buddies · 3'}</button>)}</div>
+    {group==='characters'?<CollectibleGallery owned={cards}/>:<>
     <div className="combat-gallery-body"><div className="combat-gallery-preview">
       <div className="combat-gallery-preview-label"><span>{group==='powerups'?'POWER-UP STUDY':'BUDDY STUDY'}</span><span>{action.count} poses</span></div>
       <SpritePreview key={asset.id} asset={asset} action={action} playing={playing} left={left} step={step} frameRef={frameRef}/>
@@ -53,6 +57,6 @@ export default function CombatGallery({onSpriteUpload,isSpriteLoaded,onClose}:Wo
       <div className="combat-gallery-grid">{WORKSHOP_ASSETS.filter(a=>a.group===group).map(a=><button type="button" key={a.id} aria-pressed={selected===a.id} aria-label={`Preview ${a.name}`} onClick={()=>choose(a.id)}><img src={workshopPoster(a.id)} alt="" loading="lazy" width={96} height={96}/><span>{a.name}</span></button>)}</div>
       <p className="combat-gallery-note">{group==='powerups'?'Discover these in the campaign. Previewing an item keeps your loadout and unlocks as they are.':'Choose an action to see each buddy move. Find their orbs in the campaign to recruit them.'}</p>
       {onSpriteUpload&&<details className="combat-gallery-scanner"><summary>Doodle Scanner</summary><p>Try your own player_walk.png sprite sheet.</p><label>{isSpriteLoaded?'Character scanned — choose another':'Scan character doodle'}<input type="file" accept="image/png" onChange={onSpriteUpload}/></label></details>}
-    </div></div>
+    </div></div></>}
   </section>;
 }

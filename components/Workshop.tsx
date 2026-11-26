@@ -1,80 +1,79 @@
 import React,{useEffect,useRef,useState} from 'react';
 import type {Wallet} from '../gameplay/levelRewards';
-import {SHOP_ITEMS,DEFAULT_COSMETICS,isSupply,type ShopItemId,type CosmeticLoadout} from '../gameplay/shopCatalog';
-import {purchaseBlock} from '../gameplay/workshop';
+import {isSupply,type SupplyId,type CosmeticLoadout} from '../gameplay/shopCatalog';
+import {CRATES,LOOT,crateBlock,lootOdds,lootPool,type CrateId} from '../gameplay/workshopCrates';
 import {POWERUPS} from '../gameplay/powerups';
-import ShopItemPreview from './ShopItemPreview';
-import {kaiPosterPath} from '../gameplay/kaiWorkshopArt';
-import WardrobePreview from './WardrobePreview';
+import {COLLECTIBLE_CARDS} from '../gameplay/collectibleCards';
+import CollectibleGallery from './CollectibleGallery';
+import BuddyPicker from './BuddyPicker';
+import WorkshopInventory from './WorkshopInventory';
+import CrateOpening,{CrateSprite,type CratePhase} from './CrateOpening';
 import './Workshop.css';
+import './WorkshopCrates.css';
 
-interface Props {wallet:Wallet;error:string;message:string;betweenLevels:boolean;onBuy:(id:ShopItemId)=>boolean;onEquip:(slot:keyof CosmeticLoadout,id:string)=>void;onContinue:()=>void;}
-export default function Workshop({wallet,error,message,betweenLevels,onBuy,onEquip,onContinue}:Props){
-  const [tab,setTab]=useState<'supply'|'style'|'wardrobe'|'powers'|'buddies'|'collection'>(betweenLevels?'supply':'style');
-  const [selected,setSelected]=useState<ShopItemId>(betweenLevels?'shield':'arctic');
-  const [confirm,setConfirm]=useState(false);
-  const panel=useRef<HTMLElement>(null);
-  const item=SHOP_ITEMS.find(i=>i.id===selected)!;
-  const owned=!isSupply(selected)&&wallet.owned.includes(selected);
-  const equipped=owned&&wallet.equipped[item.type as keyof CosmeticLoadout]===selected;
-  const blocked=purchaseBlock(wallet,selected);
-  const preview={...wallet.equipped,...(!isSupply(selected)?{[item.type]:selected}:{})} as CosmeticLoadout;
-  const stats=wallet.pending?.campaign.stats;
-  const isWardrobe=(entry:typeof item)=>['face','head','outfit'].includes(entry.type);
-  const isSpecial=(entry:typeof item)=>entry.type==='xgodSpecial'||entry.type==='kaiSpecial';
-  const isBuddy=item.type==='buddy';
-  const visibleFor=(shelf:typeof tab)=>SHOP_ITEMS.filter(entry=>{
-    if(shelf==='collection')return wallet.owned.includes(entry.id);
-    if(shelf==='supply')return isSupply(entry.id);
-    if(shelf==='wardrobe')return isWardrobe(entry);
-    if(shelf==='powers')return isSpecial(entry);
-    if(shelf==='buddies')return entry.type==='buddy';
-    return entry.type==='ink'||entry.type==='trail'||entry.type==='burst';
-  });
-  const visible=visibleFor(tab);
-  const resetLabels: Record<keyof CosmeticLoadout,string> = {
-    ink:'Original ink',trail:'Simple trail',burst:'Classic burst',face:'Remove shades',head:'Remove headband',
-    outfit:'Original sneakers',xgodSpecial:'Equip X Breaker',kaiSpecial:'Equip Thunderfall',buddy:'Send buddy home',
-  };
-  const resetSlots=(Object.keys(DEFAULT_COSMETICS) as (keyof CosmeticLoadout)[]).filter(slot=>{
-    if(tab==='powers')return slot==='xgodSpecial'||slot==='kaiSpecial';
-    if(tab==='buddies')return slot==='buddy';
-    if(tab==='wardrobe')return slot==='face'||slot==='head'||slot==='outfit';
-    if(tab==='style')return slot==='ink'||slot==='trail'||slot==='burst';
-    return tab==='collection'&&wallet.equipped[slot]!=='classic';
-  });
+interface Props {wallet:Wallet;error:string;message:string;betweenLevels:boolean;onOpenCrate:(id:CrateId)=>boolean;onCollectReward:(receipt:string)=>boolean;
+  onUseSupply:(id:SupplyId)=>boolean;onEquip:(slot:keyof CosmeticLoadout,id:string)=>void;onContinue:()=>void}
+type Tab='crates'|'inventory'|'gallery';
+export default function Workshop({wallet,error,message,betweenLevels,onOpenCrate,onCollectReward,onUseSupply,onEquip,onContinue}:Props){
+  const [tab,setTab]=useState<Tab>('crates'),[selected,setSelected]=useState<CrateId>('normal');
+  const [animate,setAnimate]=useState(false),[phase,setPhase]=useState<CratePhase|'idle'>(wallet.crateReveal?'revealed':'idle');
+  const panel=useRef<HTMLElement>(null),openingBusy=useRef(false);
+  const stats=wallet.pending?.campaign.stats,opening=wallet.crateReveal;
+  const odds=lootOdds(wallet,selected),pool=lootPool(wallet,selected);
+  const supplyCount=Object.values(wallet.inventory).reduce((sum,count)=>sum+(count??0),0);
   useEffect(()=>{panel.current?.focus();},[]);
   useEffect(()=>{
     const previous=window.render_game_to_text;
-    const render=()=>JSON.stringify({mode:'workshop',betweenLevels,tab,selected,confirm,wallet:{gold:wallet.gold,owned:wallet.owned,equipped:wallet.equipped},
-      resume:wallet.pending?.campaign.stats??null,error:error||null});
+    const render=()=>JSON.stringify({mode:'workshop',betweenLevels,tab,selected,cratePhase:opening?phase:'idle',
+      crateReveal:opening,wallet:{gold:wallet.gold,owned:wallet.owned,equipped:wallet.equipped,inventory:wallet.inventory,cards:wallet.cards,cratesOpened:wallet.cratesOpened},
+      odds,availableRewards:pool.length,resume:stats??null,error:error||null});
     window.render_game_to_text=render;return()=>{if(window.render_game_to_text===render)window.render_game_to_text=previous;};
-  },[wallet,betweenLevels,tab,selected,confirm,error]);
-  return <section className="workshop" role="dialog" aria-modal="true" aria-labelledby="workshop-title" ref={panel} tabIndex={-1}
-    onKeyDown={e=>{if(e.key==='Escape'&&!e.repeat){e.preventDefault();e.stopPropagation();if(confirm)setConfirm(false);else onContinue();}}}>
-    <div className="workshop-paper">
-      <header className="workshop-header"><div><span className="workshop-eyebrow">THE UNKNOWN UNIVERSE · SUPPLIES & STYLE</span><h1 id="workshop-title">Kai’s Workshop</h1><p>A little help now. Something cool to keep.</p></div>
-        <div className="workshop-gold"><span>YOUR WALLET</span><strong data-testid="shop-gold">{wallet.gold.toLocaleString()} <small>Gold</small></strong></div></header>
-      {betweenLevels&&stats&&<div className="workshop-loadout"><span>Next: Level {stats.level}</span><span>{POWERUPS[stats.equipment?.active??'hands'].name} · {stats.equipment?.hits??0}/3</span><span>Shield: {stats.inkShieldReady?'ready':'empty'}</span><span>Lives: {stats.lives}/{stats.maxLives}</span></div>}
-      <div className="workshop-body">
-        <aside className="workshop-preview">
-          <ShopItemPreview key={selected} id={selected}/>
-          {isWardrobe(item)&&<details className="kai-try-on"><summary>Try on X God</summary><WardrobePreview style={preview}/></details>}
-          <div className="workshop-item-info"><span className="workshop-item-tag">{isSupply(selected)?'CAMPAIGN SUPPLY':isSpecial(item)?'PERMANENT SPECIAL':isBuddy?'PERMANENT HELPER':'PERMANENT COSMETIC'}</span><h2>{item.name}</h2><p>{item.description}</p><small>{item.detail}</small>
-            {confirm?<div className="workshop-confirm"><p>Buy {item.name} for <strong>{item.price} Gold</strong>?</p><button onClick={()=>{if(onBuy(selected))setConfirm(false);}}>Confirm purchase</button><button className="workshop-secondary" onClick={()=>setConfirm(false)}>Cancel</button></div>
-              :owned?<button disabled={equipped} onClick={()=>onEquip(item.type as keyof CosmeticLoadout,selected)}>{equipped?'Equipped':isSpecial(item)||isBuddy?'Equip':'Equip this look'}</button>
-              :<><button disabled={Boolean(blocked)} onClick={()=>setConfirm(true)}>Buy for {item.price} Gold</button>{blocked&&<p className="workshop-blocked">{blocked}</p>}</>}
-          </div>
-        </aside>
-        <div className="workshop-stock"><nav aria-label="Workshop shelves">{(['supply','powers','buddies','style','wardrobe','collection'] as const).map(id=><button key={id} aria-pressed={tab===id} onClick={()=>{setTab(id);setConfirm(false);const first=visibleFor(id)[0];if(first)setSelected(first.id);}}>{id==='supply'?'Supplies':id==='powers'?'Specials':id==='buddies'?'Buddies':id==='style'?'Ink & trails':id==='wardrobe'?'Wardrobe':'Collection'}</button>)}</nav>
-          <div className="workshop-cards">{visible.map(i=><button key={i.id} className={`workshop-card ${selected===i.id?'selected':''}`} aria-label={`Preview ${i.name}`} aria-pressed={selected===i.id} onClick={()=>{setSelected(i.id);setConfirm(false);}}>
-            <img className="workshop-card-icon" src={kaiPosterPath(i.id)} alt="" width={72} height={72} loading="lazy"/><span className="workshop-card-title">{i.name}</span><span>{i.type==='supply'?'For this campaign':'Yours to keep'}</span><strong>{wallet.owned.includes(i.id)?Object.values(wallet.equipped).some(value=>value===i.id)?'Equipped':'Owned':`${i.price} Gold`}</strong>
-          </button>)}</div>
-          {tab==='collection'&&visible.length===0&&<p className="workshop-empty">Purchased specials, buddies, and cosmetics appear here.</p>}
-          {resetSlots.length>0&&<div className="workshop-classics">{resetSlots.map(slot=><button key={slot} disabled={wallet.equipped[slot]==='classic'} onClick={()=>onEquip(slot,'classic')}>{resetLabels[slot]}</button>)}</div>}
-        </div>
-      </div>
-      <footer className="workshop-footer"><div aria-live="polite">{error?<p role="alert" className="workshop-error">{error}</p>:<p>{message||'Choose an item to see how it works.'}</p>}</div><button onClick={onContinue}>{betweenLevels?'Continue story':'Back to title'} <span aria-hidden="true">→</span></button></footer>
+  },[wallet,betweenLevels,tab,selected,phase,opening,error]);
+  const open=(crate:CrateId)=>{
+    if(openingBusy.current)return;openingBusy.current=true;
+    setSelected(crate);setAnimate(true);
+    if(!onOpenCrate(crate)){setAnimate(false);openingBusy.current=false;}
+  };
+  const collect=(view:boolean)=>{
+    if(!opening||!onCollectReward(opening.receipt))return;
+    setTab(view?opening.reward.kind==='card'?'gallery':'inventory':'crates');
+    setAnimate(false);setPhase('idle');openingBusy.current=false;
+    requestAnimationFrame(()=>{if(!view)panel.current?.querySelector<HTMLButtonElement>(`[data-crate-offer="${selected}"] .crate-buy-button`)?.focus();else panel.current?.focus();});
+  };
+  return <section className="workshop workshop-v2" role="dialog" aria-modal="true" aria-labelledby="workshop-title" ref={panel} tabIndex={-1}
+    onKeyDown={event=>{if(event.key==='Escape'&&!event.repeat&&!opening){event.preventDefault();event.stopPropagation();onContinue();}}}>
+    <div className="workshop-v2-paper">
+      <header className="workshop-v2-header"><div><span className="workshop-v2-eyebrow">THE UNKNOWN UNIVERSE · KAI’S SUPPLY CO.</span><h1 id="workshop-title">A little gold.<br/><em>A great discovery.</em></h1><p>Welcome to Kai’s Workshop. Let’s see what you find.</p></div><div className="workshop-v2-wallet"><span>YOUR GOLD</span><strong data-testid="shop-gold">{wallet.gold.toLocaleString()}</strong><small>Earned on your adventures</small></div></header>
+      {!opening&&<>
+        {betweenLevels&&stats&&<div className="workshop-loadout"><span>Next: Level {stats.level}</span><span>{POWERUPS[stats.equipment?.active??'hands'].name} · {stats.equipment?.hits??0}/3</span><span>Shield: {stats.inkShieldReady?'ready':'empty'}</span><span>Lives: {stats.lives}/{stats.maxLives}</span></div>}
+        <nav className="workshop-v2-tabs" aria-label="Workshop rooms">{(['crates','inventory','gallery'] as const).map(value=><button type="button" key={value} aria-pressed={tab===value} onClick={()=>setTab(value)}>{value==='crates'?'The crates':value==='inventory'?'Your inventory':'Character gallery'}<span>{value==='crates'?'01':value==='inventory'?wallet.owned.length+supplyCount:`${wallet.cards.length}/${COLLECTIBLE_CARDS.length}`}</span></button>)}</nav>
+      </>}
+      <main className="workshop-v2-main">{opening?<CrateOpening key={opening.receipt} opening={opening} animate={animate} error={error} onCollect={collect} onPhase={setPhase}/>
+        :tab==='gallery'?<CollectibleGallery owned={wallet.cards}/>:tab==='inventory'?<WorkshopInventory wallet={wallet} onUse={onUseSupply} onEquip={onEquip}/>:<>
+          <div className="crate-section-heading"><h2>Pick your kind of mystery.</h2><span>ONE CRATE. ONE DISCOVERY.</span></div>
+          <div className="crate-shelf">{(['normal','legendary'] as const).map(id=>{
+            const crate=CRATES[id],blocked=crateBlock(wallet,id);
+            return <article className={`crate-offer crate-offer-${id} ${selected===id?'is-selected':''}`} key={id} data-crate-offer={id}>
+              <div className="crate-offer-top"><span>{id==='normal'?'THE EVERYDAY SURPRISE':'SOMETHING EXTRAORDINARY'}</span><span className="crate-offer-symbol" aria-hidden="true">{id==='normal'?'✧':'✦'}</span></div>
+              <button type="button" className="crate-art-button" aria-label={`Inspect ${crate.name}`} aria-pressed={selected===id} onClick={()=>setSelected(id)}><div className="crate-offer-halo"/><CrateSprite crate={id}/></button>
+              <div className="crate-offer-description"><div><h3>{crate.name}</h3><span className="crate-price">{crate.price} <small>GOLD</small></span></div><p>{crate.description}</p><small>{id==='normal'?'Power-ups, helpers, style & character art.':'Guaranteed Epic or Legendary. A bigger discovery.'}</small></div>
+              <button type="button" className="crate-buy-button" disabled={Boolean(blocked)} onClick={()=>open(id)} aria-label={`Open ${crate.name} for ${crate.price} Gold`}>Open crate <span>{crate.price} Gold <b aria-hidden="true">↗</b></span></button>
+              <p className="crate-offer-footnote">{blocked||'Permanent discoveries never repeat.'}</p>
+            </article>;
+          })}</div>
+          <div className="crate-how-it-works"><span aria-hidden="true">✦</span><p><strong>Something useful. Something unexpected.</strong> Supplies go into your inventory. Specials and buddies are yours to keep. Character art fills your gallery.</p></div>
+          <BuddyPicker wallet={wallet} shop onChoose={id=>onEquip('buddy',id)}/>
+          <details className="crate-odds" key={selected}><summary>{CRATES[selected].name} · What could be inside?</summary><div className="crate-odds-content"><p>Odds for your current collection. Owned art and permanent items leave the pool; remaining rarity chances adjust when a tier is complete.</p>
+            <div className="crate-odds-tiers">{odds.map(entry=><div className={`rarity-${entry.rarity}`} key={entry.rarity}><span>{entry.rarity}</span><strong>{(entry.chance*100).toFixed(entry.chance&&entry.chance<.01?2:1).replace('.0','')}%</strong><small>{entry.count} discoveries</small></div>)}</div>
+            <p>Rarity follows an item’s reference value: Common ≤ 200 · Rare ≤ 400 · Epic ≤ 650 · Legendary &gt; 650 Gold.</p>
+            <ul className="crate-loot-list">{LOOT.filter(reward=>CRATES[selected].weights[reward.rarity]>0).map(reward=>{
+              const available=pool.some(entry=>entry.id===reward.id),tier=odds.find(entry=>entry.rarity===reward.rarity)!;
+              return <li key={reward.id} className={`rarity-${reward.rarity} ${available?'':'loot-already-owned'}`}><span><b>{reward.name}</b><small>{reward.kind==='card'?'Character art':isSupply(reward.id)?'Supply':'Permanent item'} · {reward.value} value</small></span><span>{available?`${(tier.each*100).toFixed(2)}%`:'Collected'}</span></li>;
+            })}</ul>
+          </div></details>
+        </>}
+      </main>
+      {!opening&&<footer className="workshop-footer"><div aria-live="polite">{error?<p role="alert" className="workshop-error">{error}</p>:<p>{message||'Gold is earned by playing. Every discovery is saved.'}</p>}</div><button type="button" onClick={onContinue}>{betweenLevels?'Continue story':'Back to title'} <span aria-hidden="true">→</span></button></footer>}
     </div>
   </section>;
 }

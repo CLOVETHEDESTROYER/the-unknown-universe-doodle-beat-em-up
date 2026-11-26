@@ -1,0 +1,312 @@
+{
+  "generator": "Built-in ImageGen",
+  "created": "2026-11-25",
+  "crates": [
+    {
+      "id": "normal",
+      "prompt": "Use case: stylized-concept. Production game sprite sheet, exactly FOUR frames in a 2 by 2 square grid of equal cells with generous transparent padding. An ORIGINAL charming chunky wooden treasure supply crate for a hand-drawn adventure game: warm oak planks, sturdy dark iron corner bands, brass star latch, small cyan painted doodle bolt. Three-quarter view facing left-front, full object. SAME crate, camera, scale, floor baseline and body position across all four cells. Cell top-left closed lid. Cell top-right closed lid with warm light escaping seams (no motion lines). Bottom-left lid kicked up on back hinges to 65 degrees, interior brilliant amber. Bottom-right lid fully open to110 degrees, glowing interior. Keep lid fully inside own cell, body anchored same. Hand ink contours over polished tactile 3D-painted wood, readable at small size, appealing to all ages. Transparent background actual alpha; NO scenery, NO text, NO watermark, NO grid lines, no cast floor shadows. Use whole 1024 square canvas.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-0f1e184a-2c28-4b35-9b97-ee8c64c77ea0.png"
+    },
+    {
+      "id": "legendary",
+      "prompt": "Use case: stylized-concept. Production game sprite sheet, exactly FOUR frames in a 2 by 2 square grid of equal cells with generous transparent padding. An ORIGINAL magnificent legendary treasure crate: heavy midnight-blue brushed steel body, thick silver metal corner bands and rivets, ornate warm gold edging, many ruby emerald sapphire and amethyst gemstones inset in metal, large central diamond star clasp. Three-quarter view facing left-front, full object. SAME chest, camera, scale, floor baseline and body position across all four cells. Cell top-left closed lid. Cell top-right closed lid with turquoise/gold light escaping seams (no motion lines). Bottom-left lid kicked up on back hinges to65 degrees, interior brilliant gold. Bottom-right lid fully open to110 degrees, glowing interior. Keep lid fully inside own cell, body anchored same. Hand ink contours over luxurious polished 3D materials, crisp jewel facets, readable at small size. Actual transparent alpha; NO scenery, NO text, NO watermark, NO grid lines, no cast floor shadows. Whole 1024 square canvas.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-d92bc527-921f-4864-afe5-f68086f5bc7a.png"
+    }
+  ],
+  "cards": [
+    {
+      "id": "xgod-harvest",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Use case: stylized-concept. One full-bleed portrait 2:3 collectible character illustration for an adventure game, NO text, NO stats, NO logos, NO border. Reference only preserves X God's identity: young lime-green spiky-haired boy with simple BLACK X-shaped eyes, warm peach face and friendly attitude. Dress him in an elegant russet and pumpkin-orange Thanksgiving suit with waistcoat, leaf-pattern tie, little gold stitched-smile lapel pin, and black lime-accent sneakers. Confident jaunty pose, presenting a little pumpkin pie at a warm autumn feast with falling maple leaves and pumpkins. Rich hand-painted storybook / colored-pencil illustration with confident black ink edges, warm copper and gold light, sophisticated beautiful collectible art. Full body, keep recognizable lime hair and X eyes; no weapons pointed at viewer. No words.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-282127bc-c945-4840-a065-c5cf03639070.png"
+    },
+    {
+      "id": "kai-turkey",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/killer-kai-card-v2.webp",
+      "prompt": "Use case: stylized-concept. One full-bleed portrait 2:3 collectible character illustration, NO text, NO stats, NO logos, NO border. Reference is IDENTITY ONLY for Killer Kai: curly brown-haired cyborg boy with blue/silver armor and oversized glowing cyan forearm cannon. Dress him in a playful adorable plush brown turkey costume with rounded body, turkey hood around visible curly hair and face, huge russet/gold feather tail fanned behind, orange bird-foot slippers. His cyan arm cannon pokes through one wing sleeve, with a cute tiny leaf tied to it. Heroic silly proud pose in an autumn pumpkin patch, delighted expression. Warm storybook colored-pencil / ink illustration, beautiful amber sunset, rich russet and cyan palette, playful game art, full body with breathing room. Retain identity and kid age. No words.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-f1c2480d-586a-48b9-816d-41722fdd7dd0.png"
+    },
+    {
+      "id": "nico-pixel",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/nico-card.png",
+      "prompt": "Use case: stylized-concept. Full-bleed portrait 2:3 collectible poster art, NO text, no UI or borders. Reference is identity only: Nico, brown spiky-haired hero, white tank, olive cargo pants, dogtags and large olive rocket launcher. Reimagine as beautiful meticulously hand-placed 16-bit PIXEL ART with crisp pixel clusters, limited warm orange/olive/teal palette, dithering and dramatic lighting. Show him jumping between miniature neon arcade rooftops with rocket exhaust curling in geometric pixel clouds. Strong heroic focal point and dynamic pose, entire character visible. Preserve recognizable identity, costume and weapon. No smooth 3D, no drawn text.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-ae453b4c-daee-423e-b024-2a404bc6720d.png"
+    },
+    {
+      "id": "zgod-watercolor",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/z-god-card.png",
+      "prompt": "Use case: stylized-concept. Full-bleed portrait 2:3 collectible illustration, NO text, NO border, no logos. Identity reference only: Z-God, cheerful little brown-haired girl with large pink bow, pink star sweater, pink skirt, purple leggings and pink high-top sneakers. Charming WATERCOLOR on cold-press ivory paper with visible pigment blooms and delicate pencil outlines. She skips joyfully across floating golden stars above a dreamy blush/lilac sky, expressive innocent face, full body. Airy open composition and refined children's illustration, pastel washes, warm gold sparkle, preserve exact character clothing and age. No words.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-b335ab77-9907-45a7-8ccc-f12d47e53578.png"
+    },
+    {
+      "id": "barrett-noir",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/barrett-card.png",
+      "prompt": "Use case: stylized-concept. Full-bleed portrait 2:3 collectible character illustration, NO text, no UI, no border. Reference identity only: Barrett, wild brown spiky-haired bear-powered boy, golden eyes, oversized furry claw forearms, torn vest and trousers, large sneakers. Reimagine as stylish BLACK-AND-WHITE NOIR COMIC art with one selective warm amber accent for eyes and claws. Dramatic ink brush shadows and screen-tone rain, crouching guardian pose overlooking a rainy rooftop city, low camera. Keep body age stylized young hero, no gore or horror. Detailed brush ink, strong silhouette, premium graphic novel composition, visible whole figure. No words.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-e3f790d7-9925-4f86-8d3c-36606b06f4cc.png"
+    },
+    {
+      "id": "ezra-ink",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/ezra-card.png",
+      "prompt": "Use case: stylized-concept. Full-bleed portrait 2:3 collectible art, NO text, NO calligraphy, no border, no seals. Reference identity only: Ezra, fierce young fire hero with flame-shaped orange hair, cracked molten orange forearms, black fire-emblem shirt and brown trousers. Reimagine as refined SUMI-E INK WASH and vermilion pigment on textured cream rice paper. Dynamic martial hero stance, one molten sphere held aloft, huge expressive sweeping brush flames curling around body, black drybrush and red/gold pigment, generous negative space, full body. Preserve character silhouette, costume and age. Museum-quality brush art, no writing.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-bd5256be-45f3-4cd8-b0d1-c090bc8148cb.png"
+    },
+    {
+      "id": "xgod-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a young lime-green spiky-haired boy with simple black X-shaped eyes, white tee with a yellow stitched smile emblem, orange cargo pants, black lime-accent sneakers; holding his flame sword. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-1dd015b8-ca76-4b9f-9b57-f7d5ea35cdb7.png"
+    },
+    {
+      "id": "kai-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/killer-kai-card-v2.webp",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a curly brown-haired cyborg boy with blue/silver armor, cyan chest core, and oversized glowing cyan forearm cannon. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-35f0614d-5324-43dd-9bfa-152ec1854849.png"
+    },
+    {
+      "id": "barrett-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/barrett-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a wild brown spiky-haired young bear boy with golden eyes and enormous furry bear claw forearms, brown torn vest and dark torn trousers. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-bc51d6a1-91ec-452d-8e7b-0c92df585607.png"
+    },
+    {
+      "id": "nico-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/nico-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a confident brown spiky-haired muscular young action hero with white tank top, olive cargo pants, dog tags, and a big olive rocket launcher. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-6c0f88c2-4c24-4ffd-87d4-ac2f32f159d2.png"
+    },
+    {
+      "id": "ezra-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/ezra-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a fiery young hero with flame-shaped orange hair, orange molten rock cracked arms, black fire-emblem shirt, brown torn trousers and glowing lava sphere. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-0fa8540a-d176-478f-bae2-81e8892c478e.png"
+    },
+    {
+      "id": "c-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/teleportation-c-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a little glossy-black cat-eared shadow ninja with blank cream almond eyes and a cream C/crescent on his chest, emerging through a purple portal. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-8453e2fd-57fa-4dd0-9513-fd943c114193.png"
+    },
+    {
+      "id": "zgod-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/z-god-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a cheerful small brown-haired girl with a large pink bow, pink star sweater, pink skirt, purple leggings and pink high-top sneakers. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-06972c09-44c1-410e-8948-602c5ac328bb.png"
+    },
+    {
+      "id": "kaden-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/kaden-card.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a black spiky-haired electric ninja boy wearing large round black/gold headphones, a black mask with glowing gold visor, black jacket and cargo pants, gold-accent gloves and sneakers. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-14c3d49c-be9c-491d-8ac5-40336e666763.png"
+    },
+    {
+      "id": "shadow-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/shadow-kid-card-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a mysterious all-black shadow boy with swept black hair, large white eyes, charcoal swirl-emblem tee, purple-striped grey trousers, purple glowing bracelets, black sneakers, holding a tiny black hole. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-922a1584-d54a-46ff-ad80-73464eff4744.png"
+    },
+    {
+      "id": "king-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/characters/turkey-king-v3/card.webp",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a friendly stocky adult autumn king with brown hair/beard, maple-leaf crown, orange gold-trimmed robe, sash, slippers and ornate maple staff, cradling a turkey. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-28daed8f-f5f2-43da-9867-12bfe878156d.png"
+    },
+    {
+      "id": "klause-3d",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/seasonal/christmas-v1/killer-klause/card.webp",
+      "prompt": "Use case: stylized-concept. Create ONE beautiful portrait-oriented collectible character illustration, 2:3 aspect ratio, full-bleed cinematic art, no text, no numbers, no UI, no card border, no logos. Reference image is IDENTITY REFERENCE ONLY: preserve the exact recognizable character, hair silhouette, face features, costume colors and weapon from the reference but remove all reference text/stat panels. Subject: a muscular older Santa field medic with white beard, red Santa hat and red fur-trimmed vest, olive tank top, dogtags, red cargo trousers, combat boots, medical pouch and green gift-wrapped present launcher. Transform the drawn character into a beautifully sculpted stylized 3D animated-movie collectible figure with tactile painted materials, polished but playful proportions, expressive dynamic heroic pose on a miniature themed diorama. Detailed cinematic lighting, soft depth of field, magical particles, sophisticated composition, strong focal point, whole character comfortably inside image with breathing room. ORIGINAL character from The Unknown Universe, not another franchise. Deep rich background matched to the hero's power palette, warm key and colorful rim lights, premium collectible art. Preserve ages and recognizable identity; no photoreal human faces.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-49f3dd6a-ff41-4c1e-b8b1-6773142d8883.png"
+    },
+    {
+      "id": "xgod-surf",
+      "hero": "xgod",
+      "name": "Surf’s Up, X God",
+      "series": "Off Duty",
+      "style": "Surf poster",
+      "value": 350,
+      "description": "X God balances on a lime surfboard, grinning as a turquoise wave curls behind him.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: a lime-haired boy with BLACK X-shaped eyes, orange board shorts, white smile-emblem rashguard and lime sneakers on the board; dynamic surfing crouch inside a turquoise wave, sunny beach, joyful illustrated surf-travel poster. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-a26314a3-5f8d-4588-ade6-caadb63e4e6b.png"
+    },
+    {
+      "id": "xgod-family",
+      "hero": "xgod",
+      "name": "Game Night Champions",
+      "series": "Family Album",
+      "style": "Storybook illustration",
+      "value": 600,
+      "description": "X God and his little sister Z-God turn family game night into a heroic adventure.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: X God, lime spikes and black X eyes, white stitched-smile tee and orange pants, sitting cross-legged playing a board game with his little sister Z-God: brown bob hair, big pink bow, pink star sweater, purple leggings. Cozy family living room, popcorn, laughter, colorful cushions; warm hand-painted storybook scene. Both clearly recognizable. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-cc715c14-4793-4898-a6ad-ef5d4215e527.png"
+    },
+    {
+      "id": "xgod-academy",
+      "hero": "xgod",
+      "name": "Class of X",
+      "series": "Hero Academy",
+      "style": "Superhero comic",
+      "value": 650,
+      "description": "X God strikes a dramatic landing pose in a blue-and-gold academy uniform.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: X God with lime spiky hair and black X eyes in a blue and gold superhero-team jumpsuit with his OWN yellow stitched-smile chest emblem, orange belt, lime sneaker boots. Powerful three-point landing with green energy arcs, school training courtyard, bold 1990s X-Men-inspired superhero comic inks and halftones, original costume and character, no existing franchise characters. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-c73fa6c6-ec26-406a-a7ee-a1c434f995b0.png"
+    },
+    {
+      "id": "xgod-city",
+      "hero": "xgod",
+      "name": "Sunset Boulevard Hero",
+      "series": "City Legends",
+      "style": "Urban cover art",
+      "value": 650,
+      "description": "X God poses beside his custom lime ride under sunset palms.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: X God with lime spikes and black X eyes, white stitched-smile tee and orange cargos, black lime sneakers, leaning jauntily against a lime custom lowrider at a sunny palm-lined coastal boulevard. Grand Theft Auto-inspired illustrated loading-screen / cover-art style, bold angular outlines, rich flat color planes, warm orange dusk, cinematic low camera. Kid-friendly relaxed car-show setting, no weapons or crime. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-14df0c26-1d2e-45c3-8498-9e6f263b91a4.png"
+    },
+    {
+      "id": "xgod-chef",
+      "hero": "xgod",
+      "name": "Pancake Power",
+      "series": "Family Album",
+      "style": "Clay animation render",
+      "value": 400,
+      "description": "An airborne pancake and a very determined little chef.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: X God with lime spiky hair and BLACK X eyes wearing a white smile-emblem tee, orange pants and flour-dusted apron, flipping a huge pancake in a cozy family kitchen. Funny surprised pose as pancake flies overhead. Hand-sculpted stop-motion clay-animation look, visible fingerprints, soft warm light, playful cooking scene. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-f41917a9-54f4-4d80-90cc-dc6c296d5d5b.png"
+    },
+    {
+      "id": "xgod-cosmos",
+      "hero": "xgod",
+      "name": "One Small Leap for X",
+      "series": "Off Duty",
+      "style": "Retro space illustration",
+      "value": 1000,
+      "description": "X God bounces across a tiny moon with a spectacular view of home.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/xgod-current-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: X God with recognizable lime spiky hair and BLACK X eyes inside a big clear astronaut bubble helmet, white suit with his own yellow stitched-smile chest badge and orange panels, lime-accent boots, making a huge joyful low-gravity leap on a tiny moon. Retro-futurist gouache space-travel illustration, turquoise planet and peach nebula, wonder and fun. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-6ceab7ae-f3a4-46d8-aa80-b1dd20133960.png"
+    },
+    {
+      "id": "kai-sandcastle",
+      "hero": "killer_kai",
+      "name": "Sandcastle Engineer",
+      "series": "Off Duty",
+      "style": "3D beach diorama",
+      "value": 400,
+      "description": "Kai uses his engineering skills to build the beach’s most overcomplicated sandcastle.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/killer-kai-card-v2.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: curly brown-haired cyborg boy Kai with blue silver armor, cyan chest core and oversized cyan arm cannon, kneeling building an elaborate sandcastle with a bucket and tiny flags; cannon fitted with a harmless sand scoop. Laughing playful pose, sunny beach, tactile stylized 3D animated-movie diorama. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-47bc4f37-0740-4b25-8bd3-42fcdf50404d.png"
+    },
+    {
+      "id": "barrett-camp",
+      "hero": "barrett",
+      "name": "The Marshmallow Bear",
+      "series": "Off Duty",
+      "style": "Painted storybook",
+      "value": 350,
+      "description": "Barrett discovers that enormous claws are excellent marshmallow holders.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/barrett-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Barrett, wild brown spiky hair, golden eyes, huge furry bear claw forearms, torn brown vest and dark pants, seated on log with goofy delighted grin carefully roasting marshmallows at cozy camping fire. Pine forest twilight, tent and fireflies, warm gouache storybook illustration. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-9db02532-efd8-4189-90c3-6c206aefd486.png"
+    },
+    {
+      "id": "nico-street",
+      "hero": "nico",
+      "name": "Courtside Confidence",
+      "series": "City Legends",
+      "style": "Urban cover art",
+      "value": 600,
+      "description": "Nico trades the battlefield for a sunset neighborhood basketball court.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/nico-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Nico, brown spiky-haired muscular young hero, white tank top, olive cargo pants, dogtags and boots, spinning basketball on one finger at neighborhood court, his signature olive launcher safely strapped to backpack. Friendly confident smile. GTA-inspired bold angular illustrated loading-screen composition, palm silhouettes and pink sunset, no crime or violence. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-74691ab2-5799-465b-bff7-8ef95425fe6f.png"
+    },
+    {
+      "id": "ezra-bbq",
+      "hero": "ezra",
+      "name": "Grill Master Ezra",
+      "series": "Family Album",
+      "style": "Clay animation render",
+      "value": 350,
+      "description": "The family cookout has never had better temperature control.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/ezra-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Ezra, flame-shaped orange hair, cracked molten orange forearms, black fire-emblem shirt and brown trousers, cheerful apron, holding a spatula and carefully grilling corn and vegetables at a sunny backyard family barbecue. His flames gentle and controlled. Tactile whimsical stop-motion clay-animation aesthetic, warm garden setting, silly proud pose. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-13094974-9c1c-47e3-bbbc-bc139d96ebae.png"
+    },
+    {
+      "id": "c-garden",
+      "hero": "teleportation_c",
+      "name": "Portal to Playtime",
+      "series": "Off Duty",
+      "style": "Paper-cut illustration",
+      "value": 400,
+      "description": "Teleportation C finds that portals make a wonderful garden game.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/teleportation-c-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Teleportation C, small BLACK cat-eared shadow ninja with blank cream almond eyes and cream C crescent chest, springing playfully out of a violet portal in a lush flower garden, butterflies and floating petals. Layered dimensional cut-paper illustration with visible paper fibers, lavender mint and butter-yellow colors, joyful full-body action. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-319c56da-0a61-4cd5-966e-314768cecd10.png"
+    },
+    {
+      "id": "zgod-kite",
+      "hero": "zgod",
+      "name": "A Sky Full of Stars",
+      "series": "Off Duty",
+      "style": "Watercolor",
+      "value": 300,
+      "description": "Z-God races along the beach beneath a golden star-shaped kite.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/z-god-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: little Z-God, brown bob hair, big pink bow, pink star sweater and skirt, purple leggings and pink high-top sneakers, running joyfully along beach flying a golden star-shaped kite. Wind blowing bow, pastel watercolor with visible paper grain, luminous pink sunset and gentle ocean. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-a6b103fb-f2a7-408d-a5b2-68db10587aa2.png"
+    },
+    {
+      "id": "kaden-academy",
+      "hero": "elytron",
+      "name": "Golden Hour Training",
+      "series": "Hero Academy",
+      "style": "Superhero comic",
+      "value": 650,
+      "description": "Kaden practices his electric moves in the academy’s training yard.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/kaden-card.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Kaden electric ninja boy, tousled black hair, black gold headphones, black face mask with glowing golden visor, black jacket and cargo pants, gold gloves and sneakers. Athletic airborne spinning practice punch, yellow electric rings, superhero academy training yard. 1990s X-Men-inspired comic inks, dynamic foreshortening, bold halftones, retain original own costume, no franchise characters. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-31c9fd09-ac65-41ee-b34a-8fe8926923d1.png"
+    },
+    {
+      "id": "shadow-arcade",
+      "hero": "shadow_kid",
+      "name": "High Score, Unknown",
+      "series": "City Legends",
+      "style": "Neon graphic novel",
+      "value": 600,
+      "description": "Shadow Kid bends a tiny black hole into an unbeatable arcade trick shot.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/cards/shadow-kid-card-v1.png",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Shadow Kid, all-black shadow boy with swept black hair, large WHITE eyes, charcoal purple-swirl tee, grey pants with purple side stripe, glowing violet bracelets and black sneakers, playful over-the-shoulder pose at a neon arcade pinball machine, miniature purple black-hole orb floating over one palm. Bold angular urban illustrated cover art, violet cyan neon, lighthearted, no readable machine text. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-40217da7-b807-46d6-88d1-91c5de52ab3c.png"
+    },
+    {
+      "id": "king-holiday",
+      "hero": "turkey_king",
+      "name": "Royal Beach Day",
+      "series": "Off Duty",
+      "style": "3D beach diorama",
+      "value": 450,
+      "description": "Even the Turkey King deserves a little time under an umbrella.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/characters/turkey-king-v3/card.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: friendly stocky adult Turkey King, brown hair and beard, maple leaf crown, orange gold-trim robe, sash and slippers, reclining laughing on beach chair beneath umbrella, royal maple staff planted in sand and his pet turkey wearing tiny sunglasses beside him. Premium playful stylized 3D miniature beach diorama. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-a956c85f-ffaa-467e-a675-f95f74ef8111.png"
+    },
+    {
+      "id": "klause-toys",
+      "hero": "killer_klause",
+      "name": "After Hours at the Workshop",
+      "series": "Family Album",
+      "style": "Cozy painted illustration",
+      "value": 450,
+      "description": "Klause swaps his launcher for a paintbrush to finish a very special toy.",
+      "ref": "C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/seasonal/christmas-v1/killer-klause/card.webp",
+      "prompt": "Create ONE full-bleed portrait 2:3 collectible character illustration. Reference image is IDENTITY REFERENCE ONLY; preserve recognizable face, hair silhouette, color palette, distinctive emblems and anatomy, but REMOVE reference stat panels and all writing. Scene: Killer Klause, muscular older white-bearded Santa field medic with red hat, red fur-trim vest, olive shirt, dogtags, red cargo pants and boots, sitting at a toy workbench carefully painting a tiny wooden rocket, signature green gift launcher safely propped in background and medical pouch visible. Gentle smiling pose, cozy family workshop warm lamplight, detailed painted illustration. Premium finished character art, expressive new pose, detailed playful setting, comfortable framing, distinctly the same original Unknown Universe character. No text, no logos, no card borders, no watermarks. Preserve the character's age and identity.",
+      "source": "C:\\Users\\analo\\.codex\\generated_images\\01a1fb80-0c13-7b02-ae6c-6b45a68dd2a9\\exec-b33bb742-daf3-4da4-a01b-f1073895d933.png"
+    }
+  ]
+}

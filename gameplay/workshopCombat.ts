@@ -4,6 +4,7 @@ import {CHARGED_BOLT_TEXTURE} from './chargedBlasterEffects';
 import {SPECIALS, type BuddyId, type SpecialId} from './shopCatalog';
 import {buddyFrame,kaiArtKey} from './kaiWorkshopArt';
 import {playKaiEffect} from './kaiWorkshopRuntime';
+import {isNewBuddy,newBuddyState,updateBuddyHelp} from './buddyAbilities';
 
 type Actor = Phaser.Physics.Arcade.Sprite;
 type Body = Phaser.Physics.Arcade.Body;
@@ -15,6 +16,9 @@ interface Hooks {
   facing:()=>number;
   damage:(enemy:Actor,damage:number)=>boolean;
   clearLine:(enemy:Actor)=>boolean;
+  heal:(amount:number)=>number;
+  repair:()=>boolean;
+  magnet:()=>void;
 }
 
 export class WorkshopCombat {
@@ -25,6 +29,8 @@ export class WorkshopCombat {
   private nextAssist=0;
   private uses=0;
   private assists=0;
+  private help=newBuddyState();
+  private kills=0;
   private buddy:BuddyId|'classic'='classic';
   constructor(private readonly scene:Phaser.Scene,private readonly hooks:Hooks){
     this.buddyArt=scene.add.sprite(0,0,'__DEFAULT').setDepth(19).setVisible(false).setDisplaySize(62,62);
@@ -84,13 +90,34 @@ export class WorkshopCombat {
     if(id==='classic'||!player.active||!this.scene.textures.exists(kaiArtKey(id))){art.setVisible(false);return;}
     const now=this.scene.time.now,facing=this.hooks.facing(), body=player.body as Body;
     const flap=this.reducedMotion.matches?0:Math.sin(now/110);
-    const x=player.x-facing*78,y=body.center.y-39+flap*5;
+    const groundedBuddy=id==='scribble-fox'||id==='chomp-chest';
+    const x=player.x-facing*78,y=groundedBuddy?body.bottom-29:body.center.y-39+flap*5;
     const step=1-Math.exp(-delta/100);
     if(!art.visible||Phaser.Math.Distance.Between(x,y,art.x,art.y)>270)art.setPosition(x,y);
     else art.setPosition(Phaser.Math.Linear(art.x,x,step),Phaser.Math.Linear(art.y,y,step));
-    art.setTexture(kaiArtKey(id),buddyFrame(now,Math.abs(body.velocity.x)>12,now-this.assistAt<400?now-this.assistAt:-1,this.reducedMotion.matches))
+    const actionAt=isNewBuddy(id)?this.help.assistAt:this.assistAt;
+    art.setTexture(kaiArtKey(id),buddyFrame(now,Math.abs(body.velocity.x)>12,now-actionAt<400?now-actionAt:-1,this.reducedMotion.matches))
       .setDisplaySize(62,62).setVisible(true).setFlipX(facing<0);
-    if(!assistance||now<this.nextAssist)return;
+    if(!assistance)return;
+    if(isNewBuddy(id)){
+      const targets=this.hooks.enemies.getChildren().map(object=>object as Actor).filter(enemy=>enemy.active&&enemy.body?.enable&&this.hooks.clearLine(enemy)).map(enemy=>({
+        x:(enemy.body as Body).center.x,y:(enemy.body as Body).center.y,hp:Number(enemy.getData('hp')),boss:enemy.getData('kind')==='boss',
+        hit:(amount:number)=>this.hooks.damage(enemy,amount),slow:()=>{enemy.setData('frozenUntil',now+650);enemy.setVelocityX(0);},
+      }));
+      const shots=this.hooks.projectiles.getChildren().map(object=>object as Actor).filter(shot=>shot.active&&shot.body?.enable&&shot.getData('enemyProjectile')).map(shot=>({
+        x:shot.x,y:shot.y,vx:(shot.body as Body).velocity.x,vy:(shot.body as Body).velocity.y,
+        deflect:()=>{shot.setVelocity((shot.x<body.center.x?-1:1)*300,(shot.y<body.center.y?-1:1)*220);},
+      }));
+      const used=updateBuddyHelp(this.help,id,now,{x:body.center.x,y:body.center.y,targets,shots,kills:this.kills,heal:this.hooks.heal,repair:this.hooks.repair,magnet:this.hooks.magnet});
+      if(used){
+        const color=id==='puddle'?0x8ee5b0:id==='orbit'?0xbd9cfa:id==='scribble-fox'?0xc5ec45:0xffce65;
+        this.pulse(body.center.x,body.center.y,id==='rumble-puff'?370:95,id==='rumble-puff'?370:85,color);
+        playSfx(id==='puddle'?'pickup':id==='orbit'?'shield':'powerup',{volume:.35});
+        if(id==='scribble-fox'&&targets.length&&!this.reducedMotion.matches){this.scene.tweens.add({targets:art,x:targets[0].x,y:targets[0].y,duration:140,yoyo:true});}
+      }
+      return;
+    }
+    if(now<this.nextAssist)return;
     if(id==='patch-beetle'){
       const inbound=this.hooks.projectiles.getChildren().find((object)=>{
         const shot=object as Actor;
@@ -118,7 +145,8 @@ export class WorkshopCombat {
   }
   read() {
     return {uses:this.uses,cooldownRemainingMs:this.cooldownRemainingMs,buddy:this.buddy,
-      buddyVisible:this.buddyArt.visible,buddyTexture:this.buddyArt.texture.key,buddyFrame:this.buddyArt.frame.name,assists:this.assists};
+      buddyVisible:this.buddyArt.visible,buddyTexture:this.buddyArt.texture.key,buddyFrame:this.buddyArt.frame.name,assists:this.assists+this.help.assists,buddyHelp:{...this.help}};
   }
+  enemyDefeated(){this.kills++;}
   get cooldownRemainingMs(){return Math.max(0,this.nextSpecial-this.scene.time.now);}
 }

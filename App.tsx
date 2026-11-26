@@ -25,9 +25,11 @@ import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
 import LevelResults from './components/LevelResults';
 import Workshop from './components/Workshop';
+import BuddyPicker from './components/BuddyPicker';
 import {WALLET_KEY,readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult,type Wallet} from './gameplay/levelRewards';
-import {buyShopItem,equipCosmetic} from './gameplay/workshop';
-import {equippedSpecial,SPECIALS,type ShopItemId,type CosmeticLoadout} from './gameplay/shopCatalog';
+import {redeemSupply,equipCosmetic} from './gameplay/workshop';
+import {openWorkshopCrate,collectCrateReward} from './gameplay/workshopCrates';
+import {equippedSpecial,SPECIALS} from './gameplay/shopCatalog';
 import { LEVEL_EXIT_STORIES, STORY_CHAPTERS, type StoryChapterId } from './story/campaignStory';
 import { getAudioSettings, installGameAudio, installAudioDebug, subscribeAudioSettings, setEffectsPaused } from './audio/gameAudio';
 
@@ -1223,6 +1225,7 @@ const App: React.FC = () => {
               </div>
 
               <SecretCodeEntry {...secretCodeProps} />
+              <BuddyPicker wallet={wallet} error={shopError} onChoose={id=>shopAction(w=>equipCosmetic(w,'buddy',id),'Buddy selected.')} />
               <div className="character-roster grid min-h-0 grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-7 md:gap-4" role="group" aria-label="Choose a character" tabIndex={0}>
                 {CHARACTER_IDS.filter(id=>id!=='killer_klause'||christmasAvailable).map((characterId) => {
                   const character = CHARACTER_CONFIGS[characterId];
@@ -1277,7 +1280,9 @@ const App: React.FC = () => {
         )}
         {appPhase === 'results' && results && <LevelResults result={results} gold={wallet.gold} error={resultError} onContinue={continueResults} nextLabel={results.level<FINAL_LEVEL?'Visit Kai’s Workshop':undefined} />}
         {appPhase === 'workshop' && <Workshop wallet={wallet} error={shopError} message={shopMessage} betweenLevels={Boolean(pendingResult.current)}
-          onBuy={id=>shopAction(w=>buyShopItem(w,id),'Purchased! Your supplies and collection are saved.')}
+          onOpenCrate={id=>shopAction(w=>openWorkshopCrate(w,id),'Your discovery is saved.')}
+          onCollectReward={receipt=>shopAction(w=>collectCrateReward(w,receipt),'Your discovery is saved.')}
+          onUseSupply={id=>shopAction(w=>redeemSupply(w,id),'Supply used. Your next-level loadout is saved.')}
           onEquip={(slot,id)=>shopAction(w=>equipCosmetic(w,slot,id),'Loadout updated.')}
           onContinue={leaveWorkshop} />}
 
@@ -1380,7 +1385,7 @@ const App: React.FC = () => {
       </div>
 
       {workshopOpen&&<dialog ref={workshopDialogRef} className="combat-gallery-dialog" aria-label="Art Gallery" onCancel={event=>{event.preventDefault();closeWorkshop();}}>
-        <Suspense fallback={<p className="p-8">Opening the workshop…</p>}><CombatGallery onClose={closeWorkshop} onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)}/></Suspense>
+        <Suspense fallback={<p className="p-8">Opening the workshop…</p>}><CombatGallery cards={wallet.cards} onClose={closeWorkshop} onSpriteUpload={handleSpriteUpload} isSpriteLoaded={Boolean(playerSprite)}/></Suspense>
       </dialog>}
       {useLegacyDesktopControls && appPhase === 'game' && <div
         className={`relative h-full border-l-4 border-slate-700 bg-slate-50 transition-all duration-500 ease-in-out ${
