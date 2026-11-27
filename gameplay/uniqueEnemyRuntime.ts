@@ -43,8 +43,8 @@ function prepareMoveTextures(scene:Phaser.Scene){
 }
 function shot(scene:Phaser.Scene,enemy:Enemy,env:Environment,x:number,y:number,pattern:string,damage:number,life=2400){
   prepareMoveTextures(scene);
-  const texture={rebound_wheel:'wheel',paint_skip:'paint',grave_chime:'grave',coal_mortar:'coal',returning_leaf:'leaf',rift_cross:'star'}[pattern]??'star';
-  const p=env.projectiles.create(x,y,'unique_'+texture) as Shot;
+  const texture={rebound_wheel:'offroad_tire_v1',paint_skip:'unique_paint',grave_chime:'unique_grave',coal_mortar:'unique_coal',returning_leaf:'unique_leaf',rift_cross:'unique_star'}[pattern]??'unique_star';
+  const p=env.projectiles.create(x,y,texture) as Shot;
   p.setDisplaySize(26,26).setDepth(16)
     .setData('sourceKind',enemy.getData('kind')).setData('pattern',pattern).setData('enemyProjectile',true)
     .setData('damage',damage).setData('bornAt',scene.time.now).setData('bossShotExpiresAt',scene.time.now+life);
@@ -56,11 +56,11 @@ function launch(scene:Phaser.Scene,enemy:Enemy,kind:UniqueEnemyKind,env:Environm
   const tx=Number(enemy.getData('targetX')),ty=Number(enemy.getData('targetY'));
   if(kind==='bumper'){
     if(env.projectiles.getChildren().some(p=>p.active&&p.getData('wheelOwner')===enemy))return;
-    const p=shot(scene,enemy,env,body.center.x+d*38,body.bottom-32,'rebound_wheel',10,3900);
-    p.setDisplaySize(38,38).setVelocity(d*335,65).setAngularVelocity(d*900)
+    const p=shot(scene,enemy,env,body.center.x+d*55,body.bottom-39,'rebound_wheel',10,3900);
+    p.setDisplaySize(72,72).setVelocity(d*335,65).setAngularVelocity(d*540)
       .setData('wheelOwner',enemy).setData('bounces',0);
     // A floor contact settles the wheel. A side contact preserves its roll speed.
-    p.body.setAllowGravity(true).setBounce(1,0).setCircle(26,6,6);
+    p.body.setAllowGravity(true).setBounce(1,0).setCircle(112,16,16);
     playSfx('punchSwing',{volume:.55,pitch:.72});
   }else if(kind==='tagger'){
     const p=shot(scene,enemy,env,body.center.x+d*35,body.bottom-36,'paint_skip',9,1900);

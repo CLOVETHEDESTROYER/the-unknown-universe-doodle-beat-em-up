@@ -1147,6 +1147,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       kindCounts.set(plan.kind,kindCounts.get(plan.kind)!-1);plan.kind=uniqueKind;
       if(++replacementsMade===2)break;
     }
+    // Spread a few tire throwers across the campaign by replacing existing
+    // ground patrols after the level-specific roster has been assembled.
+    const rimRuntLocations:Partial<Record<number,number[]>>={1:[5410],2:[5590],4:[5400]};
+    for(const x of rimRuntLocations[currentLevel]??[]){
+      const plan=level.enemies.find(enemy=>enemy.x===x&&enemy.kind!=='boss');
+      if(plan)plan.kind='bumper';
+    }
     const worldWidth = Math.max(6000, level.endX + 300);
     const failedAssetKeys = new Set<string>();
     const enemyDeaths=new Set<Phaser.GameObjects.Sprite>();
@@ -1411,6 +1418,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     };
 
     function preload(this: Phaser.Scene) {
+      if(level.enemies.some(enemy=>enemy.kind==='bumper')||encounterPlans.some(plan=>plan.waves.some(wave=>wave.some(enemy=>enemy.kind==='bumper'))))
+        loadGameImage(this.load,'offroad_tire_v1','enemies/level-v3/offroad-tire-v1.png');
       if(christmas&&currentLevel<=3)loadGameImage(this.load,'christmas_panorama',`seasonal/christmas-v1/backgrounds/${currentLevel===1?'city':currentLevel===2?'north-pole':'workshop'}.webp`);
       loadKaiEquippedArt(this.load,cosmeticsRef.current);
       loadHeroCelebrationAssets(this.load,selectedCharacterId,isXGod,isKai);

@@ -1,0 +1,7 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "One single isolated off-road monster truck tire for a 2D side-scrolling action game projectile, perfectly round side-on wheel seen straight from the side, chunky deep angular rubber tread blocks visible around circumference, black charcoal rubber with subtle scuffed ink highlights, rugged dark steel five-spoke rim with bolts. Strong bold hand-drawn black outlines, colored-pencil / doodle comic texture matching the provided goblin enemy sprite sheet. Centered tire occupies most of square, true transparent background around it, no character, no ground, no shadows outside wheel, no text, no motion lines. Readable at 64 pixels.",
+  "reference": "public/enemies/level-v3/bumper-0.webp",
+  "runtime": "public/enemies/level-v3/offroad-tire-v1.png",
+  "source": "C:/Users/analo/.codex/generated_images/01a1fb8b-1a83-7f20-b6b4-9b3e53448870/exec-1c3e4c5d-334b-49b2-98e4-08800b0aa880.png"
+}

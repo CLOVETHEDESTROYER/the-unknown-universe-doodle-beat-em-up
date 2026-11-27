@@ -1733,3 +1733,9 @@ Generated `public/platformer/void-regent-pencil-panorama-generated.png` to give 
 - The second jump now rotates Klause through one full somersault around his body center; ordinary jump, slam, and landing poses remain distinct. Fixed the airborne copy's jump-age gate so its spin pose is only active after a real double-jump.
 - The medic and engineer now flank Klause throughout the ground run at 0.58 sprite scale (up from 0.36), following idle/run/assist poses. Their healing and support fire remain tied to X / SP.
 - Updated preview controls and built the production bundle successfully.
+
+## 2026-11-26 — Rim Runt off-road tire and additional patrols
+
+- Replaced Rim Runt's 38px wheel with a generated off-road truck tire, displayed at 72px with a matching circular collider and slower visible rotation. It retains the existing damage, travel speed, lifetime and rebound behavior. Original generated art and prompt are in art/enemies/rim-runt-tire-v1; the runtime image is public/enemies/level-v3/offroad-tire-v1.png.
+- Replaced three existing ground patrols with Rim Runt at x=5410 (level 1), x=5590 (level 2), and x=5400 (level 4), after level roster replacements; original enemies and encounter density elsewhere remain in place.
+- Production build, focused browser checks for all three real patrols and tire travel/damage, and the develop-web-game smoke client pass. Inspected the in-flight tire and gameplay screenshots in output/rim-runt-tire and output/rim-runt-smoke. Manual balance and physical mobile play remain useful follow-up.
