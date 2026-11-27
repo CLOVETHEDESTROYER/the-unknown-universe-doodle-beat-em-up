@@ -35,6 +35,7 @@ export class RouteEncounterRuntime {
   private gateBody:Phaser.Physics.Arcade.StaticBody|null=null;
   private gateWall:Phaser.GameObjects.Rectangle|null=null;
   private gateArt:Phaser.GameObjects.Graphics|null=null;
+  private gateSprites:Phaser.GameObjects.Image[]=[];
   private gateCollider:Phaser.Physics.Arcade.Collider|null=null;
   constructor(private scene:Phaser.Scene,readonly plan:RouteEncounterPlan,private host:EncounterHost,completed:boolean,width:number,pixelScale=1){
     this.stage=completed||plan.kind==='rescue'&&host.rescued()||plan.kind==='combat'&&host.player.x>plan.exit+80?'complete':'waiting';
@@ -53,10 +54,18 @@ export class RouteEncounterRuntime {
       scene.physics.add.existing(this.gateWall,true);
       this.gateBody=this.gateWall.body as Phaser.Physics.Arcade.StaticBody;
       this.gateCollider=scene.physics.add.collider(host.player,this.gateWall);
-      this.gateArt=scene.add.graphics().setDepth(12);
-      this.gateArt.fillStyle(0x272337,.85).fillRect(x-22,0,44,floor)
-        .lineStyle(3,0xfed26c,.95).strokeRect(x-22,-4,44,floor+4);
-      for(let y=10;y<floor;y+=34)this.gateArt.lineBetween(x-16,y+18,x+16,y);
+      if (scene.textures.exists('ms_lock_gate')) {
+        const segH = 220;
+        for (let bottomY = floor; bottomY > -80; bottomY -= segH - 6) {
+          const panel = scene.add.image(x, bottomY, 'ms_lock_gate').setOrigin(0.5, 1).setDisplaySize(84, segH).setDepth(12);
+          this.gateSprites.push(panel);
+        }
+      } else {
+        this.gateArt=scene.add.graphics().setDepth(12);
+        this.gateArt.fillStyle(0x272337,.85).fillRect(x-22,0,44,floor)
+          .lineStyle(3,0xfed26c,.95).strokeRect(x-22,-4,44,floor+4);
+        for(let y=10;y<floor;y+=34)this.gateArt.lineBetween(x-16,y+18,x+16,y);
+      }
     }
     this.resize(width,pixelScale);
     if(this.stage==='complete')this.showCompletionMarker();
@@ -81,6 +90,7 @@ export class RouteEncounterRuntime {
     this.gateCollider?.destroy();this.gateCollider=null;
     this.gateWall?.destroy();this.gateWall=null;this.gateBody=null;
     this.gateArt?.destroy();this.gateArt=null;
+    this.gateSprites.forEach(s=>s.destroy());this.gateSprites=[];
   }
   barrier(){
     const body=this.gateBody;
@@ -114,10 +124,13 @@ export class RouteEncounterRuntime {
     this.wave++;
     this.enemies=this.plan.waves[this.wave].map(plan=>{
       const enemy=this.host.spawn(plan);enemy.setData('routeEncounter',this.plan.id);
-      // Every arrival receives a readable attack-free window.
-      enemy.setData('nextAttackAt',this.scene.time.now+1400);return enemy;
+      // Brief arrival grace so reinforcements burst into action cleanly without unfair instant hits.
+      enemy.setData('nextAttackAt',this.scene.time.now+560);
+      const burst=this.scene.add.circle(enemy.x,enemy.y-42,26,0xffe48f,.65).setDepth(16);
+      this.scene.tweens.add({targets:burst,scaleX:2.4,scaleY:2.4,alpha:0,duration:220,ease:'quad.out',onComplete:()=>burst.destroy()});
+      return enemy;
     });
-    this.stage='active';playSfx('enemyHit',{volume:.25,pitch:.7});
+    this.stage='active';playSfx('enemyHit',{volume:.35,pitch:.75});
   }
   private finish(){
     if(this.stage==='complete')return;
@@ -138,7 +151,7 @@ export class RouteEncounterRuntime {
       this.elapsed+=delta;this.patrolGate(delta);
     }
     if(this.stage==='waiting'&&x>=this.plan.entry&&x<=this.plan.exit+80){
-      this.stage='warning';this.grace=this.plan.kind==='gate'?480:this.plan.kind==='combat'?1000:2200;this.attempts++;playSfx('shield',{volume:.3});
+      this.stage='warning';this.grace=this.plan.kind==='gate'?420:this.plan.kind==='combat'?620:1500;this.attempts++;playSfx('shield',{volume:.35});
       if(this.plan.hold){this.host.gate?.(true);this.gated=true;}
       if(this.gated){
         this.gateInk?.lineStyle(4,0xffd166,.85);
@@ -157,7 +170,7 @@ export class RouteEncounterRuntime {
         this.host.collapse(this.elapsed);
         if(x>=this.plan.exit)this.finish();
       }else if(!this.enemiesLeft()){
-        if(this.wave+1<this.plan.waves.length){this.stage='between_waves';this.grace=1300;}
+        if(this.wave+1<this.plan.waves.length){this.stage='between_waves';this.grace=740;}
         else if(this.plan.kind==='rescue'){
           this.stage='orb_ready';this.cage?.destroy();this.cage=null;this.captive?.destroy();this.captive=null;
           this.host.releaseDoghost();this.released=true;playSfx('shield');

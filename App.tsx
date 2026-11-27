@@ -4,28 +4,47 @@ import { LATEST_UPDATE, markLatestUpdateSeen, readSeenUpdate } from "./gameplay/
 import { CAMPAIGN_SAVE_KEY, readCampaignSave, writeCampaignSave, type CampaignSave } from './gameplay/campaignSave';
 import TouchControls from "./components/TouchControls";
 import AlleyRescue from "./components/AlleyRescue";
-import { ALLEY_MAIN_MUSIC } from "./audio/alleyRescueAudio";
 import RosterUnlockPad from "./components/RosterUnlockPad";
 import SecretCodeEntry from './components/SecretCodeEntry';
-import {acceptsTurkeyKingCode,readTurkeyKingUnlocked,readTurkeyKingSelected,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
+import {readTurkeyKingUnlocked,unlockTurkeyKing,selectTurkeyKing} from './gameplay/turkeyKingUnlock';
 import {readThanksgivingEnabled,storeThanksgivingEnabled} from './gameplay/seasonalTheme';
-import {acceptsChristmasCode,acceptsSpiritOfChristmasCode,isChristmasAvailable,readChristmasPreview,storeChristmasPreview,watchChristmasAvailability,readSpiritOfChristmasUnlock,unlockSpiritOfChristmas} from './gameplay/christmasEvent';
+import {isChristmasAvailable,readChristmasPreview,storeChristmasPreview,watchChristmasAvailability,readSpiritOfChristmasUnlock,unlockSpiritOfChristmas} from './gameplay/christmasEvent';
 import UIOverlay from "./components/UIOverlay";
-import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY, isCharacterId } from "./characters";
+import { CHARACTER_CONFIGS, CHARACTER_IDS, ROSTER_UNLOCK_STORAGE_KEY } from "./characters";
 import { CharacterId, DifficultyMode, GameStats } from "./types";
 import { FINAL_LEVEL, FLIGHT_LEVEL } from "./campaign";
 import { createLoadout, equipKaiArm } from './gameplay/powerups';
 import { SIGNATURE_SPECIALS } from './gameplay/signatureSpecials';
-import {HERO_MOBILITY,hasNewMobilityArt} from './gameplay/heroMobility';
+import {HERO_MOBILITY} from './gameplay/heroMobility';
 import { mobileImagePath, isMobileGraphicsEnabled } from './gameplay/mobileRuntime';
 import { GAME_LOADING_EVENT } from './gameplay/loadingProgress';
-import SoundControls from './components/SoundControls';
 import { CAMERA_MOTION_KEY, readCameraMotion } from './gameplay/footfallCamera';
-import DisplayControls from './components/DisplayControls';
 import CutscenePlayer from './components/CutscenePlayer';
 import LevelResults from './components/LevelResults';
 import Workshop from './components/Workshop';
 import BuddyPicker from './components/BuddyPicker';
+import PauseOverlay from './components/PauseOverlay';
+import VictoryOverlay from './components/VictoryOverlay';
+import TitleOptionsModal from './components/TitleOptionsModal';
+import { useBackgroundMusic } from './components/useBackgroundMusic';
+import {
+  DEFAULT_STATS,
+  KAI_RESCUE_KEY,
+  LEVEL_ONE_INTRO_IMAGE,
+  START_SCREEN_IMAGE,
+  clamp,
+  getInitialCharacterId,
+  getInitialDifficulty,
+  getInitialStats,
+  isRosterUnlockBypassed,
+  isRosterUnlockedFromStorage,
+  readKaiRescued,
+  shouldBypassStartFlow,
+  shouldUseAutoRun,
+  shouldUseLegacyBrawler,
+  shouldUseLegacyDesktopControls,
+  supportsLegacyBrawler
+} from './gameplay/appBootstrap';
 import {WALLET_KEY,readWallet,bankLevelResult,acknowledgeResults,unfinishedLevelResult,trackRewardRun,nextRewardLevel,levelResult,type LevelResult,type PendingResult,type Wallet} from './gameplay/levelRewards';
 import {redeemSupply,equipCosmetic} from './gameplay/workshop';
 import {openWorkshopCrate,collectCrateReward} from './gameplay/workshopCrates';
@@ -41,246 +60,7 @@ const PlatformerGameEngine = lazy(loadPlatformer);
 const FlightGameEngine = lazy(loadFlight);
 const GameEngine = lazy(loadLegacy);
 type AppPhase = "start" | "characterSelect" | "story" | "intro" | "game" | "alleyRescue" | "results" | "workshop";
-const KAI_RESCUE_KEY = "unknown-universe-kai-rescued";
-const readKaiRescued = () => { try { return localStorage.getItem(KAI_RESCUE_KEY) === "true"; } catch { return false; } };
 type TitlePanel = "options" | "credits" | "updates" | null;
-
-const LEVEL_MUSIC: Partial<Record<number, string>> = {
-  1: "/TheUnknownUniverseTheme.mp3",
-  2: "/GraveYardDread.mp3",
-  3: "/CaveDripLogic.mp3",
-  4: "/audio/music/witchwood-level.mp3",
-  5: "/audio/music/starbreak-overdrive.mp3",
-  6: "/audio/music/dread-planet-level.mp3"
-};
-const START_SCREEN_MUSIC = "/audio/music/unknown-universe-intro-new.mp3";
-const BOSS_MUSIC: Partial<Record<number, { bossId: string; src: string }>> = {
-  1: { bossId: "dark_dragon", src: "/audio/music/dark-dragon-dragons-breath.mp3" },
-  2: { bossId: "killinas_daughter", src: "/audio/music/killinas-daughter-the-brooding-collosus.mp3" },
-  3: { bossId: "ink_behemoth", src: "/audio/music/cinder-colossus-heart-of-the-furnace.mp3" },
-  4: { bossId: "kilina", src: "/audio/music/kilina-boss.mp3" },
-  5: { bossId: "void-pursuer", src: "/audio/music/void-pursuer.mp3" }
-};
-const LEVEL_ONE_INTRO_IMAGE = "/Level1Intro.png";
-const START_SCREEN_IMAGE = "/GameStartScreen.png";
-const DEFAULT_DIFFICULTY: DifficultyMode = "EASY";
-const DIFFICULTY_OPTIONS: Array<{
-  mode: DifficultyMode;
-  label: string;
-  description: string;
-}> = [
-  {
-    mode: "EASY",
-    label: "Easy",
-    description: "A smoother run with lighter enemy health and calmer wave pressure."
-  },
-  {
-    mode: "HARD",
-    label: "Hard",
-    description: "Enemies get tougher, faster, and a little more relentless."
-  },
-  {
-    mode: "X-GOD",
-    label: "X-GOD",
-    description: "The nastiest version of the campaign with the heaviest enemy scaling."
-  }
-];
-
-const DEFAULT_STATS: GameStats = {
-  isDying: false,
-  activeBossId: null,
-  score: 0,
-  souls: 0,
-  monstersDefeated: 0,
-  health: 100,
-  maxHealth: 100,
-  lives: 3,
-  maxLives: 3,
-  level: 1,
-  isGameOver: false,
-  isVictory: false,
-  swordUnlocked: false,
-  hasFlameSword: false,
-  swordDurability: 0,
-  maxSwordDurability: 3,
-  shieldUnlocked: false,
-  inkShieldReady: false,
-  dinioUnlocked: false,
-  hasDinio: false,
-  doghostUnlocked: false,
-  hasDoghost: false,
-  teleportationCUnlocked: false,
-  hasTeleportationC: false,
-  gravityCoreUnlocked: false,
-  gravityCoreCharges: 0,
-  selectedCharacterId: "xgod",
-  characterPowerUnlocked: false
-};
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
-const readBooleanQuery = (value: string | null) => value === "1" || value === "true" || value === "yes";
-const isRosterUnlockedFromStorage = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  try { return window.localStorage.getItem(ROSTER_UNLOCK_STORAGE_KEY) === "true"; }
-  catch { return false; }
-};
-
-const isRosterUnlockBypassed = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readBooleanQuery(params.get("unlockRoster"));
-};
-
-const getInitialCharacterId = (): CharacterId => {
-  if (typeof window === "undefined") {
-    return "xgod";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const requested = params.get("character");
-  if(acceptsSpiritOfChristmasCode(params.get('code')??'')){unlockSpiritOfChristmas();storeChristmasPreview(true);return 'killer_klause';}
-  if(acceptsChristmasCode(params.get('code')??'')){storeChristmasPreview(true);return 'killer_klause';}
-  if(requested==='killer_klause')return isChristmasAvailable()?requested:'xgod';
-  if(!requested&&readChristmasPreview())return 'killer_klause';
-  if(acceptsTurkeyKingCode(params.get('code')??'')){unlockTurkeyKing();storeThanksgivingEnabled(true);return 'turkey_king';}
-  if(!requested&&readTurkeyKingSelected())return 'turkey_king';
-  if (!isCharacterId(requested)) {
-    return "xgod";
-  }
-  if(requested==='turkey_king')return readTurkeyKingUnlocked()?requested:'xgod';
-
-  if (requested === "xgod" || requested === "zgod" || requested === "killer_kai" && readKaiRescued() || isRosterUnlockedFromStorage() || isRosterUnlockBypassed()) {
-    return requested;
-  }
-
-  return "xgod";
-};
-
-const readDifficultyQuery = (value: string | null): DifficultyMode => {
-  const normalized = value?.trim().toUpperCase();
-  if (normalized === "HARD") {
-    return "HARD";
-  }
-  if (normalized === "X-GOD" || normalized === "XGOD" || normalized === "X_GOD") {
-    return "X-GOD";
-  }
-  return DEFAULT_DIFFICULTY;
-};
-
-const shouldBypassStartFlow = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readBooleanQuery(params.get("autostart"));
-};
-
-const shouldUseLegacyDesktopControls = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readBooleanQuery(params.get("desktopControls")) || readBooleanQuery(params.get("legacyDesktop"));
-};
-
-const shouldUseLegacyBrawler = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readBooleanQuery(params.get("legacyBrawler"));
-};
-
-const shouldUseAutoRun = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readBooleanQuery(params.get("autoRun")) && !readBooleanQuery(params.get("manualRun"));
-};
-
-const getInitialDifficulty = (): DifficultyMode => {
-  if (typeof window === "undefined") {
-    return DEFAULT_DIFFICULTY;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return readDifficultyQuery(params.get("difficulty"));
-};
-
-const getInitialStats = (): GameStats => {
-  if (typeof window === "undefined") {
-    return DEFAULT_STATS;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const levelParam = Number.parseInt(params.get("level") ?? "", 10);
-  const healthParam = Number.parseInt(params.get("health") ?? "", 10);
-  const livesParam = Number.parseInt(params.get("lives") ?? "", 10);
-  const soulsParam = Number.parseInt(params.get("souls") ?? "", 10);
-  const killsParam = Number.parseInt(params.get("kills") ?? "", 10);
-  const scoreParam = Number.parseInt(params.get("score") ?? "", 10);
-  const swordUnlocked = readBooleanQuery(params.get("swordUnlocked"));
-  const hasFlameSword = readBooleanQuery(params.get("sword"));
-  const shieldUnlocked = readBooleanQuery(params.get("shieldUnlocked")) || readBooleanQuery(params.get("shield"));
-  const dinioUnlocked = readBooleanQuery(params.get("dinioUnlocked")) || readBooleanQuery(params.get("dinio"));
-  const hasDinio = readBooleanQuery(params.get("dinio"));
-  const doghostUnlocked = readBooleanQuery(params.get("doghostUnlocked")) || readBooleanQuery(params.get("doghost"));
-  const hasDoghost = readBooleanQuery(params.get("doghost"));
-  const teleportationCUnlocked = readBooleanQuery(params.get("teleportcUnlocked")) || readBooleanQuery(params.get("teleportc"));
-  const hasTeleportationC = readBooleanQuery(params.get("teleportc"));
-  const gravityCoreUnlocked = readBooleanQuery(params.get("gravityCoreUnlocked")) || readBooleanQuery(params.get("gravityCore"));
-  const gravityCoreChargesParam = Number.parseInt(params.get("gravityCoreCharges") ?? "", 10);
-  const selectedCharacterId = getInitialCharacterId();
-  const klauseInvincible=selectedCharacterId==='killer_klause'&&(acceptsSpiritOfChristmasCode(params.get('code')??'')||readSpiritOfChristmasUnlock());
-  const characterPowerUnlocked = selectedCharacterId === 'zgod' || readBooleanQuery(params.get("characterPower")) || (selectedCharacterId === "xgod" && hasFlameSword);
-  const inkShieldReadyParam = params.get("shieldReady");
-  const swordDurabilityParam = Number.parseInt(params.get("swordDurability") ?? "", 10);
-  const maxSwordDurabilityParam = Number.parseInt(params.get("maxSwordDurability") ?? "", 10);
-  const maxSwordDurability = Number.isFinite(maxSwordDurabilityParam) ? clamp(maxSwordDurabilityParam, 1, 5) : DEFAULT_STATS.maxSwordDurability;
-
-  return {
-    ...DEFAULT_STATS,
-    seasonalTheme: isChristmasAvailable() ? 'christmas' : readThanksgivingEnabled() ? 'thanksgiving' : undefined,
-    klauseInvincible,
-    level: Number.isFinite(levelParam) ? clamp(levelParam, 1, shouldUseLegacyBrawler() && selectedCharacterId !== 'killer_klause' && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid' ? 4 : FINAL_LEVEL) : DEFAULT_STATS.level,
-    health: selectedCharacterId === 'zgod' ? DEFAULT_STATS.maxHealth : Number.isFinite(healthParam) ? clamp(healthParam, 1, DEFAULT_STATS.maxHealth) : DEFAULT_STATS.health,
-    lives: Number.isFinite(livesParam) ? clamp(livesParam, 1, DEFAULT_STATS.maxLives) : DEFAULT_STATS.lives,
-    score: Number.isFinite(scoreParam) ? Math.max(0, scoreParam) : DEFAULT_STATS.score,
-    souls: Number.isFinite(soulsParam) ? Math.max(0, soulsParam) : DEFAULT_STATS.souls,
-    monstersDefeated: Number.isFinite(killsParam) ? Math.max(0, killsParam) : DEFAULT_STATS.monstersDefeated,
-    equipment:createLoadout(hasFlameSword?'sword':selectedCharacterId==='xgod'||selectedCharacterId==='killer_kai'?'blaster':'hands'),
-    swordUnlocked: swordUnlocked || hasFlameSword,
-    hasFlameSword,
-    swordDurability: hasFlameSword
-      ? (Number.isFinite(swordDurabilityParam) ? clamp(swordDurabilityParam, 1, maxSwordDurability) : maxSwordDurability)
-      : 0,
-    maxSwordDurability,
-    shieldUnlocked,
-    inkShieldReady: shieldUnlocked ? (inkShieldReadyParam ? readBooleanQuery(inkShieldReadyParam) : true) : false,
-    dinioUnlocked,
-    hasDinio,
-    doghostUnlocked,
-    hasDoghost,
-    teleportationCUnlocked,
-    hasTeleportationC,
-    gravityCoreUnlocked,
-    gravityCoreCharges: gravityCoreUnlocked ? (Number.isFinite(gravityCoreChargesParam) ? clamp(gravityCoreChargesParam, 1, 3) : 3) : 0,
-    selectedCharacterId,
-    characterPowerUnlocked
-  };
-};
 
 const App: React.FC = () => {
   const [wallet,setWallet]=useState(()=>readWallet(DEFAULT_STATS));
@@ -384,10 +164,8 @@ const App: React.FC = () => {
   const [playerSprite, setPlayerSprite] = useState<string | null>(null);
   const [useLegacyDesktopControls] = useState(shouldUseLegacyDesktopControls);
   const [requestedLegacyBrawler, setRequestedLegacyBrawler] = useState(shouldUseLegacyBrawler);
-  const useLegacyBrawler = requestedLegacyBrawler && selectedCharacterId !== 'killer_klause' && selectedCharacterId !== 'turkey_king' && selectedCharacterId !== 'zgod' && selectedCharacterId !== 'killer_kai' && selectedCharacterId !== 'elytron' && selectedCharacterId !== 'shadow_kid';
+  const useLegacyBrawler = requestedLegacyBrawler && supportsLegacyBrawler(selectedCharacterId);
   const [useAutoRun] = useState(shouldUseAutoRun);
-  const backgroundMusicRef = React.useRef<HTMLAudioElement | null>(null);
-  const pendingMusicStartRef = React.useRef(false);
   const [audioSettings,setAudioSettings]=useState(getAudioSettings);
   const [cameraMotion,setCameraMotion]=useState(readCameraMotion);
   const cameraMotionOption = (
@@ -549,88 +327,17 @@ const App: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const bossTrack = BOSS_MUSIC[stats.level];
-    const musicSrc =
-      appPhase === "alleyRescue" ? null : appPhase === "workshop" ? ALLEY_MAIN_MUSIC : appPhase === "start" || appPhase === "characterSelect"
-        ? START_SCREEN_MUSIC
-        : appPhase === "story"
-          ? LEVEL_MUSIC[storyChapter ? STORY_CHAPTERS[storyChapter].musicLevel : 1]
-        : appPhase === "intro"
-          ? LEVEL_MUSIC[1]
-          : appPhase === "game" && !useLegacyBrawler && bossTrack && stats.activeBossId === bossTrack.bossId
-            ? bossTrack.src
-          : LEVEL_MUSIC[useLegacyBrawler && stats.level === 4 ? FINAL_LEVEL : stats.level];
-
-    if (!musicSrc) {
-      pendingMusicStartRef.current = false;
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current.pause();
-        backgroundMusicRef.current = null;
-      }
-      return;
-    }
-
-    const shouldPauseMusic = appPhase === "game" && (gameSuspended || stats.isGameOver || stats.isVictory);
-    let audio = backgroundMusicRef.current;
-
-    if (!audio || !audio.src.endsWith(musicSrc)) {
-      if (audio) {
-        audio.pause();
-      }
-      audio = new Audio(musicSrc);
-      audio.preload = 'none';
-      audio.loop = true;
-      backgroundMusicRef.current = audio;
-    }
-    audio.volume=audioSettings.music;audio.muted=audioSettings.muted;
-
-    const tryPlay = () => {
-      if (!backgroundMusicRef.current || shouldPauseMusic) {
-        return;
-      }
-
-      backgroundMusicRef.current
-        .play()
-        .then(() => {
-          pendingMusicStartRef.current = false;
-        })
-        .catch(() => {
-          pendingMusicStartRef.current = true;
-        });
-    };
-
-    const unlockPlayback = () => {
-      if (!pendingMusicStartRef.current) {
-        return;
-      }
-      tryPlay();
-    };
-
-    if (shouldPauseMusic) {
-      audio.pause();
-      pendingMusicStartRef.current = false;
-    } else {
-      tryPlay();
-    }
-
-    window.addEventListener("pointerdown", unlockPlayback);
-    window.addEventListener("keydown", unlockPlayback);
-
-    return () => {
-      window.removeEventListener("pointerdown", unlockPlayback);
-      window.removeEventListener("keydown", unlockPlayback);
-    };
-  }, [appPhase, storyChapter, gameSuspended, stats.isGameOver, stats.isVictory, stats.level, stats.activeBossId, useLegacyBrawler,audioSettings.music,audioSettings.muted]);
-
-  useEffect(() => {
-    return () => {
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current.pause();
-        backgroundMusicRef.current = null;
-      }
-    };
-  }, []);
+  useBackgroundMusic({
+    appPhase,
+    storyChapter,
+    gameSuspended,
+    isGameOver: stats.isGameOver,
+    isVictory: stats.isVictory,
+    level: stats.level,
+    activeBossId: stats.activeBossId,
+    useLegacyBrawler,
+    audioSettings
+  });
 
   const handleStatsUpdate = (newStats: Partial<GameStats>) => {
     if (storyTransitionRef.current) return;
@@ -900,7 +607,7 @@ const App: React.FC = () => {
     });
     setIsPaused(false);
     setTitlePanel(null);
-    const legacyRun = requestedLegacyBrawler && characterId !== 'killer_klause' && characterId !== 'turkey_king' && characterId !== 'zgod' && characterId !== 'killer_kai' && characterId !== 'elytron' && characterId !== 'shadow_kid';
+    const legacyRun = requestedLegacyBrawler && supportsLegacyBrawler(characterId);
     storyTransitionRef.current = !legacyRun;
     setStoryChapter(legacyRun ? null : characterId==='killer_klause'?'christmas':'prologue');
     setAppPhase(legacyRun ? 'intro' : 'story');
@@ -1139,64 +846,15 @@ const App: React.FC = () => {
             )}
             {titlePanel === "updates" && <GameUpdates after={updatesAfter} onClose={closeUpdates} />}
             {(titlePanel === "options" || titlePanel === "credits") && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
-                <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border-4 border-slate-900 bg-white/95 p-6 font-['Gochi_Hand'] shadow-[0_28px_80px_rgba(0,0,0,0.45)] md:p-8">
-                  <button
-                    type="button"
-                    onClick={() => setTitlePanel(null)}
-                    className="absolute right-4 top-4 rounded-full border-2 border-slate-800 bg-slate-100 px-3 py-1 text-lg text-slate-800 transition hover:bg-slate-200"
-                  >
-                    CLOSE
-                  </button>
-
-                  {titlePanel === "options" ? (
-                    <>
-                      <h2 className="mb-3 text-4xl font-bold text-slate-900 md:text-5xl">Select Difficulty</h2>
-                      <p className="mb-6 text-lg text-slate-600 md:text-2xl">
-                        Pick how tough you want the enemy waves and bosses to be before you start the run.
-                      </p>
-                      <div className="space-y-4">
-                        {DIFFICULTY_OPTIONS.map((option) => {
-                          const isActive = difficulty === option.mode;
-                          return (
-                            <button
-                              key={option.mode}
-                              type="button"
-                              onClick={() => setDifficulty(option.mode)}
-                              className={`w-full rounded-2xl border-4 px-5 py-4 text-left shadow-md transition hover:-translate-y-0.5 ${
-                                isActive
-                                  ? "border-violet-700 bg-violet-100 text-violet-950"
-                                  : "border-slate-300 bg-slate-50 text-slate-800 hover:border-slate-500"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-2xl font-bold md:text-3xl">{option.label}</span>
-                                <span className="rounded-full border-2 border-current px-3 py-1 text-sm md:text-base">
-                                  {isActive ? "SELECTED" : "CHOOSE"}
-                                </span>
-                              </div>
-                              <p className="mt-2 text-sm leading-tight md:text-xl">{option.description}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <SoundControls settings={audioSettings} />
-                      {cameraMotionOption}
-                    </>
-                  ) : (
-                    <>
-                      <h2 className="mb-3 text-4xl font-bold text-slate-900 md:text-5xl">Credits</h2>
-                      <div className="space-y-4 text-slate-700 md:text-2xl">
-                        <p><span className="font-bold text-slate-900">Project:</span> The Unknown Universe: Doodle Beat 'Em Up</p>
-                        <p><span className="font-bold text-slate-900">Art Direction:</span> Hand-drawn character, prop, and level art from your custom asset set.</p>
-                        <p><span className="font-bold text-slate-900">Tech:</span> React, Phaser, and Vite.</p>
-                        <p><span className="font-bold text-slate-900">Additional sound effects:</span> <a className="underline" href="https://kenney.nl/assets/sci-fi-sounds" target="_blank" rel="noreferrer">Sci-fi Sounds by Kenney</a> (CC0 1.0).</p>
-                        <p><span className="font-bold text-slate-900">Current Build:</span> {useLegacyBrawler ? "Four" : "Five"}-level campaign with persistent power-ups, bosses, pals, and custom music.</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
+              <TitleOptionsModal
+                panel={titlePanel}
+                difficulty={difficulty}
+                audioSettings={audioSettings}
+                cameraMotionOption={cameraMotionOption}
+                useLegacyBrawler={useLegacyBrawler}
+                onSelectDifficulty={setDifficulty}
+                onClose={() => setTitlePanel(null)}
+              />
             )}
           </div>
         )}
@@ -1310,65 +968,26 @@ const App: React.FC = () => {
         )}
 
         {appPhase === "game" && isPaused && !stats.isGameOver && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm pointer-events-auto">
-            <div className="pause-dialog mx-3 max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-3xl border-4 border-slate-800 bg-white p-4 text-center font-['Gochi_Hand'] shadow-2xl md:p-8">
-              <h2 className="mb-3 text-4xl font-bold text-slate-800 md:text-5xl">Game Paused</h2>
-              {campaignActive && !useLegacyBrawler && !playerSprite && <div className="mb-3">
-                <button onClick={saveAndQuit} className="rounded-full border-2 border-slate-800 bg-emerald-600 px-6 py-2 text-xl text-white">Save &amp; Quit</button>
-                <p role="status" className="mt-2 text-sm text-slate-600">{saveError || 'Autosaved in this browser. Continue returns to your last checkpoint; enemies reset.'}</p>
-              </div>}
-              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'xgod'
-                && !playerSprite && new URLSearchParams(window.location.search).get('xgodRun') !== 'legacy'
-                && new URLSearchParams(window.location.search).get('xgodArt') !== 'model' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → butt bomb.<br />You can also press D-pad Down or press Down / S while airborne to slam.</p>
-              )}
-              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && selectedCharacterId === 'zgod' && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → ground punch.<br />You can also press D-pad Down or press Down / S while airborne. Clears enemies and enemy shots across the screen.</p>
-              )}
-              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && hasNewMobilityArt(selectedCharacterId) && (
-                <p className="mb-3 text-lg text-slate-700">Tap Z / Up or JUMP: jump → double jump → {HERO_MOBILITY[selectedCharacterId].name}.<br />Down / S or D-pad Down also triggers the slam in midair.</p>
-              )}
-              {!useLegacyBrawler && stats.level !== FLIGHT_LEVEL && (
-                <p className="mb-3 text-base text-slate-700">Hold Down / S or D-pad Down to crouch. Keep holding and press FIRE / Space / C to shoot low.</p>
-              )}
-              {!useLegacyBrawler && <p className="pause-equipment-hint mx-auto mb-3 max-w-sm text-base text-slate-700">{selectedCharacterId==='killer_klause'?'Killer Klause keeps his present launcher. Space / HIT: three-hit melee combo (jab, hook, launcher uppercut). C / FIRE: launch a present. X / SP: call the medic and engineer elves.':selectedCharacterId==='turkey_king'?'The Turkey King always keeps his royal weapons. Space / HIT: staff strike. C / TOSS: throw a turkey. X / SP: Royal Turkey Storm. Coins and hearts are available; other powerups are disabled.':selectedCharacterId === 'zgod' ? 'Z-God is invincible. Her attacks defeat enemies in one hit.' : selectedCharacterId==='killer_kai'?'Kai keeps his built-in arm cannon when a powerup breaks. Powerups last three unblocked hits. Shields protect your equipment.':'Powerups survive three unblocked hits. Lose one and fight with your fists until you find another. Shields protect your equipment.'}</p>}
-              <SoundControls settings={audioSettings} />
-              {cameraMotionOption}
-              <DisplayControls />
-              <button
-                onClick={togglePause}
-                className="rounded-full border-4 border-slate-800 bg-blue-500 px-8 py-2 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-blue-600"
-              >
-                Resume Playing
-              </button>
-
-            </div>
-          </div>
+          <PauseOverlay
+            campaignActive={campaignActive}
+            useLegacyBrawler={useLegacyBrawler}
+            playerSprite={playerSprite}
+            level={stats.level}
+            selectedCharacterId={selectedCharacterId}
+            saveError={saveError}
+            audioSettings={audioSettings}
+            cameraMotionOption={cameraMotionOption}
+            onSaveAndQuit={saveAndQuit}
+            onResume={togglePause}
+          />
         )}
 
         {appPhase === "game" && stats.isVictory && (
-          <div className="absolute inset-0 z-50 flex items-start justify-center overflow-y-auto bg-amber-200/75 p-3 backdrop-blur-md pointer-events-auto">
-            <div className="my-auto w-full max-w-2xl shrink-0 rounded-3xl border-4 border-slate-800 bg-white p-4 sm:p-6 text-center font-['Gochi_Hand'] shadow-2xl">
-              <h2 className="mb-2 text-4xl sm:text-6xl font-bold text-amber-500 underline decoration-slate-800">Universe Saved</h2>
-              <p className="mb-3 text-base sm:text-xl text-slate-600">You cleared all {useLegacyBrawler ? 4 : FINAL_LEVEL} levels and survived the most dangerous planet in the Unknown Universe.</p>
-              <div className="mb-4 grid grid-cols-2 gap-x-3 rounded-xl border-2 border-dashed border-slate-400 bg-slate-100 p-3">
-                <p className="mb-2 text-xl sm:text-3xl text-amber-500">{stats.score} Points</p>
-                <p className="mb-2 text-base sm:text-xl text-blue-600">{stats.souls} Souls Collected</p>
-                <p className="mb-2 text-base sm:text-xl text-red-500">{stats.monstersDefeated} Monsters Banished</p>
-                <p className="text-base sm:text-xl text-orange-500">{stats.hasFlameSword ? "Flame Sword Awakened" : "Flame Sword Lost In Battle"}</p>
-                <p className="mt-2 text-base sm:text-xl text-sky-500">{stats.shieldUnlocked ? "Ink Shield Unlocked" : "Ink Shield Never Claimed"}</p>
-                <p className="mt-2 text-base sm:text-xl text-pink-500">{stats.dinioUnlocked ? "Dinio Joined The Squad" : "Dinio Never Hatched"}</p>
-                <p className="mt-2 text-base sm:text-xl text-slate-500">{stats.doghostUnlocked ? "Doghost Floated In" : "Doghost Never Appeared"}</p>
-                <p className="mt-2 text-base sm:text-xl text-violet-700">{stats.teleportationCUnlocked ? "Teleportation C Emerged From The Void" : "Teleportation C Stayed Hidden"}</p>
-              </div>
-              <button
-                onClick={restartGame}
-                className="rounded-full border-4 border-slate-800 bg-green-500 px-8 py-3 text-2xl text-white shadow-lg transition-transform hover:scale-110 active:scale-95 hover:bg-green-600"
-              >
-                Play Again
-              </button>
-            </div>
-          </div>
+          <VictoryOverlay
+            stats={stats}
+            useLegacyBrawler={useLegacyBrawler}
+            onPlayAgain={restartGame}
+          />
         )}
 
         {appPhase === "game" && stats.isGameOver && (

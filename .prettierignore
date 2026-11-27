@@ -1,0 +1,9 @@
+dist/
+node_modules/
+output/
+public/
+art/
+progress.md
+package-lock.json
+gameplay/*.generated.json
+gameplay/*AssetManifest.json

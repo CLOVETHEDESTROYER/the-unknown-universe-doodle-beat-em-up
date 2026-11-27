@@ -23,8 +23,8 @@ export function supplyCratePlans(level:number,endX:number,route?:PowerupRoute,av
     return plans;
   }
   return [
-    {id:'l1-rapid',x:1060,floor:480,reward:'rapid' as const},
-    {id:'l1-health',x:2370,floor:480,reward:'health' as const},
+    {id:'l1-rapid',x:1600,floor:480,reward:'rapid' as const},
+    {id:'l1-health',x:3750,floor:480,reward:'health' as const},
     {id:'l1-fan',x:endX-1580,floor:480,reward:'fan' as const}
   ];
 }

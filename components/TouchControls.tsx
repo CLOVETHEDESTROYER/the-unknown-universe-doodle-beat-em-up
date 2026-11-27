@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import type { TouchControlKey, TouchControlState } from '../types';
 
-const CONTROL_KEYS: TouchControlKey[] = ["left", "right", "up", "down", "attack", "shoot", "jump", "dash", "recall"];
+const CONTROL_KEYS: TouchControlKey[] = ["left", "right", "up", "down", "attack", "shoot", "jump", "dash", "recall", "bomb"];
 const activePointers = new Map<number, Set<TouchControlKey>>();
 const pointerKinds = new Map<number,string>();
 
@@ -242,7 +242,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
         <TouchButton control="attack" label="FIRE" accessibleLabel="Hold to fire ship cannons" className="h-20 w-24 bg-lime-700/82 text-2xl" />
       </div>}
       {!flightMode && <div className="touch-actions pointer-events-auto relative mb-1 grid grid-cols-2 gap-3">
-        {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{turkeyControls ? "Space: staff / C: toss" : blasterEquipped ? "Space / C: shoot" : "Space / C: attack"}</span>}
+        {isPlatformer && <span className="pointer-events-none absolute -top-5 right-0 hidden whitespace-nowrap text-xs font-bold text-white drop-shadow-[0_2px_2px_#111827] md:block">{turkeyControls ? "Space: staff / C: toss" : blasterEquipped ? "W: aim up · G/E: bomb · Space/C: fire" : "G/E: bomb · Space/C: attack"}</span>}
         <TouchButton control="jump" label="JUMP" accessibleLabel={airborneMoves ? `Jump / double jump / third tap: ${slamName??(starControls ? 'ground punch' : 'butt bomb')}` : "Jump"} className="bg-sky-700/72" />
         {isPlatformer && specialName ? (
           <TouchButton control="dash" label="SP" accessibleLabel={`Special: ${specialName}`} className="bg-violet-700/80 text-xl" />
@@ -253,6 +253,7 @@ const TouchControls: React.FC<{ isPaused: boolean; flightMode?: boolean; isPlatf
         ) : (
           <TouchButton control="dash" label={teleportControls?'BLINK':'D'} accessibleLabel={teleportControls?'Teleport step':'Dash'} className={`bg-fuchsia-700/72 ${teleportControls?'text-sm':''}`} />
         )}
+        {isPlatformer && !turkeyControls && !teleportControls && (blasterEquipped || !canShoot) && <TouchButton control="bomb" label="BOMB" accessibleLabel="Throw Ink Grenade" className="bg-rose-700/82 text-lg" />}
         {isPlatformer && (canShoot||turkeyControls) && !blasterEquipped && !teleportControls && <TouchButton control="shoot" label={turkeyControls?'TOSS':'FIRE'} accessibleLabel={turkeyControls?'Throw a turkey':'Hold to shoot equipped weapon'} className="bg-lime-700/82" />}
         {teleportControls&&<TouchButton control="recall" label="R" accessibleLabel="Return to teleport anchor" className="bg-violet-700/72" />}
         <TouchButton control="attack" label={blasterEquipped?'FIRE':'HIT'} accessibleLabel={blasterEquipped ? "Hold to fire equipped weapon" : "Use equipped attack"} className="bg-amber-600/82 text-4xl" />

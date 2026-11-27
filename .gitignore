@@ -20,8 +20,7 @@ output
 # Local-only licensed-track placeholder: do not publish without clearance.
 /public/audio/alley-disco-local.mp3
 
-# Local captures, Python caches and Blender autosaves
-/-/
+# Python caches and Blender autosaves
 __pycache__/
 *.pyc
 *.blend[0-9]

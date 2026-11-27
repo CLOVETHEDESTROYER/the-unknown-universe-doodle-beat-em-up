@@ -41,9 +41,9 @@ function course(start:number,floor:number,groundHeight:number,title:string,varia
 
 /** Inserted after the existing encounters, before each intact boss yard. */
 export const PLATFORM_ROUTES:Record<number,PlatformRoute>={
-  1:course(9385,480,240,'SKYLINE EXPRESS',0),
-  2:course(9645,480,240,'BELL TOWER CROSSING',1),
-  3:course(7995,520,120,'CINDER CONVEYOR WORKS',2),
-  4:course(8120,520,200,'MOONTHORN CANOPY',3),
-  6:course(8024,520,120,'ORBITAL CAUSEWAY',4),
+  1:course(12385,480,240,'SKYLINE EXPRESS',0),
+  2:course(12305,480,240,'BELL TOWER CROSSING',1),
+  3:course(11435,520,120,'CINDER CONVEYOR WORKS',2),
+  4:course(10800,520,200,'MOONTHORN CANOPY',3),
+  6:course(11744,520,120,'ORBITAL CAUSEWAY',4),
 };

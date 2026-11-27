@@ -18,7 +18,19 @@ const fallbackIdeas: DoodleIdea[] = [
   }
 ];
 
-export const hasGeminiApiKey = Boolean(process.env.API_KEY || process.env.GEMINI_API_KEY);
+const readViteEnv = (key: string): string | undefined => {
+  const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+  return env?.[key]?.trim() || undefined;
+};
+
+/**
+ * Optional local key for the upcoming Doodle Idea feature.
+ * Note: For public production hosting, prefer proxying requests through a server endpoint
+ * rather than bundling an API key into client-side assets.
+ */
+const getGeminiApiKey = () => readViteEnv("VITE_GEMINI_API_KEY");
+
+export const hasGeminiApiKey = Boolean(getGeminiApiKey());
 
 const getFallbackIdea = (): DoodleIdea => {
   const index = Math.floor(Math.random() * fallbackIdeas.length);
@@ -26,7 +38,7 @@ const getFallbackIdea = (): DoodleIdea => {
 };
 
 const getClient = async () => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return null;
   }
@@ -44,7 +56,7 @@ export const generateMonsterIdea = async (): Promise<DoodleIdea> => {
   try {
     const { Type } = await import("@google/genai");
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: readViteEnv("VITE_GEMINI_MODEL") || "gemini-3-flash-preview",
       contents: "Create a creative idea for a 'Scribble Monster' that an 8-year-old would draw in their notebook. It should be weird and funny.",
       config: {
         responseMimeType: "application/json",

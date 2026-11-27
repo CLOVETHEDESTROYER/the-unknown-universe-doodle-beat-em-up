@@ -105,6 +105,8 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
     let walker:Phaser.GameObjects.Sprite,pilot:Phaser.GameObjects.Sprite;
     let title:Phaser.GameObjects.Text,hint:Phaser.GameObjects.Text,banner:Phaser.GameObjects.Text,steeringLabel:Phaser.GameObjects.Text,bossLabel:Phaser.GameObjects.Text;
     let weaponLabel:Phaser.GameObjects.Text,weaponIcon:Phaser.GameObjects.Image,weaponHud:Phaser.GameObjects.Graphics,speedLines:Phaser.GameObjects.Graphics;
+    let comboBurst:Phaser.GameObjects.Image|null=null,comboText:Phaser.GameObjects.Text|null=null,goArrow:Phaser.GameObjects.Image|null=null;
+    let flightCombo=0,flightComboUntil=0,flightGoUntil=0,lastKillCount=0,lastFinaleDefeated=false;
     let atmosphere:Phaser.GameObjects.Graphics;
     let buddyArt:Phaser.GameObjects.Sprite|undefined;
     let nextBuddyAssist=0;
@@ -187,7 +189,22 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         impact.setPosition(state.x,state.y).setAlpha(1).setVisible(true);
         scene.cameras.main.shake(110,0.003);
       }
-      if(state.checkpoint!==lastCheckpoint){lastCheckpoint=state.checkpoint;checkpointNotice=state.clock+2200;}
+      if(state.checkpoint!==lastCheckpoint){
+        lastCheckpoint=state.checkpoint;
+        checkpointNotice=state.clock+2200;
+        if(state.checkpoint>0)flightGoUntil=state.clock+2200;
+      }
+      if(state.combat.defeated.length>lastKillCount){
+        const gained=state.combat.defeated.length-lastKillCount;
+        lastKillCount=state.combat.defeated.length;
+        flightCombo=state.clock<=flightComboUntil?flightCombo+gained:gained;
+        flightComboUntil=state.clock+3200;
+        if(flightCombo>=2)state.score+=flightCombo*50;
+      }
+      if(state.combat.finaleDefeated&&!lastFinaleDefeated){
+        lastFinaleDefeated=true;
+        flightGoUntil=state.clock+2800;
+      }
       syncFlightSounds();
       sync();
       if(state.phase==='complete' && !advanced){
@@ -329,6 +346,21 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
       route.clear().fillStyle(0x17203b,.8).fillRoundedRect(744,ROUTE_HUD_TOP,248,13,6);
       route.fillStyle(0xf7ce76,1).fillRoundedRect(747,ROUTE_HUD_TOP+3,Math.max(5,242*Math.min(1,state.distance/FLIGHT_END)),7,3);
       for(const cp of [6000,11500,PURSUER_CHECKPOINT])route.lineStyle(2,0xf6f0c4,1).lineBetween(747+242*cp/FLIGHT_END,ROUTE_HUD_TOP-2,747+242*cp/FLIGHT_END,ROUTE_HUD_TOP+16);
+      const showCombo=flying&&flightCombo>=2&&state.clock<=flightComboUntil;
+      if(comboBurst&&comboText){
+        comboBurst.setVisible(showCombo);
+        comboText.setVisible(showCombo);
+        if(showCombo){
+          const pulse=1+Math.sin(state.clock/110)*0.05;
+          comboBurst.setScale(0.55*pulse);
+          comboText.setText(`${flightCombo}x HIT!`).setScale(pulse);
+        }
+      }
+      if(goArrow){
+        const showGo=flying&&state.clock<flightGoUntil;
+        goArrow.setVisible(showGo&&Math.floor(state.clock/220)%2===0);
+        if(showGo)goArrow.setX(905+Math.sin(state.clock/140)*8);
+      }
       effects.clear();
       if(cosmic>.1){
         effects.fillStyle(0xfaf1ca,cosmic*.8);
@@ -609,8 +641,10 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         trackSceneLoading(this.load);
         this.load.on('loaderror',(file:{key:string})=>failedAssets.push(file.key));
         loadGameImage(this.load, 'flight_ship','flight/starbreak-ship-armed-v2.png');
-        this.load.image('flight_supply_crate','/doodles/o_box.png');
-        this.load.image('flight_supply_health','/heart_sprite.png');
+        this.load.image('flight_supply_crate','/metal-slug-v1/ammo-crate.webp');
+        this.load.image('flight_supply_health','/metal-slug-v1/medkit.webp');
+        this.load.image('ms_popup_burst','/metal-slug-v1/popup-burst.webp');
+        this.load.image('ms_go_arrow','/metal-slug-v1/go-arrow.webp');
         for(const weapon of ['spread','lance','homing'])loadGameImage(this.load, `flight_power_${weapon}`,`flight/weapons-v5/${weapon}.png`);
         for(const kind of ['scout','interceptor','gunship','prism']){
           const folder=kind==='prism'?'level-v3':'motion-v2';
@@ -683,6 +717,9 @@ const FlightGameEngine: React.FC<Props> = ({isPaused,selectedCharacterId,difficu
         weaponHud=this.add.graphics().setDepth(30);
         weaponIcon=this.add.image(781,WEAPON_HUD_TOP+19,'flight_ship').setDepth(31);
         weaponLabel=this.add.text(810,WEAPON_HUD_TOP+9,'',{...textStyle,fontSize:'18px',strokeThickness:3}).setDepth(31);
+        comboBurst=this.add.image(905,148,'ms_popup_burst').setDisplaySize(164,92).setDepth(31).setVisible(false);
+        comboText=this.add.text(905,148,'',{fontFamily:'Gochi Hand, sans-serif',fontSize:'22px',color:'#1e162b',stroke:'#fffbeb',strokeThickness:5}).setOrigin(.5).setDepth(32).setVisible(false);
+        goArrow=this.add.image(905,232,'ms_go_arrow').setDisplaySize(152,92).setDepth(32).setVisible(false);
         speedLines=this.add.graphics().setDepth(-4);
         bossBar=this.add.graphics().setDepth(30);
         bossLabel=this.add.text(505,87,'',{...textStyle,fontSize:'14px',strokeThickness:3}).setOrigin(.5).setDepth(31);

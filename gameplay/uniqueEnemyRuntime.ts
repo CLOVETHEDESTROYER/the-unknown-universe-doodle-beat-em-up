@@ -1,10 +1,13 @@
 import Phaser from 'phaser';
+import type {DifficultyMode} from '../types';
 import {playSfx} from '../audio/gameAudio';
 import {UNIQUE_ENEMIES,isUniqueEnemy} from './uniqueEnemies';
 import type {UniqueEnemyKind} from './uniqueEnemies';
 import {foeTexture,foeWalk} from './enemyMotion';
+import {difficultyCombatTuning} from './metalSlugCombat';
 
 interface Environment {
+  difficulty?:DifficultyMode;
   player:Phaser.Physics.Arcade.Sprite;projectiles:Phaser.Physics.Arcade.Group;
   clearIntent:(enemy:Phaser.Physics.Arcade.Sprite)=>void;
   floorAt:(x:number)=>number|null;
@@ -109,12 +112,15 @@ function warning(scene:Phaser.Scene,enemy:Enemy,kind:UniqueEnemyKind,env:Environ
 }
 export function updateUniqueEnemy(scene:Phaser.Scene,enemy:Enemy,kind:UniqueEnemyKind,now:number,env:Environment){
   const def=UNIQUE_ENEMIES[kind],body=enemy.body as Phaser.Physics.Arcade.Body;
+  const tuning=difficultyCombatTuning(env.difficulty??'EASY');
+  const tellMs=Math.round(def.tell*tuning.cadenceScale);
+  const recoverMs=Math.round(def.recover*0.72*tuning.cadenceScale);
   const state=enemy.getData('attackState'),elapsed=now-Number(enemy.getData('stateStartedAt')??now);
   const left=Number(enemy.getData('left')),right=Number(enemy.getData('right'));
   if(state==='tell'){
     enemy.setVelocityX(0).setFlipX(Number(enemy.getData('attackDirection'))>0).anims.stop();
-    enemy.setFrame(elapsed<def.tell/2?'8':'9');
-    if(elapsed>=def.tell){env.clearIntent(enemy);enemy.clearTint().setData('attackState','attack').setData('stateStartedAt',now);}
+    enemy.setFrame(elapsed<tellMs/2?'8':'9');
+    if(elapsed>=tellMs){env.clearIntent(enemy);enemy.clearTint().setData('attackState','attack').setData('stateStartedAt',now);}
     return;
   }
   if(state==='attack'){
@@ -127,14 +133,15 @@ export function updateUniqueEnemy(scene:Phaser.Scene,enemy:Enemy,kind:UniqueEnem
   }
   if(state==='recover'){
     enemy.setVelocityX(0).anims.stop();enemy.setFrame('11');
-    if(elapsed>=def.recover)enemy.setData('attackState','patrol').setData('nextAttackAt',now+950);
+    if(elapsed>=recoverMs)enemy.setData('attackState','patrol').setData('nextAttackAt',now+Math.round(580*tuning.cadenceScale));
     return;
   }
   let d=Number(enemy.getData('direction'))||-1;
   if(enemy.x<=left+1)d=1;if(enemy.x>=right-1)d=-1;
-  enemy.setData('direction',d).setFlipX(d>0).setVelocityX(d*def.speed).anims.play(foeWalk(kind),true);
+  enemy.setData('direction',d).setFlipX(d>0).setVelocityX(d*def.speed*1.12).anims.play(foeWalk(kind),true);
   const target=env.player.body as Phaser.Physics.Arcade.Body;
-  if(now>=Number(enemy.getData('nextAttackAt'))&&Math.abs(target.center.x-body.center.x)<def.notice&&Math.abs(target.bottom-body.bottom)<120){
+  const verticalRange=kind==='bumper'?145:270;
+  if(now>=Number(enemy.getData('nextAttackAt'))&&Math.abs(target.center.x-body.center.x)<def.notice+tuning.noticeBonus&&Math.abs(target.bottom-body.bottom)<verticalRange){
     enemy.setVelocityX(0).setData('attackState','tell').setData('stateStartedAt',now).setData('shotsInBurst',0)
       .setData('targetX',target.center.x).setData('targetY',target.center.y).setData('attackDirection',target.center.x<body.center.x?-1:1)
       .setTint(def.color).setTexture(foeTexture(kind),'8');enemy.anims.stop();warning(scene,enemy,kind,env);

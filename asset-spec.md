@@ -1,6 +1,6 @@
 # Custom Asset Spec
 
-This project currently uses doodle stand-in SVGs in [`public/doodles/`](C:/Users/analo/Documents/Playground/the-unknown-universe-doodle-beat-em-up/public/doodles). When you replace them with custom game art, keep the same filenames so the game continues to load them without code changes.
+This project currently uses doodle stand-in SVGs in [`public/doodles/`](public/doodles/). When you replace them with custom game art, keep the same filenames so the game continues to load them without code changes.
 
 ## Format
 

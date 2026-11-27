@@ -5,6 +5,16 @@ import {ChristmasSnow} from '../gameplay/christmasSnow';
 import { RouteEncounterRuntime } from '../gameplay/routeEncounterRuntime';
 import {SupplyCrateRuntime} from '../gameplay/supplyCrateRuntime';
 import {supplyCratePlans,type SupplyCrateSave} from '../gameplay/supplyCrates';
+import {
+  MetalSlugBattlefield,
+  difficultyCombatTuning,
+  loadMetalSlugAssets,
+  playCloseSlashVisual,
+  resolveAimVector,
+  spawnShellCasing
+} from '../gameplay/metalSlugCombat';
+import { InteractiveSetPiecesRuntime } from '../gameplay/interactiveSetPieces';
+import { drawPlatformArchitecture, LivingParallaxBackdrop } from '../gameplay/levelArchitecture';
 import { BLASTER_CHARGE_MS, CHARGED_BOLT_TEXTURE, ChargedBlasterEffects } from '../gameplay/chargedBlasterEffects';
 import { FootfallCamera } from '../gameplay/footfallCamera';
 import {updateLockwingVolley,clearLockwingCombat} from '../gameplay/lockwingCombat';
@@ -14,7 +24,7 @@ import {WorkshopCombat} from '../gameplay/workshopCombat';
 import {loadKaiEquippedArt,makeKaiArtAnimations} from '../gameplay/kaiWorkshopRuntime';
 import {XGodWardrobe} from '../gameplay/xgodWardrobe';
 import {regularEnemyHealth} from '../gameplay/enemyBalance';
-import {VOID_REGENT_HEALTH,REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,REGENT_NEW_MOVES,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
+import {REGENT_PHASE_ONE,REGENT_PHASE_TWO,REGENT_PHASE_THREE,regentPhaseForHealth,regentCounterWindow,regentTellDuration,regentBattlePose,regentCrashFrame,makeRegentCombatTextures,regentTeleportTarget,regentBlinkFrame,RegentRiftEffects,isRegentMove} from '../gameplay/voidRegent';
 import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import { loadGameSheet, loadGameImage, mobileGameOptions, watchGameViewport, landscapeGameViewport } from "../gameplay/mobileRuntime";
@@ -23,8 +33,6 @@ import { CharacterId, DifficultyMode, GameStats } from "../types";
 import { FINAL_LEVEL } from "../campaign";
 import { createCrumble, stepCrumble, ventPhase } from "../gameplay/groundObstacles";
 import type { CrumbleState, CrumblingPlatformPlan, TimedVentPlan } from "../gameplay/groundObstacles";
-import { PLATFORM_ROUTES } from '../gameplay/platformRoutes';
-import type { PlatformRoute } from '../gameplay/platformRoutes';
 import { PlatformRouteRuntime } from '../gameplay/platformRouteRuntime';
 import { CHECKPOINT_ART,checkpointSupport } from '../gameplay/checkpointPlacement';
 import { TELEPORT_HELPER,loadTeleportHelper,helperPose,helperAssistFrame } from '../gameplay/teleportHelper';
@@ -32,11 +40,10 @@ import { FLOW_BOSSES,bossFlowFrame } from '../gameplay/bossFlow';
 import { RESTORED_ENEMIES, ENEMY_REINTRODUCTIONS, isRestoredEnemy, localEnemyKind, enemyDisplayName } from "../gameplay/enemyVariety";
 import { ENEMY_MOTION, GRUNT_THEMES, foeAsset, foeFolder, foeTexture, foeWalk } from '../gameplay/enemyMotion';
 import type { GroundFoe } from '../gameplay/enemyMotion';
-import {UNIQUE_ENEMIES,UNIQUE_ENEMY_BODIES,UNIQUE_LEVEL_ENEMY,isUniqueEnemy} from '../gameplay/uniqueEnemies';
+import {UNIQUE_ENEMIES,UNIQUE_LEVEL_ENEMY,isUniqueEnemy} from '../gameplay/uniqueEnemies';
 import {updateUniqueEnemy,updateUniqueProjectiles,uniqueProjectileWall} from '../gameplay/uniqueEnemyRuntime';
 import { localEnemyMove, updateLocalEnemy, playEnemyDefeat } from '../gameplay/enemyMotionRuntime';
 import type { RestoredEnemyKind } from "../gameplay/enemyVariety";
-import { RESTORED_ENEMY_BODIES } from "../gameplay/restoredEnemyBodies";
 import {GUN_UPGRADES,gunInterval,gunIconPath,canSpawnGunVolley,BASE_BLASTER} from '../gameplay/gunUpgrades';
 import type {GunUpgradeId} from '../gameplay/gunUpgrades';
 import {makeGunUpgradeTextures,steerGunSeekers} from '../gameplay/gunUpgradeRuntime';
@@ -63,7 +70,7 @@ import { BOSS_DEATH_BASE_FACING, BOSS_DEFEAT_DURATION, BOSS_STUN_MS, bossCounter
 import {HeroCelebration,loadHeroCelebrationAssets,type CelebrationKind} from '../gameplay/heroCelebration';
 import {TURKEY_MOVES,turkeyFlight,makeTurkeyGustTexture,AutumnLeaves} from '../gameplay/turkeyBoss';
 import type {SeasonalTheme} from '../gameplay/seasonalTheme';
-import {KILINA_HEALTH,KILINA_NEW_MOVES,KILINA_PHASE_ONE,KILINA_PHASE_TWO,isKilinaNewMove,kilinaBattlePose,PlayerFreeze} from '../gameplay/kilinaCombat';
+import {KILINA_PHASE_ONE,KILINA_PHASE_TWO,isKilinaNewMove,kilinaBattlePose,PlayerFreeze} from '../gameplay/kilinaCombat';
 
 interface PlatformerGameEngineProps {
   cameraMotion?: boolean;
@@ -104,77 +111,25 @@ interface PlatformerGameEngineProps {
   onTogglePause: () => void;
 }
 
-type LevelNumber = 1 | 2 | 3 | 4 | 6;
-type EnemyKind = GroundFoe | "boss";
-type BossId = "dark_dragon" | "turkey" | "killinas_daughter" | "ink_behemoth" | "kilina" | "void_regent";
-type PickupKind = "coin" | "heart" | "power" | "shield" | "gravity" | "dinio" | "doghost" | "teleportation_c" | "rush_star" | EquippedPowerup;
-
-interface PlatformRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface EnemyPlan {
-  kind: EnemyKind;
-  x: number;
-  y: number;
-  left: number;
-  right: number;
-  bossId?: BossId;
-  bounceLane?: boolean;
-}
-
-interface MovingPlatformPlan extends PlatformRect {
-  travel: number;
-  period: number;
-  phase?: number;
-  axis?: "x" | "y";
-}
-
-interface PickupPlan {
-  kind: PickupKind;
-  x: number;
-  y: number;
-  requiresBossDefeat?: boolean;
-  bounceReward?: boolean;
-}
-
-interface SpringPadPlan {
-  x: number;
-  y: number;
-  width: number;
-  launchSpeed: number;
-}
-
-interface RooftopRushPlan {
-  durationMs: number;
-  stars: Array<{ x: number; y: number }>;
-}
-
-interface LevelPlan {
-  chapter: string;
-  title: string;
-  backgrounds: string[];
-  blockKey: string;
-  hazardKey: string;
-  spawn: { x: number; y: number };
-  checkpoints: Array<{ x: number; y: number }>;
-  platforms: PlatformRect[];
-  movingPlatforms?: MovingPlatformPlan[];
-  springPads?: SpringPadPlan[];
-  crumblingPlatforms?: CrumblingPlatformPlan[];
-  timedVents?: TimedVentPlan[];
-  obstacleStart?: number;
-  platformRoute?: PlatformRoute;
-  rooftopRush?: RooftopRushPlan;
-  hazards: PlatformRect[];
-  enemies: EnemyPlan[];
-  pickups: PickupPlan[];
-  endX: number;
-  tint: number;
-}
+import {
+  BOSS_ATTACK_VISUALS,
+  BOSS_BODY_PROFILES,
+  BOSS_DEFINITIONS,
+  BOSS_MOVES,
+  CHARACTER_FEEL,
+  ENEMY_BODY_PROFILES,
+  LEVELS,
+  levelKey,
+  pointValueForPickup,
+  type BossId,
+  type EnemyKind,
+  type EnemyPlan,
+  type MovingPlatformPlan,
+  type PickupKind,
+  type PickupPlan,
+  type PlatformRect,
+  type SpringPadPlan
+} from '../gameplay/platformerLevels';
 
 declare global {
   interface Window {
@@ -218,806 +173,6 @@ const TURN_SKID_DECELERATION = 900;
 const STOMP_HOP_SPEED = 420;
 const STOMP_BOOST_SPEED = 650;
 
-// Fractions of each animation frame. The body bottom matches the visible feet,
-// while the top is the surface a descending player can stomp.
-const ENEMY_BODY_PROFILES: Record<Exclude<EnemyKind, "boss">, {
-  x: number; y: number; width: number; height: number; footAnchor: number;
-}> = {
-  walker: { x: 0.27, y: 0.15, width: 0.46, height: 0.63, footAnchor: 0.78 },
-  alien: { x: 0.28, y: 0.10, width: 0.44, height: 0.85, footAnchor: 0.95 },
-  dasher: { x: 0.18, y: 0.20, width: 0.64, height: 0.73, footAnchor: 0.93 },
-  giant: { x: 0.14, y: 0.10, width: 0.72, height: 0.87, footAnchor: 0.97 },
-  ...UNIQUE_ENEMY_BODIES,
-  ...RESTORED_ENEMY_BODIES
-};
-
-const BOSS_BODY_PROFILES: Record<BossId, { x: number; y: number; width: number; height: number }> = {
-  turkey: {x:.25,y:.49,width:.50,height:.4475},
-  dark_dragon: { x: 0.35, y: 0.625, width: 0.30, height: 0.3125 },
-  killinas_daughter: { x: 0.42, y: 0.54, width: 0.16, height: 0.3975 },
-  kilina: { x: 0.41, y: 0.5075, width: 0.18, height: 0.43 },
-  ink_behemoth: { x: 0.35, y: 0.4375, width: 0.30, height: 0.50 },
-  void_regent: { x: 0.38, y: 0.44, width: 0.24, height: 0.4975 }
-};
-
-const BOSS_ATTACK_VISUALS: Record<BossId, {
-  path: string; frameWidth: number; frameHeight: number;
-  originX: number; originY: number; facesRight: boolean;
-}> = {
-  turkey: {path:'seasonal/thanksgiving-v1/turkey.png',frameWidth:512,frameHeight:512,originX:.5,originY:480/512,facesRight:false},
-  dark_dragon: { path: "bosses/encounters-v2/dark_dragon/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
-  killinas_daughter: { path: "bosses/kilina-v3/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
-  kilina: { path: "bosses/kilina-combat-v2/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
-  ink_behemoth: { path: "bosses/encounters-v2/ink_behemoth/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: true },
-  void_regent: { path: "bosses/void-regent-v4/attack.png", frameWidth: 640, frameHeight: 640, originX: 0.5, originY: 600 / 640, facesRight: false }
-};
-
-const BOSS_DEFINITIONS: Record<BossId, {
-  name: string;
-  textureKey: string;
-  assetPath: string;
-  frameWidth: number;
-  frameHeight: number;
-  frameCount: number;
-  scale: number;
-  maxHp: number;
-  tint: number;
-  attackName: string;
-  attackStyle: "volley" | "rush" | "quake" | "burst";
-  projectileKey: string;
-  attackInterval: number;
-  tellMs: number;
-  attackMs: number;
-}> = {
-  turkey: {
-    name:'GIANT TURKEY',textureKey:'boss_turkey',assetPath:'seasonal/thanksgiving-v1/turkey.png',
-    frameWidth:512,frameHeight:512,frameCount:1,scale:.85,maxHp:32,tint:0xe49a37,
-    attackName:'TALON CHARGE',attackStyle:'rush',projectileKey:'turkey_gust',attackInterval:2200,tellMs:1100,attackMs:1900
-  },
-  dark_dragon: {
-    name: "DARK DRAGON",
-    textureKey: "boss_dark_dragon",
-    assetPath: "bosses/encounters-v2/dark_dragon/walk.png",
-    frameWidth: 640,
-    frameHeight: 640,
-    frameCount: 7,
-    scale: 1.26,
-    maxHp: 40,
-    tint: 0xff7a45,
-    attackName: "FIRE VOLLEY",
-    attackStyle: "volley",
-    projectileKey: "boss_fire_orb",
-    attackInterval: 2200,
-    tellMs: 520,
-    attackMs: 560
-  },
-  killinas_daughter: {
-    name: "KILLINA'S DAUGHTER",
-    textureKey: "boss_killinas_daughter",
-    assetPath: "bosses/kilina-v3/walk.png",
-    frameWidth: 640,
-    frameHeight: 640,
-    frameCount: 8,
-    scale: 0.9,
-    maxHp: 44,
-    tint: 0xe9a8ff,
-    attackName: "AXE DASH",
-    attackStyle: "rush",
-    projectileKey: "boss_bullet",
-    attackInterval: 2050,
-    tellMs: 430,
-    attackMs: 620
-  },
-  ink_behemoth: {
-    name: "CINDER COLOSSUS",
-    textureKey: "boss_cinder_colossus",
-    assetPath: "bosses/encounters-v2/ink_behemoth/walk.png",
-    frameWidth: 640,
-    frameHeight: 640,
-    frameCount: 6,
-    scale: 0.95,
-    maxHp: 48,
-    tint: 0xff7b2b,
-    attackName: "FURNACE QUAKE",
-    attackStyle: "quake",
-    projectileKey: "boss_ink_orb",
-    attackInterval: 2200,
-    tellMs: 600,
-    attackMs: 720
-  },
-  kilina: {
-    name: "KILINA",
-    textureKey: "boss_kilina",
-    assetPath: "bosses/kilina-witch-v1/walk.png",
-    frameWidth: 640,
-    frameHeight: 640,
-    frameCount: 4,
-    scale: 0.68,
-    maxHp: KILINA_HEALTH,
-    tint: 0xf04c86,
-    attackName: "WITCH HEX",
-    attackStyle: "burst",
-    projectileKey: "boss_ink_orb",
-    attackInterval: 1700,
-    tellMs: 850,
-    attackMs: 1500
-  },
-  void_regent: {
-    name: "VOID REGENT",
-    textureKey: "boss_void_regent",
-    assetPath: "bosses/encounters-v2/void_regent/walk.png",
-    frameWidth: 640,
-    frameHeight: 640,
-    frameCount: 4,
-    scale: 0.9,
-    maxHp: VOID_REGENT_HEALTH,
-    tint: 0xc084fc,
-    attackName: "VOID BURST",
-    attackStyle: "burst",
-    projectileKey: "boss_bullet",
-    attackInterval: 1900,
-    tellMs: 500,
-    attackMs: 600
-  }
-};
-
-// All attacks commit their aim/destination during the warning. Durations are milliseconds.
-const BOSS_MOVES: Record<string, { tell: number; attack: number; recovery: number; hint: string }> = {
-  ...TURKEY_MOVES,
-  ...KILINA_NEW_MOVES,
-  ...REGENT_NEW_MOVES,
-  fire_volley: { tell: 750, attack: 1100, recovery: 2600, hint: "FIRE VOLLEY - MOVE!" },
-  dragon_lunge: { tell: 800, attack: 670, recovery: 2600, hint: "LUNGE - MOVE CLEAR!" },
-  low_breath: { tell: 850, attack: 1050, recovery: 2700, hint: "LOW FIRE - JUMP!" },
-  furnace_quake: { tell: 850, attack: 1550, recovery: 2800, hint: "QUAKE - JUMP!" },
-  cinder_bound: { tell: 950, attack: 1100, recovery: 2800, hint: "BOUND - LEAVE THE RING!" },
-  ember_rain: { tell: 1050, attack: 2100, recovery: 2800, hint: "EMBERS - LEAVE THE LANES!" },
-  blink_burst: { tell: 900, attack: 2500, recovery: 3000, hint: "RIFT - WATCH THE PORTALS!" },
-  void_rain: { tell: 1050, attack: 2350, recovery: 2800, hint: "VOID RAIN - LEAVE THE MARKS!" },
-  star_fan: { tell: 800, attack: 2100, recovery: 2600, hint: "STAR FAN - MOVE!" },
-  shadow_dash: { tell: 850, attack: 800, recovery: 2700, hint: "SHADOW DASH - MOVE CLEAR!" },
-  witch_hex: { tell: 850, attack: 1500, recovery: 2600, hint: "HEX BOLTS - KEEP MOVING!" },
-  rune_bloom: { tell: 1050, attack: 2000, recovery: 2700, hint: "RUNES - LEAVE THE MARKS!" },
-  witch_step: { tell: 850, attack: 950, recovery: 2600, hint: "WITCH STEP - LEAVE THE RING!" }
-};
-
-const LEVELS: Record<LevelNumber, LevelPlan> = {
-  1: {
-    chapter: "THE SCRATCH",
-    title: "Rooftop Recess",
-    backgrounds: ["dark_alleyway_1", "dark_alleyway_2", "dark_alleyway_3"],
-    blockKey: "platform_school_block",
-    hazardKey: "platform_ink_hazard",
-    spawn: { x: 160, y: 480 },
-    checkpoints: [{ x: 790, y: 410 }, { x: 2290, y: 410 }, { x: 3540, y: 410 }, { x: 4780, y: 410 }, { x: 6400, y: 410 }, { x: 7200, y: 410 }],
-    platforms: [
-      // Learn a short hop, then try the spring over a forgiving lower route.
-      { x: 0, y: 480, w: 2450, h: 240 },
-      { x: 430, y: 416, w: 88, h: 64 },
-      { x: 590, y: 380, w: 180, h: 42 },
-      // Optional rooftop line: a timed six-star trail, with solid ground below.
-      { x: 1110, y: 350, w: 240, h: 42 },
-      { x: 1490, y: 350, w: 250, h: 42 },
-      { x: 1860, y: 385, w: 220, h: 42 },
-      { x: 2090, y: 424, w: 72, h: 56 },
-      // Repeat the launch with a moving landing and a small, readable gap.
-      { x: 2590, y: 480, w: 500, h: 240 },
-      { x: 2670, y: 390, w: 220, h: 42 },
-      { x: 3220, y: 480, w: 880, h: 240 },
-      { x: 3070, y: 400, w: 340, h: 42 },
-      // An optional high exit is reached by keeping the three-stomp rhythm.
-      { x: 4240, y: 300, w: 220, h: 42 },
-      // 4. Rooftop hurdles teach a short hop before the bridge over the first ink gap.
-      { x: 4230, y: 480, w: 890, h: 240 },
-      { x: 4510, y: 407, w: 95, h: 73 },
-      { x: 4650, y: 355, w: 220, h: 42 },
-      { x: 5040, y: 390, w: 300, h: 42 },
-      // 5. A second stretch combines a low wall, ink puddle, and optional lift route.
-      { x: 5290, y: 480, w: 860, h: 240 },
-      { x: 5385, y: 420, w: 105, h: 38 },
-      { x: 5520, y: 397, w: 92, h: 83 },
-      { x: 5650, y: 345, w: 245, h: 42 },
-      { x: 6080, y: 390, w: 300, h: 42 },
-      // 6. A final short obstacle section gives a safe reset before the guardian.
-      { x: 6340, y: 480, w: 540, h: 240 },
-      { x: 6590, y: 407, w: 100, h: 73 },
-      { x: 6700, y: 345, w: 190, h: 42 },
-      { x: 6800, y: 268, w: 115, h: 36 },
-      // 7. The boss yard preserves its original open space for dodging Fire Volley.
-      { x: 6880, y: 480, w: 1770, h: 240 },
-      { x: 7440, y: 385, w: 240, h: 42 },
-      { x: 7870, y: 385, w: 240, h: 42 }
-    ],
-    crumblingPlatforms: [{ x: 4935, y: 305, w: 110, h: 34, crumbleMs: 850 }, { x: 6030, y: 296, w: 128, h: 34 }],
-    movingPlatforms: [
-      { x: 2390, y: 395, w: 200, h: 42, travel: 28, period: 3400 },
-      { x: 4800, y: 375, w: 165, h: 42, travel: 42, period: 4200 },
-      { x: 5840, y: 375, w: 180, h: 42, travel: 48, period: 4600, phase: 0.5 }
-    ],
-    springPads: [
-      { x: 950, y: 480, width: 112, launchSpeed: 780 },
-      { x: 2790, y: 480, width: 112, launchSpeed: 780 },
-      { x: 3235, y: 400, width: 84, launchSpeed: 620 }
-    ],
-    rooftopRush: {
-      durationMs: 14000,
-      stars: [
-        { x: 1160, y: 280 }, { x: 1290, y: 280 },
-        { x: 1590, y: 280 }, { x: 1680, y: 280 },
-        { x: 1900, y: 315 }, { x: 2020, y: 315 }
-      ]
-    },
-    hazards: [
-      { x: 2450, y: 556, w: 140, h: 34 },
-      { x: 2910, y: 462, w: 95, h: 18 },
-      { x: 3090, y: 556, w: 130, h: 34 },
-      { x: 4100, y: 556, w: 130, h: 34 },
-      { x: 4830, y: 462, w: 115, h: 18 },
-      { x: 5120, y: 556, w: 170, h: 34 },
-      { x: 5790, y: 462, w: 130, h: 18 },
-      { x: 6150, y: 556, w: 190, h: 34 },
-      { x: 6530, y: 462, w: 100, h: 18 }
-    ],
-    enemies: [
-      { kind: "walker", x: 680, y: 450, left: 580, right: 740 },
-      { kind: "walker", x: 1610, y: 450, left: 1450, right: 1760 },
-      { kind: "walker", x: 2720, y: 450, left: 2630, right: 2750 },
-      { kind: "walker", x: 3450, y: 450, left: 3436, right: 3464, bounceLane: true },
-      { kind: "walker", x: 3730, y: 450, left: 3716, right: 3744, bounceLane: true },
-      { kind: "walker", x: 4010, y: 450, left: 3996, right: 4024, bounceLane: true },
-      { kind: "bumper", x: 4740, y: 475, left: 4690, right: 4795 },
-      { kind: "walker", x: 5410, y: 450, left: 5340, right: 5490 },
-      { kind: "dasher", x: 6020, y: 450, left: 5930, right: 6100 },
-      { kind: "giant", x: 6750, y: 450, left: 6700, right: 6820 },
-      { kind: "giant", x: 7030, y: 450, left: 6960, right: 7110 },
-      { kind: "boss", bossId: "dark_dragon", x: 7790, y: 398, left: 7630, right: 8000 }
-    ],
-    pickups: [
-      { kind: "coin", x: 455, y: 335 },
-      ...[630, 720].map((x): PickupPlan => ({ kind: "coin", x, y: 315 })),
-      ...[{ x: 980, y: 250 }, { x: 1030, y: 205 }, { x: 1080, y: 210 }].map((point): PickupPlan => ({ kind: "coin", ...point })),
-      ...[1400, 1580, 1780].map((x): PickupPlan => ({ kind: "coin", x, y: 425 })),
-      { kind: "dinio", x: 2230, y: 425 },
-      ...[{ x: 2350, y: 360 }, { x: 2480, y: 300 }, { x: 2610, y: 340 }].map((point): PickupPlan => ({ kind: "coin", ...point })),
-      ...[{ x: 2850, y: 330 }, { x: 2960, y: 285 }, { x: 3110, y: 320 }, { x: 3280, y: 335 }].map((point): PickupPlan => ({ kind: "coin", ...point })),
-      ...[{ x: 3280, y: 230 }, { x: 3380, y: 240 },
-        { x: 3530, y: 265 }, { x: 3610, y: 185 }, { x: 3690, y: 225 },
-        { x: 3810, y: 265 }, { x: 3890, y: 185 }, { x: 3970, y: 225 },
-        { x: 4100, y: 250 }, { x: 4200, y: 200 }].map((point): PickupPlan => ({ kind: "coin", ...point })),
-      { kind: "shield", x: 4370, y: 250, bounceReward: true },
-      ...[4570, 4670, 4770].map((x): PickupPlan => ({ kind: "coin", x, y: 320 })),
-      ...[5050, 5150, 5250].map((x): PickupPlan => ({ kind: "coin", x, y: 330 })),
-      ...[5600, 5720, 5840].map((x): PickupPlan => ({ kind: "coin", x, y: 305 })),
-      ...[6100, 6200, 6300].map((x): PickupPlan => ({ kind: "coin", x, y: 330 })),
-      ...[6680, 6770, 6860].map((x): PickupPlan => ({ kind: "coin", x, y: 310 })),
-      { kind: "heart", x: 3550, y: 420 },
-      { kind: "heart", x: 6390, y: 420 },
-      { kind: "power", x: 8040, y: 430, requiresBossDefeat: true }
-    ],
-    endX: 8350,
-    tint: 0xffffff
-  },
-  2: {
-    chapter: "THE GRAVEYARD",
-    title: "Moonlit Mausoleum",
-    backgrounds: ["graveyard_level1", "graveyard_level2", "graveyard_level2_5", "graveyard_level3"],
-    blockKey: "platform_graveyard_block",
-    hazardKey: "platform_fog_hazard",
-    spawn: { x: 160, y: 450 },
-    checkpoints: [{ x: 1690, y: 410 }, { x: 3570, y: 410 }, { x: 5250, y: 410 }, { x: 6650, y: 410 }, { x: 7400, y: 410 }],
-    platforms: [
-      // Lifts first appear over solid ground; the lower route remains usable at every phase.
-      { x: 0, y: 480, w: 1380, h: 240 },
-      { x: 1380, y: 480, w: 1130, h: 240 },
-      { x: 2510, y: 480, w: 1040, h: 240 },
-      { x: 3550, y: 480, w: 940, h: 240 },
-      { x: 4490, y: 480, w: 1030, h: 240 },
-      { x: 5520, y: 480, w: 1040, h: 240 },
-      { x: 6560, y: 480, w: 580, h: 240 },
-      { x: 7140, y: 480, w: 1510, h: 240 },
-      { x: 980, y: 385, w: 250, h: 42 },
-      { x: 1255, y: 407, w: 126, h: 40 },
-      { x: 1570, y: 375, w: 270, h: 42 },
-      { x: 2220, y: 390, w: 350, h: 42 },
-      { x: 2740, y: 365, w: 240, h: 42 },
-      { x: 3260, y: 390, w: 420, h: 42 },
-      { x: 4010, y: 365, w: 240, h: 42 },
-      { x: 4250, y: 400, w: 370, h: 42 },
-      // Raised stone blocks and spans add decisions without trapping the lower route.
-      { x: 4730, y: 405, w: 90, h: 75 },
-      { x: 4860, y: 350, w: 230, h: 42 },
-      { x: 5270, y: 390, w: 330, h: 42 },
-      { x: 5730, y: 397, w: 90, h: 83 },
-      { x: 5610, y: 425, w: 105, h: 36 },
-      { x: 5860, y: 340, w: 250, h: 42 },
-      { x: 6300, y: 390, w: 340, h: 42 },
-      { x: 6740, y: 350, w: 220, h: 42 },
-      { x: 6880, y: 410, w: 95, h: 70 },
-      // The guardian arena retains its open floor and two elevated ledges.
-      { x: 7440, y: 385, w: 240, h: 42 },
-      { x: 7870, y: 385, w: 240, h: 42 }
-    ],
-    crumblingPlatforms: [{ x: 1310, y: 326, w: 135, h: 36 }, { x: 6155, y: 314, w: 130, h: 36 }],
-    movingPlatforms: [
-      { x: 510, y: 380, w: 360, h: 42, travel: 55, period: 4800 },
-      { x: 1880, y: 370, w: 300, h: 42, travel: 60, period: 4400, phase: 0.5 },
-      { x: 2980, y: 380, w: 260, h: 42, travel: 50, period: 4000, phase: 0.25 },
-      { x: 3690, y: 380, w: 290, h: 42, travel: 55, period: 4600, phase: 0.75 },
-      { x: 5050, y: 380, w: 170, h: 42, travel: 48, period: 4300, phase: 0.25 },
-      { x: 6030, y: 375, w: 180, h: 42, travel: 55, period: 4700, phase: 0.5 }
-    ],
-    hazards: [
-      { x: 5090, y: 462, w: 120, h: 18 },
-      { x: 6110, y: 462, w: 120, h: 18 },
-      { x: 6990, y: 462, w: 110, h: 18 }
-    ],
-    enemies: [
-      { kind: "walker", x: 1510, y: 450, left: 1420, right: 1550 },
-      { kind: "alien", x: 2150, y: 265, left: 2080, right: 2350 },
-      { kind: "dasher", x: 2820, y: 450, left: 2670, right: 2940 },
-      { kind: "alien", x: 4950, y: 255, left: 4850, right: 5160 },
-      { kind: "walker", x: 5590, y: 450, left: 5540, right: 5700 },
-      { kind: "dasher", x: 6240, y: 450, left: 6140, right: 6320 },
-      { kind: "walker", x: 6810, y: 450, left: 6740, right: 6860 },
-      { kind: "giant", x: 7240, y: 450, left: 7180, right: 7290 },
-      { kind: "boss", bossId: "killinas_daughter", x: 7790, y: 398, left: 7580, right: 7990 }
-    ],
-    pickups: [
-      ...[580, 690, 800].map((x): PickupPlan => ({ kind: "coin", x, y: 285 })),
-      ...[1020, 1100, 1180].map((x): PickupPlan => ({ kind: "coin", x, y: 325 })),
-      { kind: "doghost", x: 1790, y: 420 },
-      ...[1940, 2020, 2100].map((x): PickupPlan => ({ kind: "coin", x, y: 270 })),
-      { kind: "shield", x: 2400, y: 330 },
-      ...[3020, 3100, 3180].map((x): PickupPlan => ({ kind: "coin", x, y: 275 })),
-      ...[3780, 3860, 3940].map((x): PickupPlan => ({ kind: "coin", x, y: 280 })),
-      { kind: "heart", x: 3580, y: 420 },
-      { kind: "coin", x: 4300, y: 330 },
-      ...[4820, 4920, 5020].map((x): PickupPlan => ({ kind: "coin", x, y: 305 })),
-      ...[5290, 5390, 5490].map((x): PickupPlan => ({ kind: "coin", x, y: 330 })),
-      ...[5810, 5930, 6050].map((x): PickupPlan => ({ kind: "coin", x, y: 290 })),
-      ...[6320, 6440, 6540].map((x): PickupPlan => ({ kind: "coin", x, y: 325 })),
-      ...[6710, 6810, 6910].map((x): PickupPlan => ({ kind: "coin", x, y: 300 })),
-      { kind: "heart", x: 6600, y: 420 }
-    ],
-    endX: 8350,
-    tint: 0xffffff
-  },
-  3: {
-    chapter: "THE FURNACE",
-    title: "Cinder Rampart",
-    backgrounds: ["cave_level_1", "cave_level_2", "cave_level_3"],
-    blockKey: "platform_furnace_block",
-    hazardKey: "platform_lava_hazard",
-    spawn: { x: 160, y: 450 },
-    checkpoints: [{ x: 1560, y: 395 }, { x: 3500, y: 380 }],
-    platforms: [
-      { x: 0, y: 520, w: 760, h: 120 },
-      { x: 940, y: 520, w: 820, h: 120 },
-      { x: 1980, y: 520, w: 720, h: 120 },
-      { x: 2920, y: 520, w: 820, h: 120 },
-      { x: 3960, y: 520, w: 1770, h: 120 },
-      { x: 620, y: 385, w: 320, h: 42 },
-      { x: 1035, y: 425, w: 160, h: 42 },
-      { x: 1280, y: 315, w: 320, h: 42 },
-      { x: 2200, y: 350, w: 420, h: 42 },
-      { x: 2090, y: 435, w: 126, h: 38 },
-      { x: 3270, y: 300, w: 360, h: 42 },
-      { x: 4520, y: 340, w: 450, h: 42 }
-    ],
-    crumblingPlatforms: [{ x: 1135, y: 357, w: 126, h: 36 }, { x: 3025, y: 409, w: 148, h: 38 }],
-    hazards: [
-      { x: 780, y: 552, w: 150, h: 38 },
-      { x: 1780, y: 552, w: 180, h: 38 },
-      { x: 2720, y: 552, w: 180, h: 38 },
-      { x: 3760, y: 552, w: 190, h: 38 }
-    ],
-    enemies: [
-      { kind: "walker", x: 680, y: 470, left: 540, right: 730 },
-      { kind: "alien", x: 1420, y: 250, left: 1180, right: 1780 },
-      { kind: "dasher", x: 2350, y: 470, left: 2050, right: 2640 },
-      { kind: "boss", bossId: "ink_behemoth", x: 4680, y: 438, left: 4100, right: 5300 }
-    ],
-    pickups: [
-      { kind: "coin", x: 720, y: 315 },
-      { kind: "coin", x: 1350, y: 245 },
-      { kind: "teleportation_c", x: 2140, y: 455 },
-      { kind: "heart", x: 2350, y: 285 },
-      { kind: "power", x: 4600, y: 275 }
-    ],
-    endX: 5450,
-    tint: 0xffffff
-  },
-  4: {
-    chapter: "THE WITCHWOOD",
-    title: "Kilina's Moonthorn Sanctuary",
-    backgrounds: ["witchwood_panorama", "witchwood_parallax"],
-    blockKey: "platform_witchwood_block",
-    hazardKey: "platform_witchwood_hazard",
-    spawn: { x: 160, y: 520 },
-    checkpoints: [{ x: 1380, y: 450 }, { x: 2810, y: 450 }, { x: 4230, y: 450 }, { x: 5570, y: 450 }, { x: 6340, y: 450 }],
-    platforms: [
-      // Entry ruins teach the new route over a forgiving lower floor.
-      { x: 0, y: 520, w: 1700, h: 200 },
-      { x: 430, y: 450, w: 90, h: 70 }, { x: 650, y: 385, w: 260, h: 42 },
-      { x: 927, y: 414, w: 130, h: 38 },
-      { x: 1070, y: 335, w: 230, h: 42 }, { x: 1450, y: 405, w: 230, h: 42 },
-      // A short gap, then jump onto the broad ruined wall and its rooftop coins.
-      { x: 1840, y: 520, w: 1450, h: 200 },
-      { x: 1760, y: 410, w: 180, h: 42 }, { x: 2160, y: 365, w: 340, h: 155 },
-      { x: 2660, y: 405, w: 250, h: 42 }, { x: 3060, y: 355, w: 210, h: 42 },
-      // Spring court and lift crossings. Every mandatory gap is a normal-jump width.
-      { x: 3420, y: 520, w: 650, h: 200 }, { x: 4230, y: 520, w: 650, h: 200 },
-      { x: 3700, y: 405, w: 220, h: 42 }, { x: 4480, y: 350, w: 270, h: 42 },
-      { x: 5020, y: 520, w: 760, h: 200 }, { x: 5220, y: 395, w: 250, h: 42 },
-      { x: 5475, y: 420, w: 110, h: 40 },
-      { x: 5600, y: 335, w: 240, h: 42 },
-      // Breathing room and a final safe checkpoint before the sanctuary arena.
-      { x: 5920, y: 520, w: 1880, h: 200 }, { x: 6120, y: 405, w: 210, h: 42 },
-      { x: 6580, y: 345, w: 190, h: 42 }, { x: 7140, y: 345, w: 190, h: 42 }
-    ],
-    crumblingPlatforms: [{ x: 1190, y: 267, w: 128, h: 36 }, { x: 5475, y: 326, w: 112, h: 36 }],
-    movingPlatforms: [
-      { x: 3210, y: 405, w: 155, h: 42, travel: 42, period: 3700 },
-      { x: 4040, y: 390, w: 160, h: 42, travel: 50, period: 4100, phase: 0.3 },
-      { x: 4810, y: 385, w: 155, h: 42, travel: 45, period: 3900 }
-    ],
-    springPads: [{ x: 3510, y: 520, width: 85, launchSpeed: 680 }],
-    hazards: [
-      { x: 1700, y: 552, w: 140, h: 38 }, { x: 3290, y: 552, w: 130, h: 38 },
-      { x: 4070, y: 552, w: 160, h: 38 }, { x: 4880, y: 552, w: 140, h: 38 },
-      { x: 5780, y: 552, w: 140, h: 38 }
-    ],
-    enemies: [
-      { kind: "walker", x: 830, y: 385, left: 720, right: 880 },
-      { kind: "alien", x: 1190, y: 335, left: 1100, right: 1270 },
-      { kind: "walker", x: 2040, y: 470, left: 1890, right: 2110 },
-      { kind: "dasher", x: 2860, y: 470, left: 2700, right: 3150 },
-      { kind: "alien", x: 4590, y: 350, left: 4520, right: 4710 },
-      { kind: "walker", x: 5400, y: 470, left: 5080, right: 5510 },
-      { kind: "giant", x: 6090, y: 470, left: 5950, right: 6200 },
-      { kind: "boss", bossId: "kilina", x: 6940, y: 520, left: 6650, right: 7150 }
-    ],
-    pickups: [
-      ...[690,780,870].map((x): PickupPlan => ({ kind: "coin", x, y: 330 })),
-      ...[1110,1190,1270].map((x): PickupPlan => ({ kind: "coin", x, y: 280 })),
-      ...[2210,2330,2450].map((x): PickupPlan => ({ kind: "coin", x, y: 305 })),
-      ...[3090,3180,3310,3450,3760,3860].map((x): PickupPlan => ({ kind: "coin", x, y: 300 })),
-      ...[4530,4630,4730].map((x): PickupPlan => ({ kind: "coin", x, y: 290 })),
-      ...[5640,5730,5810].map((x): PickupPlan => ({ kind: "coin", x, y: 275 })),
-      { kind: "shield", x: 2790, y: 350 }, { kind: "heart", x: 1380, y: 465 },
-      { kind: "heart", x: 5560, y: 465 }, { kind: "heart", x: 6340, y: 465 }
-    ],
-    endX: 7500,
-    tint: 0xffffff
-  },
-  6: {
-    chapter: "THE DREAD PLANET",
-    title: "Void Regent Approach",
-    backgrounds: ["void_regent_pencil_panorama"],
-    blockKey: "platform_dread_planet_block",
-    hazardKey: "platform_void_hazard",
-    spawn: { x: 160, y: 450 },
-    checkpoints: [{ x: 1700, y: 380 }, { x: 3560, y: 350 }],
-    platforms: [
-      { x: 0, y: 520, w: 820, h: 120 },
-      { x: 980, y: 520, w: 700, h: 120 },
-      { x: 1880, y: 520, w: 740, h: 120 },
-      { x: 2860, y: 520, w: 780, h: 120 },
-      { x: 3880, y: 520, w: 1890, h: 120 },
-      { x: 700, y: 365, w: 300, h: 42 },
-      { x: 1050, y: 429, w: 170, h: 42 },
-      { x: 1350, y: 300, w: 330, h: 42 },
-      { x: 2250, y: 335, w: 380, h: 42 },
-      { x: 2905, y: 435, w: 145, h: 42 },
-      { x: 3300, y: 285, w: 380, h: 42 },
-      { x: 4520, y: 330, w: 520, h: 42 }
-    ],
-    crumblingPlatforms: [{ x: 1210, y: 363, w: 120, h: 36 }, { x: 3085, y: 355, w: 155, h: 36 }],
-    hazards: [
-      { x: 840, y: 550, w: 130, h: 40 },
-      { x: 1700, y: 550, w: 160, h: 40 },
-      { x: 2640, y: 550, w: 200, h: 40 },
-      { x: 3660, y: 550, w: 210, h: 40 }
-    ],
-    enemies: [
-      { kind: "walker", x: 680, y: 470, left: 520, right: 780 },
-      { kind: "alien", x: 1450, y: 245, left: 1120, right: 1800 },
-      { kind: "dasher", x: 3200, y: 470, left: 2960, right: 3600 },
-      { kind: "boss", bossId: "void_regent", x: 4720, y: 438, left: 4100, right: 5300 }
-    ],
-    pickups: [
-      { kind: "coin", x: 820, y: 300 },
-      { kind: "coin", x: 1460, y: 230 },
-      { kind: "gravity", x: 3400, y: 220 },
-      { kind: "heart", x: 4700, y: 260 }
-    ],
-    endX: 5480,
-    tint: 0xffffff
-  }
-};
-
-interface LevelExtension {
-  insertionX: number;
-  bridgeStartX: number;
-  addedLength: number;
-  newEndX: number;
-  floorY: number;
-  groundHeight: number;
-  ground: PlatformRect[];
-  platforms: PlatformRect[];
-  hazards: PlatformRect[];
-  movingPlatforms?: MovingPlatformPlan[];
-  springPads?: SpringPadPlan[];
-  crumblingPlatforms?: CrumblingPlatformPlan[];
-  timedVents?: TimedVentPlan[];
-  checkpoints: Array<{ x: number; y: number }>;
-  enemies: EnemyPlan[];
-  pickups: PickupPlan[];
-}
-
-function extendLevelRoute(level: LevelPlan, extension: LevelExtension) {
-  if (extension.ground[0]?.x !== extension.bridgeStartX || extension.bridgeStartX > extension.insertionX) {
-    throw new Error(`Level extension bridge does not align with insertion at ${extension.insertionX}`);
-  }
-  const shift = (x: number) => x >= extension.insertionX ? x + extension.addedLength : x;
-  level.platforms = level.platforms.map((platform) => ({ ...platform, x: shift(platform.x) }));
-  level.hazards = level.hazards.map((hazard) => ({ ...hazard, x: shift(hazard.x) }));
-  level.movingPlatforms = level.movingPlatforms?.map((platform) => ({ ...platform, x: shift(platform.x) }));
-  level.springPads = level.springPads?.map((pad) => ({ ...pad, x: shift(pad.x) }));
-  level.crumblingPlatforms = level.crumblingPlatforms?.map((platform) => ({ ...platform, x: shift(platform.x) }));
-  level.timedVents = level.timedVents?.map((vent) => ({ ...vent, x: shift(vent.x) }));
-  if(level.rooftopRush) level.rooftopRush.stars=level.rooftopRush.stars.map(point=>({...point,x:shift(point.x)}));
-  level.checkpoints = level.checkpoints.map((point) => ({ ...point, x: shift(point.x) }));
-  level.enemies = level.enemies.map((enemy) => enemy.x >= extension.insertionX
-    ? { ...enemy, x: enemy.x + extension.addedLength, left: enemy.left + extension.addedLength, right: enemy.right + extension.addedLength }
-    : enemy);
-  level.pickups = level.pickups.map((pickup) => ({ ...pickup, x: shift(pickup.x) }));
-  level.platforms.push(...extension.ground, ...extension.platforms);
-  level.hazards.push(...extension.hazards);
-  level.movingPlatforms = [...(level.movingPlatforms ?? []), ...(extension.movingPlatforms ?? [])];
-  level.springPads = [...(level.springPads ?? []), ...(extension.springPads ?? [])];
-  level.crumblingPlatforms = [...(level.crumblingPlatforms ?? []), ...(extension.crumblingPlatforms ?? [])];
-  level.timedVents = [...(level.timedVents ?? []), ...(extension.timedVents ?? [])];
-  if(extension.crumblingPlatforms?.length) level.obstacleStart=extension.insertionX;
-  level.checkpoints.push(...extension.checkpoints);
-  level.checkpoints.sort((a,b)=>a.x-b.x);
-  level.enemies.push(...extension.enemies);
-  level.pickups.push(...extension.pickups);
-
-  // Keep the boss yard's exit floor intact and preserve its original runout past the gate.
-  const arenaFloorX = extension.insertionX + extension.addedLength;
-  const arenaFloor = level.platforms.find((platform) => platform.x === arenaFloorX
-    && platform.y === extension.floorY && platform.h === extension.groundHeight);
-  if (!arenaFloor) throw new Error(`Missing shifted boss floor at ${arenaFloorX}`);
-  level.endX = extension.newEndX;
-}
-
-extendLevelRoute(LEVELS[1], {
-  insertionX: 6880, bridgeStartX: 6880, addedLength: 2505, newEndX: 10855, floorY: 480, groundHeight: 240,
-  ground: [
-    { x: 6880, y: 480, w: 500, h: 240 }, { x: 7520, y: 480, w: 520, h: 240 },
-    { x: 8200, y: 480, w: 560, h: 240 }, { x: 8890, y: 480, w: 495, h: 240 }
-  ],
-  platforms: [
-    { x: 7040, y: 405, w: 260, h: 42 }, { x: 7640, y: 350, w: 260, h: 42 },
-    { x: 8350, y: 390, w: 270, h: 42 }, { x: 9000, y: 355, w: 300, h: 42 }
-  ],
-  hazards: [
-    { x: 7380, y: 556, w: 140, h: 34 }, { x: 8040, y: 556, w: 160, h: 34 },
-    { x: 8760, y: 556, w: 130, h: 34 }
-  ],
-  movingPlatforms: [
-    { x: 7390, y: 380, w: 145, h: 42, travel: 36, period: 4100 },
-    { x: 8745, y: 375, w: 155, h: 42, travel: 34, period: 3900, phase: 0.4 }
-  ],
-  checkpoints: [{ x: 8210, y: 410 }],
-  enemies: [
-    { kind: "walker", x: 7190, y: 450, left: 7000, right: 7350 },
-    { kind: "alien", x: 7850, y: 255, left: 7680, right: 8000 },
-    { kind: "dasher", x: 8520, y: 450, left: 8320, right: 8710 },
-    { kind: "giant", x: 9140, y: 450, left: 8950, right: 9320 }
-  ],
-  pickups: [
-    ...[7100, 7210, 7320].map((x): PickupPlan => ({ kind: "coin", x, y: 315 })),
-    ...[7660, 7770, 7880].map((x): PickupPlan => ({ kind: "coin", x, y: 285 })),
-    ...[8380, 8500, 8620].map((x): PickupPlan => ({ kind: "coin", x, y: 320 })),
-    ...[9000, 9120, 9240].map((x): PickupPlan => ({ kind: "coin", x, y: 300 })),
-    { kind: "heart", x: 8210, y: 420 }
-  ]
-});
-
-extendLevelRoute(LEVELS[2], {
-  insertionX: 7140, bridgeStartX: 7140, addedLength: 2505, newEndX: 10855, floorY: 480, groundHeight: 240,
-  ground: [
-    { x: 7140, y: 480, w: 480, h: 240 }, { x: 7620, y: 480, w: 650, h: 240 },
-    { x: 8270, y: 480, w: 670, h: 240 }, { x: 8940, y: 480, w: 705, h: 240 }
-  ],
-  platforms: [
-    { x: 7300, y: 385, w: 250, h: 42 }, { x: 7870, y: 350, w: 270, h: 42 },
-    { x: 8520, y: 390, w: 260, h: 42 }, { x: 9230, y: 345, w: 280, h: 42 }
-  ],
-  hazards: [],
-  movingPlatforms: [
-    { x: 7595, y: 375, w: 150, h: 42, travel: 38, period: 4200, phase: 0.3 },
-    { x: 8900, y: 380, w: 150, h: 42, travel: 40, period: 4500 }
-  ],
-  checkpoints: [{ x: 8445, y: 410 }],
-  enemies: [
-    { kind: "walker", x: 7380, y: 450, left: 7210, right: 7590 },
-    { kind: "alien", x: 8030, y: 250, left: 7850, right: 8240 },
-    { kind: "dasher", x: 8710, y: 450, left: 8500, right: 8910 },
-    { kind: "giant", x: 9370, y: 450, left: 9190, right: 9570 }
-  ],
-  pickups: [
-    ...[7260, 7380, 7500].map((x): PickupPlan => ({ kind: "coin", x, y: 310 })),
-    ...[7870, 7990, 8110].map((x): PickupPlan => ({ kind: "coin", x, y: 280 })),
-    ...[8500, 8620, 8740].map((x): PickupPlan => ({ kind: "coin", x, y: 320 })),
-    ...[9160, 9280, 9400].map((x): PickupPlan => ({ kind: "coin", x, y: 295 })),
-    { kind: "heart", x: 8445, y: 420 }
-  ]
-});
-
-extendLevelRoute(LEVELS[3], {
-  insertionX: 3960, bridgeStartX: 3740, addedLength: 1635, newEndX: 7085, floorY: 520, groundHeight: 120,
-  ground: [
-    { x: 3740, y: 520, w: 430, h: 120 }, { x: 4300, y: 520, w: 480, h: 120 },
-    { x: 4920, y: 520, w: 675, h: 120 }
-  ],
-  platforms: [
-    { x: 3890, y: 395, w: 240, h: 42 }, { x: 4390, y: 335, w: 280, h: 42 },
-    { x: 5010, y: 375, w: 290, h: 42 }, { x: 5340, y: 330, w: 190, h: 42 }
-  ],
-  hazards: [
-    { x: 4170, y: 552, w: 130, h: 38 }, { x: 4780, y: 552, w: 140, h: 38 }
-  ],
-  movingPlatforms: [{ x: 4140, y: 390, w: 145, h: 42, travel: 38, period: 4100 }],
-  checkpoints: [{ x: 4940, y: 450 }],
-  enemies: [
-    { kind: "walker", x: 3970, y: 470, left: 3820, right: 4120 },
-    { kind: "alien", x: 4510, y: 245, left: 4340, right: 4700 },
-    { kind: "dasher", x: 5100, y: 470, left: 4940, right: 5480 },
-    { kind: "giant", x: 5440, y: 470, left: 5300, right: 5550 }
-  ],
-  pickups: [
-    ...[3880, 3990, 4100].map((x): PickupPlan => ({ kind: "coin", x, y: 340 })),
-    ...[4360, 4480, 4600].map((x): PickupPlan => ({ kind: "coin", x, y: 285 })),
-    ...[4990, 5110, 5230].map((x): PickupPlan => ({ kind: "coin", x, y: 320 })),
-    { kind: "heart", x: 4940, y: 450 }
-  ]
-});
-
-extendLevelRoute(LEVELS[6], {
-  insertionX: 3880, bridgeStartX: 3640, addedLength: 1644, newEndX: 7124, floorY: 520, groundHeight: 120,
-  ground: [
-    { x: 3640, y: 520, w: 440, h: 120 }, { x: 4210, y: 520, w: 490, h: 120 },
-    { x: 4830, y: 520, w: 694, h: 120 }
-  ],
-  platforms: [
-    { x: 3800, y: 390, w: 250, h: 42 }, { x: 4330, y: 325, w: 270, h: 42 },
-    { x: 4920, y: 375, w: 300, h: 42 }, { x: 5310, y: 335, w: 190, h: 42 }
-  ],
-  hazards: [
-    { x: 4080, y: 552, w: 130, h: 38 }, { x: 4700, y: 552, w: 130, h: 38 }
-  ],
-  movingPlatforms: [{ x: 4050, y: 390, w: 145, h: 42, travel: 40, period: 4300, phase: 0.35 }],
-  checkpoints: [{ x: 4845, y: 450 }],
-  enemies: [
-    { kind: "walker", x: 3860, y: 470, left: 3700, right: 4020 },
-    { kind: "alien", x: 4450, y: 240, left: 4280, right: 4650 },
-    { kind: "dasher", x: 5000, y: 470, left: 4860, right: 5380 },
-    { kind: "giant", x: 5435, y: 470, left: 5300, right: 5500 }
-  ],
-  pickups: [
-    ...[3760, 3880, 4000].map((x): PickupPlan => ({ kind: "coin", x, y: 335 })),
-    ...[4290, 4410, 4530].map((x): PickupPlan => ({ kind: "coin", x, y: 285 })),
-    ...[4900, 5020, 5140].map((x): PickupPlan => ({ kind: "coin", x, y: 320 })),
-    { kind: "heart", x: 4845, y: 450 }
-  ]
-});
-
-// Each new stretch introduces a mechanism over solid ground, then combines it
-// with short jumpable gaps. The original boss yard moves as one intact section.
-extendLevelRoute(LEVELS[3], {
-  insertionX:5595,bridgeStartX:5595,addedLength:2400,newEndX:9485,floorY:520,groundHeight:120,
-  ground:[{x:5595,y:520,w:600,h:120},{x:6355,y:520,w:570,h:120},{x:7085,y:520,w:910,h:120}],
-  platforms:[{x:6540,y:355,w:250,h:42},{x:7190,y:442,w:96,h:78},{x:7350,y:350,w:280,h:42}],
-  hazards:[{x:6195,y:552,w:160,h:38},{x:6925,y:552,w:160,h:38}],
-  springPads:[{x:5830,y:520,width:100,launchSpeed:780}],
-  crumblingPlatforms:[{x:5980,y:340,w:140,h:36},{x:6190,y:310,w:150,h:36},{x:6420,y:350,w:200,h:36}],
-  movingPlatforms:[{x:6740,y:380,w:160,h:42,travel:110,period:4000,axis:'x'}],
-  timedVents:[{x:6550,y:520,w:72,height:132},{x:7440,y:520,w:72,height:148,phase:.5}],
-  checkpoints:[{x:6010,y:450},{x:7140,y:450},{x:7800,y:450}],
-  enemies:[{kind:'walker',x:6100,y:470,left:6030,right:6150},
-    {kind:'alien',x:7550,y:350,left:7390,right:7570},
-    {kind:'dasher',x:7620,y:470,left:7570,right:7740}],
-  pickups:[...[6020,6090,6230,6310,6470,6570,6680,6790].map((x):PickupPlan=>({kind:'coin',x,y:x<6400?250:290})),
-    ...[7210,7410,7520,7630].map((x):PickupPlan=>({kind:'coin',x,y:290})),
-    {kind:'heart',x:7140,y:465},{kind:'heart',x:7800,y:465}]
-});
-
-extendLevelRoute(LEVELS[4], {
-  insertionX:5920,bridgeStartX:5920,addedLength:2200,newEndX:9700,floorY:520,groundHeight:200,
-  ground:[{x:5920,y:520,w:680,h:200},{x:6750,y:520,w:650,h:200},{x:7540,y:520,w:580,h:200}],
-  platforms:[{x:6870,y:440,w:95,h:80},{x:6980,y:355,w:240,h:42},{x:7700,y:430,w:100,h:90}],
-  hazards:[{x:6600,y:552,w:150,h:38},{x:7400,y:552,w:140,h:38}],
-  springPads:[{x:6160,y:520,width:96,launchSpeed:760}],
-  crumblingPlatforms:[{x:6310,y:350,w:160,h:36},{x:6530,y:320,w:160,h:36},{x:6750,y:350,w:200,h:36}],
-  movingPlatforms:[{x:7260,y:390,w:160,h:42,travel:115,period:4200,axis:'x',phase:.25}],
-  timedVents:[],checkpoints:[{x:6460,y:450},{x:7610,y:450}],
-  enemies:[{kind:'walker',x:6490,y:470,left:6420,right:6550},
-    {kind:'alien',x:7120,y:355,left:7030,right:7180}],
-  pickups:[...[6350,6440,6570,6650,6790,6900].map((x):PickupPlan=>({kind:'coin',x,y:260})),
-    ...[7040,7150,7300,7440,7580,7750].map((x):PickupPlan=>({kind:'coin',x,y:290})),
-    {kind:'shield',x:6880,y:285},{kind:'heart',x:7610,y:465}]
-});
-
-extendLevelRoute(LEVELS[6], {
-  insertionX:5524,bridgeStartX:5524,addedLength:2500,newEndX:9624,floorY:520,groundHeight:120,
-  ground:[{x:5524,y:520,w:730,h:120},{x:6414,y:520,w:640,h:120},{x:7224,y:520,w:800,h:120}],
-  platforms:[{x:5980,y:335,w:200,h:42},{x:6500,y:350,w:250,h:42},{x:7080,y:462,w:115,h:38},
-    {x:7320,y:435,w:110,h:85},{x:7420,y:355,w:260,h:42}],
-  hazards:[{x:6254,y:552,w:160,h:38},{x:7054,y:552,w:170,h:38}],
-  springPads:[{x:5860,y:520,width:100,launchSpeed:800}],
-  crumblingPlatforms:[{x:6260,y:305,w:150,h:36},{x:6450,y:345,w:200,h:36}],
-  movingPlatforms:[{x:6880,y:385,w:170,h:42,travel:110,period:3900,axis:'x',phase:.5}],
-  timedVents:[{x:6580,y:520,w:72,height:140,phase:.25},{x:7510,y:520,w:72,height:140,phase:.75}],
-  checkpoints:[{x:6100,y:450},{x:7270,y:450},{x:7860,y:450}],
-  enemies:[{kind:'alien',x:6670,y:350,left:6560,right:6710},
-    {kind:'dasher',x:7760,y:470,left:7720,right:7820}],
-  pickups:[...[6020,6130,6290,6370,6500,6610,6720,6890].map((x):PickupPlan=>({kind:'coin',x,y:x<6500?245:290})),
-    ...[7330,7460,7570,7680].map((x):PickupPlan=>({kind:'coin',x,y:290})),
-    {kind:'heart',x:7270,y:465},{kind:'heart',x:7860,y:465}]
-});
-
-// Add connected lower/upper courses after the previous encounters. The original
-// arena, rewards and exit move together through the existing extension helper.
-for(const [key,course] of Object.entries(PLATFORM_ROUTES)){
-  const level=LEVELS[Number(key) as LevelNumber];
-  const previousObstacleStart=level.obstacleStart;
-  extendLevelRoute(level,{
-    insertionX:course.start,bridgeStartX:course.start,addedLength:course.length,newEndX:level.endX+course.length,
-    floorY:course.floor,groundHeight:course.groundHeight,ground:course.ground,platforms:course.platforms,
-    hazards:course.hazards,movingPlatforms:course.movingPlatforms,springPads:course.springPads,
-    crumblingPlatforms:course.crumblingPlatforms,timedVents:course.timedVents,checkpoints:course.checkpoints,
-    enemies:[],pickups:course.coins.map(point=>({...point,kind:'coin'})),
-  });
-  level.obstacleStart=previousObstacleStart;
-  level.platformRoute=course;
-  // Keep the course's exit checkpoint outside the next patrol's attack range.
-  const end=course.start+course.length;
-  for(const enemy of level.enemies){
-    if(enemy.kind==='boss'||enemy.x<end||enemy.left>=end+500)continue;
-    const shift=end+500-enemy.left;
-    enemy.x+=shift;enemy.left+=shift;enemy.right+=shift;
-  }
-}
-
-const CHARACTER_FEEL: Record<CharacterId, {
-  runSpeed: number;
-  acceleration: number;
-  braking: number;
-  turnAcceleration: number;
-  airAcceleration: number;
-  airBraking: number;
-  jumpVelocity: number;
-  attackCooldown: number;
-  attackRange: number;
-}> = {
-  killer_kai: {runSpeed:350,acceleration:2350,braking:2900,turnAcceleration:3200,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:280,attackRange:520},
-  killer_klause:{runSpeed:300,acceleration:2250,braking:2900,turnAcceleration:3000,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:550,attackRange:136},
-  turkey_king:{runSpeed:310,acceleration:2250,braking:2900,turnAcceleration:3000,airAcceleration:1400,airBraking:450,jumpVelocity:780,attackCooldown:550,attackRange:145},
-  shadow_kid: {runSpeed:370,acceleration:2450,braking:2950,turnAcceleration:3250,airAcceleration:1450,airBraking:450,jumpVelocity:780,attackCooldown:800,attackRange:125},
-  elytron: {runSpeed:365,acceleration:2450,braking:2950,turnAcceleration:3250,airAcceleration:1450,airBraking:450,jumpVelocity:780,attackCooldown:320,attackRange:125},
-  zgod: { runSpeed: 365, acceleration: 2550, braking: 2800, turnAcceleration: 3100, airAcceleration: 1500, airBraking: 450, jumpVelocity: 780, attackCooldown: 340, attackRange: 145 },
-  xgod: { runSpeed: 350, acceleration: 2300, braking: 2900, turnAcceleration: 3200, airAcceleration: 1350, airBraking: 450, jumpVelocity: 760, attackCooldown: 440, attackRange: 105 },
-  barrett: { runSpeed: 300, acceleration: 2050, braking: 2700, turnAcceleration: 2900, airAcceleration: 1150, airBraking: 400, jumpVelocity: 750, attackCooldown: 430, attackRange: 128 },
-  nico: { runSpeed: 320, acceleration: 2200, braking: 2800, turnAcceleration: 3050, airAcceleration: 1250, airBraking: 425, jumpVelocity: 760, attackCooldown: 560, attackRange: 520 },
-  ezra: { runSpeed: 310, acceleration: 2150, braking: 2800, turnAcceleration: 3000, airAcceleration: 1200, airBraking: 425, jumpVelocity: 760, attackCooldown: 500, attackRange: 420 },
-  teleportation_c: { runSpeed: 380, acceleration: 2500, braking: 3000, turnAcceleration: 3400, airAcceleration: 1500, airBraking: 500, jumpVelocity: 800, attackCooldown: 430, attackRange: 150 }
-};
-
-const levelKey = (level: number): LevelNumber => (level === 5 ? FINAL_LEVEL : Math.min(MAX_LEVEL, Math.max(1, level))) as LevelNumber;
-const pointValueForPickup = (kind: PickupKind) => kind === "rush_star" ? 0 : kind === "heart" ? 125 : kind === "coin" ? 100 : 700;
 
 const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
   seasonalTheme,
@@ -1118,23 +273,25 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       bossId:thanksgiving&&currentLevel===1&&enemy.bossId==='dark_dragon'?'turkey':enemy.bossId,
       kind:enemy===originalLevel.enemies.find(e=>e.kind==='walker')?'walker':localEnemyKind(currentLevel,replacements.get(enemy)??enemy.kind,index) as EnemyKind}))};
     const encounterPlans = encountersForLevel(currentLevel,level.endX);
+    const combatBeats=encounterPlans.filter(p=>p.kind==='combat');
+    if(combatBeats.length){
+      level.enemies=level.enemies.filter(e=>e.kind==='boss'||!combatBeats.some(p=>e.x>=p.entry&&e.x<=p.exit));
+    }
     if(currentLevel===1){
-      const beats=encounterPlans.filter(p=>p.kind==='combat');
-      level.enemies=level.enemies.filter(e=>e.kind==='boss'||!beats.some(p=>e.x>=p.entry&&e.x<=p.exit));
       level.enemies=level.enemies.filter(e=>e.kind==='boss'||e.x<level.endX-1680||e.x>level.endX-980);
       // Recovery after the encounter is now earned from the health crate.
     }
     // Replace existing patrols inside the set pieces, keeping total pressure readable.
     if (currentLevel === 1) {
-      level.platforms = level.platforms.filter(p => !(p.x === 7520 && p.y === 480));
+      level.platforms = level.platforms.filter(p => !(p.x === 10520 && p.y === 480));
       level.crumblingPlatforms = [...(level.crumblingPlatforms ?? []),
-        {x:7520,y:480,w:170,h:42,crumbleMs:950,restoreMs:3800},
-        {x:7690,y:480,w:170,h:42,crumbleMs:950,restoreMs:3800},
-        {x:7860,y:480,w:180,h:42,crumbleMs:950,restoreMs:3800}];
-      level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<7150||e.x>8100);
+        {x:10520,y:480,w:170,h:42,crumbleMs:950,restoreMs:3800},
+        {x:10690,y:480,w:170,h:42,crumbleMs:950,restoreMs:3800},
+        {x:10860,y:480,w:180,h:42,crumbleMs:950,restoreMs:3800}];
+      level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<10150||e.x>11100);
     }
-    if (currentLevel === 2) level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<1430||e.x>2400);
-    if (currentLevel === 4) level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<7000||e.x>7980);
+    if (currentLevel === 2) level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<1900||e.x>3120);
+    if (currentLevel === 4) level.enemies = level.enemies.filter(e => e.kind==='boss'||e.x<9680||e.x>10660);
     // Replace two existing ground placements; keep the opening grunt and all bounce lessons.
     const uniqueKind=UNIQUE_LEVEL_ENEMY[currentLevel];
     const candidates=level.enemies.filter(e=>e.kind!=='boss'&&e.kind!=='walker'&&e.kind!==uniqueKind&&!e.bounceLane&&e.y>=440);
@@ -1149,7 +306,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
     // Spread a few tire throwers across the campaign by replacing existing
     // ground patrols after the level-specific roster has been assembled.
-    const rimRuntLocations:Partial<Record<number,number[]>>={1:[5410],2:[5590],4:[5400]};
+    const rimRuntLocations:Partial<Record<number,number[]>>={1:[8180],2:[7620],4:[8220]};
     for(const x of rimRuntLocations[currentLevel]??[]){
       const plan=level.enemies.find(enemy=>enemy.x===x&&enemy.kind!=='boss');
       if(plan)plan.kind='bumper';
@@ -1160,6 +317,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     const completedEncounters = new Set(initialCompletedEncounters ?? []);
     let supplyCrateState:SupplyCrateSave=initialSupplyCrates??{broken:[],collected:[]};
     let supplyCrates:SupplyCrateRuntime|null=null;
+    let battlefield:MetalSlugBattlefield|null=null;
+    let setPieces:InteractiveSetPiecesRuntime|null=null;
+    let currentAimMode:'forward'|'up'|'up-diag'|'down'|'down-diag'='forward';
     let routeEncounters: RouteEncounterRuntime[] = [];
     let signature: SignatureSpecialRuntime | null = null;
     let nativeCombat:TurkeyKingCombat|KillerKlauseCombat|null=null;
@@ -1183,6 +343,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     let footfallCamera: FootfallCamera | undefined;
     let platforms: Phaser.Physics.Arcade.StaticGroup;
     let terrainDetail: Phaser.GameObjects.Graphics;
+    let archBackGfx: Phaser.GameObjects.Graphics;
+    let archRailGfx: Phaser.GameObjects.Graphics;
+    let livingParallax: LivingParallaxBackdrop | null = null;
     const distantPanoramas: Array<{ image: Phaser.GameObjects.Image; minWidth: number }> = [];
     const rockTerrain = currentLevel === 3 || currentLevel === FINAL_LEVEL;
     const lifts: Array<{ plan: MovingPlatformPlan; sprite: Phaser.GameObjects.TileSprite; body: Phaser.Physics.Arcade.Body }> = [];
@@ -1500,6 +663,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           loadGameSheet(this.load,'xgod_side_scroll_fire_sword_attack_v1',`${folder}/sword-attack.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'runner_damage',`${folder}/damage.png`,{frameWidth:768,frameHeight:512});
           loadGameSheet(this.load,'hero_death',`${folder}/death.png`,{frameWidth:768,frameHeight:512});
+          this.load.spritesheet('runner_blaster-aim-up',`${folder}/blaster-aim-up.webp`,{frameWidth:768,frameHeight:512});
+          this.load.spritesheet('runner_blaster-aim-up-diag',`${folder}/blaster-aim-up-diag.webp`,{frameWidth:768,frameHeight:512});
+          this.load.spritesheet('runner_blaster-aim-down',`${folder}/blaster-aim-down.webp`,{frameWidth:768,frameHeight:512});
           this.load.json('xgod_drawn_meta',`${folder}/metadata-gun-run-v2.json`);
         } else {
         loadGameImage(this.load, "xgod_damage_pose", "characters/xgod/runner-blaster-v1/damage-pose-v1.png");
@@ -1530,6 +696,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       loadGameImage(this.load, "gold_pickup", "gold_pickup.png");
       loadGameImage(this.load, "heart", "heart_sprite.png");
       if(cratePlans.length)this.load.image('supply_crate','doodles/o_box.png');
+      loadMetalSlugAssets(this.load);
       loadGameImage(this.load, "shield_pickup", "ink_shield_power.png");
       loadGameImage(this.load, "gravity_pickup", "doodles/gravity_core.png");
       availablePowers.forEach(id=>loadGameImage(this.load, `equipment_${id}`,POWERUPS[id].icon));
@@ -1711,6 +878,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       shotArtwork.destroy();
       checkpoints = scene.physics.add.staticGroup();
 
+      archBackGfx = scene.add.graphics().setDepth(0);
+      archRailGfx = scene.add.graphics().setDepth(0.5);
       terrainDetail = scene.add.graphics().setDepth(2);
       level.platforms.forEach((rect) => addPlatform(scene, rect));
       level.hazards.forEach((rect) => addHazard(scene, rect));
@@ -1731,7 +900,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         bossGuardVisual = scene.add.graphics().setDepth(17);
       }
       level.springPads?.forEach((plan) => addSpringPad(scene, plan));
-      if (currentLevel === 4) scene.add.text(2150, 305, "JUMP ONTO THE RUINS", {
+      if (currentLevel === 4) scene.add.text(2940, 305, "JUMP ONTO THE RUINS", {
         fontFamily: "Gochi Hand, sans-serif", fontSize: "20px", color: "#f8d7f0", stroke: "#342537", strokeThickness: 4
       }).setDepth(7);
       const firstBounceTarget = level.enemies.find(enemy => enemy.bounceLane);
@@ -1812,6 +981,33 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           playSfx('powerup');syncStats();
         }
       });
+      battlefield=new MetalSlugBattlefield(scene,currentLevel,level.endX,{
+        player,
+        platforms,
+        enemies,
+        cameraMotion:()=>cameraMotionRef.current&&!isPausedRef.current,
+        onDamageEnemy:(enemy,damage,isBlast)=>damageEnemy(scene,enemy,damage,false,false,isBlast),
+        onHealPlayer:amount=>{playerHealth=Math.min(100,playerHealth+amount);syncStats();},
+        onGrantScore:points=>{currentScore+=points;syncStats();},
+        onGrantWeapon:upgrade=>{
+          if(equipment.active!=='blaster')applyEquipment(scene,'blaster');
+          equipment=upgradeGun(equipment,upgrade);
+          playSfx('powerup');syncStats();
+        },
+        onTriggerHitStop:ms=>triggerHitStop(scene,ms),
+        canReceiveWeaponUpgrade:()=>!isNativeHero,
+        onExplosion:(x,y,radius,damage)=>setPieces?.damageStructuresInRadius(x,y,radius,damage)
+      },viewport.width,isXGod?6:4);
+      setPieces=new InteractiveSetPiecesRuntime(scene,currentLevel,level.endX,{
+        player,
+        enemies,
+        cameraMotion:()=>cameraMotionRef.current&&!isPausedRef.current,
+        onDamageEnemy:(enemy,damage,isBlast)=>damageEnemy(scene,enemy,damage,false,false,isBlast),
+        onGrantScore:points=>{currentScore+=points;syncStats();},
+        onSpawnDrop:(x,y,kind)=>battlefield?.spawnDropPublic(x,y,kind),
+        onPopupCallout:(x,y,text,color)=>battlefield?.popupCallout(x,y,text,color),
+        onTriggerHitStop:ms=>triggerHitStop(scene,ms)
+      });
       if (hasDinio) spawnDinioCompanion(scene);
       if (hasDoghost) spawnDoghostCompanion(scene);
       if (hasTeleportationC) spawnTeleportationCCompanion(scene);
@@ -1830,7 +1026,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
             body.setBoundsRectangle(new Phaser.Geom.Rectangle(left,-WORLD_HEIGHT*2,width,WORLD_HEIGHT*4)).setCollideWorldBounds(true,0,0);
             camera.setBounds(left,0,width,SCREEN_HEIGHT);
           }else if(!bossArenaCameraLocked){
-            body.setBoundsRectangle(null).setCollideWorldBounds(false);
+            body.setBoundsRectangle(undefined).setCollideWorldBounds(false);
             camera.setBounds(0,0,worldWidth,SCREEN_HEIGHT);
           }
         },
@@ -1850,10 +1046,13 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         complete: id => {
           if (completedEncounters.has(id)) return;
           completedEncounters.add(id);
-          currentScore += id==='last_ferry'?400:300;
-          if (id==='rooftop_runout') playerHealth=Math.min(100,playerHealth+20);
-          if (id==='rooftop_crossfire') playerHealth=Math.min(100,playerHealth+20);
+          currentScore += id==='dread_citadel_hold'?600:id==='rooftop_crossfire'||id==='dragon_approach'?500:id==='last_ferry'||id==='rooftop_gauntlet'||id==='graveyard_ambush'||id==='furnace_foundry_hold'||id==='witchwood_crossfire'?450:350;
+          if (id==='rooftop_runout'||id==='rooftop_crossfire'||id==='rooftop_gauntlet'||id==='dragon_approach'||id==='graveyard_ambush'||id==='furnace_foundry_hold'||id==='witchwood_crossfire') {
+            playerHealth=Math.min(100,playerHealth+20);
+          }
+          if (id==='dread_citadel_hold') playerHealth=Math.min(100,playerHealth+25);
           if (id==='last_ferry'&&!isNativeHero) {shieldUnlocked=true;inkShieldReady=true;}
+          if (plan.hold || plan.kind==='gate') battlefield?.showGoArrow(scene.time.now);
           syncStats();
         },
         collapse: elapsed => {
@@ -1910,6 +1109,10 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       dashKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.X);
       recallKey=scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.R);
       crouchKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+      const aimUpKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+      const bombKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.G);
+      const bombAltKey = scene.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+      scene.data.set('msKeys',{aimUpKey,bombKey,bombAltKey});
 
       scene.physics.add.collider(player, platforms, undefined, (_, platform) => {
         const platformBody = (platform as Phaser.GameObjects.Rectangle).body as Phaser.Physics.Arcade.StaticBody;
@@ -1931,6 +1134,28 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         uniqueProjectileWall(scene,shot);
       }, (_, platform) =>
         !(platform as Phaser.GameObjects.Rectangle).getData("oneWay"));
+      if (battlefield) {
+        scene.physics.add.overlap(projectiles, battlefield.propStaticGroup, (projectileObj, propObj) => {
+          const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
+          if (!projectile.active || projectile.getData('enemyProjectile')) return;
+          const damage = Number(projectile.getData('damage')) || 2;
+          const charged = Boolean(projectile.getData('chargedShot'));
+          if (battlefield?.damageProp(propObj as Phaser.GameObjects.GameObject, damage)) {
+            if (!charged) projectile.destroy();
+            else chargeEffects.impact(projectile.x, projectile.y, false);
+          }
+        });
+      }
+      if (setPieces) {
+        scene.physics.add.overlap(projectiles, setPieces.targetSwitchGroup, (projectileObj, switchObj) => {
+          const projectile = projectileObj as Phaser.Physics.Arcade.Sprite;
+          if (!projectile.active || projectile.getData('enemyProjectile')) return;
+          const damage = Number(projectile.getData('damage')) || 2;
+          if (setPieces?.hitSwitch(switchObj as Phaser.GameObjects.GameObject, damage)) {
+            if (!projectile.getData('chargedShot')) projectile.destroy();
+          }
+        });
+      }
       scene.physics.add.overlap(player, hazards, () => damagePlayer(scene, 12, false));
       scene.physics.add.overlap(player, enemies, (_, enemyObj) => handlePlayerEnemyOverlap(scene, enemyObj as Phaser.Physics.Arcade.Sprite));
       scene.physics.add.overlap(player, pickups, (_, pickupObj) => collectPickup(scene, pickupObj as Phaser.Physics.Arcade.Sprite));
@@ -2199,7 +1424,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           if(enemy.getData('kind')!=='boss'||!bossAttackVisual?.active)return [enemy];
           return bossAttackVisual.visible ? [bossAttackVisual,enemy] : [enemy,bossAttackVisual];
         },
-        damageProps: (area, amount) => { supplyCrates?.damageRect(area, amount); },
+        damageProps: (area, amount) => { supplyCrates?.damageRect(area, amount); battlefield?.damagePropsInRect(area, amount); setPieces?.hitSwitchesInRect(area); },
       }, selectedCharacterId);
       if(params.get('capture')==='1'||params.get('devTools')==='1')window.__unknownPlatformerSpecialTest=(options={})=>{
         enemies.getChildren().slice().forEach(child=>child.destroy());
@@ -2354,7 +1579,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const downHeld = cursors.down.isDown || crouchKey.isDown || Boolean(touch.down);
       const downPressed = performance.now()-downQueuedAt < 200 || downHeld && !downWasHeld;
       downQueuedAt = -9999; downWasHeld = downHeld;
-      if (!grounded && downPressed && canStandUp() && mobility?.startBomb()) {
+      const firingInputNow = attackKey.isDown || shootKey.isDown || Boolean(touch.attack || touch.shoot);
+      if (!grounded && downPressed && !firingInputNow && canStandUp() && mobility?.startBomb()) {
         setCrouching(false, now);
         jumpBufferedAt = lastGroundedAt = -9999;
         attackVisualUntil = shotRecoilUntil = -9999;
@@ -2460,6 +1686,17 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(teleport.anchor&&now>=teleport.anchor.expires)teleport.anchor=null;
       if(teleportHud)teleportHud.setText(teleport.anchor?'R: RETURN TO PORTAL':'X / SP: RIFT AMBUSH');
 
+      const msKeys = scene.data.get('msKeys') as { aimUpKey: Phaser.Input.Keyboard.Key; bombKey: Phaser.Input.Keyboard.Key; bombAltKey: Phaser.Input.Keyboard.Key } | undefined;
+      const aimUpInput = Boolean(msKeys?.aimUpKey.isDown || (!grounded && (cursors.up.isDown || touch.up)));
+      const aimDownAirInput = !grounded && Boolean(downHeld && (firingInputNow || now < shotRecoilUntil));
+      currentAimMode = resolveAimVector(facingDirection, moveAxis, aimUpInput, aimDownAirInput).mode;
+      const bombTouchHeld = Boolean(touch.bomb);
+      const bombTouchJustPressed = bombTouchHeld && !scene.data.get('bombTouchWasHeld');
+      scene.data.set('bombTouchWasHeld', bombTouchHeld);
+      if (msKeys && (Phaser.Input.Keyboard.JustDown(msKeys.bombKey) || Phaser.Input.Keyboard.JustDown(msKeys.bombAltKey) || bombTouchJustPressed) && !mobility?.busy && !signature?.casting) {
+        battlefield?.throwGrenade(facingDirection, now, body.velocity.x);
+      }
+
       const blasterEquipped = equipment.active==='blaster'||equipment.active==='frost'||isKai&&equipment.active==='hands';
       const attackQueued = performance.now() - equipmentAttackQueuedAt < ATTACK_BUFFER_MS;
       const attackHeld = shootKey.isDown || Boolean(touch.attack || touch.shoot);
@@ -2468,7 +1705,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const chargeHeld = attackKey.isDown || attackHeld;
       if(chargeEligible && chargeHeld) {
         const wasReady = blasterChargeMs >= BLASTER_CHARGE_MS;
-        blasterChargeMs = Math.min(BLASTER_CHARGE_MS,blasterChargeMs+delta);
+        blasterChargeMs = Math.min(BLASTER_CHARGE_MS,blasterChargeMs+delta*(isXGod?1.35:1));
         if (!wasReady && blasterChargeMs >= BLASTER_CHARGE_MS) playSfx('blasterChargeReady');
       }
       else {
@@ -2489,7 +1726,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (!isNativeHero && canAttack && !blasterEquipped && (attackQueued || attackHeld) && now - lastAttackAt >= Math.max(POWERUPS[equipment.active].cooldown,isShadow&&equipment.active==='hands'?800:0,selectedCharacterId==='teleportation_c'?430:0)) {
         equipmentAttackQueuedAt = -9999;
         if(equipment.active==='ember'||equipment.active==='storm'){
-          useElementalPower(scene);
+          triggerElementalPower(scene);
         }else{
         if (now - lastAttackInputAt > 820) attackComboStep = 0;
         attackComboStep = (attackComboStep % 3) + 1;
@@ -2533,6 +1770,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function updateWorldCombat(scene:Phaser.Scene,delta:number){
       supplyCrates?.update(player,projectiles,hitStopActive?0:delta);
+      battlefield?.update(scene.time.now);
+      setPieces?.update(hitStopActive?0:delta,scene.time.now);
+      livingParallax?.update(scene.time.now);
       updateEnemies(scene);
       if (!hitStopActive) routeEncounters.forEach(encounter=>encounter.update(delta));
       if (footfallCamera) {
@@ -2578,6 +1818,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function makeBackground(scene: Phaser.Scene) {
       addBackdropDetail(scene, currentLevel, worldWidth * .44 + 1600);
+      livingParallax = new LivingParallaxBackdrop(scene, currentLevel, worldWidth);
       const panorama = (key: string, depth: number, y = 0, alpha = 1, minWidth = 2520) => {
         const image = scene.add.image(0, y, key).setOrigin(0).setDepth(depth).setAlpha(alpha);
         distantPanoramas.push({ image, minWidth });
@@ -2776,6 +2017,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         addTerrainTiles(scene, rect.x, rect.y, rect.w, lip, level.blockKey, 'rockCap', .52, lip / 52).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0);
         if (rect.h > lip) addTerrainTiles(scene, rect.x, rect.y + lip, rect.w, rect.h - lip, level.blockKey, 'rock', .52, Math.min(.44, (rect.h - lip) / 204)).setOrigin(0).setDepth(1).setTilePosition(rect.x, 0);
       }
+      drawPlatformArchitecture(scene, archBackGfx, archRailGfx, rect, level.platforms, currentLevel);
       drawTerrainDetail(terrainDetail, rect, currentLevel);
       const body = scene.add.rectangle(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w, rect.h, 0xffffff, 0);
       scene.physics.add.existing(body, true);
@@ -2787,10 +2029,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const horizontal=plan.axis==='x';
       const displacement=Math.cos((plan.phase??0)*Math.PI*2)*plan.travel;
       const startY = plan.y + (horizontal?0:displacement);
-      // The guide marks show the full travel range before the player commits to a jump.
-      if(horizontal)scene.add.rectangle(plan.x+plan.w/2,plan.y+plan.h/2,plan.travel*2+plan.w,4,0xa7c7b8,.45).setDepth(0);
-      else for (const x of [plan.x + 14, plan.x + plan.w - 14]) {
-        scene.add.rectangle(x, plan.y + plan.h / 2, 4, plan.travel * 2 + plan.h, 0x577b72, 0.4).setDepth(0);
+      // Industrial steel hoist cables / rail tracks so moving platforms feel mechanized, not floating.
+      if(horizontal){
+        scene.add.rectangle(plan.x+plan.w/2,plan.y+plan.h/2,plan.travel*2+plan.w,8,0x272038,.82).setDepth(0);
+        scene.add.rectangle(plan.x+plan.w/2,plan.y+plan.h/2,plan.travel*2+plan.w,2,0x94a3b8,.85).setDepth(0);
+      } else {
+        for (const x of [plan.x + 14, plan.x + plan.w - 14]) {
+          scene.add.rectangle(x, (plan.y + plan.travel + plan.h) / 2, 6, plan.y + plan.travel + plan.h, 0x1e192c, 0.78).setDepth(0);
+          scene.add.rectangle(x, (plan.y + plan.travel + plan.h) / 2, 2, plan.y + plan.travel + plan.h, 0x94a3b8, 0.72).setDepth(0);
+        }
       }
       const sprite = addTerrainTiles(scene, plan.x+(horizontal?displacement:0), startY, plan.w, plan.h, level.blockKey, rockTerrain ? 'rock' : undefined, rockTerrain ? .52 : .22, rockTerrain ? .22 : .1)
         .setOrigin(0).setTint(0xd8fff0).setDepth(3);
@@ -2810,6 +2057,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const art=addTerrainTiles(scene,plan.x,plan.y,plan.w,plan.h,level.blockKey,rockTerrain ? 'rock' : undefined,rockTerrain ? .52 : .22,rockTerrain ? .2 : .1)
         .setOrigin(0).setTint(0xe8d3b6).setDepth(3);
       const cracks=scene.add.graphics().setPosition(plan.x,plan.y).setDepth(4);
+      // Cracked masonry lip & rusted iron wall-bolts so crumbling ledges look weathered, not floating
+      cracks.fillStyle(0x271f33, 0.88).fillRect(2, plan.h - 4, plan.w - 4, 8);
+      cracks.lineStyle(3, 0x1c1628, 0.92).strokeRect(0, 0, plan.w, plan.h);
       cracks.lineStyle(2,0x392c3e,.85);
       for(const x of [plan.w*.3,plan.w*.7])cracks.lineBetween(x,2,x-8,12).lineBetween(x-8,12,x+3,21).lineBetween(x+3,21,x-4,plan.h-2);
       const collider=scene.add.rectangle(plan.x+plan.w/2,plan.y+plan.h/2,plan.w,plan.h,0xffffff,0);
@@ -2879,6 +2129,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
 
     function resetGroundObstacles(){
       routeEncounters.forEach(encounter=>encounter.reset());
+      battlefield?.refillBombs(isXGod?6:4);
+      setPieces?.resetOnRespawn();
       for(const ledge of crumbleLedges){ledge.state=createCrumble();ledge.body.enable=true;ledge.art.setPosition(ledge.plan.x,ledge.plan.y).setVisible(true).setAlpha(1);}
     }
 
@@ -2972,6 +2224,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       // A grounded player needs an actual supporting surface beneath their feet.
       if (body.velocity.y >= -20 && level.platforms.some(rect =>
         body.right > rect.x + 2 && body.left < rect.x + rect.w - 2 && Math.abs(body.bottom - rect.y) <= 3)) return true;
+      if (setPieces?.isStandingOnSetPiece(body)) return true;
       if(crumbleLedges.some(ledge=>ledge.body.enable&&body.velocity.y>=-20&&body.right>ledge.body.left&&body.left<ledge.body.right&&Math.abs(body.bottom-ledge.body.top)<=3))return true;
       // Arcade contact can skip a tick as a lift accelerates away from the rider.
       return lifts.some(({ body: lift }) =>
@@ -3188,7 +2441,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       playSfx('frost');lastPowerAt=scene.time.now;powerUses++;shotsFired++;return true;
     }
 
-    function useElementalPower(scene:Phaser.Scene){
+    function triggerElementalPower(scene:Phaser.Scene){
       const now=scene.time.now,body=player.body as Phaser.Physics.Arcade.Body;
       lastPowerAt=lastAttackAt=now;powerUses++;
       if(equipment.active==='ember'){
@@ -3512,7 +2765,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       const restored = isRestoredEnemy(plan.kind) ? RESTORED_ENEMIES[plan.kind] : null;
       const texture = boss?.textureKey ?? foeTexture(plan.kind as GroundFoe);
       const enemy = enemies.create(plan.x, plan.y, texture, 0) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-      const maxHp = boss?.maxHp ?? regularEnemyHealth(unique?.hp ?? restored?.hp ?? (plan.kind === "giant" ? 7 : plan.kind === "dasher" ? 5 : 4));
+      const diffHpScale = difficultyCombatTuning(difficulty).hpScale;
+      const maxHp = boss?.maxHp ?? Math.round(regularEnemyHealth(unique?.hp ?? restored?.hp ?? (plan.kind === "giant" ? 7 : plan.kind === "dasher" ? 5 : 4)) * diffHpScale * 100) / 100;
       enemy.setData("kind", plan.kind)
         .setData("bounceLane", Boolean(plan.bounceLane))
         .setData("bossId", plan.bossId ?? null)
@@ -3631,7 +2885,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           enemy.setTint(color);
         }
         if(isUniqueEnemy(kind)){
-          updateUniqueEnemy(scene,enemy,kind,now,{player,projectiles,clearIntent:clearEnemyIntent,floorAt:getPlatformStandY});
+          updateUniqueEnemy(scene,enemy,kind,now,{difficulty,player,projectiles,clearIntent:clearEnemyIntent,floorAt:getPlatformStandY});
         } else if(isRestoredEnemy(kind)){
           updateRestoredEnemy(scene,enemy,kind,now);
         } else if (enemy.getData("bounceLane")) {
@@ -3641,7 +2895,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           enemy.anims.play(foeWalk(kind as GroundFoe),true);enemy.anims.timeScale=.65;
           faceNormalEnemy(enemy,kind,direction);return;
         } else {
-          updateLocalEnemy(scene,enemy,kind as GroundFoe,now,{level:currentLevel,player,projectiles,place:placeBossAt,
+          updateLocalEnemy(scene,enemy,kind as GroundFoe,now,{level:currentLevel,difficulty,player,projectiles,place:placeBossAt,
             damage:amount=>damagePlayer(scene,amount,false),clearLine:enemy=>!platformSeparatesPlayerAndEnemy(enemy),
             clearIntent:clearEnemyIntent,showIntent:(enemy,kind)=>showEnemyIntent(scene,enemy,kind),
             firePulse:(enemy,damage,color,speed,target)=>fireEnemyPulse(scene,enemy,damage,color,speed,target)});
@@ -3955,58 +3209,59 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
     }
 
     function drawStageBossWarning(boss: Phaser.Physics.Arcade.Sprite, progress: number) {
-      if (!bossAttackWarning) return;
+      const warning = bossAttackWarning;
+      if (!warning) return;
       const floor = Number(boss.getData("floorY"));
       const target = Number(boss.getData("targetX"));
       const move = boss.getData("move") as string;
       const color = move==='frost_hex'||move==='ice_storm'?0x8ceeff:BOSS_DEFINITIONS[boss.getData("bossId") as BossId].tint;
-      bossAttackWarning.lineStyle(3, color, 0.4 + progress * 0.5);
+      warning.lineStyle(3, color, 0.4 + progress * 0.5);
       if (move === 'ice_storm' || move === "ember_rain" || move === "void_rain") {
         (boss.getData("markedXs") as number[]).forEach(x => {
-          bossAttackWarning.fillStyle(color, 0.08 + progress * 0.13).fillRect(x - 22, floor - 460, 44, 460);
-          bossAttackWarning.strokeEllipse(x, floor - 5, 58, 22);
+          warning.fillStyle(color, 0.08 + progress * 0.13).fillRect(x - 22, floor - 460, 44, 460);
+          warning.strokeEllipse(x, floor - 5, 58, 22);
         });
       } else if (move === "rune_bloom") {
         (boss.getData("markedXs") as number[]).forEach(x => {
-          bossAttackWarning.fillStyle(color, 0.1 + progress * 0.15).fillRect(x - 24, floor - 190, 48, 190);
-          bossAttackWarning.strokeEllipse(x, floor - 6, 70, 25);
+          warning.fillStyle(color, 0.1 + progress * 0.15).fillRect(x - 24, floor - 190, 48, 190);
+          warning.strokeEllipse(x, floor - 6, 70, 25);
         });
       } else if(move==='crown_nova'){
         const radius=70+progress*80;
-        bossAttackWarning.lineStyle(3,0xffd47e,.35+progress*.5).strokeCircle(boss.x,floor-95,radius);
+        warning.lineStyle(3,0xffd47e,.35+progress*.5).strokeCircle(boss.x,floor-95,radius);
         for(let i=0;i<8;i++){
           const a=i*Math.PI/4;
-          bossAttackWarning.lineBetween(boss.x+Math.cos(a)*55,floor-95+Math.sin(a)*55,boss.x+Math.cos(a)*radius,floor-95+Math.sin(a)*radius);
+          warning.lineBetween(boss.x+Math.cos(a)*55,floor-95+Math.sin(a)*55,boss.x+Math.cos(a)*radius,floor-95+Math.sin(a)*radius);
         }
       } else if (move === 'void_crash' || move === "cinder_bound" || move === "witch_step" || move === "blink_burst") {
         bossTellMarker?.setPosition(target, floor - 5).setDisplaySize(move === "cinder_bound" ? 290 : move === "witch_step" ? 190 : 140, 32)
           .setTint(color).setAlpha(0.55 + progress * 0.4).setVisible(true);
         if(move==='void_crash')bossTellMarker?.setDisplaySize(300,38);
         if (move === "blink_burst") {
-          bossAttackWarning.strokeEllipse(target,floor-105,80,210)
+          warning.strokeEllipse(target,floor-105,80,210)
             .strokeEllipse(Number(boss.getData('startX')),floor-105,70,190)
             .lineStyle(2,color,.25).lineBetween(Number(boss.getData('startX')),floor-18,target,floor-18);
-          if(boss.getData('phase')>=2)bossAttackWarning.strokeEllipse(Number(boss.getData('returnX')),floor-105,60,200);
+          if(boss.getData('phase')>=2)warning.strokeEllipse(Number(boss.getData('returnX')),floor-105,60,200);
         }
       } else if(move==='wing_gust'){
         const direction=Number(boss.getData('facing'));
-        bossAttackWarning.fillStyle(0xb8efff,.08+progress*.06).fillRect(direction<0?boss.x-650:boss.x+80,floor-200,570,185);
-        for(let i=0;i<3;i++)bossAttackWarning.lineBetween(boss.x+direction*110,floor-50-i*50,boss.x+direction*550,floor-50-i*50);
+        warning.fillStyle(0xb8efff,.08+progress*.06).fillRect(direction<0?boss.x-650:boss.x+80,floor-200,570,185);
+        for(let i=0;i<3;i++)warning.lineBetween(boss.x+direction*110,floor-50-i*50,boss.x+direction*550,floor-50-i*50);
       } else if (move === 'dragon_lunge') {
         const start = Number(boss.getData('startX'));
         const points = Array.from({ length: 13 }, (_, i) => {
           const t = i / 12;
           return new Phaser.Math.Vector2(Phaser.Math.Linear(start, target, Phaser.Math.SmoothStep(t, 0, 1)), floor - 28 - Math.sin(t * Math.PI) * DRAGON_LUNGE_HEIGHT);
         });
-        bossAttackWarning.strokePoints(points).strokeEllipse(target, floor - 10, 150, 28);
+        warning.strokePoints(points).strokeEllipse(target, floor - 10, 150, 28);
       } else if (move === 'witch_dash' || move === 'talon_charge' || move === "shadow_dash") {
-        bossAttackWarning.lineBetween(boss.x, floor - 14, target, floor - 14);
-        bossAttackWarning.strokeEllipse(target, floor - 10, 115, 25);
+        warning.lineBetween(boss.x, floor - 14, target, floor - 14);
+        warning.strokeEllipse(target, floor - 10, 115, 25);
       } else if (move === "low_breath" || move === "furnace_quake") {
-        bossAttackWarning.lineBetween(boss.x - (move === "furnace_quake" ? 390 : 0), floor - 12,
+        warning.lineBetween(boss.x - (move === "furnace_quake" ? 390 : 0), floor - 12,
           boss.x + (move === "furnace_quake" ? 390 : Number(boss.getData("facing")) * 390), floor - 12);
       } else {
-        bossAttackWarning.lineBetween(boss.x + Number(boss.getData("facing")) * 80, boss.y - 135,
+        warning.lineBetween(boss.x + Number(boss.getData("facing")) * 80, boss.y - 135,
           Number(boss.getData("aimX")), Number(boss.getData("aimY")));
       }
     }
@@ -4209,7 +3464,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
               const speed = phaseTwo ? 410 : 355;
               stageBossProjectile(scene, boss, boss.x + facing * 95 * mouthScale, floor - 135 * mouthScale, Math.cos(angle) * speed, Math.sin(angle) * speed, "fire_volley", 30);
             }
-            boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
+            boss.setData("shotsInBurst", fired + 1).setData("lastBurstAt", now);
           }
           const recoil = Math.max(0, 1 - (now - Number(boss.getData("lastBurstAt") ?? -9999)) / 170);
           placeBossAt(boss, Phaser.Math.Clamp(startX - facing * recoil * 9, left, right), floor);
@@ -4233,7 +3488,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           const rainCount=move==='void_rain'&&phase===3?lanes.length*2:lanes.length;
           if (fired < rainCount && elapsed >= 120 + fired * (move==='void_rain'&&phase===3?140:170)) {
             stageBossProjectile(scene, boss, lanes[fired%lanes.length], floor - 450, 0, 470, move==='void_rain'?"falling_void":"falling_ember", 38, 12);
-            boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
+            boss.setData("shotsInBurst", fired + 1).setData("lastBurstAt", now);
           }
           showStageBossPose(boss, elapsed < 350 ? 1 : elapsed < 1150 ? 2 : 3, Math.sin(now / 90) * 1.5);
         } else if (move === "witch_hex") {
@@ -4243,7 +3498,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
               facing * (phaseTwo ? 340 : 300), [-150, -65, -230, -100, -190][fired], "curved_hex", 30, 11);
             // Local gravity offsets the world's 1280 so these spells follow gentle arcs.
             (orb.body as Phaser.Physics.Arcade.Body).setAllowGravity(true).setGravityY(-900);
-            boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
+            boss.setData("shotsInBurst", fired + 1).setData("lastBurstAt", now);
           }
           const recoil = Math.max(0, 1 - (now - Number(boss.getData("lastBurstAt") ?? -9999)) / 180);
           showStageBossPose(boss, 1, -facing * recoil * 5, 1 - recoil * 0.018);
@@ -4256,7 +3511,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
               pillar.setDisplaySize(42, 190).setAlpha(0.8).setData("bossShotExpiresAt", now + 600);
               (pillar.body as Phaser.Physics.Arcade.Body).setSize(pillar.width * 0.65, pillar.height * 0.9, true);
             });
-            boss.setData("shotsInBurst", ++fired).setData("lastBurstAt", now);
+            boss.setData("shotsInBurst", fired + 1).setData("lastBurstAt", now);
           }
           showStageBossPose(boss, elapsed < 220 ? 0 : 1, Math.sin(now / 120) * 1.5);
         } else {
@@ -4285,7 +3540,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           const fireAt=blink?[650,1680,2760][fired]:180+fired*400;
           if(fired<bursts&&elapsed>=fireAt){
             stageBossFan(scene,boss,phase===3?9:phaseTwo?7:5,.22,'void_star');
-            boss.setData('shotsInBurst',++fired).setData('lastBurstAt',now);
+            boss.setData('shotsInBurst',fired+1).setData('lastBurstAt',now);
           }
         }
         if (elapsed >= duration) recoverStageBoss(scene, boss);
@@ -4373,7 +3628,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           SCREEN_HEIGHT / 2, 650, "Sine.easeInOut", true);
       } else {
         bossArenaBounds = null;
-        body.setBoundsRectangle(null).setCollideWorldBounds(false);
+        body.setBoundsRectangle(undefined).setCollideWorldBounds(false);
         bossArenaWall?.destroy();
         bossArenaWall = null;
         bossAttackWarning?.clear();
@@ -4669,53 +3924,103 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if (!charged && !canSpawnGunVolley(activeShots, mode)) return false;
 
       const body = player.body as Phaser.Physics.Arcade.Body;
-      if(!isXGod&&!isKai&&!isElytron&&!isShadow){
-        updatePlayerVisual(scene,isPlayerGrounded(body),body.velocity.x);
-        if(!isCrouching&&isPlayerGrounded(body)&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
+      const groundedNow = isPlayerGrounded(body);
+      const touch = window.__unknownUniverseTouchControls ?? {};
+      const msKeys = scene.data.get('msKeys') as { aimUpKey: Phaser.Input.Keyboard.Key } | undefined;
+      const moveAxisNow = Number(cursors.right.isDown) - Number(cursors.left.isDown) || (touch.axisX ?? 0);
+      const aimUpHeld = Boolean(msKeys?.aimUpKey.isDown || (!groundedNow && (cursors.up.isDown || touch.up)));
+      const aimDownInAir = !groundedNow && Boolean(cursors.down.isDown || crouchKey.isDown || touch.down);
+      const aim = resolveAimVector(facingDirection, moveAxisNow, aimUpHeld, aimDownInAir);
+
+      // Metal Slug close-quarters auto-slash: X-God snaps into a rapid high-impact slash
+      // when firing right next to a ground enemy or destructible cover without dropping his gun.
+      if (isXGod && !charged && aim.mode === 'forward' && scene.time.now - Number(scene.data.get('lastCloseSlashAt') ?? -9999) >= 210) {
+        const slashRect = new Phaser.Geom.Rectangle(
+          facingDirection > 0 ? body.center.x + 4 : body.center.x - 118,
+          body.top - 12,
+          114,
+          body.height + 16
+        );
+        const closeFoes = enemies.getChildren()
+          .map((child) => child as Phaser.Physics.Arcade.Sprite)
+          .filter((enemy) => {
+            if (!enemy.active || Number(enemy.getData('hp')) <= 0) return false;
+            if (enemy.getData('kind') === 'boss' && !isBossVulnerable(enemy, scene.time.now)) return false;
+            const eBody = enemy.body as Phaser.Physics.Arcade.Body;
+            return Phaser.Geom.Rectangle.Overlaps(slashRect, new Phaser.Geom.Rectangle(eBody.x, eBody.y, eBody.width, eBody.height));
+          });
+        if (closeFoes.length > 0) {
+          scene.data.set('lastCloseSlashAt', scene.time.now);
+          playCloseSlashVisual(scene, body.center.x + facingDirection * 42, body.center.y - 6, facingDirection);
+          playSfx('swordSwing', { volume: 0.6, pitch: 1.25 });
+          for (const foe of closeFoes) damageEnemy(scene, foe, 4, false);
+          battlefield?.damagePropsInRect(slashRect, 4);
+          supplyCrates?.damageRect(slashRect, 4);
+          shotsFired += 1;
+          return true;
+        }
       }
-      if (equipment.active==='blaster' && isXGod && !hasKaiArm() && !isCrouching && useSideScrollXGodRun && isPlayerGrounded(body) && Math.abs(body.velocity.x) <= 18) {
+
+      if(!isXGod&&!isKai&&!isElytron&&!isShadow){
+        updatePlayerVisual(scene,groundedNow,body.velocity.x);
+        if(!isCrouching&&groundedNow&&Math.abs(body.velocity.x)<80)player.setTexture('hero_blaster_attack',1);
+      }
+      if (equipment.active==='blaster' && isXGod && !hasKaiArm() && !isCrouching && useSideScrollXGodRun && groundedNow && Math.abs(body.velocity.x) <= 18) {
         // Releasing crouch and firing should use the raised barrel immediately.
         player.anims.stop();
         player.setTexture("runner_blaster-attack", useDrawnXGod ? 1 : 0);
       }
-      const {x:muzzleX,y:muzzleY} = blasterMuzzle(scene);
+      const baseMuzzle = blasterMuzzle(scene);
+      const muzzleX = aim.mode === 'up' ? body.center.x + facingDirection * 10 : aim.mode === 'down' ? body.center.x + facingDirection * 12 : baseMuzzle.x;
+      const muzzleY = aim.mode === 'up' ? body.top - 10 : aim.mode === 'up-diag' ? body.top + 8 : aim.mode === 'down' || aim.mode === 'down-diag' ? body.bottom - 12 : baseMuzzle.y;
       const damage=charged?6:spec?.damage??(hasFlameSword?1:2);
       let shot:Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-      for(const angle of spec?.angles??[0]){
+      const speed = spec?.speed ?? (isXGod ? 720 : 650);
+      for(const spread of spec?.angles??[0]){
+        const finalAngle = aim.mode === 'forward' ? (facingDirection > 0 ? spread : Math.PI - spread) : aim.angle + spread;
         const texture = charged ? CHARGED_BOLT_TEXTURE : isKai ? 'kai_fx' : 'player_ink_shot';
         const bolt=projectiles.create(muzzleX,muzzleY,texture,!charged&&isKai?'0':undefined) as Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
         bolt.setData('damage',damage).setData('playerShotExpiresAt',scene.time.now+(spec?.lifetime??BASE_BLASTER.lifetime))
           .setData('inkShot',true).setData('cosmeticInk',cosmeticsRef.current.ink)
-          .setDepth(22).setFlipX(facingDirection<0).setVelocity(facingDirection*Math.cos(angle)*(spec?.speed??650),Math.sin(angle)*(spec?.speed??650));
+          .setDepth(22).setRotation(finalAngle).setVelocity(Math.cos(finalAngle)*speed,Math.sin(finalAngle)*speed);
         if(!charged&&isKai)bolt.setDisplaySize(42,22).play('kai_pellet');
-        if(charged)bolt.setData('chargedShot',true).setData('chargeOriginX',muzzleX);
+        if(charged){
+          bolt.setData('chargedShot',true).setData('chargeOriginX',muzzleX);
+          if(isXGod)bolt.setData('companionPierces',3).setData('companionTargets',new Set<Phaser.Physics.Arcade.Sprite>());
+        }
         else if(spec)bolt.setTint(spec.color).setData('gunUpgrade',mode).setData('gunDirection',facingDirection).setData('pattern','gun_'+mode);
         else if(hasFlameSword)bolt.setTint(0xffb35c);
         else if(hasKaiArm())bolt.setTint(0x60eaff);
         if(cosmeticsRef.current.ink!=='classic')bolt.setTint(inkColor(cosmeticsRef.current,charged));
         (bolt.body as Phaser.Physics.Arcade.Body).setSize(charged?bolt.width*.8:isKai?160:27,charged?bolt.height*.8:isKai?130:13,true).setAllowGravity(false);
-        if(angle===0)shot=bolt;
+        if(spread===0)shot=bolt;
       }
 
       // An enemy inside the drawn barrel must be hit before the shot spawns past it.
-      const barrelPath = new Phaser.Geom.Rectangle(facingDirection > 0 ? player.x + 16 : muzzleX,
-        muzzleY - 8, Math.max(0, Math.abs(muzzleX - player.x) - 16), 16);
+      const barrelPath = aim.mode === 'forward'
+        ? new Phaser.Geom.Rectangle(facingDirection > 0 ? player.x + 16 : muzzleX,
+            muzzleY - 8, Math.max(0, Math.abs(muzzleX - player.x) - 16), 16)
+        : new Phaser.Geom.Rectangle(muzzleX - 14, muzzleY - 14, 28, 28);
       const closeTarget = enemies.getChildren().map((child) => child as Phaser.Physics.Arcade.Sprite)
         .filter((enemy) => {
           if (!enemy.active) return false;
           const target = enemy.body as Phaser.Physics.Arcade.Body;
           return Phaser.Geom.Rectangle.Overlaps(barrelPath, new Phaser.Geom.Rectangle(target.x, target.y, target.width, target.height));
         }).sort((a, b) => Math.abs(a.x - player.x) - Math.abs(b.x - player.x))[0];
-      const crateInBarrel=supplyCrates?.damageRect(barrelPath,damage);
-      if(crateInBarrel&&shot!.active)shot!.destroy();
+      const crateInBarrel=supplyCrates?.damageRect(barrelPath,damage) || battlefield?.damagePropsInRect(barrelPath,damage) || setPieces?.hitSwitchesInRect(barrelPath);
+      if(crateInBarrel&&shot!.active&&!charged)shot!.destroy();
       if (closeTarget&&!crateInBarrel) {
-        shot!.destroy();
+        if(!charged)shot!.destroy();
         if (charged) hitChargedShot(scene,closeTarget,damage);
         else damageEnemy(scene, closeTarget, damage, true);
       }
 
       const flash = scene.add.ellipse(muzzleX, muzzleY, charged?70:mode==='fan'?34:mode==='homing'?30:26, charged?55:mode==='fan'?26:20, charged?0x9bf5ff:(spec?.color??0xf4f0b3), 0.85).setDepth(21);
       scene.tweens.add({ targets: flash, scaleX: 1.5, scaleY: 0.3, alpha: 0, duration: 90, onComplete: () => flash.destroy() });
+      spawnShellCasing(scene, body.center.x - facingDirection * 8, muzzleY - 4, facingDirection, window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if (charged && cameraMotionRef.current && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        scene.cameras.main.shake(95, 0.004);
+      }
       shotsFired += 1;
       combatEffects.muzzle(muzzleX,muzzleY,charged);
       playSfx(charged ? 'blasterChargeFire' : 'blaster');
@@ -5084,6 +4389,11 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           const frame=elapsed<48?0:elapsed<104?1:elapsed<164?2:elapsed<226?3:elapsed<318?4:5;
           player.setTexture('xgod_side_scroll_fire_sword_attack_v1',frame);
         }else player.setTexture(prefix+'attack',elapsed<140?0:elapsed<275?1:2);
+      }else if(equipment.active==='blaster'&&!armCannon&&currentAimMode!=='forward'&&scene.textures.exists('runner_blaster-aim-up')){
+        const shotAge = now - lastShotAt;
+        const aimKey = currentAimMode==='up' ? 'runner_blaster-aim-up' : currentAimMode==='up-diag' ? 'runner_blaster-aim-up-diag' : 'runner_blaster-aim-down';
+        const aimFrame = now < shotRecoilUntil ? (shotAge < 95 ? 1 : 2) : 0;
+        player.setTexture(aimKey, aimFrame);
       }else if(equipment.active==='blaster'&&grounded&&Math.abs(body.velocity.x)<=18&&now<shotRecoilUntil){
         const shotAge = now - lastShotAt;
         if (armCannon) player.setTexture('xgod_kai_arm',shotAge<65?2:3);
@@ -5254,6 +4564,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       if(hasFlameSword)slash.setDisplaySize(65,140).setFlipX(facingDirection<0);
       let hits = 0;
       supplyCrates?.damageRect(hitRect,damage);
+      battlefield?.damagePropsInRect(hitRect,damage);
+      setPieces?.hitSwitchesInRect(hitRect);
       const swordTargets=new Set<Phaser.Physics.Arcade.Sprite>();
       scene.tweens.add({ targets: slash, alpha: 0, scaleX: slash.scaleX * 1.35, scaleY: 0.9, duration: 180 + comboStep * 35, onComplete: () => slash.destroy() });
       enemies.getChildren().forEach((child) => {
@@ -5373,7 +4685,15 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
               fallen.destroy();
             }});
           }});
-        } else {playSfx('enemyDeath');clearEnemyIntent(enemy);playEnemyDefeat(scene,enemy,enemyDeaths);}
+        } else {
+          const deadX = enemy.x;
+          const deadY = enemy.y;
+          const deadKind = String(enemy.getData('kind'));
+          playSfx('enemyDeath');
+          clearEnemyIntent(enemy);
+          playEnemyDefeat(scene,enemy,enemyDeaths);
+          battlefield?.registerKill(deadX,deadY,deadKind,scene.time.now,playerHealth/100);
+        }
         syncStats();
       }
       return true;
@@ -6075,6 +5395,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         routeEncounters: routeEncounters.map(encounter=>encounter.read()),
         completedEncounters: [...completedEncounters],
         supplyCrates:supplyCrates?.read()??[],
+        battlefield:battlefield?.read()??null,
+        setPieces:setPieces?.read()??null,
+        aimMode:currentAimMode,
         celebration:{...heroCelebration?.read(),queue:[...celebrationQueue],swordClaimed:swordPresentationSeen,inputLocked:Boolean(heroCelebration?.active)},
         bossAttackVisualVisible: Boolean(bossAttackVisual?.active && bossAttackVisual.visible),
         enemyDeaths:[...enemyDeaths].filter(s=>s.active).map(s=>({kind:s.getData('kind'),texture:s.texture.key,frame:s.frame.name,alpha:s.alpha})),
@@ -6203,6 +5526,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       camera.setSize(next.width,next.height);
       layoutDistantPanoramas();
       routeEncounters.forEach(encounter=>encounter.resize(next.width,Math.min(gameContainerRef.current!.clientWidth/next.width,gameContainerRef.current!.clientHeight/next.height)));
+      battlefield?.resize(next.width);
       powerHud?.setX(next.width-next.safeRight);
       teleportHud?.setX(next.width-next.safeRight);
       rushHud?.setX(next.width-Math.max(24,next.safeRight));
@@ -6274,6 +5598,9 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       playerFreeze?.destroy();playerFreeze=null;
       routeEncounters.forEach(encounter=>encounter.destroy());routeEncounters=[];
       supplyCrates?.destroy();supplyCrates=null;
+      battlefield?.destroy();battlefield=null;
+      setPieces?.destroy();setPieces=null;
+      livingParallax?.destroy();livingParallax=null;
       enemyDeaths.forEach(sprite=>sprite.destroy());enemyDeaths.clear();
       signature?.destroy();signature=null;nativeCombat?.destroy();nativeCombat=null;christmasSnow?.destroy();christmasSnow=null;
       mobility?.destroy();mobility=null;

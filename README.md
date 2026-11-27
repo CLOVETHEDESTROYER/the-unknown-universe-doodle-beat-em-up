@@ -23,7 +23,9 @@ The Scratch has a gate guarded by Lockwing and a cracking rooftop escape. The Gr
 
 ## Run locally
 
-`npm run typecheck` checks the application TypeScript. `npm run build` runs that check before creating the production bundle. Generated files and old project exports under `output/` are excluded from compilation.
+`npm run typecheck` checks the application TypeScript (with `strictNullChecks` enabled). `npm run lint` runs ESLint, `npm run format:check` checks Prettier formatting, and `npm run build` runs typecheck before creating the pruned production bundle in `dist/`. Generated files and old project exports under `output/` are excluded from compilation.
+
+Run the core Playwright regression suite with `npm run test:suite` (or `node scripts/run_regression_suite.mjs --list` to run individual checks).
 
 Use Node.js 20 or 22, then:
 
@@ -37,8 +39,11 @@ Open `http://localhost:3000`. Create a static production build with `npm run bui
 ## Controls
 
 - Left/right arrows: move; reverse direction to skid.
-- Z or Up: jump. Down: crouch where supported.
-- Space or C: use the equipped weapon/power, or punch while unarmed. With the blaster or Kai arm cannon, hold for about 1.4 seconds and release for a charged shot; ordinary shots continue while charging.
+- Z or Up: jump. Down or S: crouch where supported (or airborne slam when not firing).
+- Space or C: use the equipped weapon/power, or punch while unarmed. With the blaster or Kai arm cannon, hold and release for a piercing charged shot (X-God charges faster); ordinary shots continue while charging.
+- Directional aiming (blaster): hold **W** (or **Up** while airborne) to shoot straight up or 45° up-forward while moving; hold **Down / S** while firing in midair to shoot downward.
+- Close-quarters auto-slash (X-God): firing right next to an enemy automatically snaps into a fast, high-impact close-quarters slash without dropping your blaster.
+- **G** or **E** (or touch **BOMB**): throw an arcing Ink Grenade to clear squads, shatter destructible barricades, and trigger explosive ink barrel chains.
 - Teleportation C: X to blink; R or Down+X to return to a valid anchor.
 - Flight: arrows to steer; Space/C to fire.
 - P: pause. Options and Pause contain separate music/effects volume and mute controls.
@@ -71,7 +76,7 @@ The title screen has **Kai’s Workshop** through the Gold wallet for supplies, 
 - `scripts/`: asset preparation and existing focused gameplay checks.
 - `docs/`: milestone designs, controls, reproduction notes and known limits.
 
-Existing automated gameplay checks can be invoked with `npm run test:game` and the focused scripts under `scripts/`; their browser setup is described in the milestone docs. These checks are not run automatically by the production build. The full TypeScript check currently has older legacy/Phaser diagnostics recorded in `progress.md`.
+Existing automated gameplay checks can be invoked with `npm run test:game` and the focused scripts under `scripts/`; their browser setup is described in the milestone docs. These checks are not run automatically by the production build. `npm run typecheck` verifies the full application TypeScript cleanly.
 
 Direct previews use `?autostart=1&level=1` through `level=6`. A hero preview can add `character=nico&unlockRoster=1`; boss previews on ground levels can add `finishLevel=1`. Explicit preview flags are separate from normal campaign progression. The older brawler remains available through its existing `legacyBrawler=1` switch.
 

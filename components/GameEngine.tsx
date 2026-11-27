@@ -2183,7 +2183,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
             const facingRight = !!monster.getData('facingRight');
             monster.setData('state', 'DEAD');
             monster.setData('intent', 'DEFEATED');
-            monster.body.enable = false;
+            if (monster.body) monster.body.enable = false;
             monster.setVelocity(0, 0);
             monster.anims.stop();
             monster.clearTint();
@@ -2210,7 +2210,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
           monster.destroy();
         } else if (monster.texture.key === 'grunt_walking' || type === 'CHASER') {
           // Grunt death sequence
-          monster.body.enable = false;
+          if (monster.body) monster.body.enable = false;
           monster.setVelocity(0, 0);
           // If we have a death animation, play it, otherwise just sit there
           if (scene.anims.exists('grunt_die')) {
@@ -2995,7 +2995,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     function spawnDestructiblePreset(scene: Phaser.Scene, x: number, type: DestructibleType, y?: number) {
       const spawnY = y ?? Phaser.Math.Between(HORIZON_Y + 40, FLOOR_BOTTOM - 10);
-      let texture = 'o_trash'; let hp = 1; let scale = 1;
+      let texture: string; let hp = 1; let scale: number;
       if (type === 'BOX') { texture = 'o_box'; scale = 0.52; }
       else if (type === 'BOOKS') { texture = 'o_books'; scale = 0.52; }
       else if (type === 'VENDING') { texture = 'o_vending'; hp = 3; scale = 0.66; }
@@ -3879,8 +3879,9 @@ const GameEngine: React.FC<GameEngineProps> = ({
             alpha: 0,
             duration: 620,
             onUpdate: (tween) => {
-              const radius = tween.getValue() * INK_BEHEMOTH.quakeRadius;
-              ring.clear().lineStyle(10, 0x111827, 0.6 - tween.getValue()).strokeCircle(monster.x, monster.y, radius);
+              const value = tween.getValue() ?? 0;
+              const radius = value * INK_BEHEMOTH.quakeRadius;
+              ring.clear().lineStyle(10, 0x111827, 0.6 - value).strokeCircle(monster.x, monster.y, radius);
               if (player && player.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < radius + 10 && jumpZ === 0 && !playerInvulnerable) {
                 takePlayerDamage(scene, getDifficultyScaledDamage(13));
               }
@@ -4286,7 +4287,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
 
     function getPlayerAttackDamage() {
       const gravityBonus = gravityCoreUnlocked ? GRAVITY_CORE.damageBonus : 0;
-      let baseDamage = 1;
+      let baseDamage: number;
       if (isXGod) baseDamage = hasFlameSword ? 3 : 1;
       else if (!characterPowerUnlocked) baseDamage = 1;
       else if (selectedCharacterId === 'barrett') baseDamage = 4;
@@ -4625,11 +4626,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
         dinioBody.setVelocityY(Phaser.Math.Linear(dinioBody.velocity.y, (followY - dinioCompanion.y) * 6, 0.16));
         dinioCompanion.setDepth(dinioCompanion.y);
 
+        const dinio = dinioCompanion;
         const targetMonster = monsters
           .getChildren()
           .map((monster) => monster as Phaser.Physics.Arcade.Sprite)
           .filter((monster) => monster.active)
-          .sort((a, b) => Phaser.Math.Distance.Between(dinioCompanion.x, dinioCompanion.y, a.x, a.y) - Phaser.Math.Distance.Between(dinioCompanion.x, dinioCompanion.y, b.x, b.y))[0];
+          .sort((a, b) => Phaser.Math.Distance.Between(dinio.x, dinio.y, a.x, a.y) - Phaser.Math.Distance.Between(dinio.x, dinio.y, b.x, b.y))[0];
 
         if (targetMonster && currentTime >= dinioNextShotAt && Phaser.Math.Distance.Between(dinioCompanion.x, dinioCompanion.y, targetMonster.x, targetMonster.y) < DINIO.attackRange) {
           dinioNextShotAt = currentTime + DINIO.shotCooldownMs;
@@ -4653,11 +4655,12 @@ const GameEngine: React.FC<GameEngineProps> = ({
         doghostBody.setVelocityY(Phaser.Math.Linear(doghostBody.velocity.y, (followY - doghostCompanion.y) * 6, 0.15));
         doghostCompanion.setDepth(doghostCompanion.y + 1);
 
+        const doghost = doghostCompanion;
         const targetMonster = monsters
           .getChildren()
           .map((monster) => monster as Phaser.Physics.Arcade.Sprite)
           .filter((monster) => monster.active)
-          .sort((a, b) => Phaser.Math.Distance.Between(doghostCompanion.x, doghostCompanion.y, a.x, a.y) - Phaser.Math.Distance.Between(doghostCompanion.x, doghostCompanion.y, b.x, b.y))[0];
+          .sort((a, b) => Phaser.Math.Distance.Between(doghost.x, doghost.y, a.x, a.y) - Phaser.Math.Distance.Between(doghost.x, doghost.y, b.x, b.y))[0];
 
         if (targetMonster && currentTime >= doghostNextShotAt && Phaser.Math.Distance.Between(doghostCompanion.x, doghostCompanion.y, targetMonster.x, targetMonster.y) < DOGHOST.attackRange) {
           doghostNextShotAt = currentTime + DOGHOST.waveCooldownMs;
@@ -4837,7 +4840,7 @@ const GameEngine: React.FC<GameEngineProps> = ({
               monster.setVelocity(0); sounds.growl();
               if (phase === 2) {
                 scene.cameras.main.shake(400, 0.01); const ring = scene.add.graphics();
-                scene.tweens.add({ targets: ring, alpha: 0, duration: 600, onUpdate: (tween) => { const radius = tween.getValue() * 300; ring.clear().lineStyle(10, 0x000000, 0.6 - tween.getValue()).strokeCircle(monster.x, monster.y, radius); if (player && player.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < radius + 10 && jumpZ === 0 && !playerInvulnerable) takePlayerDamage(scene, 12); }, onComplete: () => ring.destroy() });
+                scene.tweens.add({ targets: ring, alpha: 0, duration: 600, onUpdate: (tween) => { const value = tween.getValue() ?? 0; const radius = value * 300; ring.clear().lineStyle(10, 0x000000, 0.6 - value).strokeCircle(monster.x, monster.y, radius); if (player && player.active && Phaser.Math.Distance.Between(player.x, player.y, monster.x, monster.y) < radius + 10 && jumpZ === 0 && !playerInvulnerable) takePlayerDamage(scene, 12); }, onComplete: () => ring.destroy() });
               } else {
                 for (let i = 0; i < 4; i++) scene.time.delayedCall(i * 200, () => {
                   if (monster && monster.active && player && player.active) {

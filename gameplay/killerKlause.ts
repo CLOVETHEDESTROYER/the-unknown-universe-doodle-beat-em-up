@@ -47,7 +47,7 @@ export class KillerKlauseCombat {
   private hud:Phaser.GameObjects.Text;
   private rainbow:Phaser.GameObjects.Sprite;
   private rainbowKey:string;
-  private rainbowTexture:Phaser.Textures.CanvasTexture;
+  private rainbowTexture:Phaser.Textures.CanvasTexture|null;
   private rainbowFrame='';
   private rainbowAt=-100;
   private elvesAirborne=false;
@@ -74,7 +74,7 @@ export class KillerKlauseCombat {
   get swinging(){return this.action==='melee';}
   get facing(){return this.action==='melee'?this.direction:this.hooks.facing();}
   present(player:Phaser.GameObjects.Sprite,invulnerable:boolean,now:number){
-    if(!invulnerable||!player.visible){this.rainbow.setVisible(false);return;}
+    if(!invulnerable||!player.visible||!this.rainbowTexture){this.rainbow.setVisible(false);return;}
     const frameKey=`${player.texture.key}:${player.frame.name}`,ctx=this.rainbowTexture.context;
     if(frameKey!==this.rainbowFrame||now-this.rainbowAt>=34){
       const frame=player.frame;
