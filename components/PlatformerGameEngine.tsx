@@ -2512,6 +2512,8 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       mobility?.present(Boolean(nativeCombat?.casting||nativeCombat?.swinging||signature?.casting || xgodDamagePose?.active || !isCrouching&&now < attackVisualUntil || now<emberUntil),
         Boolean(signature?.casting || xgodDamagePose?.active || now<emberUntil),
         isCrouching?{equipment:isKai&&equipment.active==='hands'?'blaster':equipment.active,firing:now<shotRecoilUntil||now<attackVisualUntil}:undefined);
+      if(isKlause&&nativeCombat instanceof KillerKlauseCombat)
+        nativeCombat.present(mobility?.visibleSprite??player,initialKlauseInvincible||now-lastDamageAt>=0&&now-lastDamageAt<850,now);
       emberJets?.present(equipment.active==='ember'&&now<emberUntil,EMBER_DASH.duration-emberRemaining,emberDirection,
         Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active),Boolean(signature?.casting||xgodDamagePose?.active||heroDeathVisual?.active||mobility?.read().texture));
       if (xgodDamagePose?.active) {
@@ -4781,7 +4783,6 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
         const pose=nativeCombat?.pose(grounded,body.velocity.x,body.velocity.y,characterStride,scene.time.now-lastDamageAt,isCrouching)??{texture:isKlause?'klause_body':'turkey_king_body',frame:0};
         player.anims.stop();player.setTexture(pose.texture,pose.frame)
           .setOrigin(.5,600/640).setFlipX((nativeCombat?.facing??facingDirection)<0).setAngle(0);
-        if(isKlause&&nativeCombat instanceof KillerKlauseCombat)nativeCombat.present(player,initialKlauseInvincible||scene.time.now-lastDamageAt>=0&&scene.time.now-lastDamageAt<850,scene.time.now);
         return;
       }
       if(!isXGod){

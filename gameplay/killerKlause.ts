@@ -15,8 +15,12 @@ export function loadKillerKlauseAssets(load:Phaser.Loader.LoaderPlugin) {
     load.spritesheet(key,KLAUSE_ART+`killer-klause/${file}.png`,{frameWidth:640,frameHeight:640});
   load.spritesheet('klause_combo',KLAUSE_ART+'killer-klause/combo-v2.png',{frameWidth:640,frameHeight:640});
   load.spritesheet('klause_run',KLAUSE_ART+'killer-klause/run-v2.png',{frameWidth:640,frameHeight:640});
+  load.spritesheet('klause_flip',KLAUSE_ART+'killer-klause/flip-v4.png',{frameWidth:640,frameHeight:640});
   load.spritesheet('klause_fx',KLAUSE_ART+'effects/christmas-fx.png',{frameWidth:256,frameHeight:256});
-  for (const role of ['medic','engineer']) load.spritesheet('klause_elf_'+role,KLAUSE_ART+`elves/${role}.png`,{frameWidth:320,frameHeight:320});
+  for (const role of ['medic','engineer']) {
+    load.spritesheet('klause_elf_'+role,KLAUSE_ART+`elves/${role}.png`,{frameWidth:320,frameHeight:320});
+    load.spritesheet('klause_elf_'+role+'_jump',KLAUSE_ART+`elves/${role}-jump-v2.png`,{frameWidth:320,frameHeight:320});
+  }
 }
 
 /** Native weapon preview, using ordinary projectile collisions and boss guards. */
@@ -46,6 +50,8 @@ export class KillerKlauseCombat {
   private rainbowTexture:Phaser.Textures.CanvasTexture;
   private rainbowFrame='';
   private rainbowAt=-100;
+  private elvesAirborne=false;
+  private elvesLandedAt=-9999;
   private medic:Phaser.GameObjects.Sprite;
   private engineer:Phaser.GameObjects.Sprite;
   private fx:Array<{sprite:Phaser.GameObjects.Sprite;at:number;start:number;fps:number}>=[];
@@ -67,7 +73,7 @@ export class KillerKlauseCombat {
   get casting(){return this.action==='fire'||this.action==='helpers';}
   get swinging(){return this.action==='melee';}
   get facing(){return this.action==='melee'?this.direction:this.hooks.facing();}
-  present(player:Sprite,invulnerable:boolean,now:number){
+  present(player:Phaser.GameObjects.Sprite,invulnerable:boolean,now:number){
     if(!invulnerable||!player.visible){this.rainbow.setVisible(false);return;}
     const frameKey=`${player.texture.key}:${player.frame.name}`,ctx=this.rainbowTexture.context;
     if(frameKey!==this.rainbowFrame||now-this.rainbowAt>=34){
@@ -159,13 +165,21 @@ export class KillerKlauseCombat {
     const age=this.clock-this.helperAt;
     const d=this.hooks.facing(),p=this.hooks.player;
     const body=p.body as Phaser.Physics.Arcade.Body;
+    const airborne=!(body.blocked.down||body.touching.down);
+    if(this.elvesAirborne&&!airborne)this.elvesLandedAt=this.clock;
+    this.elvesAirborne=airborne;
     for(const [i,elf] of [this.medic,this.engineer].entries()){
       const assisting=age>=350&&age<1600;
       const celebrating=age>=1600&&age<2800;
-      const following=Math.abs(body.velocity.x)>18||!body.onFloor();
+      const following=Math.abs(body.velocity.x)>18;
       const frame=assisting?8+Math.min(2,Math.floor((age-350)/400))
         :celebrating?11:following?2+Math.floor(this.clock/110)%6:Math.floor(this.clock/480)%2;
-      elf.setVisible(p.active).setPosition(p.x-d*(105+i*82),this.feet).setFlipX(d<0).setFrame(frame);
+      const landing=this.clock-this.elvesLandedAt<180;
+      const jumpFrame=airborne?(body.velocity.y < -180?2:body.velocity.y<60?3:5):landing?6:7;
+      const jump=airborne||landing;
+      elf.setTexture('klause_elf_'+(i===0?'medic':'engineer')+(jump?'_jump':''),jump?jumpFrame:frame)
+        .setOrigin(.5,jump?.5:.9375).setVisible(p.active)
+        .setPosition(p.x-d*(105+i*82),this.feet-(jump?60:0)).setFlipX(d<0);
     }
     this.fx=this.fx.filter(fx=>{
       const frame=Math.floor((this.clock-fx.at)*fx.fps/1000);

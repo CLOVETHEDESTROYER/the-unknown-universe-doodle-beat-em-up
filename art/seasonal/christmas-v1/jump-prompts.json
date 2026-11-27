@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen",
+  "prompts": [
+    "Create one 4 columns by 2 rows sprite sheet of exactly eight sequential full-body frames of the referenced muscular Santa character doing a forward somersault for a second jump. Real animated poses: launch, tuck, horizontal forward, upside down tuck, upside down extending, horizontal, untuck, upright landing. Same red Santa hat, white beard, green gift launcher, red cargo pants, fur vest and ink illustration style and proportions in every frame. Full character in every cell, consistent scale and centered on body, transparent background, generous gutters, no text, no effects, no other objects.",
+    "Create one 4 columns by 2 rows sprite sheet of exactly eight sequential full-body frames of the MEDIC elf on the LEFT of the reference, jumping alongside Santa: anticipation, takeoff, rising, apex, floating, descending, landing crouch, recovery. Keep same green hat, dark curly hair, red scarf, white medic bag and green cross, outfit, face and cartoon ink style consistent each frame, facing right. Transparent background, same scale, separate full characters in each cell with generous gutters; no text, background or extra characters.",
+    "Create one 4 columns by 2 rows sprite sheet of exactly eight sequential full-body frames of the ENGINEER elf on the RIGHT of the reference, jumping alongside Santa: anticipation, takeoff, rising, apex, floating, descending, landing crouch, recovery. Keep same red hat, goggles, ginger hair, green overalls, gift backpack, wrench, face and cartoon ink style consistent each frame, facing right. Transparent background, same scale, separate full characters in each cell with generous gutters; no text, background or extra characters."
+  ],
+  "cleanup": "Remove all background and residue outside medic silhouettes, preserve poses and 4x2 layout."
+}

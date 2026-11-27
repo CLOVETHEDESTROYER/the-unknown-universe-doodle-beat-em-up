@@ -268,9 +268,8 @@ export class AirborneMoves {
       if(this.hero==='killer_klause'){
         this.actor.setTexture('klause_body',this.phase==='landing'?15:this.phase==='windup'?8:this.phase==='diving'?14:this.body.velocity.y>0?10:9);
         if(this.phase==='ready'&&age<420){
-          const direction=this.hooks.facing();
-          this.actor.setOrigin(.5,.5).setPosition(this.hooks.player.x,this.body.center.y)
-            .setAngle(direction*360*Phaser.Math.Clamp(age/420,0,1));
+          this.actor.setTexture('klause_flip',Math.min(7,Math.floor(age/52.5)))
+            .setOrigin(.5,.5).setPosition(this.hooks.player.x,this.body.center.y).setAngle(0);
         }else this.actor.setOrigin(.5,.9375).setPosition(this.hooks.player.x,this.body.bottom).setAngle(0);
       }
       if(this.hero==='xgod'){
