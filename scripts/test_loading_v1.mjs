@@ -1,5 +1,6 @@
 import {chromium, devices} from 'playwright';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
 
 // Transfer budgets catch accidentally restoring full-size PNGs or eager game bundles.
 // Timing is reported, not asserted: CI CPU and network conditions vary.
@@ -11,11 +12,11 @@ const errors=[], requests=[], responses=[];
 page.on('pageerror',e=>errors.push(e.message));
 page.on('request',r=>requests.push(r.url()));
 page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))errors.push(`${r.status()} ${r.url()}`);});
-const network = await context.newCDPSession(page), types = new Map();
+const network = await context.newCDPSession(page), types = new Map(), urls = new Map();
 await network.send('Network.enable');
 await network.send('Network.setCacheDisabled',{cacheDisabled:true});
-network.on('Network.requestWillBeSent',e=>types.set(e.requestId,e.type));
-network.on('Network.loadingFinished',e=>responses.push({type:types.get(e.requestId),bytes:e.encodedDataLength}));
+network.on('Network.requestWillBeSent',e=>{types.set(e.requestId,e.type);urls.set(e.requestId,e.request.url)});
+network.on('Network.loadingFinished',e=>responses.push({url:urls.get(e.requestId),type:types.get(e.requestId),bytes:e.encodedDataLength}));
 const transferred=()=>responses.reduce((n,r)=>n+r.bytes,0);
 try {
   await page.goto(`${origin}/?capture=1`);
@@ -39,6 +40,8 @@ try {
   assert.deepEqual(errors,[]);
   assert(!requests.some(u=>/\/assets\/(FlightGameEngine|GameEngine|MonsterIdeator)-/.test(u)),
     'Starting level one must not download other engines or the workshop');
+  await fs.mkdir('output/loading-v1',{recursive:true});
+  await fs.writeFile('output/loading-v1/transfers.json',JSON.stringify({titleBytes,firstLevelBytes:transferred(),responses:[...responses].sort((a,b)=>b.bytes-a.bytes)},null,2));
   assert(transferred()<32*1024*1024,`Level-one response budget: ${transferred()} bytes`);
   console.log(JSON.stringify({passed:true,titleBytes,firstLevelBytes:transferred(),
     readyMs:await page.evaluate(()=>performance.now()),errors}));

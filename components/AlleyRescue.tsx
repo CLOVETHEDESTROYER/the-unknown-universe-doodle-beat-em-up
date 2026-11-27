@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {getAudioSettings,subscribeAudioSettings,playSfx,stopEffects} from '../audio/gameAudio';
 import {ALLEY_MAIN_MUSIC, AlleyRescueAudio} from '../audio/alleyRescueAudio';
 import {paintBuddy} from '../gameplay/buddyArt';
+import {deliveryImagePath} from '../gameplay/assetDelivery';
 import type {BuddyId} from '../gameplay/shopCatalog';
 
 type Room = 'alley' | 'hall' | 'gunroom';
@@ -23,9 +24,9 @@ export default function AlleyRescue({onRescue, onExit, onContinue, alreadyRescue
     const c=canvas.current!; const ctx=c.getContext('2d')!; const s=game.current;
     const backgrounds: Record<Room, HTMLImageElement> = {alley:new Image(), hall:new Image(), gunroom:new Image()};
     for (const room of ['alley','hall','gunroom'] as const) backgrounds[room].src=`/levels/alley-rescue-v1/${room}.webp`;
-    const hero=new Image(); hero.src='/characters/xgod/drawn-v1/idle.png';
-    const run=new Image(); run.src='/characters/xgod/drawn-v1/run-swing.png';
-    const sword=new Image(); sword.src='/characters/xgod/drawn-v1/sword-attack.png';
+    const hero=new Image(); hero.src=deliveryImagePath('/characters/xgod/drawn-v1/idle.png');
+    const run=new Image(); run.src=deliveryImagePath('/characters/xgod/drawn-v1/run-swing.png');
+    const sword=new Image(); sword.src=deliveryImagePath('/characters/xgod/drawn-v1/sword-attack.png');
     const arm=new Image(); arm.src='/characters/xgod/kai-arm-v1/arm.png';
     const armRun=new Image(); armRun.src='/characters/xgod/kai-arm-v1/run-v2.png';
     const equip=new Image(); equip.src='/characters/xgod/kai-arm-v1/equip.png';

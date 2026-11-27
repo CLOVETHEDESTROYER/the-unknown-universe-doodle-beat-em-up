@@ -4,6 +4,8 @@
 
 Run the curated Playwright regression checks through a single runner:
 
+Install both browser engines first with `npx playwright install chromium webkit`.
+
 ```sh
 npm run test:suite                         # build + run all core checks
 node scripts/run_regression_suite.mjs --list
@@ -21,6 +23,7 @@ Included core checks:
 
 - `pack_mobile_assets.py` — generates trimmed lossless mobile sprite atlases under `public/mobile-v1/`
 - `optimize_loading_assets.py` — encodes WebP delivery copies under `public/performance-v1/` and updates `gameplay/performanceAssetManifest.json`
+- `optimize_recent_delivery.py` — run after the main delivery optimizer to add recent X God and boss sheets (verified lossless RGBA), roster thumbnails and compressed gun icons. Sprite geometry and alpha stay intact; source artwork stays in place.
 - `prepare_cutscene_delivery.mjs` — generates `.webp` delivery panels under `public/cutscenes/`
 - `audit_character_sizes.py` — verifies standing-height calibration against the 160px / 105px reference
 - `build_printable_hero_cards.py` — generates printable hero card PDFs into `output/pdf/`

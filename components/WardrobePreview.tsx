@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import type {CosmeticLoadout} from '../gameplay/shopCatalog';
 import {paintWardrobe} from '../gameplay/xgodWardrobe';
+import {deliveryImagePath} from '../gameplay/assetDelivery';
 
 const poses = [
   {label:'Idle', sheet:'blaster-idle', frames:4, ms:230},
@@ -30,7 +31,7 @@ export default function WardrobePreview({style}: {style:CosmeticLoadout}) {
       draw();
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) timer = setInterval(draw,current.ms);
     };
-    sheet.src = '/characters/xgod/drawn-v1/' + current.sheet + '.png';
+    sheet.src = deliveryImagePath('/characters/xgod/drawn-v1/' + current.sheet + '.png');
     return () => { sheet.onload = null; clearInterval(timer); };
   }, [pose,face,head,outfit]);
   return <div className="wardrobe-preview">

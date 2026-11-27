@@ -26,7 +26,7 @@ export function loadGameSheet(loader: Phaser.Loader.LoaderPlugin, key: string, p
   const sheet = isMobileGraphicsEnabled() ? manifest.sheets[path.replace(/^\//, '')] : undefined;
   if (!sheet || sheet.width !== config.frameWidth || sheet.height !== config.frameHeight
     || (config.startFrame ?? 0) > 0 || config.margin || config.spacing) {
-    return loader.spritesheet(key, path, config);
+    return loader.spritesheet(key, deliveryImagePath(path), config);
   }
   const atlasUrl = deliveryAtlasPath(sheet.url);
   loader.multiatlas(key, atlasUrl, atlasUrl === sheet.url ? '/mobile-v1/' : '');

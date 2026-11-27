@@ -708,9 +708,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
       workshopPickups.forEach(id=>loadWorkshopPickup(this.load,id));
       if (!isNativeHero) {
         (Object.keys(GUN_UPGRADES) as GunUpgradeId[]).forEach(mode => {
-          // Load directly: the generic asset resolver has no WebP variants for
-          // these new icons. makeGunUpgradeTextures remains a failure fallback.
-          this.load.image(`gun_upgrade_${mode}`, gunIconPath(mode));
+          loadGameImage(this.load,`gun_upgrade_${mode}`, gunIconPath(mode));
         });
       }
       if (hasDinio || level.pickups.some(p => p.kind === 'dinio')) {
@@ -744,7 +742,7 @@ const PlatformerGameEngine: React.FC<PlatformerGameEngineProps> = ({
           frameHeight: boss.frameHeight
         });
       });
-      for(const id of FLOW_BOSSES)if(level.enemies.some(enemy=>enemy.bossId===id))this.load.spritesheet('boss_flow_'+id,'/bosses/flow-v3/'+id+'.png',{frameWidth:640,frameHeight:640});
+      for(const id of FLOW_BOSSES)if(level.enemies.some(enemy=>enemy.bossId===id))loadGameSheet(this.load,'boss_flow_'+id,'/bosses/flow-v3/'+id+'.png',{frameWidth:640,frameHeight:640});
       level.enemies.filter(enemy => enemy.bossId).forEach(enemy => {
         const bossId = enemy.bossId as BossId;
         const visual = BOSS_ATTACK_VISUALS[bossId];

@@ -1,6 +1,6 @@
 import manifest from './performanceAssetManifest.json';
 
-/** Delivery copies preserve source dimensions and alpha; unknown/custom URLs pass through. */
+/** Sprite delivery preserves frame geometry; roster cards may use display thumbnails. Unknown URLs pass through. */
 export function deliveryImagePath(path: string): string {
   return (manifest.images as Record<string, string>)[path.replace(/^\//, '')] ?? path;
 }
